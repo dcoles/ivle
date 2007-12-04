@@ -1,0 +1,14 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin
+export PATH
+
+base = /var/informatics/jails/
+repo="$1"
+rev="$2
+
+usr=`echo "$repo" | sed 's/.*\/\([^\/]*\)$/\1/'`
+
+echo "$repo" "$rev" "$usr" >> /tmp/log
+
+cd "$base/$usr/svn/trunk"

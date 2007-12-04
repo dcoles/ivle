@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+import os
+import sys
+import re
+import resource
+
+jailBase = '/home/infomatics/jails/'
+siteBase = '/home/informatics/www/'
+
+def findUser(login):
+    entries = {}
+    passwdfile = open('/etc/passwd')
+    for line in passwdfile.readlines():
+        rec = re.split(':',line)
+        if rec[0] == login:
+            return rec
+    raise Exception, (login + " not found!")
+
+def throttle():
+    Kb = 1024
+    Mb = 1024 * 1024
+
+    limits = [(resource.RLIMIT_CORE,     (0,0)), \
+              (resource.RLIMIT_CPU,      (1,2)), \
+              (resource.RLIMIT_FSIZE,    (5 * Mb, 5 * Mb)), \
+              (resource.RLIMIT_DATA,     (20 * Mb, 24 * Mb)), \
+              (resource.RLIMIT_STACK,    (8 * Mb, 9 * Mb)), \
+              (resource.RLIMIT_NPROC,    (10, 10)), \
+              (resource.RLIMIT_NOFILE,   (10, 12))]
+
+    for (r,l) in limits:
+        resource.setrlimit(r,l)
+
+def runit(login, script):
+    user = findUser(login)
+    uid = int(user[2])
+    os.chdir(jailBase + login)
+    os.chroot(jailBase + login)
+    os.setuid(uid)
+    throttle()
+    os.execlp("/usr/bin/python", "python", script)
+
+os.environ['DOCUMENT_ROOT'] = '/'
+os.environ['SCRIPT_FILENAME'] = re.sub(siteBase, '/home/',
+                                        os.environ['SCRIPT_FILENAME'])
+
+m = re.match('^/([^/]*)/', os.environ['SCRIPT_NAME'])
+if m is None:
+    exit(1)
+login = m.group(1)
+
+runit(login, os.environ['SCRIPT_FILENAME'])
