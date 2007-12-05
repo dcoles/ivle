@@ -78,3 +78,32 @@ with the following subdirectories:
     This allows the CGI module to see the python scripts for the named user.
     This {will be,is} where the published work for the named student will be
     located.
+
+Adding New Users
+================
+
+TODO - automate all this.
+
+1. Create a subversion respository by adding
+    [jdoe:/]
+    jdoe=rw
+  to the /home/informatics/config/svn-authz file.
+
+2. Create a chroot jail (using the mkJail.sh script).
+
+3. Initialize the svn repository with the commands
+    cd /home/informatics/jails/jdoe/home/jdoe
+    mkdir svn
+    cd svn
+    svn co <url to repository>/jdoe
+    cd jdoe
+    svn mkdir trunk
+    svn ci
+
+4. Create the symlinks so that the webserver can find the python code:
+    cd /home/informatics/www
+    ln -s /home/informatics/jails/jdoe/home/jdoe/svn/jdoe/trunk jdoe
+
+5. Add authentication with htpasswd:
+    htpasswd -m /home/informatics/config/digest jdoe
+
