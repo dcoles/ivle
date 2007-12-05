@@ -8,11 +8,11 @@ mkdir "/home/informatics/jails/$usr/home/$usr"
 
 for f in `cd /home/informatics/config/jail; find . -print`
 do
-    if [ -d "$f" ]
+    if [ -d "/home/informatics/config/jail/$f" ]
     then
-        mkdir "jails/$usr/$f"
+        mkdir "/home/informatics/jails/$usr/$f"
     else
-        ln "$f" "jails/$usr/$f"
+        ln "/home/informatics/config/jail/$f" "/home/informatics/jails/$usr/$f"
     fi
 done
 

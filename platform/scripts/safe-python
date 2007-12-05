@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 import os
 import sys
 import re
 import resource
 
-jailBase = '/home/infomatics/jails/'
+jailBase = '/home/informatics/jails/'
 siteBase = '/home/informatics/www/'
 
 def findUser(login):
@@ -32,7 +32,12 @@ def throttle():
     for (r,l) in limits:
         resource.setrlimit(r,l)
 
-def runit(login, script):
+def runit(login):
+    os.environ['DOCUMENT_ROOT'] = '/'
+    os.environ['SCRIPT_FILENAME'] = re.sub(siteBase + login + '/',
+                        '/home/' + login + '/svn/' + login + '/trunk/',
+                        os.environ['SCRIPT_FILENAME'])
+    script = os.environ['SCRIPT_FILENAME']
     user = findUser(login)
     uid = int(user[2])
     os.chdir(jailBase + login)
@@ -41,13 +46,9 @@ def runit(login, script):
     throttle()
     os.execlp("/usr/bin/python", "python", script)
 
-os.environ['DOCUMENT_ROOT'] = '/'
-os.environ['SCRIPT_FILENAME'] = re.sub(siteBase, '/home/',
-                                        os.environ['SCRIPT_FILENAME'])
-
 m = re.match('^/([^/]*)/', os.environ['SCRIPT_NAME'])
 if m is None:
     exit(1)
 login = m.group(1)
 
-runit(login, os.environ['SCRIPT_FILENAME'])
+runit(login)

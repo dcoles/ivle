@@ -12,3 +12,4 @@ usr=`echo "$repo" | sed 's/.*\/\([^\/]*\)$/\1/'`
 echo "$repo" "$rev" "$usr" >> /tmp/log
 
 cd "$base/$usr/svn/trunk"
+svn update
