@@ -53,7 +53,12 @@ centos_4_i686 : $(BASEDIR)
 	-mkdir $(BASEDIR)/config/jail/lib
 	-mkdir $(BASEDIR)/config/jail/lib/tls
 	cp /lib/ld-linux.so.2 $(BASEDIR)/config/jail/lib
+	cp /lib/libcom_err.so.2 $(BASEDIR)/config/jail/lib/
+	cp /lib/libcrypto.so.4 $(BASEDIR)/config/jail/lib/
 	cp /lib/libdl.so.2 $(BASEDIR)/config/jail/lib
+	cp /lib/libgcc_s.so.1 $(BASEDIR)/config/jail/lib/
+	cp /lib/libresolv.so.2 $(BASEDIR)/config/jail/lib/
+	cp /lib/libssl.so.4 $(BASEDIR)/config/jail/lib/
 	cp /lib/libutil.so.1 $(BASEDIR)/config/jail/lib
 	cp /lib/tls/libc.so.6 $(BASEDIR)/config/jail/lib/tls
 	cp /lib/tls/libm.so.6 $(BASEDIR)/config/jail/lib/tls
@@ -64,6 +69,13 @@ centos_4_i686 : $(BASEDIR)
 	ln -s $(BASEDIR)/config/jail/usr/bin/python2.5 \
 		$(BASEDIR)/config/jail/usr/bin/python
 	-mkdir $(BASEDIR)/config/jail/usr/lib
+	cp /usr/lib/libfreetype.so.6 $(BASEDIR)/config/jail/usr/lib
+	cp /usr/lib/libgssapi_krb5.so.2 $(BASEDIR)/config/jail/usr/lib/
+	cp /usr/lib/libk5crypto.so.3 $(BASEDIR)/config/jail/usr/lib/
+	cp /usr/lib/libkrb5.so.3 $(BASEDIR)/config/jail/usr/lib/
+	cp /usr/lib/libpng12.so.0 $(BASEDIR)/config/jail/usr/lib
+	cp /usr/lib/libstdc++.so.6 $(BASEDIR)/config/jail/usr/lib
+	cp /usr/lib/libz.so.1 $(BASEDIR)/config/jail/usr/lib/
 	-mkdir $(BASEDIR)/config/jail/usr/lib/python2.5
 	cp -r /usr/local/lib/python2.5 $(BASEDIR)/config/jail/usr/lib/
 

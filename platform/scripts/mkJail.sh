@@ -1,21 +1,22 @@
 #!/bin/sh
 
 usr="$1"
+base="/home/informatics"
 
-mkdir "/home/informatics/jails/$usr"
-mkdir "/home/informatics/jails/$usr/home"
-mkdir "/home/informatics/jails/$usr/home/$usr"
+mkdir "$base/jails/$usr"
+mkdir "$base/jails/$usr/home"
+mkdir "$base/jails/$usr/home/$usr"
 
-for f in `cd /home/informatics/config/jail; find . -print`
+for f in `cd "$base/config/jail"; find . -print`
 do
-    if [ -d "/home/informatics/config/jail/$f" ]
+    if [ -d "$base/config/jail/$f" ]
     then
-        mkdir "/home/informatics/jails/$usr/$f"
+        mkdir "$base/jails/$usr/$f"
     else
-        ln "/home/informatics/config/jail/$f" "/home/informatics/jails/$usr/$f"
+        ln "$base/config/jail/$f" "$base/jails/$usr/$f"
     fi
 done
 
-chown -R "$usr" "jails/$usr"
-chgrp -R `id -g "$usr"` "jails/$usr"
+chown -R "$usr" "$base/jails/$usr"
+chgrp -R `id -g "$usr"` "$base/jails/$usr"
 

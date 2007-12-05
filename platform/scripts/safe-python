@@ -27,7 +27,7 @@ def throttle():
               (resource.RLIMIT_DATA,     (20 * Mb, 24 * Mb)), \
               (resource.RLIMIT_STACK,    (8 * Mb, 9 * Mb)), \
               (resource.RLIMIT_NPROC,    (10, 10)), \
-              (resource.RLIMIT_NOFILE,   (10, 12))]
+              (resource.RLIMIT_NOFILE,   (50, 60))]
 
     for (r,l) in limits:
         resource.setrlimit(r,l)
@@ -37,6 +37,7 @@ def runit(login):
     os.environ['SCRIPT_FILENAME'] = re.sub(siteBase + login + '/',
                         '/home/' + login + '/svn/' + login + '/trunk/',
                         os.environ['SCRIPT_FILENAME'])
+    os.environ['HOME'] = '/home/' + login
     script = os.environ['SCRIPT_FILENAME']
     user = findUser(login)
     uid = int(user[2])
