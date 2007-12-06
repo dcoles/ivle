@@ -1,0 +1,12 @@
+IVLE Design - Misc
+==================
+
+    Author: Matt Giuca
+    Date: 4/12/2007
+
+Tutorial page
+-------------
+
+Tutorials need to be able to include and submit not just Python code, but any
+arbitrary HTML form (such as option buttons to answer multiple choice
+questions, or non-EditArea text fields).

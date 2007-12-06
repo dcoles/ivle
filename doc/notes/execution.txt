@@ -1,0 +1,196 @@
+IVLE Design - Python Execution Environment
+==========================================
+
+    Author: Matt Giuca
+    Date: 3/12/2007
+
+Python scripts can be executed from IVLE in two ways.
+
+1. A persistent, interactive environment.
+2. A stateless CGI environment.
+
+These two methods diverge because it isn't really possible to have an
+interactive environment (as in user interacts with stdin) as well as allow CGI
+programs to run.
+
+The interactive environment will be experienced from the web interface through
+an Ajax-based console, rather than directly printing output to the screen.
+
+The CGI environment will be experienced by executing the CGI on the server and
+directing its output directly to the browser.
+
+Ways to execute code
+--------------------
+
+There are a number of different ways to run Python from inside the web
+environment. Each method launches either the interactive environment or the
+CGI environment.
+
+Note: REPL refers to the interactive Read-Eval-Print Loop that Python gives
+you if you run it with -i.
+
+1. Navigate the browser directly to a .py file. Executes the program in the
+    CGI environment.
+2. Click "execute" on a .py file from the file browser. This links the browser
+    to the .py file (possibly in a new tab), resulting in the same as #1. The
+    Editor screen could also have a "run in browser" button which opens the
+    file in CGI mode in a new browser tab.
+3. Go to the Console screen. This launches the INTERACTIVE environment without
+    loading any modules (with REPL).
+4. Perhaps, the file browser also has a "run in console" button. This goes to
+    the console screen loading the file as an argument in INTERACTIVE mode
+    (this could be with or without REPL - I'd say with).
+5. The Editor screen should be divided into 2, with an editor at the top and a
+    console at the bottom. A "run" button would launch a new Python session in
+    the console at the bottom, running in INTERACTIVE mode (without REPL).
+6. The Reference / Tutorial screen consists of a number of small edit box /
+    console pairs. The "run" button runs the application inside the small
+    console window in INTERACTIVE mode (without REPL).
+
+The Interactive Environment
+---------------------------
+
+The interactive environment will be:
+
+* Wrapped in an Ajax console for interaction.
+* Persistent. The user is given a Python environment which lets them
+  interact with the Python interpreter console, as well as interact with their
+  running programs through stdin.
+* Optionally presents a `python -i' environment (depending on how it is run -
+  see use cases above, this is REPL mode).
+* Not designed to handle CGI apps. If you run a CGI app in this environment,
+  you just see the CGI headers (running as a normal program) (see below for
+  discussion).
+* Given a large but finite CPU time limit (possibly a minute). We
+  want to let the user continue interacting for some time, but kill the
+  process if the user puts it into an endless loop and fails to terminate it.
+
+### Discussion: Persistent console vs controlled pickled sessions ###
+
+There are two possible ways to handle giving students an interactive Python
+session.
+
+The important thing we need to have is a persistent session - that is, it
+remembers the loaded modules and variables (the environment) from one command
+to the next, so if you type "a = 4"; "a", it prints "4".
+
+The simplest possibility is to just give students their own Python process
+which they can use however they want.
+
+The other alternative discussed was to simulate a persistent environment but
+actually create a new Python session each time a command is executed. This
+would be done by pickling and unpickling the symbol table, storing the pickled
+file as a "persistent environment" local to each user.
+
+This has the following advantages compared to the persistent console:
+
+* Better memory usage as only students who are currently executing commands
+  take up memory.
+* Better load balancing, as each command could be run on a different machine.
+* Ability for our software to differentiate between the interactive REPL
+  environment and the running process. This would make it easy to do the CGI
+  handling described below (which might be difficult or impossible with a
+  dedicated Python process). Also we can give each command 1 second of CPU
+  time instead of giving the entire process 1 minute of CPU time, which is
+  fairer and more sensible.
+
+But the following disadvantages:
+
+* Much harder to implement. Possibility of introducing bugs since we are
+  effectively trying to emulate a Python REPL environment.
+* All of a given student's Python windows would be interfering with one
+  another as they would all share the one environment.
+* Possibly huge time overhead for loading and unloading the environment each
+  time.
+* Possibly not that great a saving as the main memory overhead of a persistent
+  Python process is shared between all users anyway.
+
+I think we decided to go with a single persistent environment for each
+student.
+
+### Discussion: Handling CGI output ###
+
+If the first thing the program outputs is CGI headers, and one of those is a
+Content-Type header, why not handle it specially. Split the screen in half
+horizontally, with the console at the top (still able to receive input from
+stdin in the console). The bottom half would present the content rendered
+correctly in the browser as HTML, Image content, etc.
+
+This feature should be optional, as you might want to see the raw CGI output.
+
+Also it could cause problems in REPL mode - ideally the program's stdout could
+go to the CGI content handler while the stdout caused by the REPL environment
+could go to the console. This would be ideal, as students could then type
+print statements directly into the REPL and see the results printed live into
+the browser.
+
+A possibly-friendlier alternative is to do this the other way round. In the
+CGI environment, if no Content-Type is detected, rather than just printing the
+output to the browser, perhaps it should launch the full console (even for
+public access visitors?) This way you can present interactive non-CGI programs
+in a production environment.
+
+Ultimately this could just mean that whether the environment is interactive or
+CGI depends on whether a Content-Type is given, rather than how the session
+was launched (though we also want to be able to have an interactive mode with
+CGI programs that let you see the raw output).
+
+The CGI Environment
+-------------------
+
+The CGI environment will be:
+
+* Sent directly to the browser through the CGI.
+* Stateless. Programs are run directly and are expected to terminate
+  immediately.
+* Wrapped in a default content type. Because programs executed in the CGI
+  environment are sent straight to the browser, they are expected to produce
+  CGI output. As a bare minimum, this must include a newline at the start of
+  the file to signal to the web server that the headers are finished.
+  The upshot of this is that it can execute non-CGI programs as well, only
+  they are non-interactive and just print their output in plain text into the
+  browser.
+* Given a short CPU time limit (possibly a second). This is just for the
+  execution of a single program, and it should not take long at all (after
+  all, it is a web service).
+
+### Discussion: What if the student needs more CPU time? ###
+
+They should not need more CPU time when running a web process because it isn't
+friendly to visitors anyway. If they need to, they can do preprocessing of the
+data, and use the interactive environment which gives them a lot more CPU
+time.
+
+Perhaps there could be a way for the students to request more CPU time on a
+limited basis (for one run?), like "nice" but in the web interface. (Note:
+infeasible if it's a web application since we'll want an arbitrary number of
+accesses).
+
+### Discussion: How does CGI work when you don't give a content type? ###
+
+The server gives a 500 Internal Server Error if non-header data is found
+before the first blank line, so a non-CGI console program by itself will
+usually give this error.
+
+If there is a valid blank line but no Content-Type header, Apache will apply a
+default Content-Type of text/plain (verified empirically). However the CGI
+specification seems to state that a Content-Type is required.
+
+> A full document with a corresponding MIME type
+> 
+> In this case, you must tell the server what kind of document you will be
+> outputting via a MIME type.
+
+[(source)](http://hoohoo.ncsa.uiuc.edu/cgi/primer.html)
+
+Therefore we can write a wrapper which looks at the output and acts
+accordingly:
+
+* If it begins with data which is invalid headers, assume this is a non-CGI
+  program and insert Content-Type: text/plain.
+* If it begins with a blank line (no headers), it would be safest to make the
+  same assumption.
+* If it begins with valid headers INCLUDING Content-Type, let it pass as-is
+  (assume it is a valid CGI program).
+* If it begins with valid headers but not including Content-Type, probably
+  best to just let it through anyway and let Apache handle it.

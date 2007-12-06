@@ -1,0 +1,248 @@
+IVLE Design - Subversion Web Access
+===================================
+
+    Author: Matt Giuca
+    Date: 3/12/2007
+
+We will provide students with a web interface to Subversion. A major focus of
+the web interface is to shield new students from the details of actually
+managing a repository and just provide them with what looks like a normal file
+browser, which happens to backup their files.
+
+We are considering writing our own web file browser to Subversion.
+
+The original concept is this (as implemented in the IVLE / PynApple prototype):
+
+* Provide an interface to just the repository. All accesses are done directly
+  to the repository, the interface knows nothing about workspaces.
+* Editing the files within the environment automatically commits the changes
+  to the repo.
+* Allow import / export of files.
+* Execute the Python programs in a special "run" directory which protects the
+  user's workspace.
+* Presumably allow some kind of rollback to previous versions.
+
+This was problematic because it did not allow us to browse the directories
+outside of subversion (such as the execution directory).
+
+Our new design is to write a web-based _workspace_ browser. This will give
+students a more hands-on experience using a repository, but more importantly
+let them see what temporary files are being created and clean them up. This
+simplifies the system and reduces the amount of "magic" we have to perform
+around the students.
+
+A major advantage of this is that we no longer have to have a separate file
+browser from the repository browser. There is no "execution" directory - the
+student just works entirely within their own workspace. (If necessary this
+browser could be made to explore parts of the file system outside of a
+workspace, simply disabling the SVN features).
+
+This means the student can have their permanent files (say "flower-in.png") in
+the same directory as the temporary files (say "flower-out.png") and not need
+to worry about changing directories or any of those complications.
+
+Terminology shift
+-----------------
+
+In order to shield new students from the immediate reality of a "repository",
+we will present the system as a simple extension of a normal file system they
+are used to. (This section is written in a deliberately obtuse style; this is
+the "story" we will tell new students).
+
+The student is given a "workspace", with no mention of a repository. Inside
+the workspace they have "permanent files" and "temporary files". Permanent
+files are those which exist in both the (somewhat hidden) repository, and the
+workspace, while temporary files exist only in the workspace.
+
+Unlike originally proposed, editing and saving documents will *not*
+auto-commit. We hope to augment the editor with a "save" button (which saves
+to the workspace) and a "save-and-commit" button (which saves and commits the
+file automatically, possibly asking for a log message).
+
+The paradigm we present to students is: the system saves a permanent backup of
+your file when you hit "save-and-commit". In fact, each time you hit
+"save-and-commit" it saves a separate backup, so later you can go back to any
+older version. Files backed up permanently are the so-called "permanent files"
+while files which haven't been committed permanently are "temporary files".
+
+Editing a permanent file and saving it but not committing it results in an
+"out-of-date" file. This means you have made changes which aren't yet
+permanently backed up. The commit button either in the editor or the file
+browser will ensure these changes are permanently saved.
+
+A useful reason we have temporary files is you can muck around with them
+however you like, and if you don't like the changes, you can "roll back" or
+"clean up" by hitting the cleanup button. The cleanup button does *two* things
+- it "undoes" all the changes you made to out-of-date files, going back to
+their last permanent version, and it also deletes any temporary files.
+
+(Note: I think it would be a good idea to separate these. Have a "rollback"
+button which is seen as a large-scale undo button, which just reverts all
+out-of-date files; that is reverts uncommitted changes to files in the repo,
+and a "cleanup" button which deletes all temporary files; that is deletes any
+files which have not been added).
+
+(Another note: One thing which confuses *many* students, even 3rd and 4th
+year, is the difference between "add" and "commit". Hopefully we can simplify
+this so that the add button also commits? We need to decide if we want to
+enforce atomicity - that is, if we expect students to avoid committing one
+file at a time creating broken revisions - because things like the
+"save-and-commit" button on the editor, and "add-and-commit" in the file
+browser really discourage atomicity. I would argue for the best.)
+
+Note that files could also be out-of-date if the Python program somehow
+mangles them. In this case they should be reverted. Because of this, the
+environment could portray out-of-date files as somehow "damaged".
+
+A final note that the current "save" button in EditArea saves to the local
+disk - ie. it is really a "download" button. Will need to modify this so
+"save" just writes to the workspace, and have a separate download button
+(possibly only through the file browser interface).
+
+Multiple levels of expertise
+----------------------------
+
+We have identified at least two modes to place the interface (particularly,
+the file browser) into when considering the expertise levels of the users.
+
+We plan to have new students go into a "dumbed down" mode ("novice mode")
+which will hide certain features and details, in particular the subversion
+features.
+
+Essentially the novice mode will give students the impression that this is
+just a file system, with no revision control. There will be just a single
+"save" button in the editor which will save to the student's workspace.
+
+The "adept" mode by contrast will provide two save buttons - "save as draft"
+(or save as temporary) and "save and commit". These behave as described above.
+
+The question is, what does the novice mode "save" button do. It could either
+write to the workspace only (effectively meaning students are without revision
+control until they move into adept mode), or it could auto-commit each save.
+If it autocommits we may or may not let the students in novice mode browse
+their history (but if necessary, a lab demonstrator could go into adept mode
+to retrieve old versions).
+
+Autocommitting each save has advantages:
+
+* Students can be helped to retrieve old versions if they mess up or lose
+  their work.
+* We can check their history when we mark projects.
+
+Disadvantages:
+
+* CPU drain from high volume of commits (see "unresolved issues" at the bottom).
+* Possibly hard to explain once they move into adept mode that "save no longer
+  saves your history unless you click save+commit" - which is why I'm calling
+  it "save as draft" and having NO button called simply "save".
+
+I have to say I am inclined to give even novice users both buttons. It isn't a
+terribly difficult concept to distinguish between "I am just mucking around
+with this file" and "I want to keep this".
+
+Alternatively, if we do dumb it down, perhaps instead of committing each save,
+we just save to their workspace and do automatic commits from the workspace
+every so often (timewise, or number-of-saves-wise).
+
+Use cases
+---------
+
+We have identified three levels of proficiency, which we will expect students
+to progress through as they go through the course.
+
+1. Novice user (students in their first or second week with no prior
+    experience to revision control).
+2. Familiar user (students who have grasped the concept of revision control
+    and are expected to use the system as normal developers use revision
+    control for single-developer projects).
+3. Group user (students who are undertaking group work and need to use
+    advanced multi-user features such as conflict-and-merge handling).
+
+### Novice user ###
+
+#### Use case: First hello world ####
+
+Background: The student has used IVLE's tutorial section to write simple
+Python programs and also played around in the console, but they haven't used
+the file system yet. They presumably are proficient managing and editing normal
+files and folders as in Windows at home, school, etc.
+
+1. Student navigates to the "files" screen. They see an empty directory.
+2. Student clicks "new file". They are immediately taken to the editor with an
+    untitled file. (We do not ask for filenames until they save, as most GUI
+    programs behave).
+3. Student types in the Python "Hello world" program, and clicks "save".
+    (Tempting to print a warning about temporary files but this will probably just
+    confuse them at first).
+4. A dialog box asks for the filename. They type in "hello.py". As with
+    familiar GUI apps, they can always choose to "Save As" later.
+5. Student can now "run" the program from within the editor. (They could have
+    done this before they saved - we should be able to handle running code
+    which the student has not saved).
+6. Returning to the file browser, student sees "hello.py" with a "temporary
+    file" icon next to it. At this stage this icon can be ignored but if the
+    student enquires, a demonstrator explains that temporary files are SAVED
+    but you can make permanent backups of files in case you mess them up by
+    clicking "commit".
+7. Student clicks "commit" and the temporary file icon goes away.
+
+Note that apart from the commit issue, this whole usage example is supposed to
+feel like what the students are used to with Windows applications such as file
+Explorer and Microsoft Word, Notepad, etc. (Sorry to use Microsoft metaphors
+but let's face it, that's what they know).
+
+Students will call directories "folders". Do we need to explain that they are
+the same thing? Should IVLE call them "folders"? Presumably the icons will
+make this rather obvious!
+
+#### Use case: Normal workflow, single-file programs ####
+
+Background: For the first few weeks, students will be primarily editing
+programs which are single-file Python programs, and will treat the file
+browser as just a directory hierarchy with backup facilities. Assume the
+student already has a Python file created as above, and it is a permanent file.
+
+1. Student opens the file browser where their file is stored. They click
+    "edit" and are taken to the editor screen.
+2. Student edits the file, saving it frequently and running it. They are aware
+    of the "temporary file" icon on the screen.
+3. Student is happy that the changes they made are positive. They click "save
+    and commit". For novice students, this simply removes the "temporary file"
+    icon, and the student can sleep knowing they have a permanent backup to
+    revert to.
+4. Advanced students may have turned on the "ask for log messages" checkbox in
+    their settings. When they click "save and commit", a dialog box appears
+    which prompts for a log message. (This is a more advanced feature, after
+    students realise the value of leaving themselves short notes for when they
+    browse the history).
+
+Note I am thinking of having a little icon space in the editor which shows
+either:
+
+* A "unsaved" icon if the user has made changes without saving (like how vim
+  writes a "+" in the title bar).
+* A "temporary file" icon if the user has saved it without committing.
+* No icon if the user has just committed.
+
+Unresolved issues
+-----------------
+
+### Disk quota ###
+If we are keeping a repository, this means students completely
+lack the ability to delete their permanent files (for the purpose of freeing
+up space). This means that if students reach their quota, they can't fix it.
+
+Solutions:
+
+* Only put a quota on the head (do not penalise students for large files in
+  repo). This could be abused.
+* Allow students to request (through an admin) that a file is permanently
+  historically erased from the repository.
+
+### Novice mode CPU usage ###
+
+In novice mode there will be signficantly more commits than adept mode because
+of the commit each save policy (if we go down that road). Each commit takes up
+a little bit of disk space (permanently), but also is problematic because it
+takes awhile to commit and many students all using novice mode could overwhelm
+the system.
