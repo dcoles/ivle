@@ -23,7 +23,7 @@ enc = encoder.JSONEncoder()
 getfile_content_type="text/html"
 #getfile_content_type="application/octet-stream"
 
-root = "/home/mgiuca/www/htdocs/browser/playground/"
+root = "/home/mgiuca/playground/"
 
 greqprint = None
 def set_greqprint(req):

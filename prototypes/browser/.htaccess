@@ -1,0 +1,10 @@
+# htaccess file required for this application
+# Python files in this directory will be handled by the Publisher handler, as
+# required by files.py.
+
+# Note that Apache config requires AllowOverride to be set for this directory
+# or .htaccess will be ignored.
+
+AddHandler mod_python .py
+PythonHandler mod_python.publisher | .py
+PythonDebug On
