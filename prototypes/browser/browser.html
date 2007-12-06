@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>File Browser</title>
+<meta http-equiv="Content-Type" content="application/xml+xhtml; charset=utf-8"
+    />
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript" src="browser.js"></script>
+<style type="text/css">
+th { text-align: left }
+</style>
+</head>
+<body onload="init_browser()">
+<p id="path"></p>
+<p><input type="button" value="Refresh" onclick="refresh()" />
+<input type="button" value="New File" onclick="newfile()" /></p>
+<table width="100%">
+<thead>
+<tr><th>Type</th><th>Filename</th><th>Size</th><th>Time</th><th>Actions</th></tr>
+</thead>
+<tbody id="files"></tbody>
+</table>
+</body>
+</html>

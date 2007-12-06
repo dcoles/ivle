@@ -1,0 +1,25 @@
+files.py
+
+Interacting with.
+
+To interact with the backend (at this stage) it's all done simply by accessing
+URLs and providing GET vars. (Bad REST but I'll fix it later).
+
+You just navigate to files.py/command?args in the browser, and it sends you
+back a JSON file listing after performing your command.
+
+The commands are:
+
+ls?path=...
+rm?path=...&filename=...
+rename?path=...&fromfilename=...&tofilename=...
+getfile?path=...&filename=...
+putfile?path=...&filename=...&data=...
+
+ls and getfile are referentially transparent. rm, rename and putfile cause
+changes to happen on the server.
+
+All operations but getfile return a JSON document which is an object
+containing a full directory listing for the path given.
+
+Getfile returns the file contents precisely.
