@@ -82,6 +82,9 @@ def dirlisting(path):
     Returns a dictionary of file listing info. NOT to be called directly."""
     # Start by trying to do an SVN status, so we can report file version
     # status
+    # TODO: Known bug:
+    # Fatal error if any file is missing (deleted with rm instead of svn rm)
+    # Handle gracefully, and also change "rm" to do an svn rm if possible.
     try:
         status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)

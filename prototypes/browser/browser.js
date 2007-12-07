@@ -354,6 +354,30 @@ function loadfile()
     document.getElementById("data").value = xmlhttp.responseText;
 }
 
+function saveandcommit()
+{
+    filename = document.getElementById("filename").value;
+    data = document.getElementById("data").value;
+    url = obj_to_query_string("files.py/putfile",
+        {"path" : "", "filename" : filename, "data" : data});
+    var xmlhttp =  new XMLHttpRequest();
+        // false -> SYNCHRONOUS (wait for response)
+        // (No need for a callback function)
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send("");
+    
+    url = obj_to_query_string("files.py/svncommit",
+        {"path" : "", "filename" : filename});
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send("");
+
+    listing = JSON.parse(xmlhttp.responseText);
+    if (listing == null)
+        alert("An error occured");
+    else if ("error" in listing)
+        alert("Error: " + listing.error);
+}
+
 /* Called on page load */
 function init_browser()
 {
