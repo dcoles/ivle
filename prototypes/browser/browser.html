@@ -14,10 +14,11 @@ th { text-align: left }
 <body onload="init_browser()">
 <p id="path"></p>
 <p><input type="button" value="Refresh" onclick="refresh()" />
-<input type="button" value="New File" onclick="newfile()" /></p>
+<input type="button" value="New File" onclick="newfile()" />
+<input type="button" value="Commit All" onclick="svncommitall()" /></p>
 <table width="100%">
 <thead>
-<tr><th>Type</th><th>Filename</th><th>Size</th><th>Time</th><th>Actions</th></tr>
+<tr><th>Type</th><th>Filename</th><th>Status</th><th>Size</th><th>Time</th><th>Actions</th></tr>
 </thead>
 <tbody id="files"></tbody>
 </table>

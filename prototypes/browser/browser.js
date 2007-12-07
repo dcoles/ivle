@@ -52,12 +52,20 @@ function maketdwithlink(text, href, onclick)
     return td;
 }
 
-function maketdwithactions(filename)
+/* file is a listing object, with fields as returned by the server. */
+function maketdwithactions(file)
 {
     td = document.createElement("td");
-    td.appendChild(makebutton("Delete", "rm(\"" + filename + "\")"));
-    td.appendChild(makebutton("Rename", "rename(\"" + filename + "\")"));
-    td.appendChild(makebutton("Edit", "edit(\"" + filename + "\")"));
+    if (!file.isdir)
+    {
+        td.appendChild(makebutton("Delete", "rm(\"" + file.filename + "\")"));
+        td.appendChild(makebutton("Rename", "rename(\"" + file.filename + "\")"));
+        td.appendChild(makebutton("Edit", "edit(\"" + file.filename + "\")"));
+    }
+    if (file.svnstatus == "unversioned")
+        td.appendChild(makebutton("Add", "svnadd(\"" + file.filename + "\")"));
+    else if (file.svnstatus == "added" || file.svnstatus == "modified")
+        td.appendChild(makebutton("Commit", "svncommit(\"" + file.filename + "\")"));
     return td;
 }
 
@@ -117,21 +125,18 @@ function presentlisting(pathlist, listing)
             navlink = JSON.stringify(navlist.concat([file.filename]));
             navlink = "nav(" + navlink + ")";
             row.appendChild(maketdwithlink(file.filename, "#", navlink));
-            row.appendChild(maketd(file.size));
-            row.appendChild(maketd(file.mtime));
-            row.appendChild(maketd(""));
         }
         else
         {
             row.appendChild(maketd("file"));
             row.appendChild(maketd(file.filename));
-            row.appendChild(maketd(file.size));
-            row.appendChild(maketd(file.mtime));
-            row.appendChild(maketdwithactions(file.filename));
         }
+        row.appendChild(maketd(file.svnstatus));
+        row.appendChild(maketd(file.size));
+        row.appendChild(maketd(file.mtime));
+        row.appendChild(maketdwithactions(file));
         files.appendChild(row);
     }
-
 }
 
 /* AJAX */
@@ -142,14 +147,22 @@ function obj_to_query_string(pagename, obj)
     qs = pagename;
     for (key in obj)
     {
-        if (hadone == false)
+        vals = obj[key];
+        // vals can be an array, to make multiple args with the same name
+        // To handle this, make non-array objects into an array, then loop
+        if (!(vals instanceof Array))
+            vals = [vals];
+        for each (val in vals)
         {
-            qs += "?";
-            hadone = true;
+            if (hadone == false)
+            {
+                qs += "?";
+                hadone = true;
+            }
+            else
+                qs += "&";
+            qs += encodeURI(key) + "=" + encodeURI(val);
         }
-        else
-            qs += "&";
-        qs += escape(key) + "=" + escape(obj[key]);
     }
     return qs;
 }
@@ -212,6 +225,74 @@ function rename(fromfilename)
     url = obj_to_query_string("files.py/rename",
         {"path" : path, "fromfilename" : fromfilename,
         "tofilename" : tofilename});
+    var xmlhttp =  new XMLHttpRequest();
+        // false -> SYNCHRONOUS (wait for response)
+        // (No need for a callback function)
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send("");
+    listing = JSON.parse(xmlhttp.responseText);
+    if (listing == null)
+        alert("An error occured");
+    else if ("error" in listing)
+        alert("Error: " + listing.error);
+    else
+    {
+        clearfiles();
+        presentlisting(gpathlist, listing);
+    }
+}
+
+/* filenames is a list of filenames */
+function svnadd(filenames)
+{
+    path = pathlisttopath(gpathlist);
+    url = obj_to_query_string("files.py/svnadd",
+        {"path" : path, "filename" : filenames});
+    var xmlhttp =  new XMLHttpRequest();
+        // false -> SYNCHRONOUS (wait for response)
+        // (No need for a callback function)
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send("");
+    listing = JSON.parse(xmlhttp.responseText);
+    if (listing == null)
+        alert("An error occured");
+    else if ("error" in listing)
+        alert("Error: " + listing.error);
+    else
+    {
+        clearfiles();
+        presentlisting(gpathlist, listing);
+    }
+}
+
+/* filenames is a list of filenames */
+function svncommit(filenames)
+{
+    path = pathlisttopath(gpathlist);
+    url = obj_to_query_string("files.py/svncommit",
+        {"path" : path, "filename" : filenames});
+    var xmlhttp =  new XMLHttpRequest();
+        // false -> SYNCHRONOUS (wait for response)
+        // (No need for a callback function)
+    xmlhttp.open("GET", url, false);
+    xmlhttp.send("");
+    listing = JSON.parse(xmlhttp.responseText);
+    if (listing == null)
+        alert("An error occured");
+    else if ("error" in listing)
+        alert("Error: " + listing.error);
+    else
+    {
+        clearfiles();
+        presentlisting(gpathlist, listing);
+    }
+}
+
+function svncommitall()
+{
+    path = pathlisttopath(gpathlist);
+    url = obj_to_query_string("files.py/svncommit",
+        {"path" : path, "commitall" : "yes"});
     var xmlhttp =  new XMLHttpRequest();
         // false -> SYNCHRONOUS (wait for response)
         // (No need for a callback function)
@@ -304,5 +385,5 @@ aQueryString[iParam].indexOf(strParamName.toLowerCase() + "=") > -1 ){
       }
     }
   }
-  return unescape(strReturn);
+  return decodeURI(strReturn);
 }

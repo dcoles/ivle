@@ -13,6 +13,8 @@ import os
 import time
 # JSON encoder
 import encoder
+# SVN client support
+import pysvn
 
 content_type = "text/html"
 # application/json is the "best" content type but is not good for debugging
@@ -25,7 +27,13 @@ getfile_content_type="text/html"
 
 root = "/home/mgiuca/playground/"
 
+DEFAULT_LOGMESSAGE = "No log message supplied."
+
+# Make a Subversion client object
+svnclient = pysvn.Client()
+
 greqprint = None
+
 def set_greqprint(req):
     """Sets greqprint to a function which prints to the given req."""
     global greqprint
@@ -72,9 +80,19 @@ def init(req, path):
 def dirlisting(path):
     """Get a directory listing from a path. The path is a safe, absolute path.
     Returns a dictionary of file listing info. NOT to be called directly."""
-    filenames = os.listdir(path)
-    filenames.sort()
-    return map(file_to_fileinfo(path), filenames)
+    # Start by trying to do an SVN status, so we can report file version
+    # status
+    try:
+        status_list = svnclient.status(path, recurse=False, get_all=True,
+                        update=False)
+        return filter(lambda x: x != None,
+            map(PysvnStatus_to_fileinfo(path), status_list))
+    except pysvn.ClientError:
+        # Presumably the directory is not under version control.
+        # Fallback to just an OS file listing.
+        filenames = os.listdir(path)
+        filenames.sort()
+        return map(file_to_fileinfo(path), filenames)
 
 def ls(req, path="."):
     """Gets a directory listing of a given path on the server, in JSON
@@ -134,6 +152,108 @@ def file_to_fileinfo(path):
         d["mtime"] = time.ctime(stat.st_mtime)
         return d
     return ftf
+
+def PysvnStatus_to_fileinfo(path):
+    """Given a PysvnStatus object, gets all the info "ls"
+    needs to display about the filename. Returns a dict mapping a number of
+    fields which are returned.
+
+    May return None.
+    """
+    # Note: curried so it can be used with map
+    path = os.path.normcase(path)
+    def ftf(status):
+        fullpath = status.path
+        # For some reason it returns the dir itself. Exclude that.
+        if path == os.path.normcase(fullpath):
+            return None
+        d = {"filename" : os.path.basename(fullpath)}
+        text_status = status.text_status
+        d["svnstatus"] = str(text_status)
+        d["isdir"] = os.path.isdir(fullpath)
+        stat = os.stat(fullpath)
+        d["size"] = stat.st_size
+        d["mtime"] = time.ctime(stat.st_mtime)
+        return d
+    return ftf
+
+def svnadd(req, path, filename):
+    """Does "svn add" to all of the files given. (Multiple "filename"s can be
+    supplied)."""
+    # dirpath is the directory without the file attached
+    dirpath = init(req, path)
+    if filename == None:
+        # No files specified. Just call ls and get out.
+        return ls(req, path)
+    if not isinstance(filename, list):
+        filename = [filename]
+    # filename is a list of filenames
+    def getabsolute(filename):
+        filepath = safe_path_to_local(os.path.join(path, filename))
+        return filepath
+
+    paths = map(getabsolute, filename)
+    if any(map(lambda x: x == None, paths)):
+        # One or more paths was "None" (invalid)
+        return "null"
+
+    try:
+        svnclient.add(paths, recurse=True, force=True)
+        files = dirlisting(dirpath)
+    except pysvn.ClientError, errmsg:
+        return enc.encode({"error": str(errmsg)})
+    except OSError, (errno, errmsg):
+        return enc.encode({"error": errmsg})
+    req.write(enc.encode(files))
+    return ""
+
+def svncommit(req, path, filename=None, commitall=None, logmsg=None):
+    """Does "svn commit" to all of the files given. (Multiple "filename"s can be
+    supplied, or alternatively, commitall can be set to the string "yes")."""
+    # dirpath is the directory without the file attached
+    dirpath = init(req, path)
+
+    # Work out exactly what we're committing
+    if commitall == "yes":
+        # commitall == "yes" overrides filename
+        filenames = [dirpath]
+    elif filename == None:
+        # No files specified. Just call ls and get out.
+        return ls(req, path)
+    elif not isinstance(filename, list):
+        # One file specified
+        filenames = [filename]
+    else:
+        # Multiple files specified
+        filenames = filename
+    
+    # No matter what, filenames is a list of filenames
+
+    def getabsolute(filename):
+        filepath = safe_path_to_local(os.path.join(path, filename))
+        return filepath
+
+    if logmsg == None:
+        logmsg = DEFAULT_LOGMESSAGE
+
+    if commitall != "yes":
+        # If commit all, then it's already absolute and safe
+        paths = map(getabsolute, filenames)
+    else:
+        paths = filenames
+    if any(map(lambda x: x == None, paths)):
+        # One or more paths was "None" (invalid)
+        return "null"
+
+    try:
+        svnclient.checkin(paths, logmsg, recurse=True)
+        files = dirlisting(dirpath)
+    except pysvn.ClientError, errmsg:
+        return enc.encode({"error": str(errmsg)})
+    except OSError, (errno, errmsg):
+        return enc.encode({"error": errmsg})
+    req.write(enc.encode(files))
+    return ""
 
 def getfile(req, path, filename):
     """Returns the contents of a given file."""
