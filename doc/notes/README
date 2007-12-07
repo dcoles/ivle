@@ -1,0 +1,4 @@
+These notes are in Markdown format, so they can be easily rendered into HTML.
+
+[Markdown](http://daringfireball.net/projects/markdown/) (requires Perl), or
+`sudo apt-get install markdown` in Ubuntu.
