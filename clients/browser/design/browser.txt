@@ -1,0 +1,273 @@
+IVLE File Browser Design
+========================
+
+    Author: Matt Giuca
+    Date: 7/12/2007
+
+This is the design for the file browser *and* editor components of IVLE.
+
+They are now very closely integrated, sharing a common backend.
+
+A prototype is available that I hacked up in Ajax/Python, available at
+/trunk/prototypes/browser.
+
+Separation of components
+------------------------
+
+The issue has arisen as to how we will separate components in terms of
+distinct browser pages. (Will things be on separate server-prepared pages or
+will the JavaScript manipulate the one page accordingly).
+
+We have settled on a mid-way solution. Each component (ie. the file browser,
+the text editor), will have a distinct browser page with its own HTML,
+JavaScript code, etc.
+
+The choice of how to split up pages within each component is up to that
+component. Most components will use JavaScript so they will have just a single
+page.
+
+The file browser will be a single page which uses JavaScript internally to
+navigate around. So clicking on subdirectories will not reload a new page, it
+will just change the current page.
+
+The editor will of course be just a single page.
+
+Architecture
+------------
+
+The server side is shared between the file browser and editor. It is written
+in Python and acts as basically a "shell" to the file system and subversion
+workspace.
+
+Essentially it takes input in the form of an HTTP Request (GET and POST
+accordingly), and returns material primarily as [JSON](http://www.json.org)
+data. JSON is extremely easy to write and read in both Python and JavaScript.
+It is effectively the common subset of JavaScript and Python data.
+
+For instance, the client may wish to perform an "ls" command. Since this has
+no side-effects on the server, it sends an "ls" request using GET to pass the
+path name. The server then returns a directory listing in JSON which might
+look like this:
+
+        [
+            {"svnstatus": "unversioned", "isdir": true, "size": 4096,
+                "mtime": "Fri Dec 7 16:27:54 2007", "filename": "subdir"},
+            {"svnstatus": "normal", "isdir": false, "size": 22,
+                "mtime": "Fri Dec 7 12:21:24 2007", "filename": "data"}
+        ]
+
+This nicely separates the client/server with the server being completely
+independent of the interface and the client being able to make things happen
+by calling simple commands via Ajax.
+
+Browser Interface
+-----------------
+
+The interface is split into 4 main sections. These parallel a common file
+browser paradigm. The interface is designed to be familiar to Windows
+Explorer, etc, but adapted for the browser.
+
+Along the top there is the location bar. This contains a clickable set of
+links showing the current directory path.
+
+The main part of the page is the file list. This is a HTML table consisting of
+the following columns:
+
+* Checkboxes, for file selection.
+* Icon (tooltip: textual file type)
+* SVN Status icon (tooltip: textual SVN status)
+* Filename (hyperlink, tooltip if the filename had to be condensed)
+* Size (natural units)
+* Date modified (naturalised, tooltip: full date)
+
+Column headers are all clickable for sorting. All sorting is handled on the
+client side (note: the prototype does sorting on the server, this will
+disappear).
+
+We try to represent information rather compactly in the table view. Tooltips
+and/or sidebar gives more information. This is why there are tooltips for
+basically each column giving additional info.
+
+SVN Status icons are a separate column from the main one but represent the
+same as TortoiseSVN. For example, green ticks for "normal", red bangs for
+"modified", etc.
+
+Filenames are condensed in the middle (so you see a fixed number of chars at
+the beginning and end. For instance "A very long file with a long name" is
+condensed into "A very long...long name").
+
+Dates are condensed according to a "naturalisation" algorithm. Files modified
+today or yesterday show "today" or "yesterday" accordingly, and the time.
+Files modified in the last 5 days show "3 days ago". Other files just show the
+date. The tooltip always gives the full date and time.
+
+Along the bottom is a status bar showing some static things about the current
+directory.
+
+The main feature of interest is the side panel, which shows information and
+buttons about the selected file(s). Note that in the prototype we have buttons
+in the file list, which is quite ugly and difficult to use. It is much more
+natural to select the files, then act on them. See "side panel" later.
+
+### File selection ###
+
+There are always 0 or more files selected. Selection can be controlled
+precisely by checking or unchecking the checkboxes on the side. Clicking a
+file's name selects it and deselects all the others. If we can detect Ctrl and
+Shift we can do better selection algorithms.
+
+Graphically I am picturing the file list rows to be shaded as:
+
+* Interlacing shades of grey for deselected files.
+* Interlacing shades of blue for selected files.
+* White for rows with the mouse hovering.
+
+### Side panel ###
+
+The side panel is a dynamic area which changes whenever the selections change.
+It displays detailed information and actions pertaining to the
+currently-selected file(s).
+
+If only one file is selected, it displays all the details about that file (eg.
+file size, full date and time, and the widest range of buttons).
+
+The buttons are:
+
+* For Python files: "Run in Browser" and "Run in Console".
+* For HTML files, PDFs, images, even text files, any other content that web
+  browsers natively recognise: "View in Browser" (or just "Open").
+* For directories: "Open"
+* Edit (perhaps only for non-binary files - is there any point in letting
+  students open binary files in the text editor? This could just be confusing
+  as students might expect to see an image editor, for example)
+* Rename
+
+If multiple files are selected, it just displays the number of files, and
+their total size.
+
+The following buttons are available no matter how many files are selected (at
+least 1):
+
+* Download
+* Cut (see "copy-paste")
+* Copy
+
+Finally there are the Subversion buttons. These vary depending on not only the
+files selected, but their SVN statuses.
+
+If just one file is selected, you see the following buttons:
+
+* "Add", if the file is unversioned.
+* "Commit", if the file is added, modified, etc.
+* "Check for updates", always.
+
+There may be others such as log, diff, depending on how detailed we go into
+SVN.
+
+If multiple files are selected, the "add" and "commit" buttons are visible if
+one or more files are applicable to that button. However, to prevent
+misunderstandings, only one button is ever seen at any time (with "add" taking
+precedence). This way, if the user selects modified AND unversioned files,
+they may click "commit" thinking it will add the unversioned ones (it won't).
+So they are forced to click "add" first, then "commit".
+
+"Check for updates" and "Commit all" will be available from the top toolbar
+which applies to the whole directory and its subdirectories.
+
+#### Discussion: Add and commit combined? ####
+
+We don't really need separate "add" and "commit". Because you can selectively
+commit, we may just dumb it down to having "commit" available on unversioned
+files, and it automatically adds. You just select all the files you want to
+add and hit "commit", along with any other files you changed.
+
+### Opening the editor ###
+
+The editor is a separate page. If a file is to be edited, it tries to open it
+in a new window. This should encourage students to use browser tabs.
+
+Directory-wide actions
+----------------------
+
+Some actions can be performed on the entire directory. These should also
+appear in the side-bar, but in a separate section. Or they could be in a
+toolbar along the top. They are:
+
+* Paste
+* Upload file
+* New file (opens the editor)
+* Check for updates
+* Commit all
+
+Mime type detection and usage
+-----------------------------
+
+We can use Python's builtin mimetypes module to detect mime types of the
+files. Python should send the mime types along with the listing info.
+
+We use mime types for the following purposes:
+
+* File type icons and descriptions (note: Need a mapping from mime type to
+  friendly description, eg "text/python-src" to "Python source code").
+* Image types have previews in the side panel.
+* Determining other actions. eg. Python source can be executed. HTML source
+  and PDF files can be viewed in the browser.
+* Editor warnings for binary types (though this may be best if we warn based
+  on whether it contains invalid unicode chars instead).
+
+Copy-paste
+----------
+
+We will have a full cut-copy-paste paradigm just the same as how modern
+desktop file browsers work. The "clipboard" will be stored just on the client
+side, as a global JavaScript variable, so it is not shared across browser
+sessions or windows. (*Should it be?*)
+
+Quite simply, "copy" replaces the clipboard with a "copy" action associated
+with the selected files. "cut" does the same but associates a "move" action.
+(Also shades the cut files somehow differently). "paste" executes the copy or
+move.
+
+Discussion: Trash bin?
+----------------------
+
+Do we need a trash bin, given that we're using Subversion? Students should
+realise that "temporary files" are just that - if you delete them, they're
+gone. "Permanent files" can be recovered (but we should make that process less
+painful than it is currently in Subversion).
+
+Perhaps "novice mode" should have a trash bin but expert mode should rely on
+Subversion? (Will the transition be jarring??)
+
+Editor Interface
+----------------
+
+The editor page will be a modified version of EditArea (basically with a
+modified toolbar).
+
+It will interact with the server simply as it reads and writes files, and also
+has limited Subversion access.
+
+The four major features being added to EditArea are:
+
+* Save. Saves the file to a location in the user's directory (prompting first
+  if it doesn't yet exist). Also Save As. Very familiar.
+* Save and Commit. Saves the file AND automatically SVN commits.
+* Reload. Reloads the file from the student's directory.
+* Check for updates. Does a SVN update of the file and loads it. (Is this a
+  bad idea?)
+
+Note that EditArea's existing "save" feature is actually going to make the
+browser offer the file as a download. This will be renamed to "download".
+
+Commit logs
+-----------
+
+All the commit features will prompt for a commit log (either a JS prompt() or
+a nicer popup floating element). But the commit log is an optional feature
+which is turned off by default. That is, by default a log message like "No log
+message provided." is written to the log. Once students are more familiar with
+SVN, they can turn on log messages to be prompted when they commit.
+
+(Alternatively this feature may automatically come with the "advanced"
+interface).
