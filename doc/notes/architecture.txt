@@ -1,0 +1,175 @@
+IVLE - System Architecture
+==========================
+
+    Author: Matt Giuca
+    Date: 10/12/2007
+
+This document describes the high-level system architecture of IVLE,
+specifically with respect to the "pluggable clients" interface.
+
+Users and authorization
+-----------------------
+
+We need some way to authenticate users and store information about a logged-in
+user. Whether they are stored in a database local to our system remains to be
+seen.
+
+Importantly, we need some way to send user information to the clients. This is
+discussed in the "pluggable clients" section.
+
+Pluggable clients
+-----------------
+
+The IVLE system is largely just a collection of various components, called
+"clients", such as the file browser, text editor, console, tutorial sheets,
+etc.
+
+The architecture provides a common interface in which clients can be plugged
+in.
+
+Firstly, we want all HTML pages on the site to be generated with a common
+header. The easiest way to do this is to write our own Python handler which
+is common to the entire application (this replaces the standard handlers such
+as Publisher).
+
+This top-level handler handles all authentication issues (for instance,
+checking the session to see if a user is logged in properly and if not,
+redirecting to the login page). It then outputs the header, and calls the
+appropriate client based on the URL.
+
+Before the handler outputs a HTML header, it needs to consult the client to
+see what the MIME type is of the page being requested. For instance, many
+requested files will output JSON instead of HTML. Therefore part of the client
+interface will be a mime type declaration. The handler queries this first,
+completes the HTTP headers, and then proceeds to write an XHTML heading
+section iff the mime type is appropriate for HTML content.
+
+Clients *must* supply the correct MIME type as the handler is allowed to make
+such inferences based on the MIME type. (For example, returning JSON content
+with a mime type of "text/html" is bad because the handler will then write an
+HTML header section).
+
+### Plugin interface ###
+
+The top-level handler will keep a Python file (or a text, JSON, etc file)
+containing a list of valid clients. This is a dictionary mapping clients'
+internal names (the top-level directories, as described below in "URLs" and
+the "planned clients") to some other date about the clients (such as a
+friendly name to display in the tabs, and a boolean as to whether or not to
+display the client in the tabs).
+
+Part of the HTML header which the handler generates is a set of tabs linking
+to all of the clients in this list.
+
+Each client will be located physically in a directory "clients", in a
+subdirectory of the client's name. (eg. the console is located in
+"clients/console"). There *must* be a file in this directory called
+ **client.py**. This file is called by the handler for most requests.
+
+ **Discussion**: We want the handler to handle many requests (such as for CSS,
+JavaScript and image files) directly, simply loading a file from an absolute
+location and serving it. Is it OK to simply have a list of file extensions
+which will automatically be served without going into the client interface?
+(eg. .js, .css, .jpg, etc). If so, can we let the webserver do this without
+even bothering our main handler?
+
+The remainder of this discussion ignores the possibility of such "unhandled"
+files, assuming they have been served up and not passed to the client.
+
+Inside client.py, there is a fixed interface which all clients must follow.
+Firstly, there is a set of information which the handler must pass to the
+client in numerous calls - such as username, URL, and nicely split up parts of
+the URL such as the path, the GET variables, and also the POST data, as well
+as mod_python's low-level Request object.
+This information is encapsulated into an object and passed as a single
+argument to the client handling functions.
+
+Note that as stated above, the handler may need to insert HTML contents into
+the output stream. Instead of having two separate function calls (a call to
+find the mime type and a call to get content), we'll simply provide a wrapper
+object to the client where the client can make callbacks to.
+
+To this end, the client receives an object containing all of the information,
+as well as an object with some methods to call. The handler passes this to a
+function in client.py, `handle`. The callback object contains the following
+methods:
+
+* set_mime_type(string) - Sets the output mime type. May be called any number
+  of times (including 0, will default to HTML), but may not be called after
+  any calls to `write`.
+* set_status(string) - Sets the HTTP response status. The string is a numeric
+  code followed by a description, for example "404 File Not Found". May not be
+  called after any calls to `write`.
+* set_location(string) - Sets the Location field of the HTTP response to a new
+  URL. For use with 300-level HTTP response codes. May not be called after any
+  calls to `write`.
+* write(string) - Writes raw data to the output.
+
+Note that this is very similar to the CGI interface, but much higher level (we
+have functions to call instead of writing strings, and we send the GET and
+POST data in a packaged object instead of environment variables and stdin).
+
+Note that, as with CGI, there is a "cutoff point" during the processing
+(immediately when the first call to `write` is made) - in which the response
+headers are written to the server. It is during this point that the handler
+also writes the HTML header if the mime type is appropriate.
+
+URLs
+----
+
+It would be good if we had full control of URLs and were able to make them
+"nice" at all times. The criteria for "nice" URLs are as follows:
+
+* The paths in the URLs reflect a sensible hierarchy of where you are in the
+  program at the current time.
+* The URLs do not contain any file extensions for the pages (no .html or
+  .py), although linked files such as CSS, JavaScript and image files should
+  have appropriate file extensions.
+* The URLs do not contain unnecessary garbage arguments, and preferably no GET
+  arguments at all (for instance, the file browser will specify the path to
+  browse in the actual URL path, not the GET arguments.
+* The URL does not contain the student's login name. This is implicit in the
+  browser session. (This requirement allows for us to link to URLs in
+  documentation which will work for any student).
+
+The top-level directory given in the URL determines the client which the
+handler will pass off to. For instance,
+
+    http://www.example.com/ivle/console
+
+Since IVLE is located at `http://www.example.com/ivle`, it will consider the
+"top-level directory" to be "console", and therefore will call the client
+"console".
+
+The file browser's client name will be "home". This is a bit of a trick to
+allow the file browser URLs to be completely natural. eg:
+
+    http://www.example.com/ivle/home/151/proj1/
+
+In this instance, the handler will see the top-level directory as "home", and
+will therefore link to the file browser client. The file browser client will
+then receive the additional arguments passed to it in some way, which in this
+case are "/151/proj1/". The file browser will know where students directories
+are stored (maybe "/home/students/") and also know the name of the student
+from the session information, and will therefore be able to navigate to
+"/home/students/jbloggs/151/proj1/".
+
+Planned Clients
+---------------
+
+### File Browser ###
+
+Top-level directory: `home`
+
+### Text Editor ###
+
+Top-level directory: `edit`
+
+### Console ###
+
+Top-level directory: `console`
+
+### Tutorial Pages ###
+
+Top-level directory: `tutorial`
+
