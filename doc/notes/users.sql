@@ -38,13 +38,23 @@ CREATE TABLE roles (
 INSERT INTO users (login,nick) values ('conway', 'Tom');
 INSERT INTO users (login,nick) values ('apeel', 'Andrew');
 INSERT INTO users (login,nick) values ('mgiuca', 'Matt');
+INSERT INTO users (login,nick) values ('sb', 'Steven');
+INSERT INTO users (login,nick) values ('mpp', 'Mike');
+INSERT INTO users (login,nick) values ('ivo', 'Ivo');
 
 INSERT INTO groups (grpnm, nick, subject, year) values ('2007-INFO10001-321', 'Purple Alert', 'INFO10001', '2008');
+INSERT INTO groups (grpnm, nick, subject, year) values ('2007-INFO10001-322', 'Blind Illuminati', 'INFO10001', '2008');
 
 INSERT INTO group_members (login,grpnm) values ('conway', '2007-INFO10001-321');
 INSERT INTO group_members (login,grpnm) values ('apeel', '2007-INFO10001-321');
 INSERT INTO group_members (login,grpnm) values ('mgiuca', '2007-INFO10001-321');
+INSERT INTO group_members (login,grpnm) values ('sb', '2007-INFO10001-321');
+INSERT INTO group_members (login,grpnm) values ('mpp', '2007-INFO10001-322');
+INSERT INTO group_members (login,grpnm) values ('ivo', '2007-INFO10001-322');
 
 INSERT INTO enrolment (login,subject,year) values ('conway' , 'INFO10001', '2008');
 INSERT INTO enrolment (login,subject,year) values ('apeel' , 'INFO10001', '2008');
 INSERT INTO enrolment (login,subject,year) values ('mgiuca' , 'INFO10001', '2008');
+INSERT INTO enrolment (login,subject,year) values ('sb' , 'INFO10001', '2008');
+INSERT INTO enrolment (login,subject,year) values ('mpp' , 'INFO10001', '2008');
+INSERT INTO enrolment (login,subject,year) values ('ivo' , 'INFO10001', '2008');
