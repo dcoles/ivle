@@ -1,0 +1,7 @@
+conf directory - README
+=======================
+
+This directory contains Python files for configuration purposes. These files
+should be edited by administrators who wish to configure how IVLE is set up
+and which apps are available.
+
