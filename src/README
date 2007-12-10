@@ -1,0 +1,39 @@
+src directory - README
+======================
+
+This directory is the root of the IVLE web application proper. It is this
+directory that should be installed into the web server to be executed.
+Navigating to the place this directory is installed shall be the entrypoint
+into the application.
+
+Note that no files placed in this directory or its subdirectories will be
+directly visible from the web, *except* those files placed in `/media` or its
+subdirectories.
+
+This directory should be configured specially in Apache such that all requests
+to anywhere in here or any subdirectory should be handled by the Python module
+`dispatch`. Dispatch will process all requests in the entire application.
+
+Special handling of media directory
+-----------------------------------
+
+One important exception: Apache must be configured so that the `/media`
+directory and its subdirectories are served directly as-is, with no special
+handling.
+
+Files in the `/media` directory should be served with the standard MIME types
+(eg. text/html for .html, image/png for .png). **No** server-side script
+handling should take place in the media directory. That is, .py and .php files
+should be simply served up as text/plain or whatever their default MIME type
+is.
+
+Directory listings should be disabled in the `/media` directory in production,
+and should just present a 403 Forbidden error.
+
+Subdirectories
+--------------
+
+* /apps - Each plugin application has its own directory.
+* /dispatch - Handler module for the top-level dispatch.
+* /media - Contains files directly served by Apache (see above).
+* /conf - Administrator configuration files (see /conf/README).
