@@ -32,22 +32,27 @@ header. The easiest way to do this is to write our own Python handler which
 is common to the entire application (this replaces the standard handlers such
 as Publisher).
 
-This top-level handler handles all authentication issues (for instance,
+This top-level handler handles all authentication (for instance,
 checking the session to see if a user is logged in properly and if not,
 redirecting to the login page). It then outputs the header, and calls the
-appropriate client based on the URL.
+appropriate client based on the URL. The test of "whether the student is an
+Informatics student" is considered part of the authentication layer. (So
+students who are not enrolled in Informatics are treated the same way as a
+garbage username).
 
-Before the handler outputs a HTML header, it needs to consult the client to
-see what the MIME type is of the page being requested. For instance, many
-requested files will output JSON instead of HTML. Therefore part of the client
-interface will be a mime type declaration. The handler queries this first,
-completes the HTTP headers, and then proceeds to write an XHTML heading
-section iff the mime type is appropriate for HTML content.
+Note that some clients ("login" and "exec") do not require authentication.
+This will be one of the properties of the client in the global clients file.
 
-Clients *must* supply the correct MIME type as the handler is allowed to make
-such inferences based on the MIME type. (For example, returning JSON content
-with a mime type of "text/html" is bad because the handler will then write an
-HTML header section).
+Note that the handler does *not* perform authorization - that is left up to
+the clients.
+
+One special feature of the handler will be the ability to write an XHTML
+header (which includes the user's name and links to profile page, IVLE logo,
+and tabs for all the clients). This is important to keep a consistent
+interface between the clients. This header will be available upon request from
+the client. It is up to the client to NOT request a header for non-HTML
+content (or it will be ruined), and also not to request a header when
+executing student's code (ie. the exec module will never request a header).
 
 ### Plugin interface ###
 
@@ -59,22 +64,24 @@ friendly name to display in the tabs, and a boolean as to whether or not to
 display the client in the tabs).
 
 Part of the HTML header which the handler generates is a set of tabs linking
-to all of the clients in this list.
+to all of the clients in this list, or at least the ones with "show in tabs"
+turned on. Clients such as "exec" and "admin" will not have a tab.
 
 Each client will be located physically in a directory "clients", in a
 subdirectory of the client's name. (eg. the console is located in
 "clients/console"). There *must* be a file in this directory called
  **client.py**. This file is called by the handler for most requests.
 
- **Discussion**: We want the handler to handle many requests (such as for CSS,
-JavaScript and image files) directly, simply loading a file from an absolute
-location and serving it. Is it OK to simply have a list of file extensions
-which will automatically be served without going into the client interface?
-(eg. .js, .css, .jpg, etc). If so, can we let the webserver do this without
-even bothering our main handler?
+All requests will go through the handler. Note that there is some media (such
+as CSS, JavaScript and image files which are directly part of the application
+itself), which we do not want to pass through the handler. These will be
+placed in a special top-level directory, which Apache will be told to serve
+directly. (eg. "/media").
 
-The remainder of this discussion ignores the possibility of such "unhandled"
-files, assuming they have been served up and not passed to the client.
+This means that the contents of each client directory is a Python program
+ *only*, and contains no files accessible by the browser. It consists of
+client.py, plus any Python files imported by client.py (but none of these
+files will directly serve web content).
 
 Inside client.py, there is a fixed interface which all clients must follow.
 Firstly, there is a set of information which the handler must pass to the
@@ -96,13 +103,15 @@ methods:
 
 * set_mime_type(string) - Sets the output mime type. May be called any number
   of times (including 0, will default to HTML), but may not be called after
-  any calls to `write`.
+  any writing has been done.
 * set_status(string) - Sets the HTTP response status. The string is a numeric
   code followed by a description, for example "404 File Not Found". May not be
-  called after any calls to `write`.
+  called after any writing has been done.
 * set_location(string) - Sets the Location field of the HTTP response to a new
   URL. For use with 300-level HTTP response codes. May not be called after any
-  calls to `write`.
+  writing has been done.
+* write_html_headers() - Writes the general site headers to the output stream.
+  May not be called after any writing has been done.
 * write(string) - Writes raw data to the output.
 
 Note that this is very similar to the CGI interface, but much higher level (we
@@ -110,9 +119,34 @@ have functions to call instead of writing strings, and we send the GET and
 POST data in a packaged object instead of environment variables and stdin).
 
 Note that, as with CGI, there is a "cutoff point" during the processing
-(immediately when the first call to `write` is made) - in which the response
-headers are written to the server. It is during this point that the handler
-also writes the HTML header if the mime type is appropriate.
+(immediately when the first call to `write` or `write_html_headers` is made) -
+in which the response headers are written to the server.
+
+### Application directory hierarchy ###
+
+Due to the handler, we have a nice property that the application directory
+hierarchy is completely removed from the apparent hierarchy on the web. This
+has two opportunities: we can call the applications (in their directory
+hierarchy) a different name than the URL suggests, and also we can lay out the
+directory hierarchy with developers interests in mind.
+
+We capitalise on the first issue by mapping the "action" (url name) of a
+client to the actual name. (Clients are indexed by url-name so they can
+be looked up when a URL is requested).
+
+The proposed application directory hierarchy is:
+
+    /
+    /clients - All clients go in here
+    /clients/myclient - "actual" names of the clients
+    /dispatch - Code files for the top-level dispatch
+    /dispatch.py - Entrypoint for the top-level dispatch
+    /media - Publically viewable files
+        (Note that this directory hierarchy maps onto the web site)
+    /media/myclient - media files specific to each client go in a subdir
+    /media/dispatch - media files for the top-level dispatch
+    /conf - Special .py files which hold configuration info (for the admin to
+            edit, not the programmers).
 
 URLs
 ----
@@ -130,7 +164,9 @@ It would be good if we had full control of URLs and were able to make them
   browse in the actual URL path, not the GET arguments.
 * The URL does not contain the student's login name. This is implicit in the
   browser session. (This requirement allows for us to link to URLs in
-  documentation which will work for any student).
+  documentation which will work for any student). (Note that URLs may contain
+  other students login names for browsing their work - this is determined by
+  the individual clients).
 
 The top-level directory given in the URL determines the client which the
 handler will pass off to. For instance,
@@ -139,37 +175,159 @@ handler will pass off to. For instance,
 
 Since IVLE is located at `http://www.example.com/ivle`, it will consider the
 "top-level directory" to be "console", and therefore will call the client
-"console".
+whose action is "console". This may not be the actual name of the client. For
+example, the "edit" action maps onto the "editor" client, while the "serve"
+action maps onto the "exec" client. (Perhaps it is best for simplicity if
+these do in fact correspond).
 
-The file browser's client name will be "home". This is a bit of a trick to
-allow the file browser URLs to be completely natural. eg:
+For another example, consider the file browser (action name "files"). The URL
+may have subdirectories after it which indicate the path to explore. This will
+be detailed in the clients section below. An example of a browse URL is:
 
-    http://www.example.com/ivle/home/151/proj1/
+    http://www.example.com/ivle/files/jdoe/151/proj1/
 
-In this instance, the handler will see the top-level directory as "home", and
+In this instance, the handler will see the top-level directory as "files", and
 will therefore link to the file browser client. The file browser client will
 then receive the additional arguments passed to it in some way, which in this
-case are "/151/proj1/". The file browser will know where students directories
-are stored (maybe "/home/students/") and also know the name of the student
-from the session information, and will therefore be able to navigate to
-"/home/students/jbloggs/151/proj1/".
+case are "jdoe/151/proj1/". The file browser client will then handle this path
+and serve up the correct directory.
+
+### Relative URLs inside HTML content ###
+
+It is a requirement that the application can be placed anywhere in a web
+server's directory hierarchy, not just at the top level. This means HTML
+should never contain absolute URLs (beginning with, eg, "/browse"). Then it
+would need to be in the site root.
+
+To solve the problem of how to generate URLs, one of the fields the handler
+will pass into the clients (which it will read from a config file somewhere)
+will be the "site root". This may be "/ivle", for instance. Therefore all
+absolute URLs generated by the applications must be prepended with the "site
+root". (In our case the site root will probably be "/", but it's a good
+feature to have).
+
+### Student's directory hierarchy, common code ###
+
+Many clients share the concept of exploring the student's directory hierarchy,
+as explained above for the browser module. The common code for handling the
+student id or group name (etc) and authorization will be available as a
+separate module for all such clients (browser, editor, exec) to use.
 
 Planned Clients
 ---------------
 
-### File Browser ###
+### File Browser, Text Editor and Executor ###
 
-Top-level directory: `home`
+Three of the most important clients are the file browser ("browser"), text
+editor ("editor") and executor ("exec"). These three share a commonality in
+that they all access the student's directory hierarchy and files. They all
+share a lot of code in common, and in particular, there is a common
+server-side handler for file access, directory listings and subversion.
 
-### Text Editor ###
+Firstly, every file and directory is classified into one of the following
+categories (based on its inferred MIME type and possibly whether it contains
+invalid Unicode characters):
 
-Top-level directory: `edit`
+1. Directory
+2. Image
+3. Audio
+4. Text file (unless it fits the above, eg, SVG files)
+5. Any other binary file
+
+How each of these is handled depends on which of the 3 clients is accessing
+the file.
+
+#### File Browser ####
+
+    Name: `browser`
+    Action name: `files`
+    Tab name: "Files"
+
+1. Directory - Displays a directory listing (this is its primary purpose).
+2. Image - Displays the image inside the main navigation interface.
+3. Audio - (non-core) Provides a streaming audio player within the main
+            navigation interface.
+4. Text file - Redirect to edit.
+5. Binary file - Provides a download link within the main navigation
+            interface.
+
+Note that no matter what, using browser will remain within the navigation
+interface so you will never be "lost" inside a raw image or something. It also
+will not throw binary files as downloads directly to you.
+
+Note that the src of the image tag in (2) and the href of the download link in
+(5) will simply be links to the exec version of the same file.
+
+File browser will include the Python file which serves up JSON responses to
+requests for directory hierarchies, and performs SVN and file access commands.
+This file will be used by the text editor (at least) and possibly exec.
+
+#### Text Editor ####
+
+    Name: `editor`
+    Action name: `edit`
+    Tab name: "Edit"
+
+No matter what, editor provides a text area (with advanced editing
+capabilities and syntax highlighting) for any file, even if it is binary. The
+only exception is directories, which redirect to browser.
+
+Note that it will not be possible to click into the editor for a binary file
+(the browser will not offer an edit link). However, it will still be possible
+to manually nav there, and then you handle the shock yourself.
+
+#### Executor ####
+
+    Name: `exec`
+    Action name: `serve`
+    Tab name: (not shown)
+
+The executor is used to directly serve files out of a student's directory, as
+if it was a standard web server. (It can be thought of as a little web server
+inside IVLE). This means that:
+
+* A whitelist of file types is kept which simply are served up raw. This
+  includes HTML, JavaScript, CSS, all reasonable image and audio formats, etc.
+* Special "executable" file types (.py, .psp). Exec will call popen on a
+  Python process which loads a mod_python handler, cgihandler or psphandler on
+  the given file.
+* HTTP errors for banned files.
+
+ **Discussion**: The question remains how exec should handle directories. It
+ *could* redirect to the browser, but this would only be feasible if the user
+was logged in (exec is available to the public). I would prefer if it acted
+like a web server, either presenting a basic directory listing (possibly
+using part of the browser code), or just giving a HTTP 403 Forbidden error.
 
 ### Console ###
 
-Top-level directory: `console`
+    Name: `console`
+    Action name: `console`
+    Tab name: "Console"
 
 ### Tutorial Pages ###
 
-Top-level directory: `tutorial`
+    Name: `tutorial`
+    Action name: `tutorial`
+    Tab name: "Tutorial"
 
+### Administration ###
+
+    Name: `admin`
+    Action name: `admin`
+    Tab name: (not shown)
+
+Client checks authorization for admin status. Tab is not shown so students
+will not normally know about this (but even if they find it they will be
+denied access).
+
+### Login ###
+
+    Name: `login`
+    Action name: `login`
+    Tab name: (not shown)
+
+Authentication not required. Presents a login box.
+
+Other similar clients are "logout" (which just immediately logs the current
+user out and redirects to the main page), and "profile" (user settings).
