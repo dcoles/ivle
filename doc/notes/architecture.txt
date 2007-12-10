@@ -292,12 +292,10 @@ inside IVLE). This means that:
   Python process which loads a mod_python handler, cgihandler or psphandler on
   the given file.
 * HTTP errors for banned files.
-
- **Discussion**: The question remains how exec should handle directories. It
- *could* redirect to the browser, but this would only be feasible if the user
-was logged in (exec is available to the public). I would prefer if it acted
-like a web server, either presenting a basic directory listing (possibly
-using part of the browser code), or just giving a HTTP 403 Forbidden error.
+* When presented with a directory, it first tries to execute `__init__.py`
+  (the default item for the directory). It could also look for `index.html` or
+  `index.psp` if that failed. Failing that, it returns an HTTP 403 Forbidden
+  error.
 
 ### Console ###
 
