@@ -38,6 +38,16 @@ Uncomment `PythonDebug On` to turn on debugging.
 Note that this disables directory listings across the whole site (which
 essentially only affects the /media directory).
 
+Application configuration
+-------------------------
+
+Additional settings must be written to allow IVLE to work (such as the root
+URL and student file space directories). The web application will throw an
+exception if these have not been set up (if conf/conf.py does not exist).
+
+Run setup.py, a command-line tool, which will interactively create
+conf/conf.py for you.
+
 Special handling of media directory
 -----------------------------------
 
