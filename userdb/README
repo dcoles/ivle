@@ -1,0 +1,6 @@
+The userdb subsystem is for maintaining user records which have the
+following purposes:
+
+- to establish authorization for various aspects of the IVLE.
+- to track which problems the student has completed
+- MORE?
