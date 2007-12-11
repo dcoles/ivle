@@ -1,0 +1,105 @@
+IVLE Dispatch Module Design
+===========================
+
+    Author: Matt Giuca
+    Date: 11/12/2007
+
+This is the design for the dispatch module (the top-level app which handles
+all requests in the web app and passes them on to other apps).
+
+Request handling sequence
+-------------------------
+
+The request handling sequence consists of two parts. The first part is
+dispatch being called. It autonomously performs auth and some housekeeping,
+and then passes control to another specified app.
+
+The second part of request handling is done by the app in question. The object
+which dispatch passes the app has several methods in it which the app can
+call. In this way, dispatch code is still used in the second part of the
+request handling, but it is used passively instead of actively.
+
+Finally, dispatch cleans up a little bit (writing footers, etc) when the app
+exits.
+
+1. dispatch loads. It imports config modules, so it has access to
+    admin-configured information about the plugged in apps and other
+    settings.
+2. Breaks the URL and request data down and builds the IVLE request object
+    (which is higher level than the Apache request object and independent of
+    mod_python). This includes breaking the path into the "first directory"
+    (the app name) and the rest of the path (which is passed to the app as the
+    "path").
+3. Decides which app to load by looking it up in the app list. If no path is
+    specified, selects the default app (does not redirect just yet). If the
+    app is not found in the app list, throws a 404 error and exits.
+4. If the app requires authentication, checks the session information to see
+    if a user is logged in. If not, passes control to a special "app" (built
+    into dispatch, but with the same interface as other apps), the login page,
+    and skips to step 7.
+5. If no app was specified, performs a redirect to the default app, and
+    exits.
+6. Passes control to the specified app.
+7. After the app completes, performs cleanup (such as writing HTML footer).
+
+The dispatch also provides several callbacks.
+
+The dispatch "request" object could just be the Apache request object, but
+augmented with additional methods and attributes, and an overridden "write"
+method.
+
+### Writing callbacks ###
+
+One important callback sequence is writing to the output. The dispatch does
+not provide the app with an Apache request object. This is to ensure that none
+of the apps are dependent on mod_python (even though dispatch, itself, is).
+Each app therefore calls the dispatch request object to do all the writing.
+
+(Note the apps should be given access to the Apache request object but
+recommended not to use it. This is so that "exec" can pass it to the executed
+code apps).
+
+The writing sequence takes place in two parts: writing the HTTP headers, and
+writing the response.
+
+The HTTP headers are written by dispatch, not the app. The app just sets
+fields in the request object, such as "content_type", "title" and
+"write_html_head_foot". (This is similar to how Apache works but has some
+extra fields).
+
+When the first actual write call is made, the app looks at the fields and
+writes out the HTTP headers. The "write_html_head_foot" field, if True, causes
+dispatch to also write out the IVLE HTML header bar section.
+
+When doing the cleanup step, if write_html_head_foot is set, dispatch then
+writes the HTML footer.
+
+The header and footer includes the html and body tags. Therefore, any app
+which sets "write_html_head_foot" should just write body content, no html or
+body tags.
+
+Login screen
+------------
+The login screen is a special part of IVLE because it is not part of any
+specific app, and does not have its own URL (there is no `/login`). It is
+actually part of the dispatch module.
+
+The login screen is displayed instead of whichever page was requested if the
+app or page requested requires login. It does not navigate away from that page
+(it keeps the same URL as requested). This is so that once the login is
+successful, it can reload that URL and be on the requested page.
+
+The login screen gracefully handles browsers without JavaScript, giving a nice
+error message. The other pages won't necessarily be so graceful, as the user
+is expected to have JavaScript if they passed the login screen.
+
+The login interaction will be done with Ajax, because it might as well be.
+This simplifies the system because the primary (non-ajax) requests do not
+contain login POSTdata. The login is made to a special url which returns JSON,
+and sets cookies/sessions. Upon success, the JavaScript itself performs a
+hard refresh, which then succeeds because the cookie has been set to log in.
+
+The login screen has the login box on the right, and displays other system
+information on the rest of the screen. (This information is stuff the students
+should probably see once in awhile even though they won't navigate explicitly
+to it - system and subject announcements, and a random "tip of the day").

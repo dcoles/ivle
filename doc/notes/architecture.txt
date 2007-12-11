@@ -122,6 +122,17 @@ Note that, as with CGI, there is a "cutoff point" during the processing
 (immediately when the first call to `write` or `write_html_headers` is made) -
 in which the response headers are written to the server.
 
+### Help files ###
+
+There will be a "help" app which is special in that it goes inside all of the
+other apps directories looking for a help file. So aside from "client.py",
+another special file is "help.html" which is a static help file for each
+module, sitting in that app's top-level directory.
+
+help.html is not to be served directly. The "help" app will embed it within
+another page. Therefore it is not a real HTML file - it should just be the
+inside of a body (it should not contain html or body tags).
+
 ### Application directory hierarchy ###
 
 Due to the handler, we have a nice property that the application directory

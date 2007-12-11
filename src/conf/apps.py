@@ -14,6 +14,7 @@ app_dummy = App()
 app_dummy.dir = "dummy"
 app_dummy.name = "My Dummy App"
 app_dummy.requireauth = True
+app_dummy.hashelp = True
 
 # Mapping URL names to apps
 
