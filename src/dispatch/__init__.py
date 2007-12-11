@@ -30,15 +30,51 @@ from mod_python import apache
 import os
 import os.path
 import conf
+import conf.apps
+
+root_dir = conf.root_dir
 
 def handler(req):
+    """Handles a request which may be to anywhere in the site except media.
+    Intended to be called by mod_python, as a handler.
+
+    req: An Apache request object.
+    """
     # TEMP: Dummy (test) handler
     req.content_type = "text/html"
-    req.write("<html>")
-    req.write("<p>Hello, IVLE!</p>")
-    req.write('<p><img src="' + os.path.join(conf.root_dir,
-        "media/images/mime/dir.png") + '" /> ')
+    req.write("<html>\n")
+    req.write("<p>Hello, IVLE!</p>\n")
+    req.write('<p><img src="' + make_path("media/images/mime/dir.png")
+        + '" /> ')
     req.write(str(req.uri))
-    req.write("</p></html>")
+    req.write("</p>\n")
+
+    print_apps_list(req)
+
+    req.write("</html>")
     return apache.OK
 
+def make_path(path):
+    """Given a path relative to the IVLE root, makes the path relative to the
+    site root using conf.root_dir. This path can be used in URLs sent to the
+    client."""
+    return os.path.join(root_dir, path)
+
+def print_apps_list(file):
+    """Prints all app tabs, as a UL. Prints a list item for each app that has
+    a tab.
+
+    file: Object with a "write" method - ie. the request object.
+    Reads from: conf
+    """
+    file.write('<ul class="apptabs">\n')
+
+    for urlname in conf.apps.apps_in_tabs:
+        app = conf.apps.app_url[urlname]
+        file.write('  <li><a href="')
+        file.write(make_path(app.dir))
+        file.write('">')
+        file.write(app.name)
+        file.write('</a></li>\n')
+
+    file.write('</ul>\n')
