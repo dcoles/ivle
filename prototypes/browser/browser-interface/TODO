@@ -1,0 +1,13 @@
+IVLE Browser Interface - TODO
+=============================
+
+* Status bar all the way to the bottom even if the page is smaller than
+    screen height.
+* Fix double-border between file table and status bar (if file table is taller
+    than side panel).
+* Find a way to limit the height of filetablediv to exactly fill the canvas.
+    (Currently expands arbitrarily, so its scrollbars never show. It has
+    overflow: auto so it will show scrollbars if its height is constrained).
+* The entire layout should exactly fill the canvas. The side panel should be
+    set to overflow as well, so the canvas scrollbars never show, only the
+    internal ones.
