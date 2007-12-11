@@ -36,7 +36,8 @@ from mod_python import apache
 
 def handler(req):
     # A nasty hack :(
-    # The 
+    # The Apache httpd.conf needs to specify ivle.handlerpath as an option
+    # (see README).
 
     try:
         handlerpath = req.get_options()['ivle.handlerpath']
