@@ -21,7 +21,7 @@ files in the /media directory).
     # See src/README for instructions and explanation
     <Directory "/ivle-directory"> 
         SetHandler mod_python
-        PythonHandler dispatch
+        PythonHandler dispatch_handler
         #PythonDebug On
         Options FollowSymLinks
         PythonOption ivle.handlerpath "/ivle-directory"
