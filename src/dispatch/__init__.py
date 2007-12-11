@@ -27,11 +27,18 @@
 # Then passes the request along to the appropriate ivle app.
 
 from mod_python import apache
+import os
+import os.path
+import conf
 
 def handler(req):
     # TEMP: Dummy (test) handler
-    req.content_type = "text/plain"
-    req.write("Hello, IVLE!\n")
+    req.content_type = "text/html"
+    req.write("<html>")
+    req.write("<p>Hello, IVLE!</p>")
+    req.write('<p><img src="' + os.path.join(conf.root_dir,
+        "media/images/mime/dir.png") + '" /> ')
     req.write(str(req.uri))
+    req.write("</p></html>")
     return apache.OK
 
