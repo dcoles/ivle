@@ -170,3 +170,8 @@ class Request:
     def flush(self):
         """Flushes the output buffer."""
         self.apache_req.flush()
+
+    def sendfile(self, filename):
+        """Sends the named file directly to the client."""
+        self.apache_req.sendfile(filename)
+
