@@ -103,3 +103,12 @@ The login screen has the login box on the right, and displays other system
 information on the rest of the screen. (This information is stuff the students
 should probably see once in awhile even though they won't navigate explicitly
 to it - system and subject announcements, and a random "tip of the day").
+
+The IVLE Request object
+-----------------------
+
+The IVLE request object is mostly a wrapper around the Apache request object,
+but it's a bit higher level and does not depend upon mod_python.
+
+The file dispatch/request.py (or documentation generated from it) formally
+specifies the attributes and methods of this object.

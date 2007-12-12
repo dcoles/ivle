@@ -32,6 +32,8 @@ import os.path
 import conf
 import conf.apps
 
+import request
+
 root_dir = conf.root_dir
 
 def handler(req):
@@ -40,6 +42,9 @@ def handler(req):
 
     req: An Apache request object.
     """
+    # Make the request object into an IVLE request which can be passed to apps
+    req = request.Request(req)
+
     # TEMP: Dummy (test) handler
     req.content_type = "text/html"
     req.write("<html>\n")
