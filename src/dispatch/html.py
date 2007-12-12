@@ -23,6 +23,10 @@
 # content (the common parts of the HTML pages shared across the entire site).
 # Does not include the login page. See login.py.
 
+import conf
+import conf.apps
+from common import util
+
 def write_html_head(req):
     """Writes the HTML header, given a request object.
 
@@ -30,6 +34,7 @@ def write_html_head(req):
     write to."""
     # TODO: Full header
     req.write("<html>\n<body>\n")
+    print_apps_list(req)
 
 def write_html_foot(req):
     """Writes the HTML footer, given a request object.
@@ -37,3 +42,22 @@ def write_html_foot(req):
     req: An IVLE request object. Written to.
     """
     req.write("</body>\n</html>\n")
+
+def print_apps_list(file):
+    """Prints all app tabs, as a UL. Prints a list item for each app that has
+    a tab.
+
+    file: Object with a "write" method - ie. the request object.
+    Reads from: conf
+    """
+    file.write('<ul class="apptabs">\n')
+
+    for urlname in conf.apps.apps_in_tabs:
+        app = conf.apps.app_url[urlname]
+        file.write('  <li><a href="')
+        file.write(util.make_path(app.dir))
+        file.write('">')
+        file.write(app.name)
+        file.write('</a></li>\n')
+
+    file.write('</ul>\n')

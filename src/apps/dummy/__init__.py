@@ -43,5 +43,3 @@ def handle(req):
         req.write(str(req.path))
     req.write("</p>\n")
 
-    #print_apps_list(req)
-
