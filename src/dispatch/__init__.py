@@ -32,7 +32,8 @@ import os.path
 import conf
 import conf.apps
 
-import request
+from request import Request
+import html
 
 root_dir = conf.root_dir
 
@@ -43,11 +44,31 @@ def handler(req):
     req: An Apache request object.
     """
     # Make the request object into an IVLE request which can be passed to apps
-    req = request.Request(req)
+    req = Request(req, html.write_html_head)
 
+    # TODO: Handle applications
+    test_app(req)
+
+    # When done, write out the HTML footer if the app has requested it
+    if req.write_html_head_foot:
+        # MAKE SURE we write the head (we would never do that if the app, nor
+        # write_html_foot, ever writes anything - so just to be sure).
+        req.write("", flush=0)
+        html.write_html_foot(req)
+
+    # Have Apache output its own HTML code if non-200 status codes were found
+    return req.status
+
+def test_app(req):
+    """This (temporary) function serves as an IVLE application. It takes an
+    IVLE request and conforms to the application API."""
     # TEMP: Dummy (test) handler
+
+    # Set request attributes
     req.content_type = "text/html"
-    req.write("<html>\n")
+    req.write_html_head_foot = True     # Have dispatch print head and foot
+
+    # Start writing data
     req.write("<p>Hello, IVLE!</p>\n")
     req.write('<p><img src="' + make_path("media/images/mime/dir.png")
         + '" /> ')
@@ -55,9 +76,6 @@ def handler(req):
     req.write("</p>\n")
 
     print_apps_list(req)
-
-    req.write("</html>")
-    return apache.OK
 
 def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
