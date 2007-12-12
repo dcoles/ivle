@@ -26,7 +26,9 @@
 # Handles authentication (not authorization).
 # Then passes the request along to the appropriate ivle app.
 
+import mod_python
 from mod_python import apache
+
 import os
 import os.path
 import conf
@@ -34,8 +36,7 @@ import conf.apps
 
 from request import Request
 import html
-import common.util
-from common.util import make_path
+from common import util
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -44,15 +45,28 @@ def handler(req):
     req: An Apache request object.
     """
     # Make the request object into an IVLE request which can be passed to apps
+    apachereq = req
     req = Request(req, html.write_html_head)
 
-    # TODO: Check req.app to see if it is valid. 404 if not.
+    # Check req.app to see if it is valid. 404 if not.
+    if req.app != None and req.app not in conf.apps.app_url:
+        # TODO: Nicer 404 message?
+        return apache.HTTP_NOT_FOUND
 
-    # TODO: Check if app requires auth. If so, perform authentication and
-    # login.
+    # app is the App object for the chosen app
+    if req.app == None:
+        app = conf.apps.app_url[conf.default_app]
+    else:
+        app = conf.apps.app_url[req.app]
 
-    # TODO: If user did not specify an app, HTTP redirect to default app and
-    # exit.
+    # Check if app requires auth. If so, perform authentication and login.
+    if app.requireauth:
+        # TODO: Perform authentication
+        pass
+
+    # If user did not specify an app, HTTP redirect to default app and exit.
+    if req.app == None:
+        mod_python.util.redirect(apachereq, util.make_path(conf.default_app))
 
     # Call the specified app with the request object
     # TODO: Call a real app.
@@ -84,7 +98,7 @@ def test_app(req):
         req.write('<b>No app specified</b>')
     else:
         req.write('<b>' + req.app + '</b> ')
-        req.write('<img src="' + make_path("media/images/mime/dir.png")
+        req.write('<img src="' + util.make_path("media/images/mime/dir.png")
             + '" /> ')
         req.write(str(req.path))
     req.write("</p>\n")
@@ -103,7 +117,7 @@ def print_apps_list(file):
     for urlname in conf.apps.apps_in_tabs:
         app = conf.apps.app_url[urlname]
         file.write('  <li><a href="')
-        file.write(make_path(app.dir))
+        file.write(util.make_path(app.dir))
         file.write('">')
         file.write(app.name)
         file.write('</a></li>\n')
