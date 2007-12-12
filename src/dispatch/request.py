@@ -30,6 +30,12 @@ class Request:
     Request object attributes:
         uri (read)
             String. The path portion of the URI.
+        app (read)
+            String. Name of the application specified in the URL, or None.
+        path (read)
+            String. The path specified in the URL *not including* the
+            application or the IVLE location prefix. eg. a URL of
+            "/ivle/files/joe/myfiles" has a path of "joe/myfiles".
 
         status (write)
             Int. Response status number. Use one of the status codes defined
@@ -129,6 +135,7 @@ class Request:
 
         # Inherit values for the input members
         self.uri = req.uri
+        # TODO: Detect app and path
 
         # Default values for the output members
         self.status = Request.OK

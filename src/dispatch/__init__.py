@@ -46,7 +46,16 @@ def handler(req):
     # Make the request object into an IVLE request which can be passed to apps
     req = Request(req, html.write_html_head)
 
-    # TODO: Handle applications
+    # TODO: Check req.app to see if it is valid. 404 if not.
+
+    # TODO: Check if app requires auth. If so, perform authentication and
+    # login.
+
+    # TODO: If user did not specify an app, HTTP redirect to default app and
+    # exit.
+
+    # Call the specified app with the request object
+    # TODO: Call a real app.
     test_app(req)
 
     # When done, write out the HTML footer if the app has requested it
