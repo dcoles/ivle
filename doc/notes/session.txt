@@ -1,0 +1,71 @@
+Notes on mod_python.Session
+---------------------------
+
+    Author: Tom Conway
+    Date: 12/12/2007
+
+``mod_python`` provides some automagic for cookie based sessions. It
+carefully separates most of the session logic from how the session is
+stored. The base class `BaseSession` contains most of the logic, and
+``mod_python`` itself has three derived classes for storing session
+objects in-memory, dbm, and on the filesystem. In each case, the
+implementations use apache's locking mechanism to serialize updates to
+the store of cookies. This mechanism takes care of mutual exclusion
+between the multiple processes of an apache instance, but does not
+provide any facility to provide any kind locking for multiple servers
+sharing the filesystem for file bases session storage.  There is code
+for storing sessions in MySQL (and SQLLite) floating round on the net,
+though none has made it in to any distributions. This code uses the
+underlying database to take care of the locking.
+
+In the case of IVLE, we wish to be able to share the session objects not
+merely between the separate processes of an apache instance, but between
+the multiple servers in a load balancing cluster.  There are three high
+level strategies we could use to deal with this:
+
+1. Use a static load balancing strategy such as hashing the client's IP
+   address to determine which node in the cluster should serve the
+   request.
+
+2. Use a SQL backend to store sessions, or create a filesystem based
+   storage mechanism that does the necessary locking.
+
+3. Work around the problem by using session objects in a way that avoids
+   the locking problems.
+
+Strategy 1 has the advantage that we could use in-memory or dbm session
+storage without having to worry about race conditions between servers.
+On the other hand, it can run into serious problems if the distribution
+of IP addresses is such that load is not balanced. This can be the case
+if an ISP uses NAT firewalling (some do!), since all the requests from
+that ISP will aparently be coming from a single IP address and will therefore
+be routed to the same node in the cluster. As well as the potential for
+failing to balance the load, such a scheme, if it works routes an equal
+proportion of requests to each node in the cluster. At times when overall
+load is light, this may mean that we lose the opportunity to put nodes into
+a powersaving mode, when they are superfluous.
+
+Strategy 2, while having the advantage of avoiding race conditions, is likely
+to be expensive. The use of a SQL backend is likely to be quite slow, and the
+SQL backend itself will be subject to significant load (i.e. at least one op
+per request). A filesystem based solution is likely to be quite slow too.
+It has to work on a shared filesystem, for which locking is a general issue
+(generally, you end up using `mkdir` as the mechanism for creating a lock).
+If we want mutable session information, then we will *have* to do something in
+this vein.
+
+Strategy 3 is fragile because we need to be careful about how we use
+session objects, but if the constraints are simple enough to be practicle
+then avoiding the locking issue is highly desirable. A simple constraint
+that may be workable is to require that once created, a session object is
+treated as read-only until it is deleted. It is possible (though unlikely)
+we could create session objects that immediately become orphaned, but we
+will not ever create a situation in which the application does anything bad.
+If we can make strategy 3 work, then it is easily the best strategy to use.
+
+The main use for session objects in IVLE will be to *cache* authentication and
+authorization information. This means that when a user logs in, we authenticate
+(the authentication mechanism is not important to our current discussion),
+then retrieve the authorization information for that user, and store it in
+the session object. For each page access until the user logs out, we can then
+use the information from the session object.
