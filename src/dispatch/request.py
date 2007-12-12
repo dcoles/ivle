@@ -23,6 +23,8 @@
 # See design notes/apps/dispatch.txt for a full specification of this request
 # object.
 
+import common.util
+
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
     interacting with the web server and the dispatcher.
@@ -135,7 +137,10 @@ class Request:
 
         # Inherit values for the input members
         self.uri = req.uri
-        # TODO: Detect app and path
+        # Split the given path into the app (top-level dir) and sub-path
+        # (after first stripping away the root directory)
+        (self.app, self.path) = (
+            common.util.split_path(common.util.unmake_path(req.uri)))
 
         # Default values for the output members
         self.status = Request.OK

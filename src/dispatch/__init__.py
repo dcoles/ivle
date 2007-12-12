@@ -79,9 +79,14 @@ def test_app(req):
 
     # Start writing data
     req.write("<p>Hello, IVLE!</p>\n")
-    req.write('<p><img src="' + make_path("media/images/mime/dir.png")
-        + '" /> ')
-    req.write(str(req.uri))
+    req.write('<p>')
+    if req.app == None:
+        req.write('<b>No app specified</b>')
+    else:
+        req.write('<b>' + req.app + '</b> ')
+        req.write('<img src="' + make_path("media/images/mime/dir.png")
+            + '" /> ')
+        req.write(str(req.path))
     req.write("</p>\n")
 
     print_apps_list(req)
