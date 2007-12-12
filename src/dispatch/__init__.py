@@ -34,8 +34,8 @@ import conf.apps
 
 from request import Request
 import html
-
-root_dir = conf.root_dir
+import common.util
+from common.util import make_path
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -85,12 +85,6 @@ def test_app(req):
     req.write("</p>\n")
 
     print_apps_list(req)
-
-def make_path(path):
-    """Given a path relative to the IVLE root, makes the path relative to the
-    site root using conf.root_dir. This path can be used in URLs sent to the
-    client."""
-    return os.path.join(root_dir, path)
 
 def print_apps_list(file):
     """Prints all app tabs, as a UL. Prints a list item for each app that has
