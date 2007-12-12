@@ -69,6 +69,12 @@ def handler(req):
     if req.app == None:
         mod_python.util.redirect(apachereq, util.make_path(conf.default_app))
 
+    # Set the default title to the app's tab name, if any. Otherwise URL name.
+    if app.name != None:
+        req.title = app.name
+    else:
+        req.title = req.app
+
     # Call the specified app with the request object
     apps.call_app(app.dir, req)
 

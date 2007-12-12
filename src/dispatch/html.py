@@ -32,8 +32,26 @@ def write_html_head(req):
 
     req: An IVLE request object. Reads attributes such as title. Also used to
     write to."""
-    # TODO: Full header
-    req.write("<html>\n<body>\n")
+
+    # Write the XHTML opening and head element
+    req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>IVLE""")
+    if req.title != None:
+        req.write(' - ' + req.title)
+    req.write("""</title>
+  <meta http-equiv="Content-Type"
+    content=""" + '"' + req.content_type + """; charset=utf-8" />
+</head>
+
+""")
+
+    # Open the body element and write a bunch of stuff there (the header)
+    req.write("""<body>
+<h1>IVLE - Informatics Virtual Learning Environment</h1>
+""")
     print_apps_list(req)
 
 def write_html_foot(req):
