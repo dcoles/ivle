@@ -33,6 +33,7 @@ import os
 import os.path
 import conf
 import conf.apps
+import apps
 
 from request import Request
 import html
@@ -69,8 +70,7 @@ def handler(req):
         mod_python.util.redirect(apachereq, util.make_path(conf.default_app))
 
     # Call the specified app with the request object
-    # TODO: Call a real app.
-    test_app(req)
+    apps.call_app(app.dir, req)
 
     # When done, write out the HTML footer if the app has requested it
     if req.write_html_head_foot:
@@ -81,29 +81,6 @@ def handler(req):
 
     # Have Apache output its own HTML code if non-200 status codes were found
     return req.status
-
-def test_app(req):
-    """This (temporary) function serves as an IVLE application. It takes an
-    IVLE request and conforms to the application API."""
-    # TEMP: Dummy (test) handler
-
-    # Set request attributes
-    req.content_type = "text/html"
-    req.write_html_head_foot = True     # Have dispatch print head and foot
-
-    # Start writing data
-    req.write("<p>Hello, IVLE!</p>\n")
-    req.write('<p>')
-    if req.app == None:
-        req.write('<b>No app specified</b>')
-    else:
-        req.write('<b>' + req.app + '</b> ')
-        req.write('<img src="' + util.make_path("media/images/mime/dir.png")
-            + '" /> ')
-        req.write(str(req.path))
-    req.write("</p>\n")
-
-    print_apps_list(req)
 
 def print_apps_list(file):
     """Prints all app tabs, as a UL. Prints a list item for each app that has
