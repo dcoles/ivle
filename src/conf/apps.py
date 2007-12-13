@@ -16,6 +16,12 @@ app_dummy.name = "My Dummy App"
 app_dummy.requireauth = True
 app_dummy.hashelp = True
 
+app_server = App()
+app_server.dir = "server"
+app_server.name = "Server"
+app_server.requireauth = False
+app_server.hashelp = False
+
 app_help = App()
 app_help.dir = "help"
 app_help.name = "Help"
@@ -26,6 +32,7 @@ app_help.hashelp = False
 
 app_url = {
     "dummy" : app_dummy,
+    "serve" : app_server,
     "help" : app_help,
 }
 

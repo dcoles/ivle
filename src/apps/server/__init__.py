@@ -15,46 +15,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# App: dummy
-# Author: Matt Giuca
-# Date: 12/12/2007
+# App: server
+# Author: Tom Conway
+# Date: 13/12/2007
 
-# This is an IVLE application.
-# A sample / testing application for IVLE.
+# Serves content to the user (acting as a web server for students files).
+# For most file types we just serve the static file, but
+# for python files, we evaluate the python script inside
+# our safe execution environment.
 
 from common import util
-from conf
+import conf
 
 import mimetypes
+import os
 
 def handle(req):
-    """Handler for the Server application which serves pages.
-       For most file types we just serve the static file, but
-       for python files, we evaluate the python script inside
-       our safe execution environment."""
+    """Handler for the Server application which serves pages."""
 
     if req.path.endswith('.py'):
         raise Exception, "executing python not done yet!"
 
     # We're expecting paths are all of the form <usr>/...
-    parts = req.path.split('/')
+    parts = req.path.split(os.sep)
     if len(parts) == 0:
         raise Exception, "empty path!"
 
     usr = parts[0]
 
     # The corresponding file on the filesystem
-    path = conf.root_dir + '/jails/' + user + '/home/' + req.path
+    path = os.path.join(conf.student_dir, usr, 'home', req.path)
 
     mimetypes.init()
     (type, encoding) = mimetypes.guess_type(path)
 
-    if type is None:
+    if type == None:
         type = 'text/plain'
 
     # Set request attributes
     req.content_type = type
-    if encoding is not None:
+    if encoding != None:
         req.content_encoding = encoding
 
     req.write_html_head_foot = False
