@@ -34,19 +34,20 @@ def write_html_head(req):
     write to."""
 
     # Write the XHTML opening and head element
+    if req.title != None:
+        titlepart = ' - ' + req.title
+    else:
+        titlepart = ''
     req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>IVLE""")
-    if req.title != None:
-        req.write(' - ' + req.title)
-    req.write("""</title>
+  <title>IVLE%s</title>
   <meta http-equiv="Content-Type"
-    content=""" + '"' + req.content_type + """; charset=utf-8" />
+    content="%s"; charset=utf-8" />
 </head>
 
-""")
+""" % (titlepart, req.content_type))
 
     # Open the body element and write a bunch of stuff there (the header)
     req.write("""<body>
@@ -72,10 +73,7 @@ def print_apps_list(file):
 
     for urlname in conf.apps.apps_in_tabs:
         app = conf.apps.app_url[urlname]
-        file.write('  <li><a href="')
-        file.write(util.make_path(app.dir))
-        file.write('">')
-        file.write(app.name)
-        file.write('</a></li>\n')
+        file.write('  <li><a href="%s">%s</a></li>\n'
+            % (util.make_path(app.dir), app.name))
 
     file.write('</ul>\n')
