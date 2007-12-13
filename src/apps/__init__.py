@@ -31,7 +31,7 @@ def call_app(appname, req):
         # level=-1 to make it look in the right directory
         app_module = __import__(appname, globals(), locals(), [], -1)
         app_module.handle(req)
-    except:
+    except ImportError:
         # Any problems meant it's a server error, because conf/apps.py said
         # this app would be here.
         raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
