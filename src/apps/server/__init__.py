@@ -27,36 +27,40 @@
 from common import util
 import conf
 
+import functools
 import mimetypes
 import os
+
+executable_types = {
+    'text/x-python' : functools.partial(server.cgi.handler, '/usr/bin/python')
+}
 
 def handle(req):
     """Handler for the Server application which serves pages."""
 
-    if req.path.endswith('.py'):
-        raise Exception, "executing python not done yet!"
+    mimetypes.init()
+    (type, encoding) = mimetypes.guess_type(req.path)
+
+    if type is None:
+        type = 'text/plain'
+
+    if type in executable_types:
+        return executable_types[type](req)
 
     # We're expecting paths are all of the form <usr>/...
     parts = req.path.split(os.sep)
     if len(parts) == 0:
+        # FIXME
         raise Exception, "empty path!"
 
     usr = parts[0]
 
-    # The corresponding file on the filesystem
-    path = os.path.join(conf.student_dir, usr, 'home', req.path)
-
-    mimetypes.init()
-    (type, encoding) = mimetypes.guess_type(path)
-
-    if type == None:
-        type = 'text/plain'
-
-    # Set request attributes
     req.content_type = type
     if encoding != None:
         req.content_encoding = encoding
 
     req.write_html_head_foot = False
+
+    path = os.path.join(conf.student_dir, usr, 'home', req.path)
 
     req.sendfile(path)
