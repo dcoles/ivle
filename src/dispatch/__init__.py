@@ -50,12 +50,12 @@ def handler(req):
     req = Request(req, html.write_html_head)
 
     # Check req.app to see if it is valid. 404 if not.
-    if req.app != None and req.app not in conf.apps.app_url:
+    if req.app is not None and req.app not in conf.apps.app_url:
         # TODO: Nicer 404 message?
-        return apache.HTTP_NOT_FOUND
+        req.throw_error(Request.HTTP_NOT_FOUND)
 
     # app is the App object for the chosen app
-    if req.app == None:
+    if req.app is None:
         app = conf.apps.app_url[conf.default_app]
     else:
         app = conf.apps.app_url[req.app]
@@ -66,11 +66,11 @@ def handler(req):
         pass
 
     # If user did not specify an app, HTTP redirect to default app and exit.
-    if req.app == None:
-        mod_python.util.redirect(apachereq, util.make_path(conf.default_app))
+    if req.app is None:
+        req.throw_redirect(util.make_path(conf.default_app))
 
     # Set the default title to the app's tab name, if any. Otherwise URL name.
-    if app.name != None:
+    if app.name is not None:
         req.title = app.name
     else:
         req.title = req.app

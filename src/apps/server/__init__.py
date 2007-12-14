@@ -24,7 +24,7 @@
 # for python files, we evaluate the python script inside
 # our safe execution environment.
 
-from common import util
+from common import (util, studpath)
 import conf
 
 import functools
@@ -32,7 +32,8 @@ import mimetypes
 import os
 
 executable_types = {
-    'text/x-python' : functools.partial(server.cgi.handler, '/usr/bin/python')
+    #'text/x-python'
+    #    : functools.partial(server.cgi.handler, '/usr/bin/python'),
 }
 
 def handle(req):
@@ -44,23 +45,24 @@ def handle(req):
     if type is None:
         type = 'text/plain'
 
+    # If this type has a special interpreter, call that instead of just
+    # serving the content.
     if type in executable_types:
         return executable_types[type](req)
 
-    # We're expecting paths are all of the form <usr>/...
-    parts = req.path.split(os.sep)
-    if len(parts) == 0:
-        # FIXME
-        raise Exception, "empty path!"
-
-    usr = parts[0]
-
     req.content_type = type
-    if encoding != None:
+    if encoding is not None:
         req.content_encoding = encoding
 
     req.write_html_head_foot = False
 
-    path = os.path.join(conf.student_dir, usr, 'home', req.path)
+    # Get the username of the student whose work we are browsing, and the path
+    # on the local machine where the file is stored.
+    (user, path) = studpath.url_to_local(req.path)
 
-    req.sendfile(path)
+    if user is None:
+        # TODO: Nicer 404 message?
+        req.throw_error(req.HTTP_NOT_FOUND)
+
+    req.write("user = %s\npath = %s\nmime = %s\n" % (user, path, type))
+    #req.sendfile(path)

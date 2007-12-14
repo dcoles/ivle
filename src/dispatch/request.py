@@ -24,6 +24,7 @@
 # object.
 
 import common.util
+import mod_python
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -175,3 +176,22 @@ class Request:
         """Sends the named file directly to the client."""
         self.apache_req.sendfile(filename)
 
+    def throw_error(self, httpcode):
+        """Writes out an HTTP error of the specified code. Raises an exception
+        which is caught by the dispatch or web server, so any code following
+        this call will not be executed.
+
+        httpcode: An HTTP response status code. Pass a constant from the
+        Request class.
+        """
+        raise mod_python.apache.SERVER_RETURN, httpcode
+
+    def throw_redirect(self, location):
+        """Writes out an HTTP redirect to the specified URL. Raises an
+        exception which is caught by the dispatch or web server, so any
+        code following this call will not be executed.
+
+        httpcode: An HTTP response status code. Pass a constant from the
+        Request class.
+        """
+        mod_python.util.redirect(self.apache_req, location)
