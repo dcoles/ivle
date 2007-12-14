@@ -46,12 +46,16 @@ def url_to_local(urlpath):
 
     See also: conf.student_dir
     """
+    # Note: User can be a group name. There is absolutely no difference in our
+    # current directory scheme.
     (user, subpath) = util.split_path(urlpath)
     if user is None: return (None, None)
 
-    # Note: For now this just re-joins user and subpath
-    # But we plan to muddle this around a bit so it's good that they are
-    # separated.
-    path = os.path.join(conf.student_dir, user, subpath)
+    # Join the user onto 'home' then the full path specified.
+    # This results in the user's name being repeated twice, which is in
+    # accordance with our directory scheme.
+    # (The first time is the name of the jail, the second is the user's home
+    # directory within the jail).
+    path = os.path.join(conf.student_dir, user, 'home', urlpath)
 
     return (user, path)
