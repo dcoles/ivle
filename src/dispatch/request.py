@@ -188,6 +188,14 @@ class Request:
             self.__writeheaders()
         self.apache_req.sendfile(filename)
 
+    def read(self, len=None):
+        """Reads at most len bytes directly from the client. (See mod_python
+        Request.read)."""
+        if len is None:
+            self.apache_req.read()
+        else:
+            self.apache_req.read(len)
+
     def throw_error(self, httpcode):
         """Writes out an HTTP error of the specified code. Raises an exception
         which is caught by the dispatch or web server, so any code following

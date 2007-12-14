@@ -30,6 +30,7 @@ import conf
 import functools
 import mimetypes
 import os
+import subprocess
 
 def handle(req):
     """Handler for the Server application which serves pages."""
@@ -39,8 +40,6 @@ def handle(req):
 
     if type is None:
         type = 'text/plain'
-
-    req.content_type = type
 
     req.write_html_head_foot = False
 
@@ -57,6 +56,7 @@ def handle(req):
     if type in executable_types:
         return executable_types[type](path, req)
     else:
+        req.content_type = type
         req.sendfile(path)
 
 def execute_cgi(filename, studentprog, req):
@@ -71,8 +71,33 @@ def execute_cgi(filename, studentprog, req):
     the HTTP body on stdin. It shall receive the CGI environment variables to
     its environment.
     """
-    # TEMP
-    req.write("execute_cgi(%s, %s, req)\n" % (filename, studentprog))
+
+    # Get the student program's directory and execute it from that context.
+    slashloc = studentprog.rfind(os.sep)
+    if slashloc >= 0:
+        progdir = studentprog[0:slashloc]
+    else:
+        progdir = "/"
+
+    # TODO: Don't create a file if the body length is known to be 0
+    # Write the HTTP body to a temporary file so it can be passed as a *real*
+    # file to popen.
+    f = os.tmpfile()
+    body = req.read()
+    if body is not None:
+        f.write(body)
+        f.flush()
+        f.seek(0)       # Rewind, for reading
+
+    pid = subprocess.Popen([studentprog], executable=filename,
+        stdin=f, stdout=subprocess.PIPE, cwd=progdir)
+
+    # Read from the process's stdout into req
+    # FIXME: Efficiency
+    response = pid.stdout.read()
+    req.write(response)
+
+# Mapping of mime types to executables
 
 executable_types = {
     'text/x-python'
