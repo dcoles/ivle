@@ -59,6 +59,10 @@ def handle(req):
         req.content_type = type
         req.sendfile(path)
 
+# Used to store mutable data
+class Dummy:
+    pass
+
 def execute_cgi(filename, studentprog, req):
     """
     filename: Full path on the local system to the CGI wrapper program
@@ -92,11 +96,74 @@ def execute_cgi(filename, studentprog, req):
     pid = subprocess.Popen([filename, studentprog],
         stdin=f, stdout=subprocess.PIPE, cwd=progdir)
 
+    # process_cgi_line: Reads a single line of CGI output and processes it.
+    # Prints to req, and also does fancy HTML warnings if Content-Type
+    # omitted.
+    cgiflags = Dummy()
+    cgiflags.got_cgi_header = False
+    cgiflags.started_cgi_body = False
+    cgiflags.wrote_html_warning = False
+    def process_cgi_line(line):
+        # FIXME? Issue with binary files (processing per-line?)
+        if cgiflags.started_cgi_body:
+            # FIXME: HTML escape text if wrote_html_warning
+            req.write(line)
+        else:
+            # Read CGI headers
+            if line.strip() == "" and cgiflags.got_cgi_header:
+                cgiflags.started_cgi_body = True
+            elif line.startswith("Content-Type:"):
+                req.content_type = line[13:].strip()
+                cgiflags.got_cgi_header = True
+            elif line.startswith("Location:"):
+                # TODO
+                cgiflags.got_cgi_header = True
+            elif line.startswith("Status:"):
+                # TODO
+                cgiflags.got_cgi_header = True
+            elif cgiflags.got_cgi_header:
+                # Invalid header
+                # TODO
+                req.write("Invalid header")
+                pass
+            else:
+                # Assume the user is not printing headers and give a warning
+                # about that.
+                # User program did not print header.
+                # Make a fancy HTML warning for them.
+                req.content_type = "text/html"
+                req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type"
+    content="text/html; charset=utf-8" />
+</head>
+<body style="margin: 0; padding: 0; font-family: sans;">
+  <div style="background-color: #faa; border-bottom: 1px solid black;
+    border-top: 1px solid #faa; padding: 8px;">
+    <p><strong>Warning</strong>: You did not print a "Content-Type" header.
+    CGI requires you to print some content type. You may wish to try:</p>
+    <pre style="margin-left: 1em">Content-Type: text/html</pre>
+  </div>
+  <div style="margin: 8px;">
+    <pre>
+""")
+                cgiflags.got_cgi_header = True
+                cgiflags.wrote_html_warning = True
+                cgiflags.started_cgi_body = True
+                req.write(line)
+
     # Read from the process's stdout into req
-    # FIXME: Efficiency
-    # TODO: Read CGI response headers
-    response = pid.stdout.read()
-    req.write(response)
+    for line in pid.stdout:
+        process_cgi_line(line)
+
+    # If we wrote an HTML warning header, write the footer
+    if cgiflags.wrote_html_warning:
+        req.write("""</pre>
+  </div>
+</body>
+</html>""")
 
 # Mapping of mime types to executables
 
