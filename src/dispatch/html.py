@@ -44,7 +44,7 @@ def write_html_head(req):
 <head>
   <title>IVLE%s</title>
   <meta http-equiv="Content-Type"
-    content="%s"; charset=utf-8" />
+    content="%s; charset=utf-8" />
 </head>
 
 """ % (titlepart, req.content_type))
