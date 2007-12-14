@@ -78,11 +78,13 @@ def handler(req):
     # Call the specified app with the request object
     apps.call_app(app.dir, req)
 
+    # MAKE SURE we write the HTTP (and possibly HTML) header. This
+    # wouldn't happen if nothing else ever got written, so we have to make
+    # sure.
+    req.ensure_headers_written()
+
     # When done, write out the HTML footer if the app has requested it
     if req.write_html_head_foot:
-        # MAKE SURE we write the head (we would never do that if the app, nor
-        # write_html_foot, ever writes anything - so just to be sure).
-        req.write("", flush=0)
         html.write_html_foot(req)
 
     # Have Apache output its own HTML code if non-200 status codes were found

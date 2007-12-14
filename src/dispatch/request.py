@@ -164,6 +164,12 @@ class Request:
             # Write the HTML header, pass "self" (request object)
             self.func_write_html_head(self)
 
+    def ensure_headers_written(self):
+        """Writes out the HTTP and HTML headers if they haven't already been
+        written."""
+        if not self.headers_written:
+            self.__writeheaders()
+
     def write(self, string, flush=1):
         """Writes string directly to the client, then flushes the buffer,
         unless flush is 0."""

@@ -41,8 +41,6 @@ def handle(req):
         type = 'text/plain'
 
     req.content_type = type
-    if encoding is not None:
-        req.content_encoding = encoding
 
     req.write_html_head_foot = False
 
