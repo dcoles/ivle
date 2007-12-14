@@ -16,7 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 # App: server
-# Author: Tom Conway
+# Author: Tom Conway, Matt Giuca
 # Date: 13/12/2007
 
 # Serves content to the user (acting as a web server for students files).
@@ -31,11 +31,6 @@ import functools
 import mimetypes
 import os
 
-executable_types = {
-    #'text/x-python'
-    #    : functools.partial(server.cgi.handler, '/usr/bin/python'),
-}
-
 def handle(req):
     """Handler for the Server application which serves pages."""
 
@@ -44,11 +39,6 @@ def handle(req):
 
     if type is None:
         type = 'text/plain'
-
-    # If this type has a special interpreter, call that instead of just
-    # serving the content.
-    if type in executable_types:
-        return executable_types[type](req)
 
     req.content_type = type
     if encoding is not None:
@@ -64,5 +54,30 @@ def handle(req):
         # TODO: Nicer 404 message?
         req.throw_error(req.HTTP_NOT_FOUND)
 
-    req.write("user = %s\npath = %s\nmime = %s\n" % (user, path, type))
-    #req.sendfile(path)
+    # If this type has a special interpreter, call that instead of just
+    # serving the content.
+    if type in executable_types:
+        return executable_types[type](path, req)
+    else:
+        req.sendfile(path)
+
+def execute_cgi(filename, studentprog, req):
+    """
+    filename: Full path on the local system to the CGI wrapper program
+        being executed.
+    studentprog: Full path on the local system to the CGI student program
+        which will eventually be executed.
+    req: IVLE request object.
+
+    The called CGI wrapper application shall be called using popen and receive
+    the HTTP body on stdin. It shall receive the CGI environment variables to
+    its environment.
+    """
+    # TEMP
+    req.write("execute_cgi(%s, %s, req)\n" % (filename, studentprog))
+
+executable_types = {
+    'text/x-python'
+        : functools.partial(execute_cgi, '/usr/bin/python'),
+}
+
