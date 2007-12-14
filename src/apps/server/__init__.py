@@ -89,11 +89,12 @@ def execute_cgi(filename, studentprog, req):
         f.flush()
         f.seek(0)       # Rewind, for reading
 
-    pid = subprocess.Popen([studentprog], executable=filename,
+    pid = subprocess.Popen([filename, studentprog],
         stdin=f, stdout=subprocess.PIPE, cwd=progdir)
 
     # Read from the process's stdout into req
     # FIXME: Efficiency
+    # TODO: Read CGI response headers
     response = pid.stdout.read()
     req.write(response)
 
