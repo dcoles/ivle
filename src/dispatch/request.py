@@ -153,16 +153,16 @@ class Request:
     def __writeheaders(self):
         """Writes out the HTTP and HTML headers before any real data is
         written."""
-            self.headers_written = True
-            # Prepare the HTTP and HTML headers before the first write is made
-            if self.content_type != None:
-                self.apache_req.content_type = self.content_type
-            self.apache_req.status = self.status
-            if self.location != None:
-                self.apache_req.headers_out['Location'] = self.location
-            if self.write_html_head_foot:
-                # Write the HTML header, pass "self" (request object)
-                self.func_write_html_head(self)
+        self.headers_written = True
+        # Prepare the HTTP and HTML headers before the first write is made
+        if self.content_type != None:
+            self.apache_req.content_type = self.content_type
+        self.apache_req.status = self.status
+        if self.location != None:
+            self.apache_req.headers_out['Location'] = self.location
+        if self.write_html_head_foot:
+            # Write the HTML header, pass "self" (request object)
+            self.func_write_html_head(self)
 
     def write(self, string, flush=1):
         """Writes string directly to the client, then flushes the buffer,
