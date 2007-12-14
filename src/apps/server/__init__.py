@@ -141,7 +141,7 @@ def execute_cgi(filename, studentprog, req):
 </head>
 <body style="margin: 0; padding: 0; font-family: sans;">
   <div style="background-color: #faa; border-bottom: 1px solid black;
-    border-top: 1px solid #faa; padding: 8px;">
+    padding: 8px;">
     <p><strong>Warning</strong>: You did not print a "Content-Type" header.
     CGI requires you to print some content type. You may wish to try:</p>
     <pre style="margin-left: 1em">Content-Type: text/html</pre>
