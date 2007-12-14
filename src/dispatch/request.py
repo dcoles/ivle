@@ -150,11 +150,9 @@ class Request:
         self.title = None     # Will be set by dispatch before passing to app
         self.write_html_head_foot = False
 
-    def write(self, string, flush=1):
-        """Writes string directly to the client, then flushes the buffer,
-        unless flush is 0."""
-
-        if not self.headers_written:
+    def __writeheaders(self):
+        """Writes out the HTTP and HTML headers before any real data is
+        written."""
             self.headers_written = True
             # Prepare the HTTP and HTML headers before the first write is made
             if self.content_type != None:
@@ -166,6 +164,12 @@ class Request:
                 # Write the HTML header, pass "self" (request object)
                 self.func_write_html_head(self)
 
+    def write(self, string, flush=1):
+        """Writes string directly to the client, then flushes the buffer,
+        unless flush is 0."""
+
+        if not self.headers_written:
+            self.__writeheaders()
         self.apache_req.write(string, flush)
 
     def flush(self):
@@ -174,6 +178,8 @@ class Request:
 
     def sendfile(self, filename):
         """Sends the named file directly to the client."""
+        if not self.headers_written:
+            self.__writeheaders()
         self.apache_req.sendfile(filename)
 
     def throw_error(self, httpcode):
