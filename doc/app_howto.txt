@@ -1,0 +1,129 @@
+IVLE - App Authoring Guide
+==========================
+
+    Author: Matt Giuca
+    Date: 17/12/2007
+
+Intended audience: IVLE developers who wish to write a new application for
+IVLE's plugin interface.
+
+IVLE's modular architecture allows new applications ("apps") to be easily
+written and added to the site. An app is just a Python program which conforms
+to a small API, plus a few additional configurations.
+
+Application Specification
+-------------------------
+
+An application consists of two parts:
+
+* A Python package in the `apps` directory of IVLE. (That is, a directory with
+  the name of the application containing a file `__init__.py`).
+* An entry in the applications database, stored in the file `conf/apps.py`.
+
+The entry in the apps database allows IVLE to locate and run the application.
+The package contains the application's code.
+
+### App name ###
+
+Applications may be known by three distinct names:
+
+* The "directory name" ("`dir`") is the most common identifier used for an
+  app. This is the name of the app's package directory.
+* The "URL name" is the URL path segment used to publically identify the
+  application. Is is usually the same as the dir name but may be distinct.
+* The "friendly name" ("`name`") is the name shown to users, eg, in the title
+  bar and in the tabs.
+
+Applications Database Entry
+---------------------------
+
+The file `conf/apps.py` is the applications database. (No, it isn't a real
+database, just a Python file with a dictionary in it). Each application is
+defined in a variable. This is merely a convenience so they don't all have
+to be defined inside the dictionary.
+
+Each application should be created by calling the App constructor, with the
+following fields:
+
+* `dir` : string - The "directory name" of the app.
+* `name` : string - The "friendly name" of the app.
+* `requireauth` : bool - If True, will automatically require authentication
+      (but not authorization).
+* `hashelp` : bool - If True, this app will be given a help entry.
+
+Each application should be given an entry in the `app_url` dict, mapping its
+"url name" to the App variable.
+
+Applications which require a tab in the IVLE interface should have their "url
+names" added to the `apps_in_tabs` list as well.
+
+Application Interface
+---------------------
+
+Example Application
+-------------------
+
+This section shows the creation of a "Hello World" application which simply
+prints some text, inside the IVLE interface. The app's name will be "hello",
+"hello" and "Hello World" respectively.
+
+Firstly, create a directory, `apps/hello`. Create a file
+`apps/hello/__init__.py` with the following contents:
+
+    def handle(req):
+        req.content_type = "text/html"
+        req.write_html_head_foot = True
+        req.write("<p>Hello, IVLE!</p>\n")
+
+Now, edit the file `conf/apps.py`, and add the following lines:
+
+    app_hello = App()
+    app_hello.dir = "hello"
+    app_hello.name = "Hello World"
+    app_hello.requireauth = False
+    app_hello.hashelp = False
+
+Add `"hello" : app_hello,` to the app_url dictionary. Add `"hello"` to the
+apps_in_tabs list.
+
+Now restart the web server, and the "Hello World" tab should appear. Click
+the tab to call your new app.
+
+Note that the page output includes the standard IVLE interface and style
+theme (by virtue of setting `req.write_html_head_foot` to True). The data that
+the Hello World app itself outputs should be written assuming it is inside an
+XHTML body element. The final output will be valid XHTML 1.0 Strict if the
+application's output is.
+
+### Making a file dump ###
+
+You can modify the application to dump files from the students directories
+easily. You may wish to set `requireauth` to True, which will require that a
+user is logged in. (Note that it doesn't say anything about which user must be
+logged in - any student will still be able to read any other student's files).
+
+You will need to import the `studpath` module from `common` - this provides
+utilities for accessing student files.
+
+    from common import studpath
+
+    def handle(req):
+        req.content_type = "text/html"
+        req.write_html_head_foot = True
+
+        (user, path) = studpath.url_to_local(req.path)
+        req.write("<p>")
+        try:
+            req.sendfile(path)
+        except IOError, msg:
+            req.write("Error: %s" % msg)
+        req.write("</p>")
+
+`studpath.url_to_local` gives you a path on the local file system which the
+file corresponds to. (It also gives you the name of the user or group who owns
+the file, though we don't use that here).
+
+ **Important**: This simple example does not escape characters for HTML, so it
+will not display some files correctly, and could be vulnerable to JavaScript
+injections. In a real app, characters (at the very least, '<', '>' and '&')
+should be escaped correctly.
