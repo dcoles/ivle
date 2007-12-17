@@ -20,7 +20,7 @@
 # Author: Tom Conway
 # Date: 13/12/2007
 
-# Usage: trampoline.py <uid> <jail-dir> <cwd-within-jail> <script-name>
+# Usage: trampoline.py <uid> <jail-dir> <cwd-within-jail> <script-name> [<interp>]
 #   <uid>       The user id of the user to do the evaluation
 #               At the moment this is the user-name, but it would be
 #               nice if it were made to be the numeric uid, since the
@@ -33,6 +33,8 @@
 #               made the current working directory for the script.
 #               This should be relative to / within the jail.
 #   <script-name> The path (within the jail) to the script to be executed.
+#   <interp>    If given, the interpreter to invoke the script with.
+
 
 import os
 import sys
@@ -54,11 +56,21 @@ def throttle():
     for (r,l) in limits:
         resource.setrlimit(r,l)
 
-def runscript(uid, jail, cwd, script):
+def runscript(uid, jail, cwd, script, interp):
+    if uid == 0:
+        sys.exit(sys.argv[0] + ": cannot run scripts as root!\n")
+    # os.chroot(os.path.join(<<base-directory-for-jails>>, jail))
     os.chroot(jail)
     os.chdir(cwd)
     os.setuid(uid)
     throttle()
-    os.execl(script)
+    if interp:
+        os.execl(interp, script)
+    else
+        os.execl(script)
 
-runscript(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+if len(sys.argv) == 5:
+    runscript(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], None)
+else:
+    runscript(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+
