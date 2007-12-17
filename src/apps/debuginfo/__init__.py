@@ -45,15 +45,31 @@ def handle(req):
         ("default_app", conf.default_app),
     ])
 
+    print_table(req, "Available Applications", conf.apps.app_url.items())
+
     print_table(req, "Request Properties", [
         ("uri", req.uri),
         ("app", req.app),
         ("path", req.path),
     ])
 
-    print_table(req, "Available Applications", conf.apps.app_url.items())
+    # Violate encapsulation here to print out the hidden properties
+    print_table(req, "Apache (Hidden) Request Properties", [
+        ("hostname", req.apache_req.hostname),
+        ("method", req.apache_req.method),
+        ("unparsed_uri", req.apache_req.unparsed_uri),
+        ("parsed_uri", req.apache_req.parsed_uri),
+        ("uri", req.apache_req.uri),
+        ("filename", req.apache_req.filename),
+        ("path_info", req.apache_req.path_info),
+    ])
 
-    print_table(req, "Environment Variables", os.environ.items())
+    print_table(req, "HTTP Request Headers",
+        req.apache_req.headers_in.items())
+    req.apache_req.add_common_vars()
+    print_table(req, "CGI Environment Variables",
+        req.apache_req.subprocess_env.items())
+    print_table(req, "Server Environment Variables", os.environ.items())
 
     req.write("<h3>Removal instructions</h3>\n")
     req.write("""<p>In a production environment, debuginfo should be disabled.
