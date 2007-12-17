@@ -33,6 +33,12 @@ def make_path(path):
     client."""
     return os.path.join(root_dir, path)
 
+def make_local_path(path):
+    """Given a path relative to the IVLE root, on the local file system, makes
+    the path relative to the root using conf.ivlepath. This path can be used
+    in reading files from the local file system."""
+    return os.path.join(conf.ivlepath, path)
+
 def unmake_path(path):
     """Given a path relative to the site root, makes the path relative to the
     IVLE root by removing conf.root_dir if it appears at the beginning. If it
