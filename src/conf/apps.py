@@ -24,6 +24,11 @@ app_server =    App(dir = "server",
                     requireauth = False,
                     hashelp = False)
 
+app_download =  App(dir = "download",
+                    name = "Download",
+                    requireauth = True,
+                    hashelp = False)
+
 app_help =      App(dir = "help",
                     name = "Help",
                     requireauth = True,
@@ -34,6 +39,7 @@ app_help =      App(dir = "help",
 app_url = {
     "dummy" : app_dummy,
     "serve" : app_server,
+    "download" : app_download,
     "help" : app_help,
 }
 
