@@ -1,0 +1,75 @@
+#!/usr/bin/python
+# IVLE
+# Copyright (C) 2007-2008 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# CGI Trampoline
+# Author: Tom Conway
+# Date: 13/12/2007
+
+# Usage: trampoline.py <uid> <jail-dir> <cwd-within-jail> <script-name>
+#   <uid>       The user id of the user to do the evaluation
+#               At the moment this is the user-name, but it would be
+#               nice if it were made to be the numeric uid, since the
+#               trampoline has to read /etc/passwd to figure this out
+#               at the moment. OTOH, the server invoking the trampoline
+#               may know it already, and in any case can cache it between
+#               requests, which the trampoline cannot.
+#   <jail-dir>  The directory that the trampoline should chroot to
+#   <cwd-within-jail> The directory within the jail that should be
+#               made the current working directory for the script.
+#               This should be relative to / within the jail.
+#   <script-name> The path (within the jail) to the script to be executed.
+
+
+import os
+import sys
+import re
+import resource
+
+def throttle():
+    Kb = 1024
+    Mb = 1024 * 1024
+
+    limits = [(resource.RLIMIT_CORE,     (0,0)), \
+              (resource.RLIMIT_CPU,      (1,2)), \
+              (resource.RLIMIT_FSIZE,    (5 * Mb, 5 * Mb)), \
+              (resource.RLIMIT_DATA,     (20 * Mb, 24 * Mb)), \
+              (resource.RLIMIT_STACK,    (8 * Mb, 9 * Mb)), \
+              (resource.RLIMIT_NPROC,    (10, 10)), \
+              (resource.RLIMIT_NOFILE,   (10, 12))]
+
+    for (r,l) in limits:
+        resource.setrlimit(r,l)
+
+def runscript(uid, jail, cwd, script):
+    if uid == 0:
+        sys.exit(sys.argv[0] + ": cannot run scripts as root!\n")
+    # os.chroot(os.path.join(<<base-directory-for-jails>>, jail))
+    os.chroot(jail)
+    os.chdir(cwd)
+    os.setuid(uid)
+    throttle()
+    m = compile(file(script,'r').read(), script, 'exec')
+    g = {}
+    g['__builtins__'] = globals()['__builtins__']
+    g['__file__'] = script
+    g['__name__'] = '__main__'
+    eval(m, g, {})
+    #eval(m)
+    sys.exit(0)
+
+runscript(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
