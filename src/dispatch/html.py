@@ -53,6 +53,13 @@ def write_html_head(req):
     req.write("""<body>
 <h1>IVLE - Informatics Virtual Learning Environment</h1>
 """)
+
+    # If the "debuginfo" app is installed, display a warning to the admin to
+    # make sure it is removed in production.
+    if "debuginfo" in conf.apps.app_url:
+        req.write("<p>Warning: debuginfo is enabled. Remove this app from "
+            "conf.apps.app_url when placed into production.</p>")
+
     print_apps_list(req)
 
 def write_html_foot(req):

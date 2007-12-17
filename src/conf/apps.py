@@ -11,6 +11,10 @@ class App:
         self.name = name
         self.requireauth = requireauth
         self.hashelp = hashelp
+    def __repr__(self):
+        return ("App(dir=" + repr(self.dir) + ", name=" + repr(self.name) +
+            ", requireauth=" + repr(self.requireauth) + ", hashelp="
+            + repr(self.hashelp) + ")")
 
 # Application definitions
 
@@ -34,6 +38,11 @@ app_help =      App(dir = "help",
                     requireauth = True,
                     hashelp = False)
 
+app_debuginfo = App(dir = "debuginfo",
+                    name = "Debug Information",
+                    requireauth = True,
+                    hashelp = False)
+
 # Mapping URL names to apps
 
 app_url = {
@@ -41,6 +50,7 @@ app_url = {
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
+    "debuginfo" : app_debuginfo,
 }
 
 # List of apps that go in the tabs at the top
