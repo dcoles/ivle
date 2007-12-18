@@ -1,5 +1,5 @@
 # IVLE Configuration File
-# conf/server.py
+# conf/app/server.py
 # Configuration for Server ('serve') app.
 # These should not need to be modified by admins unless new languages become
 # supported.
@@ -7,6 +7,10 @@
 # Note that this configuration file uses mime types to identify files.
 # conf/mimetypes.py may need to be modified to configure mime types outside of
 # the system's default mime types.
+
+# All files served whose mime type cannot be guessed will be served as this
+# type.
+default_mimetype = "text/plain"
 
 # Mapping mime types to interpreters
 # Interpreters are built-in to IVLE, and identified by their string names.
