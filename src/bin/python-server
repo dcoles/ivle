@@ -31,8 +31,13 @@ def recv_lines(sok):
             i = buf.find('\r\n')
         s = sok.recv(4096)
 
+shutup_shop_on_timeout = False
+keep_going = True
+
 def timeout(signum, frame):
-    print 'signal: ', signum
+    if shutup_shop_on_timeout:
+        keep_going = False
+        return
     raise Exception, 'Timeout!'
 
 # signal.signal(signal.SIGALRM, timeout)
@@ -124,8 +129,16 @@ if __name__ == "__main__":
     global keep_going
     keep_going = True
     while keep_going:
+        global shutup_shop_on_timeout
+        shutup_shop_on_timeout = True
+        signal.alarm(30 * 60) # timeout after 30 minutes
+
         (sok,addr) = main_sok.accept()
-        # do checks on addr
+
+        signal.alarm(0)
+        shutup_shop_on_timeout = False
+
+        # FIXME do checks on addr
 
         try:
             first = True
