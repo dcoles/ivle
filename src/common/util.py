@@ -20,10 +20,14 @@
 # Date: 12/12/2007
 
 # Contains common utility functions.
+# Also initialises mime types library. You must import util before using
+# Python's builtin mimetypes module to make sure local settings are applied.
 
 import os
+import mimetypes
 
 import conf
+import conf.mimetypes
 
 root_dir = conf.root_dir
 
@@ -87,3 +91,9 @@ def split_path(path):
         return (splitpath[0], '')
     else:
         return tuple(splitpath)
+
+# Initialise mime types library
+mimetypes.init()
+for (ext, mimetype) in conf.mimetypes.additional_mime_types.items():
+    mimetypes.add_type(mimetype, ext)
+
