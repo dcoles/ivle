@@ -26,6 +26,7 @@
 
 from common import (util, studpath)
 import conf
+import conf.app.server
 
 import functools
 import mimetypes
@@ -34,13 +35,6 @@ import subprocess
 
 def handle(req):
     """Handler for the Server application which serves pages."""
-
-    mimetypes.init()
-    (type, encoding) = mimetypes.guess_type(req.path)
-
-    if type is None:
-        type = 'text/plain'
-
     req.write_html_head_foot = False
 
     # Get the username of the student whose work we are browsing, and the path
@@ -51,13 +45,80 @@ def handle(req):
         # TODO: Nicer 404 message?
         req.throw_error(req.HTTP_NOT_FOUND)
 
-    # If this type has a special interpreter, call that instead of just
-    # serving the content.
-    if type in executable_types:
-        return executable_types[type](path, req)
+    serve_file(req, user, path)
+
+def serve_file(req, owner, filename):
+    """Serves a file, using one of three possibilities: interpreting the file,
+    serving it directly, or denying it and returning a 403 Forbidden error.
+    No return value. Writes to req (possibly throwing a server error exception
+    using req.throw_error).
+    
+    req: An IVLE request object.
+    owner: Username of the user who owns the file being served.
+    filename: Filename in the local file system.
+    """
+
+    # First get the mime type of this file
+    # (Note that importing common.util has already initialised mime types)
+    (type, _) = mimetypes.guess_type(filename)
+    if type is None:
+        type = conf.app.server.default_mimetype
+
+    # If this type is to be interpreted
+    if type in conf.app.server.interpreters:
+        interp_name = conf.app.server.interpreters[type]
+        try:
+            # Get the interpreter function object
+            interp_object = interpreter_objects[interp_name]
+        except KeyError:
+            # TODO: Nicer 500 message (this is due to bad configuration in
+            # conf/app/server.py)
+            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+        interpret_file(req, owner, filename, interp_object)
+
     else:
-        req.content_type = type
-        req.sendfile(path)
+        # Otherwise, use the blacklist/whitelist to see if this file should be
+        # served or disallowed
+        if conf.app.server.blacklist_served_filetypes:
+            toserve = type not in conf.app.server.served_filetypes_blacklist
+        else:
+            toserve = type in conf.app.server.served_filetypes_whitelist
+
+        # toserve or not toserve
+        if not toserve:
+            # TODO: Nicer 403 message
+            req.throw_error(req.HTTP_FORBIDDEN)
+        else:
+            serve_file_direct(req, filename, type)
+
+def interpret_file(req, owner, filename, interpreter):
+    """Serves a file by interpreting it using one of IVLE's builtin
+    interpreters.
+
+    req: An IVLE request object.
+    owner: Username of the user who owns the file being served.
+    filename: Filename in the local file system.
+    interpreter: A function object to call.
+    """
+    # Make sure the file exists (otherwise some interpreters may not actually
+    # complain).
+    # Don't test for execute permission, that will only be required for
+    # certain interpreters.
+    if not os.access(filename, os.R_OK):
+        req.throw_error(req.HTTP_NOT_FOUND)
+    return interpreter(filename, req)
+
+def serve_file_direct(req, filename, type):
+    """Serves a file by directly writing it out to the response.
+
+    req: An IVLE request object.
+    filename: Filename in the local file system.
+    type: String. Mime type to serve the file with.
+    """
+    if not os.access(filename, os.R_OK):
+        req.throw_error(req.HTTP_NOT_FOUND)
+    req.content_type = type
+    req.sendfile(filename)
 
 # Used to store mutable data
 class Dummy:
@@ -165,10 +226,14 @@ def execute_cgi(filename, studentprog, req):
 </body>
 </html>""")
 
-# Mapping of mime types to executables
+# Mapping of interpreter names (as given in conf/app/server.py) to
+# interpreter functions.
 
-executable_types = {
-    'text/x-python'
+interpreter_objects = {
+    'cgi-python'
         : functools.partial(execute_cgi, '/usr/bin/python'),
+    # Should also have:
+    # cgi-generic
+    # python-server-page
 }
 
