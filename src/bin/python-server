@@ -1,0 +1,59 @@
+#!/usr/bin/python
+
+import socket
+import cStringIO
+import codeop
+import sys
+import cjson
+import signal
+
+def req_lines(sok):
+    buf = ''
+    s = sok.recv(4096)
+    while len(s) > 0:
+        buf = buf + s
+        i = buf.find('\r\n')
+        while i != -1:
+            l = buf[0:i]
+            yield l
+            buf = buf[i+1:]
+            i = buf.find('\r\n')
+        s = sok.recv(4096)
+
+def timeout(signum, frame):
+    print 'signal: ', signum
+    raise Exception, 'Timeout!'
+
+signal.signal(signal.SIGALRM, timeout)
+
+sok = socket.socket(socket.AF_INET)
+sok.bind(('localhost',9998))
+sok.listen(1)
+(new_sok,addr) = sok.accept()
+
+c = codeop.CommandCompiler()
+
+globs = {}
+locos = {}
+globs['__builtins__'] = globals()['__builtins__']
+
+out = cStringIO.StringIO()
+sys.stdout = out
+first = True
+for line in req_lines(new_sok):
+    if first:
+        src = line
+        first = False
+    else:
+        src = src + '\n' + line
+    cmd = c(src)
+    if cmd is not None:
+        signal.alarm(5)
+        res = eval(cmd, globs, locos)
+        signal.alarm(0)
+        new_sok.send(cjson.encode((out.getvalue(),res)) + '\n')
+        out = cStringIO.StringIO()
+        sys.stdout = out
+        first = True
+
+sok.shutdown(socket.SHUT_RDWR)
