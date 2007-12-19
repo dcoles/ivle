@@ -58,11 +58,11 @@ def throttle():
 def runscript(uid, jail, cwd, script):
     if uid == 0:
         sys.exit(sys.argv[0] + ": cannot run scripts as root!\n")
-    # os.chroot(os.path.join(<<base-directory-for-jails>>, jail))
-    os.chroot(jail)
+    os.chroot(os.path.join("/home/mgiuca/playground", jail))
+    #os.chroot(jail)
     os.chdir(cwd)
     os.setuid(uid)
-    throttle()
+    # throttle()
     m = compile(file(script,'r').read(), script, 'exec')
     g = {}
     g['__builtins__'] = globals()['__builtins__']
@@ -72,4 +72,4 @@ def runscript(uid, jail, cwd, script):
     #eval(m)
     sys.exit(0)
 
-runscript(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+runscript(int(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4])

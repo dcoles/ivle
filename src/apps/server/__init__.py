@@ -135,12 +135,15 @@ def interpret_file(req, owner, filename, interpreter):
 
     # Split up req.path again, this time with respect to the jail
     (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
+    path = os.path.join('/', path)
     (working_dir, _) = os.path.split(path)
     # Now jail_dir is the jail directory relative to the jails root.
     # Note that the trampoline has jails root hard-coded for security.
     # path is the filename relative to the user's jail.
     # working_dir is the directory containing the file relative to the user's
     # jail.
+    # (Note that paths "relative" to the jail actually begin with a '/' as
+    # they are absolute in the jailspace)
 
     return interpreter(uid, jail_dir, working_dir, path, req)
 
@@ -252,7 +255,7 @@ def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
 </html>""")
 
 # TODO: Replace mytest with cgi trampoline handler script
-location_cgi_python = os.path.join(conf.ivlepath, "bin/mytest")
+location_cgi_python = os.path.join(conf.ivlepath, "bin/trampoline-python")
 
 # Mapping of interpreter names (as given in conf/app/server.py) to
 # interpreter functions.
