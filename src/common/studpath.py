@@ -37,7 +37,7 @@ def url_to_local(urlpath):
     urlpath: Part of the URL, but only the part *after* the application. For
     instance, given the URL "/ivle/browse/joe/home/mydir/myfile", urlpath will
     be just "joe/home/mydir/myfile". The expected result is something like
-    ("joe", "/home/informatics/jails/joe/home/svn/mydir/myfile").
+    ("joe", "/home/informatics/jails/joe/home/joe/home/mydir/myfile").
     Note that the actual location is not guaranteed by this interface (this
     function serves as a single point of control as to how URLs map onto
     student directories).
@@ -59,3 +59,27 @@ def url_to_local(urlpath):
     path = os.path.join(conf.student_dir, user, 'home', urlpath)
 
     return (user, path)
+
+def url_to_jailpaths(urlpath):
+    """Given a URL path (part of a URL query string), returns a tuple of
+        * the username of the student whose directory is being browsed
+        * the path where the jail will be located relative to conf.student_dir
+          (the jail directory relative to the system jails root).
+        * the path of the file relative to the jail.
+
+    urlpath: See urlpath in url_to_local.
+
+    >>> url_to_jailpaths("joe/home/mydir/myfile")
+    ("joe", "joe", "home/joe/home/mydir/myfile")
+
+    >>> url_to_jailpaths("")
+    (None, None, None)
+    """
+    # Note: User can be a group name. There is absolutely no difference in our
+    # current directory scheme.
+    (user, subpath) = util.split_path(urlpath)
+    if user is None: return (None, None, None)
+
+    path = os.path.join('home', urlpath)
+
+    return (user, user, path)
