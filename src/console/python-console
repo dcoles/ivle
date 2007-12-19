@@ -1,0 +1,93 @@
+#!/usr/bin/python
+
+# usage:
+#   python-console <port> <magic>
+
+import web
+import md5
+import codeop
+import cjson
+
+globs = {}
+globs['__builtins__'] = globals()['__builtins__']
+locls = {}
+compiler = codeop.CommandCompiler()
+curr_cmd = ''
+
+def do_chat(txt):
+    if curr_cmd == '':
+        curr_cmd = txt
+    else:
+        curr_cmd = curr_cmd + '\n' + txt
+    try:
+        cmd = compiler(curr_cmd)
+        if cmd is None:
+            # The command was incomplete,
+            # so send back a None, so the
+            # client can print a '...'
+            web.output(cjson.encode(None))
+        else:
+            # The command was complete,
+            # so evaluate it!
+            out = cStringIO.StringIO()
+            sys.stdout = out
+            sys.stderr = out
+            signal.alarm(5)
+            res = eval(cmd, globs, locls)
+            signal.alarm(0)
+            v = (out.getvalue(), res, None)
+            web.output(json.encode(v))
+            curr_cmd = ''
+    except Exception, exc:
+        v = (None, None, str(exc))
+        web.output(json.encode(v))
+        curr_cmd = ''
+
+urls = (
+    '/',            'index',
+    '/(.*\.js)',    'jscript',
+    '/chat',        'chat')
+
+# The global 'magic' is the secret that the client and server share
+# which is used to create and md5 digest to authenticate requests.
+# It is assigned a real value at startup.
+magic = ''
+
+class index:
+    def GET(self):
+        inp = web.input()
+
+        # Authenticate
+        digest = md5.new('hello' + magic).digest().encode('hex')
+        if inp.digest != digest:
+            web.ctx.status = '401 Unauthorized'
+            return
+
+        # Okay, so the authentication succeeded,
+        # so all we need to do is send back the static
+        # HTML for the console app.
+        web.output(file("index.html", "r").read())
+
+class jscript:
+    def GET(self, name):
+        web.output(file(name, "r").read())
+
+class chat:
+    def POST(self):
+        inp = web.input()
+
+        # Authenticate
+        digest = md5.new(inp.text + magic).digest().encode('hex')
+        if inp.digest != digest:
+            web.ctx.status = '401 Unauthorized'
+            return
+
+        # Okay, so the authentication succeeded,
+        # so now we have the trivial matter of actually
+        # executing the python....
+        web.output(do_chat(inp.text))
+
+if __name__ == "__main__":
+    # FIXME jail!
+    magic = sys.argv[2]
+    web.run(urls, globals())
