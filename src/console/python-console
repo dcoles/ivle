@@ -46,6 +46,7 @@ def do_chat(txt):
 urls = (
     '/',            'index',
     '/(.*\.js)',    'jscript',
+    '/(.*\.css)',   'style',
     '/chat',        'chat')
 
 # The global 'magic' is the secret that the client and server share
@@ -69,6 +70,10 @@ class index:
         web.output(file("index.html", "r").read())
 
 class jscript:
+    def GET(self, name):
+        web.output(file(name, "r").read())
+
+class style:
     def GET(self, name):
         web.output(file(name, "r").read())
 
