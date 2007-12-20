@@ -57,6 +57,8 @@
 # Copy www/ to $target.
 # Copy jail/ to jails template directory (unless --nojail specified).
 
+# TODO: List in help, and handle, args for the conf operation
+
 import os
 import sys
 import getopt
@@ -212,7 +214,7 @@ Please hit Ctrl+C now if you do not wish to do this.
     ivle_install_dir = query_user(
     'Root directory where IVLE is located (on the local file system):\n'
     '(eg. "/home/informatics/ivle")')
-    student_dir = query_user(
+    jail_base = query_user(
     """Root directory where user files are stored (on the local file system):
     (eg. "/home/informatics/jails")""")
 
@@ -238,14 +240,14 @@ ivle_install_dir = "%s"
 # In the local file system, where are the student/user file spaces located.
 # The user jails are expected to be located immediately in subdirectories of
 # this location.
-student_dir = "%s"
+jail_base = "%s"
 
 # Which application to load by default (if the user navigates to the top level
 # of the site). This is the app's URL name.
 # Note that if this app requires authentication, the user will first be
 # presented with the login screen.
 default_app = "%s"
-""" % (root_dir, ivle_install_dir, student_dir, default_app))
+""" % (root_dir, ivle_install_dir, jail_base, default_app))
         
         conf.close()
     except IOError, (errno, strerror):
@@ -271,7 +273,7 @@ default_app = "%s"
  * jail_base or a subdirectory of jail_base.
  */
 static const char* jail_base = "%s";
-""" % (student_dir))
+""" % (jail_base))
 
         conf.close()
     except IOError, (errno, strerror):

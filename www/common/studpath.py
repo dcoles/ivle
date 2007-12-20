@@ -44,7 +44,7 @@ def url_to_local(urlpath):
 
     Returns (None, None) if the path is empty.
 
-    See also: conf.student_dir
+    See also: conf.jail_base
     """
     # Note: User can be a group name. There is absolutely no difference in our
     # current directory scheme.
@@ -56,7 +56,7 @@ def url_to_local(urlpath):
     # accordance with our directory scheme.
     # (The first time is the name of the jail, the second is the user's home
     # directory within the jail).
-    path = os.path.join(conf.student_dir, user, 'home', urlpath)
+    path = os.path.join(conf.jail_base, user, 'home', urlpath)
 
     return (user, path)
 
@@ -79,7 +79,7 @@ def url_to_jailpaths(urlpath):
     (user, subpath) = util.split_path(urlpath)
     if user is None: return (None, None, None)
 
-    jail = os.path.join(conf.student_dir, user)
+    jail = os.path.join(conf.jail_base, user)
     path = os.path.join('home', urlpath)
 
     return (user, jail, path)

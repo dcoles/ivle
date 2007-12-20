@@ -41,7 +41,7 @@ def handle(req):
     print_table(req, "System Constants", [
         ("ivle_install_dir", conf.ivle_install_dir),
         ("root_dir", conf.root_dir),
-        ("student_dir", conf.student_dir),
+        ("jail_base", conf.jail_base),
         ("default_app", conf.default_app),
     ])
 
