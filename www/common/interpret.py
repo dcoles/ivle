@@ -75,7 +75,8 @@ def interpret_file(req, owner, filename, interpreter):
 class Dummy:
     pass
 
-def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
+def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
+                script_path, req):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
@@ -106,7 +107,8 @@ def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
 
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
-        [trampoline, str(uid), jail_dir, working_dir, script_path],
+        [trampoline, str(uid), jail_dir, working_dir, interpreter,
+        script_path],
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
 
@@ -188,7 +190,8 @@ location_cgi_python = os.path.join(conf.ivle_install_dir,
 
 interpreter_objects = {
     'cgi-python'
-        : functools.partial(execute_cgi, location_cgi_python),
+        : functools.partial(execute_cgi, "/usr/bin/python",
+            location_cgi_python),
     # Should also have:
     # cgi-generic
     # python-server-page
