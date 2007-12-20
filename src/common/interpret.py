@@ -107,7 +107,8 @@ def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
         [trampoline, str(uid), jail_dir, working_dir, script_path],
-        stdin=f, stdout=subprocess.PIPE, cwd=tramp_dir)
+        stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        cwd=tramp_dir)
 
     # process_cgi_line: Reads a single line of CGI output and processes it.
     # Prints to req, and also does fancy HTML warnings if Content-Type
