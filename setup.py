@@ -326,10 +326,21 @@ def install(args):
 # The actions call Python os functions but print actions and handle dryness.
 # May still throw os exceptions if errors occur.
 
+class RunError:
+    """Represents an error when running a program (nonzero return)."""
+    def __init__(self, prog, retcode):
+        self.prog = prog
+        self.retcode = retcode
+    def __str__(self):
+        return str(self.prog) + " returned " + repr(self.retcode)
+
 def action_runprog(prog, args, dry):
     """Runs a unix program. Searches in $PATH. Synchronous (waits for the
     program to return). Runs in the current environment. First prints the
     action as a "bash" line.
+
+    Throws a RunError with a retcode of the return value of the program,
+    if the program did not return 0.
 
     prog: String. Name of the program. (No path required, if in $PATH).
     args: [String]. Arguments to the program.
@@ -337,7 +348,9 @@ def action_runprog(prog, args, dry):
     """
     print prog, string.join(args, ' ')
     if not dry:
-        os.spawnvp(os.P_WAIT, prog, args)
+        ret = os.spawnvp(os.P_WAIT, prog, args)
+        if ret != 0:
+            raise RunError(prog, ret)
 
 def action_mkdir(path):
     """Calls mkdir. Silently ignored if the directory already exists."""
