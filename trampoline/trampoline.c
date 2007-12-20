@@ -39,7 +39,7 @@ int main(int argc, char* const argv[])
         exit(1);
     }
 
-    execv(argv[4], argv + 5);
+    execv(argv[4], argv + 4);
 
     /* nb exec won't return unless there was an error */
     perror("could not exec");
