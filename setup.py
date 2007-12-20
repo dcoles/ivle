@@ -52,7 +52,7 @@ def query_user(prompt):
 
 cwd = os.getcwd()
 # conffile is the file that will be created/overwritten
-conffile = os.path.join(cwd, "conf/conf.py")
+conffile = os.path.join(cwd, "www/conf/conf.py")
 
 # Fixed config options that we don't ask the admin
 

@@ -180,7 +180,8 @@ def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
 </html>""")
 
 # TODO: Replace mytest with cgi trampoline handler script
-location_cgi_python = os.path.join(conf.ivlepath, "bin/trampoline-python")
+location_cgi_python = os.path.join(conf.ivle_install_dir,
+    "bin/trampoline")
 
 # Mapping of interpreter names (as given in conf/app/server.py) to
 # interpreter functions.
