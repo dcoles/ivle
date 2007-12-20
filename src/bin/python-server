@@ -169,6 +169,8 @@ if __name__ == "__main__":
                         out = cStringIO.StringIO()
                         sys.stdout = out
                         first = True
+                    else:
+                        sok.send(cjson.encode(None) + '\n')
                 except Exception, e:
                         rval = (None, None, str(e))
                         sok.send(cjson.encode(rval) + '\n')
