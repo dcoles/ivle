@@ -62,6 +62,8 @@
 import os
 import sys
 import getopt
+import string
+import errno
 
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -290,7 +292,27 @@ static const char* jail_base = "%s";
     return 0
 
 def build(args):
-    print "Build"
+    dry = False     # Set to True later if --dry
+
+    # Compile the trampoline
+    action_runprog('gcc', ['-Wall', '-o', 'trampoline/trampoline',
+        'trampoline/trampoline.c'], dry)
+
+    # Create the jail and its subdirectories
+    action_mkdir('jail')
+    action_mkdir('jail/bin')
+    action_mkdir('jail/lib')
+    action_mkdir('jail/usr')
+    action_mkdir('jail/usr/bin')
+    action_mkdir('jail/usr/lib')
+    action_mkdir('jail/opt')
+    action_mkdir('jail/home')
+    action_mkdir('jail/tmp')
+
+    # TODO: Copy console into the jail
+    # TODO: Copy operating system files into the jail
+    # TODO: Compile .py files into .pyc files
+
     return 0
 
 def listmake(args):
@@ -300,6 +322,31 @@ def listmake(args):
 def install(args):
     print "Install"
     return 0
+
+# The actions call Python os functions but print actions and handle dryness.
+# May still throw os exceptions if errors occur.
+
+def action_runprog(prog, args, dry):
+    """Runs a unix program. Searches in $PATH. Synchronous (waits for the
+    program to return). Runs in the current environment. First prints the
+    action as a "bash" line.
+
+    prog: String. Name of the program. (No path required, if in $PATH).
+    args: [String]. Arguments to the program.
+    dry: Bool. If True, prints but does not execute.
+    """
+    print prog, string.join(args, ' ')
+    if not dry:
+        os.spawnvp(os.P_WAIT, prog, args)
+
+def action_mkdir(path):
+    """Calls mkdir. Silently ignored if the directory already exists."""
+    print "mkdir", path
+    try:
+        os.mkdir(path)
+    except OSError, (err, msg):
+        if err != errno.EEXIST:
+            raise
 
 def query_user(prompt):
     """Prompts the user for a string, which is read from a line of stdin.
