@@ -62,8 +62,7 @@ def interpret_file(req, owner, filename, interpreter):
     (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
     path = os.path.join('/', path)
     (working_dir, _) = os.path.split(path)
-    # Now jail_dir is the jail directory relative to the jails root.
-    # Note that the trampoline has jails root hard-coded for security.
+    # jail_dir is the absolute jail directory.
     # path is the filename relative to the user's jail.
     # working_dir is the directory containing the file relative to the user's
     # jail.
@@ -81,7 +80,7 @@ def execute_cgi(trampoline, uid, jail_dir, working_dir, script_path, req):
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
     uid: User ID of the owner of the file.
-    jail_dir: Owner's jail directory relative to the jails root.
+    jail_dir: Absolute path of owner's jail directory.
     working_dir: Directory containing the script file relative to owner's
         jail.
     script_path: CGI script relative to the owner's jail.

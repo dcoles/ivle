@@ -63,14 +63,13 @@ def url_to_local(urlpath):
 def url_to_jailpaths(urlpath):
     """Given a URL path (part of a URL query string), returns a tuple of
         * the username of the student whose directory is being browsed
-        * the path where the jail will be located relative to conf.student_dir
-          (the jail directory relative to the system jails root).
+        * the absolute path where the jail will be located.
         * the path of the file relative to the jail.
 
     urlpath: See urlpath in url_to_local.
 
     >>> url_to_jailpaths("joe/home/mydir/myfile")
-    ("joe", "joe", "home/joe/home/mydir/myfile")
+    ("joe", "/home/informatics/jails/joe", "home/joe/home/mydir/myfile")
 
     >>> url_to_jailpaths("")
     (None, None, None)
@@ -80,6 +79,7 @@ def url_to_jailpaths(urlpath):
     (user, subpath) = util.split_path(urlpath)
     if user is None: return (None, None, None)
 
+    jail = os.path.join(conf.student_dir, user)
     path = os.path.join('home', urlpath)
 
-    return (user, user, path)
+    return (user, jail, path)

@@ -58,8 +58,9 @@ def throttle():
 def runscript(uid, jail, cwd, script):
     if uid == 0:
         sys.exit(sys.argv[0] + ": cannot run scripts as root!\n")
-    os.chroot(os.path.join("/home/mgiuca/playground", jail))
-    #os.chroot(jail)
+    if not jail.startswith("/home/mgiuca/playground"):
+        sys.exit(sys.argv[0] + ": invalid jail location!\n")
+    os.chroot(jail)
     os.chdir(cwd)
     os.setuid(uid)
     # throttle()
