@@ -45,7 +45,6 @@ def handler(req):
             sys.path.append(handlerpath)
         import dispatch
         import conf
-        conf.ivlepath = handlerpath
         return dispatch.handler(req)
     except KeyError:
         # Note: "Internal Server Error" if "ivle.handlerpath" is not set
