@@ -53,10 +53,38 @@
 
 #define UID_ROOT        0
 
+/* Returns TRUE if the given uid is allowed to execute trampoline.
+ * Only root or the web server should be allowed to execute.
+ * This is determined by the whitelist allowed_uids in conf.h.
+ */
+int uid_allowed(int uid)
+{
+    int i;
+    /* root is always allowed to execute trampoline */
+    if (uid == 0)
+        return 1;
+    /* loop over all allowed_uids */
+    for (i=(sizeof(allowed_uids)/sizeof(*allowed_uids))-1; i>=0; i--)
+    {
+        if (allowed_uids[i] == uid)
+            return 1;
+    }
+    /* default to disallowing */
+    return 0;
+}
+
 int main(int argc, char* const argv[])
 {
     char* jailpath;
     int uid;
+
+    /* Disallow execution from all users but the whitelisted ones, and root */
+    if (!uid_allowed(getuid()))
+    {
+        fprintf(stderr, "only the web server may execute trampoline\n");
+        exit(1);
+    }
+
     /* Args check and usage */
     if (argc < MIN_ARGC)
     {

@@ -219,6 +219,19 @@ Please hit Ctrl+C now if you do not wish to do this.
     jail_base = query_user(
     """Root directory where user files are stored (on the local file system):
     (eg. "/home/informatics/jails")""")
+    allowed_uid = query_user(
+    """UID of the web server process which will run IVLE.
+Only this user may execute the trampoline. You can configure multiple users
+by manually editing conf.h.
+    (eg. "1002")""")
+
+    # Error handling on input values
+
+    try:
+        allowed_uid = int(allowed_uid)
+    except ValueError:
+        print >>sys.stderr, "Invalid UID (%s)." % allowed_uid
+        return 1
 
     # Write www/conf/conf.py
 
@@ -250,7 +263,7 @@ jail_base = "%s"
 # presented with the login screen.
 default_app = "%s"
 """ % (root_dir, ivle_install_dir, jail_base, default_app))
-        
+
         conf.close()
     except IOError, (errno, strerror):
         print "IO error(%s): %s" % (errno, strerror)
@@ -275,7 +288,13 @@ default_app = "%s"
  * jail_base or a subdirectory of jail_base.
  */
 static const char* jail_base = "%s";
-""" % (jail_base))
+
+/* Which user IDs are allowed to run the trampoline.
+ * This list should be limited to the web server user.
+ * (Note that root is an implicit member of this list).
+ */
+static const int allowed_uids[] = { %d };
+""" % (jail_base, allowed_uid))
 
         conf.close()
     except IOError, (errno, strerror):
