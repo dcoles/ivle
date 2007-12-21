@@ -25,6 +25,12 @@
 # It is called with at least one argument, which specifies which operation to
 # take.
 
+# setup.py listmake (for developer use only)
+# Recurses through the source tree and builds a list of all files which should
+# be copied upon installation. This should be run by the developer before
+# cutting a distribution, and the listfile it generates should be included in
+# the distribution, avoiding the administrator having to run it.
+
 # setup.py conf [args]
 # Configures IVLE with machine-specific details, most notably, various paths.
 # Either prompts the administrator for these details or accepts them as
@@ -42,12 +48,6 @@
 #   (eg. python and Python libs, ld.so, etc).
 # Generates .pyc files for all the IVLE .py files.
 
-# setup.py listmake (for developer use only)
-# Recurses through the source tree and builds a list of all files which should
-# be copied upon installation. This should be run by the developer before
-# cutting a distribution, and the listfile it generates should be included in
-# the distribution, avoiding the administrator having to run it.
-
 # setup.py install [--nojail] [--dry|n]
 # (Requires root)
 # Create target install directory ($target).
@@ -60,6 +60,7 @@
 # TODO: List in help, and handle, args for the conf operation
 
 import os
+import shutil
 import sys
 import getopt
 import string
@@ -83,6 +84,13 @@ except ImportError:
     jail_base = "/home/informatics/jails"
 # Always defaults
 allowed_uids = "0"
+
+# Try importing install_list, but don't fail if we can't, because listmake can
+# function without it.
+try:
+    import install_list
+except:
+    pass
 
 # Mime types which will automatically be placed in the list by listmake.
 # Note that listmake is not intended to be run by the final user (the system
@@ -168,6 +176,13 @@ Operation (and args) can be:
     if operation == 'help':
         print """python setup.py help [operation]
 Prints the usage message or detailed help on an operation, then exits."""
+    elif operation == 'listmake':
+        print """python setup.py listmake
+(For developer use only)
+Recurses through the source tree and builds a list of all files which should
+be copied upon installation. This should be run by the developer before
+cutting a distribution, and the listfile it generates should be included in
+the distribution, avoiding the administrator having to run it."""
     elif operation == 'conf':
         print """python setup.py conf [args]
 Configures IVLE with machine-specific details, most notably, various paths.
@@ -177,7 +192,7 @@ Creates www/conf/conf.py and trampoline/conf.h.
 Args are:
 """
     elif operation == 'build':
-        print """python -O setup.py build
+        print """python -O setup.py build [--dry|-n]
 Compiles all files and sets up a jail template in the source directory.
 -O is recommended to cause compilation to be optimised.
 Details:
@@ -187,14 +202,9 @@ Creates standard subdirs inside the jail, eg bin, opt, home, tmp.
 Copies console/ to a location within the jail.
 Copies OS programs and files to corresponding locations within the jail
   (eg. python and Python libs, ld.so, etc).
-Generates .pyc or .pyo files for all the IVLE .py files."""
-    elif operation == 'listmake':
-        print """python setup.py listmake
-(For developer use only)
-Recurses through the source tree and builds a list of all files which should
-be copied upon installation. This should be run by the developer before
-cutting a distribution, and the listfile it generates should be included in
-the distribution, avoiding the administrator having to run it."""
+Generates .pyc or .pyo files for all the IVLE .py files.
+
+--dry | -n  Print out the actions but don't do anything."""
     elif operation == 'install':
         print """sudo python setup.py install [--nojail] [--dry|-n]
 (Requires root)
@@ -428,8 +438,11 @@ def build(args):
     action_mkdir('jail/home', dry)
     action_mkdir('jail/tmp', dry)
 
-    # TODO: Copy console into the jail
+    # Copy all console files into the jail
+    action_copylist(install_list.list_console, 'jail/opt/ivle', dry)
+
     # TODO: Copy operating system files into the jail
+
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
     compileall.compile_dir('console', quiet=True)
@@ -479,6 +492,34 @@ def action_mkdir(path, dry):
     except OSError, (err, msg):
         if err != errno.EEXIST:
             raise
+
+def action_copytree(src, dst, dry):
+    """Copies an entire directory tree. Symlinks are seen as normal files and
+    copies of the entire file (not the link) are made. Creates all parent
+    directories as necessary.
+
+    See shutil.copytree."""
+    if os.access(dst, os.F_OK):
+        print "rm -r", dst
+        if not dry:
+            shutil.rmtree(dst, True)
+    print "cp -r", src, dst
+    if dry: return
+    shutil.copytree(src, dst)
+
+def action_copylist(srclist, dst, dry):
+    """Copies all files in a list to a new location. The files in the list
+    are read relative to the current directory, and their destinations are the
+    same paths relative to dst. Creates all parent directories as necessary.
+    """
+    for srcfile in srclist:
+        dstfile = os.path.join(dst, srcfile)
+        dstdir = os.path.split(dstfile)[0]
+        if not os.path.isdir(dstdir):
+            action_mkdir(dstdir, dry)
+        print "cp -f", srcfile, dstfile
+        if not dry:
+            shutil.copyfile(srcfile, dstfile)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
