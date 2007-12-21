@@ -37,6 +37,7 @@ import apps
 
 from request import Request
 import html
+import login
 from common import util
 
 def handler(req):
@@ -51,8 +52,12 @@ def handler(req):
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in conf.apps.app_url:
-        # TODO: Nicer 404 message?
-        req.throw_error(Request.HTTP_NOT_FOUND)
+        # Maybe it is a special app!
+        if req.app == 'logout':
+            logout(req)
+        else:
+            # TODO: Nicer 404 message?
+            req.throw_error(Request.HTTP_NOT_FOUND)
 
     # app is the App object for the chosen app
     if req.app is None:
@@ -62,21 +67,29 @@ def handler(req):
 
     # Check if app requires auth. If so, perform authentication and login.
     if app.requireauth:
-        # TODO: Perform authentication
-        pass
-
-    # If user did not specify an app, HTTP redirect to default app and exit.
-    if req.app is None:
-        req.throw_redirect(util.make_path(conf.default_app))
-
-    # Set the default title to the app's tab name, if any. Otherwise URL name.
-    if app.name is not None:
-        req.title = app.name
+        req.username = login.login(req)
+        logged_in = req.username is not None
     else:
-        req.title = req.app
+        req.username = login.get_username(req)
+        logged_in = True
 
-    # Call the specified app with the request object
-    apps.call_app(app.dir, req)
+    if logged_in:
+        # If user did not specify an app, HTTP redirect to default app and
+        # exit.
+        if req.app is None:
+            req.throw_redirect(util.make_path(conf.default_app))
+
+        # Set the default title to the app's tab name, if any. Otherwise URL
+        # name.
+        if app.name is not None:
+            req.title = app.name
+        else:
+            req.title = req.app
+
+        # Call the specified app with the request object
+        apps.call_app(app.dir, req)
+    # if not logged in, login.login will have written the login box.
+    # Just clean up and exit.
 
     # MAKE SURE we write the HTTP (and possibly HTML) header. This
     # wouldn't happen if nothing else ever got written, so we have to make
@@ -87,6 +100,14 @@ def handler(req):
     if req.write_html_head_foot:
         html.write_html_foot(req)
 
-    # Have Apache output its own HTML code if non-200 status codes were found
-    return req.status
+    # Note: Apache will not write custom HTML error messages here.
+    # Use req.throw_error to do that.
+    return req.OK
 
+def logout(req):
+    """Log out the current user (if any) by destroying the session state.
+    Then redirect to the top-level IVLE page."""
+    session = req.get_session()
+    session.invalidate()
+    session.delete()
+    req.throw_redirect(util.make_path(''))

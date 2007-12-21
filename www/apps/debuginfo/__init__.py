@@ -55,9 +55,11 @@ def handle(req):
     print_table(req, "Available Applications", conf.apps.app_url.items())
 
     print_table(req, "Request Properties", [
+        ("method", req.method),
         ("uri", req.uri),
         ("app", req.app),
         ("path", req.path),
+        ("username", req.username),
     ])
 
     # Violate encapsulation here to print out the hidden properties
@@ -70,6 +72,9 @@ def handle(req):
         ("filename", req.apache_req.filename),
         ("path_info", req.apache_req.path_info),
     ])
+
+    print_table(req, "Field Storage", req.get_fieldstorage().items())
+    print_table(req, "Session Variables", req.get_session().items())
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())

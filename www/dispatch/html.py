@@ -54,6 +54,12 @@ def write_html_head(req):
 <h1>IVLE - Informatics Virtual Learning Environment</h1>
 """)
 
+    if req.username:
+        req.write("""<p>Hello, %s. <a href="%s">Logout</a></p>\n""" %
+            (req.username, util.make_path('logout')))
+    else:
+        req.write("<p>Not logged in.</p>")
+
     # If the "debuginfo" app is installed, display a warning to the admin to
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:

@@ -25,12 +25,15 @@
 
 import common.util
 import mod_python
+from mod_python import (util, Session)
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
     interacting with the web server and the dispatcher.
 
     Request object attributes:
+        method (read)
+            String. The request method (eg. 'GET', 'POST', etc)
         uri (read)
             String. The path portion of the URI.
         app (read)
@@ -39,6 +42,9 @@ class Request:
             String. The path specified in the URL *not including* the
             application or the IVLE location prefix. eg. a URL of
             "/ivle/files/joe/myfiles" has a path of "joe/myfiles".
+        username (read)
+            String. Login name of the user who is currently logged in, or
+            None.
 
         status (write)
             Int. Response status number. Use one of the status codes defined
@@ -137,11 +143,13 @@ class Request:
         self.headers_written = False
 
         # Inherit values for the input members
+        self.method = req.method
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
         (self.app, self.path) = (
             common.util.split_path(common.util.unmake_path(req.uri)))
+        self.username = None
 
         # Default values for the output members
         self.status = Request.OK
@@ -215,3 +223,21 @@ class Request:
         Request class.
         """
         mod_python.util.redirect(self.apache_req, location)
+
+    def get_session(self):
+        """Returns a mod_python Session object for this request.
+        Note that this is dependent on mod_python and may need to change
+        interface if porting away from mod_python."""
+        # Cache the session object
+        if not hasattr(self, 'session'):
+            self.session = Session.Session(self.apache_req)
+        return self.session
+
+    def get_fieldstorage(self):
+        """Returns a mod_python FieldStorage object for this request.
+        Note that this is dependent on mod_python and may need to change
+        interface if porting away from mod_python."""
+        # Cache the fieldstorage object
+        if not hasattr(self, 'fields'):
+            self.fields = util.FieldStorage(self.apache_req)
+        return self.fields

@@ -40,7 +40,7 @@ app_help =      App(dir = "help",
 
 app_debuginfo = App(dir = "debuginfo",
                     name = "Debug Information",
-                    requireauth = True,
+                    requireauth = False,
                     hashelp = False)
 
 # Mapping URL names to apps
@@ -50,7 +50,7 @@ app_url = {
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
-    "debuginfo" : app_debuginfo,
+    #"debuginfo" : app_debuginfo,
 }
 
 # List of apps that go in the tabs at the top
