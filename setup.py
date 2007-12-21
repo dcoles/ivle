@@ -57,8 +57,6 @@
 # Copy www/ to $target.
 # Copy jail/ to jails template directory (unless --nojail specified).
 
-# TODO: List in help, and handle, args for the conf operation
-
 import os
 import stat
 import shutil
@@ -68,6 +66,7 @@ import string
 import errno
 import mimetypes
 import compileall
+import getopt
 
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
@@ -104,10 +103,6 @@ listmake_mimetypes = ['text/x-python', 'text/html',
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
-class Usage(Exception):
-    def __init__(self, msg):
-        self.msg = msg
-
 def main(argv=None):
     if argv is None:
         argv = sys.argv
@@ -133,28 +128,18 @@ IVLE Setup
 
     # Call the requested operation's function
     try:
-        return {
+        oper_func = {
             'help' : help,
             'conf' : conf,
             'build' : build,
             'listmake' : listmake,
             'install' : install,
-        }[operation](argv[2:])
+        }[operation]
     except KeyError:
         print >>sys.stderr, (
             """Invalid operation '%s'. Try python setup.py help."""
             % operation)
-
-    try:
-        try:
-            opts, args = getopt.getopt(argv[1:], "h", ["help"])
-        except getopt.error, msg:
-            raise Usage(msg)
-        # more code, unchanged
-    except Usage, err:
-        print >>sys.stderr, err.msg
-        print >>sys.stderr, "for help use --help"
-        return 2
+    return oper_func(argv[2:])
 
 # Operation functions
 
@@ -188,9 +173,15 @@ the distribution, avoiding the administrator having to run it."""
         print """python setup.py conf [args]
 Configures IVLE with machine-specific details, most notably, various paths.
 Either prompts the administrator for these details or accepts them as
-command-line args.
+command-line args. Will be interactive only if there are no arguments given.
+Takes defaults from existing conf file if it exists.
 Creates www/conf/conf.py and trampoline/conf.h.
 Args are:
+    --root_dir
+    --ivle_install_dir
+    --jail_base
+    --allowed_uids
+As explained in the interactive prompt or conf.py.
 """
     elif operation == 'build':
         print """python -O setup.py build [--dry|-n]
@@ -305,10 +296,21 @@ def conf(args):
     conf_hfile = os.path.join(cwd, "trampoline/conf.h")
 
     # Fixed config options that we don't ask the admin
-
     default_app = "dummy"
 
-    print """This tool will create the following files:
+    # Get command-line arguments to avoid asking questions.
+
+    (opts, args) = getopt.gnu_getopt(args, "", ['root_dir=',
+                    'ivle_install_dir=', 'jail_base=', 'allowed_uids='])
+
+    if args != []:
+        print >>sys.stderr, "Invalid arguments:", string.join(args, ' ')
+        return 2
+
+    if opts == []:
+        # Interactive mode. Prompt the user for all the values.
+
+        print """This tool will create the following files:
     %s
     %s
 prompting you for details about your configuration. The file will be
@@ -317,26 +319,37 @@ overwritten if it already exists. It will *not* install or deploy IVLE.
 Please hit Ctrl+C now if you do not wish to do this.
 """ % (conffile, conf_hfile)
 
-    # Get information from the administrator
-    # If EOF is encountered at any time during the questioning, just exit
-    # silently
+        # Get information from the administrator
+        # If EOF is encountered at any time during the questioning, just exit
+        # silently
 
-    root_dir = query_user(root_dir,
-    """Root directory where IVLE is located (in URL space):""")
-    ivle_install_dir = query_user(ivle_install_dir,
-    'Root directory where IVLE will be installed (on the local file '
-    'system):')
-    jail_base = query_user(jail_base,
-    """Root directory where the jails (containing user files) are stored
+        root_dir = query_user(root_dir,
+        """Root directory where IVLE is located (in URL space):""")
+        ivle_install_dir = query_user(ivle_install_dir,
+        'Root directory where IVLE will be installed (on the local file '
+        'system):')
+        jail_base = query_user(jail_base,
+        """Root directory where the jails (containing user files) are stored
 (on the local file system):""")
-    allowed_uids = query_user(allowed_uids,
-    """UID of the web server process which will run IVLE.
+        allowed_uids = query_user(allowed_uids,
+        """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
 a comma-separated list.
     (eg. "1002,78")""")
 
-    # Error handling on input values
+    else:
+        opts = dict(opts)
+        # Non-interactive mode. Parse the options.
+        if '--root_dir' in opts:
+            root_dir = opts['--root_dir']
+        if '--ivle_install_dir' in opts:
+            ivle_install_dir = opts['--ivle_install_dir']
+        if '--jail_base' in opts:
+            jail_base = opts['--jail_base']
+        if '--allowed_uids' in opts:
+            allowed_uids = opts['--allowed_uids']
 
+    # Error handling on input values
     try:
         allowed_uids = map(int, allowed_uids.split(','))
     except ValueError:
