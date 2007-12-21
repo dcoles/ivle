@@ -436,7 +436,13 @@ static const int allowed_uids[] = { %s };
     return 0
 
 def build(args):
-    dry = False     # Set to True later if --dry
+    # Get "dry" variable from command line
+    (opts, args) = getopt.gnu_getopt(args, "n", ['dry'])
+    opts = dict(opts)
+    dry = '-n' in opts or '--dry' in opts
+
+    if dry:
+        print "Dry run (no actions will be executed\n"
 
     # Compile the trampoline
     action_runprog('gcc', ['-Wall', '-o', 'trampoline/trampoline',
@@ -464,9 +470,14 @@ def build(args):
     return 0
 
 def install(args):
-    # Create the target directory
-    nojail = False  # Set to True later if --nojail
-    dry = False     # Set to True later if --dry
+    # Get "dry" and "nojail" variables from command line
+    (opts, args) = getopt.gnu_getopt(args, "n", ['dry', 'nojail'])
+    opts = dict(opts)
+    dry = '-n' in opts or '--dry' in opts
+    nojail = '--nojail' in opts
+
+    if dry:
+        print "Dry run (no actions will be executed\n"
 
     if not dry and os.geteuid() != 0:
         print >>sys.stderr, "Must be root to run install"
