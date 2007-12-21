@@ -449,25 +449,40 @@ def build(args):
         'trampoline/trampoline.c'], dry)
 
     # Create the jail and its subdirectories
+    # Note: Other subdirs will be made by copying files
     action_mkdir('jail', dry)
-    action_mkdir('jail/bin', dry)
-    action_mkdir('jail/lib', dry)
-    action_mkdir('jail/usr/bin', dry)
-    action_mkdir('jail/usr/lib', dry)
-    action_mkdir('jail/opt/ivle', dry)
     action_mkdir('jail/home', dry)
     action_mkdir('jail/tmp', dry)
 
-    # Copy all console files into the jail
+    # Copy all console and operating system files into the jail
     action_copylist(install_list.list_console, 'jail/opt/ivle', dry)
-
-    # TODO: Copy operating system files into the jail
+    copy_os_files_jail(dry)
 
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
     compileall.compile_dir('console', quiet=True)
 
     return 0
+
+def copy_os_files_jail(dry):
+    """Copies necessary Operating System files from their usual locations
+    into the jail/ directory of the cwd."""
+    # Currently source paths are configured for Ubuntu.
+    copy_file_to_jail('/lib/ld-linux.so.2', dry)
+    copy_file_to_jail('/lib/tls/i686/cmov/libc.so.6', dry)
+    copy_file_to_jail('/lib/tls/i686/cmov/libdl.so.2', dry)
+    copy_file_to_jail('/lib/tls/i686/cmov/libm.so.6', dry)
+    copy_file_to_jail('/lib/tls/i686/cmov/libpthread.so.0', dry)
+    copy_file_to_jail('/lib/tls/i686/cmov/libutil.so.1', dry)
+    copy_file_to_jail('/usr/bin/python2.5', dry)
+    # TODO: ln -s jail/usr/bin/python2.5 jail/usr/bin/python
+    action_copytree('/usr/lib/python2.5', 'jail/usr/lib/python2.5', dry)
+
+def copy_file_to_jail(src, dry):
+    """Copies a single file from an absolute location into the same location
+    within the jail. src must begin with a '/'. The jail will be located
+    in a 'jail' subdirectory of the current path."""
+    action_copyfile(src, 'jail' + src, dry)
 
 def install(args):
     # Get "dry" and "nojail" variables from command line
@@ -583,6 +598,17 @@ def action_copyfile(src, dst, dry):
     print "cp -f", src, dst
     if not dry:
         shutil.copyfile(src, dst)
+
+def action_symlink(src, dst, dry):
+    """Creates a symlink in a given location. Creates all parent directories
+    as necessary.
+    """
+    dstdir = os.path.split(dst)[0]
+    if not os.path.isdir(dstdir):
+        action_mkdir(dstdir, dry)
+    print "ln -s", src, dst
+    if not dry:
+        os.symlink(src, dst)
 
 def action_chown_setuid(file, dry):
     """Chowns a file to root, and sets the setuid bit on the file.
