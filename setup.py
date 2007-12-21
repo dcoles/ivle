@@ -65,6 +65,23 @@ import getopt
 import string
 import errno
 
+# Try importing existing conf, but if we can't just set up defaults
+# The reason for this is that these settings are used by other phases
+# of setup besides conf, so we need to know them.
+# Also this allows you to hit Return to accept the existing value.
+try:
+    confmodule = __import__("www/conf/conf")
+    root_dir = confmodule.root_dir
+    ivle_install_dir = confmodule.ivle_install_dir
+    jail_base = confmodule.jail_base
+except ImportError:
+    # Just set reasonable defaults
+    root_dir = "/ivle"
+    ivle_install_dir = "/opt/ivle"
+    jail_base = "/home/informatics/jails"
+# Always defaults
+allowed_uids = "0"
+
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 
@@ -186,6 +203,7 @@ Copy jail/ to jails template directory (unless --nojail specified).
     return 1
 
 def conf(args):
+    global root_dir, ivle_install_dir, jail_base, allowed_uids
     # Set up some variables
 
     cwd = os.getcwd()
@@ -210,18 +228,15 @@ Please hit Ctrl+C now if you do not wish to do this.
     # If EOF is encountered at any time during the questioning, just exit
     # silently
 
-    root_dir = query_user(
-    """Root directory where IVLE is located (in URL space):
-    (eg. "/" or "/ivle")""")
-    ivle_install_dir = query_user(
+    root_dir = query_user(root_dir,
+    """Root directory where IVLE is located (in URL space):""")
+    ivle_install_dir = query_user(ivle_install_dir,
     'Root directory where IVLE will be installed (on the local file '
-    'system):\n'
-    '(eg. "/opt/ivle")')
-    jail_base = query_user(
+    'system):')
+    jail_base = query_user(jail_base,
     """Root directory where the jails (containing user files) are stored
-(on the local file system):
-    (eg. "/home/informatics/jails")""")
-    allowed_uids = query_user(
+(on the local file system):""")
+    allowed_uids = query_user(allowed_uids,
     """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
 a comma-separated list.
@@ -325,10 +340,9 @@ def build(args):
     action_mkdir('jail')
     action_mkdir('jail/bin')
     action_mkdir('jail/lib')
-    action_mkdir('jail/usr')
     action_mkdir('jail/usr/bin')
     action_mkdir('jail/usr/lib')
-    action_mkdir('jail/opt')
+    action_mkdir('jail/opt/ivle')
     action_mkdir('jail/home')
     action_mkdir('jail/tmp')
 
@@ -376,21 +390,23 @@ def action_runprog(prog, args, dry):
             raise RunError(prog, ret)
 
 def action_mkdir(path):
-    """Calls mkdir. Silently ignored if the directory already exists."""
-    print "mkdir", path
+    """Calls mkdir. Silently ignored if the directory already exists.
+    Creates all parent directories as necessary."""
+    print "mkdir -p", path
     try:
-        os.mkdir(path)
+        os.makedirs(path)
     except OSError, (err, msg):
         if err != errno.EEXIST:
             raise
 
-def query_user(prompt):
+def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
     Exits silently if EOF is encountered. Returns the string, with spaces
     removed from the beginning and end.
+
+    Returns default if a 0-length line (after spaces removed) was read.
     """
-    sys.stdout.write(prompt)
-    sys.stdout.write("\n>")
+    sys.stdout.write('%s\n    (default: "%s")\n>' % (prompt, default))
     try:
         val = sys.stdin.readline()
     except KeyboardInterrupt:
@@ -398,8 +414,12 @@ def query_user(prompt):
         sys.stdout.write("\n")
         sys.exit(1)
     sys.stdout.write("\n")
+    # If EOF, exit
     if val == '': sys.exit(1)
-    return val.strip()
+    # If empty line, return default
+    val = val.strip()
+    if val == '': return default
+    return val
 
 if __name__ == "__main__":
     sys.exit(main())
