@@ -64,6 +64,7 @@ import sys
 import getopt
 import string
 import errno
+import mimetypes
 import compileall
 
 # Try importing existing conf, but if we can't just set up defaults
@@ -82,6 +83,14 @@ except ImportError:
     jail_base = "/home/informatics/jails"
 # Always defaults
 allowed_uids = "0"
+
+# Mime types which will automatically be placed in the list by listmake.
+# Note that listmake is not intended to be run by the final user (the system
+# administrator who installs this), so the developers can customize the list
+# as necessary, and include it in the distribution.
+listmake_mimetypes = ['text/x-python', 'text/html',
+    'application/x-javascript', 'application/javascript',
+    'text/css', 'image/png']
 
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -212,6 +221,9 @@ def listmake(args):
     # (since listmake is typically run before conf)
     if "www/conf/conf.py" not in list_www:
         list_www.append("www/conf/conf.py")
+    # Make sure that console/python-console is in the list
+    if "console/python-console" not in list_console:
+        list_console.append("console/python-console")
     # Write these out to a file
     cwd = os.getcwd()
     # the files that will be created/overwritten
@@ -222,15 +234,16 @@ def listmake(args):
 
         file.write("""# IVLE Configuration File
 # install_list.py
-# Provides lists of all Python files to be installed by `setup.py install'.
+# Provides lists of all files to be installed by `setup.py install' from
+# certain directories.
 # Note that any files with the given filename plus 'c' or 'o' (that is,
 # compiled .pyc or .pyo files) will be copied as well.
 
-# List of all installable Python files in www directory.
+# List of all installable files in www directory.
 list_www = """)
         writelist_pretty(file, list_www)
         file.write("""
-# List of all installable Python files in console directory.
+# List of all installable files in console directory.
 list_console = """)
         writelist_pretty(file, list_console)
 
@@ -258,7 +271,7 @@ def build_list_py_files(dir):
         filter_mutate(lambda x: x[0] != '.', dirnames)
         # All *.py files are added to the list
         pylist += [os.path.join(dirpath, item) for item in filenames
-            if item.endswith('.py')]
+            if mimetypes.guess_type(item)[0] in listmake_mimetypes]
     return pylist
 
 def writelist_pretty(file, list):
