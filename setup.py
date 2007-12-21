@@ -214,23 +214,27 @@ Please hit Ctrl+C now if you do not wish to do this.
     """Root directory where IVLE is located (in URL space):
     (eg. "/" or "/ivle")""")
     ivle_install_dir = query_user(
-    'Root directory where IVLE is located (on the local file system):\n'
-    '(eg. "/home/informatics/ivle")')
+    'Root directory where IVLE will be installed (on the local file '
+    'system):\n'
+    '(eg. "/opt/ivle")')
     jail_base = query_user(
-    """Root directory where user files are stored (on the local file system):
+    """Root directory where the jails (containing user files) are stored
+(on the local file system):
     (eg. "/home/informatics/jails")""")
-    allowed_uid = query_user(
+    allowed_uids = query_user(
     """UID of the web server process which will run IVLE.
-Only this user may execute the trampoline. You can configure multiple users
-by manually editing conf.h.
-    (eg. "1002")""")
+Only this user may execute the trampoline. May specify multiple users as
+a comma-separated list.
+    (eg. "1002,78")""")
 
     # Error handling on input values
 
     try:
-        allowed_uid = int(allowed_uid)
+        allowed_uids = map(int, allowed_uids.split(','))
     except ValueError:
-        print >>sys.stderr, "Invalid UID (%s)." % allowed_uid
+        print >>sys.stderr, (
+        "Invalid UID list (%s).\n"
+        "Must be a comma-separated list of integers." % allowed_uids)
         return 1
 
     # Write www/conf/conf.py
@@ -293,8 +297,8 @@ static const char* jail_base = "%s";
  * This list should be limited to the web server user.
  * (Note that root is an implicit member of this list).
  */
-static const int allowed_uids[] = { %d };
-""" % (jail_base, allowed_uid))
+static const int allowed_uids[] = { %s };
+""" % (jail_base, repr(allowed_uids)[1:-1]))
 
         conf.close()
     except IOError, (errno, strerror):
