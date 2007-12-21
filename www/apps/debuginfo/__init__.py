@@ -45,6 +45,13 @@ def handle(req):
         ("default_app", conf.default_app),
     ])
 
+    print_table(req, "Operating System Variables", [
+        ("uid", os.getuid()),
+        ("euid", os.geteuid()),
+        ("gid", os.getgid()),
+        ("egid", os.getegid()),
+    ])
+
     print_table(req, "Available Applications", conf.apps.app_url.items())
 
     print_table(req, "Request Properties", [
