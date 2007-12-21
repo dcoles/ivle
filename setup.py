@@ -517,6 +517,9 @@ def install(args):
         # to the jails template directory (it will be used as a template
         # for all the students' jails).
         action_copytree('jail', os.path.join(jail_base, 'template'), dry)
+        # Set up symlinks inside the jail
+        action_symlink(os.path.join(jail_base, 'template/usr/bin/python2.5'),
+            os.path.join(jail_base, 'template/usr/bin/python'), dry)
 
     return 0
 
