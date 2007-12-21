@@ -64,6 +64,7 @@ import sys
 import getopt
 import string
 import errno
+import compileall
 
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
@@ -167,8 +168,9 @@ Creates www/conf/conf.py and trampoline/conf.h.
 Args are:
 """
     elif operation == 'build':
-        print """python setup.py build
+        print """python -O setup.py build
 Compiles all files and sets up a jail template in the source directory.
+-O is recommended to cause compilation to be optimised.
 Details:
 Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
 Creates jail/.
@@ -176,7 +178,7 @@ Creates standard subdirs inside the jail, eg bin, opt, home, tmp.
 Copies console/ to a location within the jail.
 Copies OS programs and files to corresponding locations within the jail
   (eg. python and Python libs, ld.so, etc).
-Generates .pyc files for all the IVLE .py files."""
+Generates .pyc or .pyo files for all the IVLE .py files."""
     elif operation == 'listmake':
         print """python setup.py listmake
 (For developer use only)
@@ -221,6 +223,8 @@ def listmake(args):
         file.write("""# IVLE Configuration File
 # install_list.py
 # Provides lists of all Python files to be installed by `setup.py install'.
+# Note that any files with the given filename plus 'c' or 'o' (that is,
+# compiled .pyc or .pyo files) will be copied as well.
 
 # List of all installable Python files in www directory.
 list_www = """)
@@ -402,18 +406,20 @@ def build(args):
         'trampoline/trampoline.c'], dry)
 
     # Create the jail and its subdirectories
-    action_mkdir('jail')
-    action_mkdir('jail/bin')
-    action_mkdir('jail/lib')
-    action_mkdir('jail/usr/bin')
-    action_mkdir('jail/usr/lib')
-    action_mkdir('jail/opt/ivle')
-    action_mkdir('jail/home')
-    action_mkdir('jail/tmp')
+    action_mkdir('jail', dry)
+    action_mkdir('jail/bin', dry)
+    action_mkdir('jail/lib', dry)
+    action_mkdir('jail/usr/bin', dry)
+    action_mkdir('jail/usr/lib', dry)
+    action_mkdir('jail/opt/ivle', dry)
+    action_mkdir('jail/home', dry)
+    action_mkdir('jail/tmp', dry)
 
     # TODO: Copy console into the jail
     # TODO: Copy operating system files into the jail
-    # TODO: Compile .py files into .pyc files
+    # Compile .py files into .pyc or .pyo files
+    compileall.compile_dir('www', quiet=True)
+    compileall.compile_dir('console', quiet=True)
 
     return 0
 
@@ -450,7 +456,7 @@ def action_runprog(prog, args, dry):
     if ret != 0:
         raise RunError(prog, ret)
 
-def action_mkdir(path):
+def action_mkdir(path, dry):
     """Calls mkdir. Silently ignored if the directory already exists.
     Creates all parent directories as necessary."""
     print "mkdir -p", path
