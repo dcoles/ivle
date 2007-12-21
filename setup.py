@@ -60,6 +60,7 @@
 # TODO: List in help, and handle, args for the conf operation
 
 import os
+import stat
 import shutil
 import sys
 import getopt
@@ -450,7 +451,34 @@ def build(args):
     return 0
 
 def install(args):
-    print "Install"
+    # Create the target directory
+    nojail = False  # Set to True later if --nojail
+    dry = False     # Set to True later if --dry
+
+    if not dry and os.geteuid() != 0:
+        print >>sys.stderr, "Must be root to run install"
+        print >>sys.stderr, "(I need to chown some files)."
+        return 1
+
+    # Create the target (install) directory
+    action_mkdir(ivle_install_dir, dry)
+
+    # Create bin and copy the compiled files there
+    action_mkdir(os.path.join(ivle_install_dir, 'bin'), dry)
+    tramppath = os.path.join(ivle_install_dir, 'bin/trampoline')
+    action_copyfile('trampoline/trampoline', tramppath, dry)
+    # chown trampoline to root and set setuid bit
+    action_chown_setuid(tramppath, dry)
+
+    # Copy the www directory using the list
+    action_copylist(install_list.list_www, ivle_install_dir, dry)
+
+    if not nojail:
+        # Copy the local jail directory built by the build action
+        # to the jails template directory (it will be used as a template
+        # for all the students' jails).
+        action_copytree('jail', os.path.join(jail_base, 'template'), dry)
+
     return 0
 
 # The actions call Python os functions but print actions and handle dryness.
@@ -520,6 +548,31 @@ def action_copylist(srclist, dst, dry):
         print "cp -f", srcfile, dstfile
         if not dry:
             shutil.copyfile(srcfile, dstfile)
+
+def action_copyfile(src, dst, dry):
+    """Copies one file to a new location. Creates all parent directories
+    as necessary.
+    """
+    dstdir = os.path.split(dst)[0]
+    if not os.path.isdir(dstdir):
+        action_mkdir(dstdir, dry)
+    print "cp -f", src, dst
+    if not dry:
+        shutil.copyfile(src, dst)
+
+def action_chown_setuid(file, dry):
+    """Chowns a file to root, and sets the setuid bit on the file.
+    Calling this function requires the euid to be root.
+    The actual mode of path is set to: rws--s--s
+    """
+    print "chown root:root", file
+    if not dry:
+        os.chown(file, 0, 0)
+    print "chmod a+xs", file
+    print "chmod u+rw", file
+    if not dry:
+        os.chmod(file, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+            | stat.S_ISUID | stat.S_IRUSR | stat.S_IWUSR)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
