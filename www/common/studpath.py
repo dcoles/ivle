@@ -46,6 +46,11 @@ def url_to_local(urlpath):
 
     See also: conf.jail_base
     """
+    # First normalise the path
+    urlpath = os.path.normpath(urlpath)
+    # Now if it begins with ".." then it's illegal
+    if urlpath.startswith(".."):
+        return (None, None)
     # Note: User can be a group name. There is absolutely no difference in our
     # current directory scheme.
     (user, subpath) = util.split_path(urlpath)
@@ -74,6 +79,11 @@ def url_to_jailpaths(urlpath):
     >>> url_to_jailpaths("")
     (None, None, None)
     """
+    # First normalise the path
+    urlpath = os.path.normpath(urlpath)
+    # Now if it begins with ".." then it's illegal
+    if urlpath.startswith(".."):
+        return (None, None, None)
     # Note: User can be a group name. There is absolutely no difference in our
     # current directory scheme.
     (user, subpath) = util.split_path(urlpath)
