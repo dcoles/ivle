@@ -5,31 +5,30 @@
   <title>IVLE Python Console</title>
   <script type='text/javascript' src='scripts/console.js'></script>
   <style type='text/css'>
-    div.output {
+    #output {
         border: solid blue 1pt;
         height: 24em;
         overflow: scroll;
         margin-bottom: 4pt;
     }
-    div.errors {
+    #errors {
         border: solid red 1pt;
         height: 6em;
         overflow: scroll;
         margin-bottom: 4pt;
     }
-    div.input {
-        
+    #input {
         border: solid green 1pt;
     }
   </style>
  </head>
  <body>
-  <div class='output'>
+  <div id='output'>
   </div>
-  <div class='errors'>
+  <div id='errors'>
   </div>
-  <div class='input'>
-   <input type='text' size='80'/>
+  <div id='input'>
+   <input type='text' size='80' onchange='enter_line(this)'/>
   </div>
  </body>
 </html>
