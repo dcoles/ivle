@@ -44,6 +44,7 @@ def do_chat(txt):
             web.output(cjson.encode(v))
             curr_cmd = ''
     except Exception, exc:
+        signal.alarm(0)
         v = (None, None, str(exc))
         web.output(cjson.encode(v))
         curr_cmd = ''

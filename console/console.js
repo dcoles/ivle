@@ -131,6 +131,7 @@ function enter_line()
     var inp = document.getElementById('inputText');
     var digest = hex_md5(inp.value + magic);
     var xmlhttp = new XMLHttpRequest();
+    alert(inp.value);
     xmlhttp.open("POST", "chat", false);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(make_post_body({"digest":digest, "text":inp.value}))
