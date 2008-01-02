@@ -3,7 +3,9 @@
 <html>
  <head>
   <title>IVLE Python Console</title>
-  <script type='text/javascript' src='scripts/console.js'></script>
+  <script type='text/javascript' src='md5.js'></script>
+  <script type='text/javascript' src='json2.js'></script>
+  <script type='text/javascript' src='console.js'></script>
   <style type='text/css'>
     #output {
         border: solid blue 1pt;
@@ -20,15 +22,21 @@
     #input {
         border: solid green 1pt;
     }
+    #prompt {
+        font-family: monospace;
+    }
   </style>
  </head>
  <body>
   <div id='output'>
+    <pre id='outputArea'></pre>
   </div>
   <div id='errors'>
+    <pre id='errorArea'></pre>
   </div>
   <div id='input'>
-   <input type='text' size='80' onchange='enter_line(this)'/>
+    <pre id='inputArea'></pre>
+   <label id='prompt'>&gt;&gt;&gt;&nbsp;</label><input id='inputText' type='text' size='80' onkeypress='catch_input(event.keyCode)'/>
   </div>
  </body>
 </html>
