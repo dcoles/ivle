@@ -12,12 +12,7 @@
         height: 24em;
         overflow: scroll;
         margin-bottom: 4pt;
-    }
-    #errors {
-        border: solid red 1pt;
-        height: 6em;
-        overflow: scroll;
-        margin-bottom: 4pt;
+        padding: 4pt;
     }
     #input {
         border: solid green 1pt;
@@ -25,17 +20,28 @@
     #prompt {
         font-family: monospace;
     }
+    pre.errorMsg {
+        color: red;
+        margin-top: 0em;
+        margin-bottom: 0em;
+    }
+    pre.inputMsg {
+        color: gray;
+        margin-top: 0em;
+        margin-bottom: 0em;
+    }
+    pre.outputMsg {
+        margin-top: 0em;
+        margin-bottom: 0em;
+    }
   </style>
  </head>
  <body>
   <div id='output'>
-    <pre id='outputArea'></pre>
-  </div>
-  <div id='errors'>
-    <pre id='errorArea'></pre>
   </div>
   <div id='input'>
-    <pre id='inputArea'></pre>
+   <div id='inputArea'>
+   </div>
    <label id='prompt'>&gt;&gt;&gt;&nbsp;</label><input id='inputText' type='text' size='80' onkeypress='catch_input(event.keyCode)'/>
   </div>
  </body>

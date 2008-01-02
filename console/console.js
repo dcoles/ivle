@@ -135,17 +135,28 @@ function enter_line()
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(make_post_body({"digest":digest, "text":inp.value}))
     var res = JSON.parse(xmlhttp.responseText);
-    var output = document.getElementById("outputArea")
-    output.appendChild(document.createTextNode(inp.value + "\n"));
+    var output = document.getElementById("output")
+    {
+        var pre = document.createElement("pre");
+        pre.setAttribute("class", "inputMsg");
+        pre.appendChild(document.createTextNode(inp.value + "\n"));
+        output.appendChild(pre);
+    }
     if (res && res[0])
     {
         // Success!
         // print out the output (res[0])
-        output.appendChild(document.createTextNode(res[0]));
+        var pre = document.createElement("pre");
+        pre.setAttribute("class", "outputMsg");
+        pre.appendChild(document.createTextNode(res[0]));
+        output.appendChild(pre);
         // print out the return value (res[1])
         if (res[1])
         {
-            output.appendChild(document.createTextNode(res[1] + "\n"));
+            var pre = document.createElement("pre");
+            pre.setAttribute("class", "outputMsg");
+            pre.appendChild(document.createTextNode(res[1] + "\n"));
+            output.appendChild(pre);
         }
         // set the prompt to >>>
         var prompt = document.getElementById("prompt");
@@ -155,7 +166,10 @@ function enter_line()
     {
         // Failure!
         // print out the error message (res[2])
-        output.appendChild(document.createTextNode(res[2]));
+        var pre = document.createElement("pre");
+        pre.setAttribute("class", "errorMsg");
+        pre.appendChild(document.createTextNode(res[2]));
+        output.appendChild(pre);
     }
     else
     {
@@ -172,14 +186,16 @@ function catch_input(key)
     {
         enter_line();
         hist.add(inp.value);
+        inp.value = hist.curr();
     }
     if (key == 38)
     {
         hist.up();
+        inp.value = hist.curr();
     }
     if (key == 40)
     {
         hist.down();
+        inp.value = hist.curr();
     }
-    inp.value = hist.curr();
 }
