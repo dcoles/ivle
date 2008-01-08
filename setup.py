@@ -139,6 +139,7 @@ IVLE Setup
         print >>sys.stderr, (
             """Invalid operation '%s'. Try python setup.py help."""
             % operation)
+        return 1
     return oper_func(argv[2:])
 
 # Operation functions
