@@ -28,6 +28,7 @@ from common import (util, studpath, interpret)
 import conf
 import conf.app.server
 
+import os
 import mimetypes
 
 def handle(req):
