@@ -41,13 +41,14 @@ def handler(req):
 
     try:
         handlerpath = req.get_options()['ivle.handlerpath']
-        if handlerpath not in sys.path:
-            sys.path.append(handlerpath)
-        import dispatch
-        import conf
-        return dispatch.handler(req)
     except KeyError:
         # Note: "Internal Server Error" if "ivle.handlerpath" is not set
         # (this is valid as it reflects an error in the Apache config
         # But give useful feedback in debug mode
         raise Exception("Missing configuration option 'ivle.handlerpath'")
+
+    if handlerpath not in sys.path:
+        sys.path.append(handlerpath)
+    import dispatch
+    import conf
+    return dispatch.handler(req)

@@ -87,6 +87,6 @@ def print_apps_list(file):
     for urlname in conf.apps.apps_in_tabs:
         app = conf.apps.app_url[urlname]
         file.write('  <li><a href="%s">%s</a></li>\n'
-            % (util.make_path(app.dir), app.name))
+            % (util.make_path(urlname), app.name))
 
     file.write('</ul>\n')
