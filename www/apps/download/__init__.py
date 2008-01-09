@@ -52,6 +52,8 @@ def handle(req):
         # TODO: Nicer 404 message?
         req.throw_error(req.HTTP_NOT_FOUND)
 
+    if not os.access(path, os.R_OK):
+        req.throw_error(req.HTTP_NOT_FOUND)
     req.content_type = default_mimetype
     req.sendfile(path)
 
