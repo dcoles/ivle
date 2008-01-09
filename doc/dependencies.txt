@@ -1,0 +1,21 @@
+List of Dependencies
+====================
+
+IVLE requires the following:
+
+* Linux (similar Unices may work but not guaranteed; we pull out some
+    linux-specific libraries into our jail so may need customization,
+    particularly of setup.py).
+
+* Python 2.5
+* Apache HTTP server
+* mod_python
+
+Python Libraries
+----------------
+
+The following python libraries are required to be installed in the main Python
+site packages directory:
+
+* [cjson](http://cheeseshop.python.org/pypi/python-cjson)
+* [web.py](http://webpy.org/)
