@@ -579,7 +579,7 @@ def action_copytree(src, dst, dry):
             shutil.rmtree(dst, True)
     print "cp -r", src, dst
     if dry: return
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, True)
 
 def action_copylist(srclist, dst, dry):
     """Copies all files in a list to a new location. The files in the list
@@ -605,6 +605,7 @@ def action_copyfile(src, dst, dry):
     print "cp -f", src, dst
     if not dry:
         shutil.copyfile(src, dst)
+        shutil.copymode(src, dst)
 
 def action_symlink(src, dst, dry):
     """Creates a symlink in a given location. Creates all parent directories
