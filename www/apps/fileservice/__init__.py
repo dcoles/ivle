@@ -82,11 +82,13 @@
 import os
 import stat
 import time
+import mimetypes
 
 import cjson
 import pysvn
 
 from common import (util, studpath)
+import conf.mimetypes
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -98,7 +100,6 @@ svnclient = pysvn.Client()
 # debugging because Firefox just tries to download it
 mime_dirlisting = "text/plain"
 #mime_dirlisting = "application/json"
-mime_filedump = "text/plain"
 
 def handle(req):
     """Handler for the File Services application."""
@@ -178,7 +179,13 @@ def handle_return(req):
         req.write(cjson.encode(list))
     else:
         # It's a file. Return the file contents.
-        req.content_type = mime_filedump
+        # First get the mime type of this file
+        # (Note that importing common.util has already initialised mime types)
+        (type, _) = mimetypes.guess_type(path)
+        if type is not None:
+            req.content_type = type
+        else:
+            req.content_type = conf.mimetypes.default_mimetype
         req.headers_out['X-IVLE-Return'] = 'File'
 
         req.sendfile(path)

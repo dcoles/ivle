@@ -8,10 +8,6 @@
 # conf/mimetypes.py may need to be modified to configure mime types outside of
 # the system's default mime types.
 
-# All files served whose mime type cannot be guessed will be served as this
-# type.
-default_mimetype = "text/plain"
-
 # Mapping mime types to interpreters
 # Interpreters are built-in to IVLE, and identified by their string names.
 # Available interpreters are:

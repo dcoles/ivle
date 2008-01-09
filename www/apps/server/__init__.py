@@ -60,10 +60,15 @@ def serve_file(req, owner, filename):
     # (Note that importing common.util has already initialised mime types)
     (type, _) = mimetypes.guess_type(filename)
     if type is None:
-        type = conf.app.server.default_mimetype
+        type = conf.mimetypes.default_mimetype
 
     # If this type is to be interpreted
-    if type in conf.app.server.interpreters:
+    if os.path.isdir(filename):
+        # 403 Forbidden error for visiting a directory
+        # (Not giving a directory listing, since this can be seen by
+        # the world at large. Directory contents are private).
+        req.throw_error(req.HTTP_FORBIDDEN)
+    elif type in conf.app.server.interpreters:
         interp_name = conf.app.server.interpreters[type]
         try:
             # Get the interpreter function object
