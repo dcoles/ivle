@@ -182,7 +182,13 @@ Configures IVLE with machine-specific details, most notably, various paths.
 Either prompts the administrator for these details or accepts them as
 command-line args. Will be interactive only if there are no arguments given.
 Takes defaults from existing conf file if it exists.
+
+To run IVLE out of the source directory (allowing development without having
+to rebuild/install), just provide ivle_install_dir as the IVLE trunk
+directory, and run build/install one time.
+
 Creates www/conf/conf.py and trampoline/conf.h.
+
 Args are:
     --root_dir
     --ivle_install_dir
@@ -593,7 +599,11 @@ def action_copylist(srclist, dst, dry):
             action_mkdir(dstdir, dry)
         print "cp -f", srcfile, dstfile
         if not dry:
-            shutil.copyfile(srcfile, dstfile)
+            try:
+                shutil.copyfile(srcfile, dstfile)
+                shutil.copymode(srcfile, dstfile)
+            except shutil.Error:
+                pass
 
 def action_copyfile(src, dst, dry):
     """Copies one file to a new location. Creates all parent directories
@@ -604,8 +614,11 @@ def action_copyfile(src, dst, dry):
         action_mkdir(dstdir, dry)
     print "cp -f", src, dst
     if not dry:
-        shutil.copyfile(src, dst)
-        shutil.copymode(src, dst)
+        try:
+            shutil.copyfile(src, dst)
+            shutil.copymode(src, dst)
+        except shutil.Error:
+            pass
 
 def action_symlink(src, dst, dry):
     """Creates a symlink in a given location. Creates all parent directories
