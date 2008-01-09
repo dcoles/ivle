@@ -80,6 +80,7 @@
 # TODO: More actions.
 
 import os
+import stat
 import time
 
 import cjson
@@ -172,7 +173,6 @@ def handle_return(req):
             # Presumably the directory is not under version control.
             # Fallback to just an OS file listing.
             filenames = os.listdir(path)
-            filenames.sort()
             list = map(file_to_fileinfo(path), filenames)
 
         req.write(cjson.encode(list))
@@ -191,10 +191,10 @@ def file_to_fileinfo(path):
     def ftf(filename):
         fullpath = os.path.join(path, filename)
         d = {"filename" : filename}
-        d["isdir"] = os.path.isdir(fullpath)
-        stat = os.stat(fullpath)
-        d["size"] = stat.st_size
-        d["mtime"] = time.ctime(stat.st_mtime)
+        file_stat = os.stat(fullpath)
+        d["isdir"] = stat.S_ISDIR(file_stat.st_mode)
+        d["size"] = file_stat.st_size
+        d["mtime"] = time.ctime(file_stat.st_mtime)
         return d
     return ftf
 
@@ -215,10 +215,15 @@ def PysvnStatus_to_fileinfo(path):
         d = {"filename" : os.path.basename(fullpath)}
         text_status = status.text_status
         d["svnstatus"] = str(text_status)
-        d["isdir"] = os.path.isdir(fullpath)
-        stat = os.stat(fullpath)
-        d["size"] = stat.st_size
-        d["mtime"] = time.ctime(stat.st_mtime)
+        try:
+            file_stat = os.stat(fullpath)
+            d["isdir"] = stat.S_ISDIR(file_stat.st_mode)
+            d["size"] = file_stat.st_size
+            d["mtime"] = time.ctime(file_stat.st_mtime)
+        except OSError:
+            # Here if, eg, the file is missing.
+            # Can't get any more information so just return d
+            pass
         return d
     return ftf
 
