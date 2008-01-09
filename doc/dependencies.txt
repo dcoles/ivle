@@ -19,3 +19,4 @@ site packages directory:
 
 * [cjson](http://cheeseshop.python.org/pypi/python-cjson)
 * [web.py](http://webpy.org/)
+* [pysvn](http://pysvn.tigris.org/)
