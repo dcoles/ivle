@@ -126,6 +126,11 @@ IVLE Setup
         help([])
         return 1
 
+    # Disallow run as root unless installing
+    if operation != 'install' and os.geteuid() == 0:
+        print >>sys.stderr, "I do not want to run this stage as root."
+        print >>sys.stderr, "Please run as a normal user."
+        return 1
     # Call the requested operation's function
     try:
         oper_func = {
@@ -149,6 +154,7 @@ def help(args):
         print """Usage: python setup.py operation [args]
 Operation (and args) can be:
     help [operation]
+    listmake (developer use only)
     conf [args]
     build
     install [--nojail] [-n|--dry]
@@ -476,7 +482,7 @@ def copy_os_files_jail(dry):
     copy_file_to_jail('/lib/tls/i686/cmov/libpthread.so.0', dry)
     copy_file_to_jail('/lib/tls/i686/cmov/libutil.so.1', dry)
     copy_file_to_jail('/usr/bin/python2.5', dry)
-    # TODO: ln -s jail/usr/bin/python2.5 jail/usr/bin/python
+    action_symlink('python2.5', 'jail/usr/bin/python', dry)
     action_copytree('/usr/lib/python2.5', 'jail/usr/lib/python2.5', dry)
 
 def copy_file_to_jail(src, dry):
@@ -518,9 +524,6 @@ def install(args):
         # to the jails template directory (it will be used as a template
         # for all the students' jails).
         action_copytree('jail', os.path.join(jail_base, 'template'), dry)
-        # Set up symlinks inside the jail
-        action_symlink(os.path.join(jail_base, 'template/usr/bin/python2.5'),
-            os.path.join(jail_base, 'template/usr/bin/python'), dry)
 
     return 0
 
@@ -610,7 +613,10 @@ def action_symlink(src, dst, dry):
     dstdir = os.path.split(dst)[0]
     if not os.path.isdir(dstdir):
         action_mkdir(dstdir, dry)
-    print "ln -s", src, dst
+    # Delete existing file
+    if os.path.exists(dst):
+        os.remove(dst)
+    print "ln -fs", src, dst
     if not dry:
         os.symlink(src, dst)
 
