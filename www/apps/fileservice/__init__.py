@@ -161,10 +161,6 @@ def handle_return(req):
         req.headers_out['X-IVLE-Return'] = 'Dir'
         # Start by trying to do an SVN status, so we can report file version
         # status
-        # TODO: Known bug:
-        # Fatal error if any file is missing (deleted with rm instead of svn
-        # rm)
-        # Handle gracefully.
         try:
             status_list = svnclient.status(path, recurse=False, get_all=True,
                             update=False)
@@ -182,10 +178,9 @@ def handle_return(req):
         # First get the mime type of this file
         # (Note that importing common.util has already initialised mime types)
         (type, _) = mimetypes.guess_type(path)
-        if type is not None:
-            req.content_type = type
-        else:
-            req.content_type = conf.mimetypes.default_mimetype
+        if type is None:
+            type = conf.mimetypes.default_mimetype
+        req.content_type = type
         req.headers_out['X-IVLE-Return'] = 'File'
 
         req.sendfile(path)
@@ -198,9 +193,16 @@ def file_to_fileinfo(path):
     def ftf(filename):
         fullpath = os.path.join(path, filename)
         d = {"filename" : filename}
+        (type, _) = mimetypes.guess_type(filename)
+        if type is None:
+            type = conf.mimetypes.default_mimetype
+        d["type"] = type
         file_stat = os.stat(fullpath)
-        d["isdir"] = stat.S_ISDIR(file_stat.st_mode)
-        d["size"] = file_stat.st_size
+        if stat.S_ISDIR(file_stat.st_mode):
+            d["isdir"] = True
+        else:
+            d["isdir"] = False
+            d["size"] = file_stat.st_size
         d["mtime"] = time.ctime(file_stat.st_mtime)
         return d
     return ftf
@@ -222,10 +224,17 @@ def PysvnStatus_to_fileinfo(path):
         d = {"filename" : os.path.basename(fullpath)}
         text_status = status.text_status
         d["svnstatus"] = str(text_status)
+        (type, _) = mimetypes.guess_type(fullpath)
+        if type is None:
+            type = conf.mimetypes.default_mimetype
+        d["type"] = type
         try:
             file_stat = os.stat(fullpath)
-            d["isdir"] = stat.S_ISDIR(file_stat.st_mode)
-            d["size"] = file_stat.st_size
+            if stat.S_ISDIR(file_stat.st_mode):
+                d["isdir"] = True
+            else:
+                d["isdir"] = False
+                d["size"] = file_stat.st_size
             d["mtime"] = time.ctime(file_stat.st_mtime)
         except OSError:
             # Here if, eg, the file is missing.
