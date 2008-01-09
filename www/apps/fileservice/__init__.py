@@ -82,6 +82,7 @@
 from common import util
 
 import cjson
+import pysvn
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -98,6 +99,40 @@ def handle(req):
     #req.content_type = "application/json"
     req.write_html_head_foot = False     # No HTML
 
-    # Start writing data
-    # TEMP Dummy Data
+    # Get all the arguments, if POST.
+    # Ignore arguments if not POST, since we aren't allowed to cause
+    # side-effects on the server.
+    action = None
+    fields = None
+    if req.method == 'POST':
+        fields = req.get_fieldstorage()
+        action = fields.getfirst('action')
+
+    if action is not None:
+        handle_action(req, action, fields)
+
+    handle_return(req)
+
+def handle_action(req, action, fields):
+    """Perform the "action" part of the response.
+    This function should only be called if the response is a POST.
+    This performs the action's side-effect on the server. If unsuccessful,
+    writes the X-IVLE-Action-Error header to the request object. Otherwise,
+    does not touch the request object. Does NOT write any bytes in response.
+
+    action: String, the action requested. Not sanitised.
+    fields: FieldStorage object containing all arguments passed.
+    """
+    if action == "rm":
+        path = fields.getfirst('path')
+        # Delete the file
+        pass
+
+def handle_return(req):
+    """Perform the "return" part of the response.
+    This function returns the file or directory listing contained in
+    req.path. Sets the HTTP response code in req, writes additional headers,
+    and writes the HTTP response, if any."""
+    # TEMP
+    req.status = req.OK
     req.write('{"app": "File Service"}\n')
