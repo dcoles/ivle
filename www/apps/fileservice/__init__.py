@@ -63,7 +63,7 @@
 # Content-Type cannot be relied upon. If the file is not found or there is
 # some other read error, returns no X-IVLE-Return header, a 400-level
 # response status. (404 File Not Found, 403 Forbidden, etc), and a header
-# "X-IVLE-List-Error: <errormessage>".
+# "X-IVLE-Return-Error: <errormessage>".
 
 ### Actions ###
 
@@ -79,24 +79,30 @@
 #       path:   The path to the file or directory to delete.
 # TODO: More actions.
 
-from common import util
+import os
+import time
 
 import cjson
 import pysvn
+
+from common import (util, studpath)
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
 
+# Mime types
+# application/json is the "best" content type but is not good for
+# debugging because Firefox just tries to download it
+mime_dirlisting = "text/plain"
+#mime_dirlisting = "application/json"
+mime_filedump = "text/plain"
+
 def handle(req):
     """Handler for the File Services application."""
 
     # Set request attributes
-    # application/json is the "best" content type but is not good for
-    # debugging because Firefox just tries to download it
-    req.content_type = "text/plain"
-    #req.content_type = "application/json"
     req.write_html_head_foot = False     # No HTML
 
     # Get all the arguments, if POST.
@@ -125,7 +131,8 @@ def handle_action(req, action, fields):
     """
     if action == "rm":
         path = fields.getfirst('path')
-        # Delete the file
+        # TODO: Delete the file
+        # Do an SVN rm if possible
         pass
 
 def handle_return(req):
@@ -133,6 +140,87 @@ def handle_return(req):
     This function returns the file or directory listing contained in
     req.path. Sets the HTTP response code in req, writes additional headers,
     and writes the HTTP response, if any."""
-    # TEMP
-    req.status = req.OK
-    req.write('{"app": "File Service"}\n')
+
+    (user, path) = studpath.url_to_local(req.path)
+
+    # FIXME: What to do about req.path == ""?
+    # Currently goes to 403 Forbidden.
+    if path is None:
+        req.status = req.HTTP_FORBIDDEN
+        req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
+        req.write("Forbidden")
+    elif not os.access(path, os.R_OK):
+        req.status = req.HTTP_NOT_FOUND
+        req.headers_out['X-IVLE-Return-Error'] = 'File not found'
+        req.write("File not found")
+    elif os.path.isdir(path):
+        # It's a directory. Return the directory listing.
+        req.status = req.OK
+        req.content_type = mime_dirlisting
+        req.headers_out['X-IVLE-Return'] = 'Dir'
+        # Start by trying to do an SVN status, so we can report file version
+        # status
+        # TODO: Known bug:
+        # Fatal error if any file is missing (deleted with rm instead of svn
+        # rm)
+        # Handle gracefully.
+        try:
+            status_list = svnclient.status(path, recurse=False, get_all=True,
+                            update=False)
+            list = filter(lambda x: x != None,
+                map(PysvnStatus_to_fileinfo(path), status_list))
+        except pysvn.ClientError:
+            # Presumably the directory is not under version control.
+            # Fallback to just an OS file listing.
+            filenames = os.listdir(path)
+            filenames.sort()
+            list = map(file_to_fileinfo(path), filenames)
+
+        req.write(cjson.encode(list))
+    else:
+        # It's a file. Return the file contents.
+        req.status = req.OK
+        req.content_type = mime_filedump
+        req.headers_out['X-IVLE-Return'] = 'File'
+
+        req.sendfile(path)
+
+def file_to_fileinfo(path):
+    """Given a filename (relative to a given path), gets all the info "ls"
+    needs to display about the filename. Returns a dict mapping a number of
+    fields which are returned."""
+    # Note: curried so it can be used with map
+    def ftf(filename):
+        fullpath = os.path.join(path, filename)
+        d = {"filename" : filename}
+        d["isdir"] = os.path.isdir(fullpath)
+        stat = os.stat(fullpath)
+        d["size"] = stat.st_size
+        d["mtime"] = time.ctime(stat.st_mtime)
+        return d
+    return ftf
+
+def PysvnStatus_to_fileinfo(path):
+    """Given a PysvnStatus object, gets all the info "ls"
+    needs to display about the filename. Returns a dict mapping a number of
+    fields which are returned.
+
+    May return None.
+    """
+    # Note: curried so it can be used with map
+    path = os.path.normcase(path)
+    def ftf(status):
+        fullpath = status.path
+        # For some reason it returns the dir itself. Exclude that.
+        if path == os.path.normcase(fullpath):
+            return None
+        d = {"filename" : os.path.basename(fullpath)}
+        text_status = status.text_status
+        d["svnstatus"] = str(text_status)
+        d["isdir"] = os.path.isdir(fullpath)
+        stat = os.stat(fullpath)
+        d["size"] = stat.st_size
+        d["mtime"] = time.ctime(stat.st_mtime)
+        return d
+    return ftf
+
