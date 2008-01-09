@@ -45,6 +45,10 @@ class Request:
         username (read)
             String. Login name of the user who is currently logged in, or
             None.
+        headers_in (read)
+            Table object representing headers sent by the client.
+        headers_out (read, can be written to)
+            Table object representing headers to be sent to the client.
 
         status (write)
             Int. Response status number. Use one of the status codes defined
@@ -150,6 +154,8 @@ class Request:
         (self.app, self.path) = (
             common.util.split_path(common.util.unmake_path(req.uri)))
         self.username = None
+        self.headers_in = req.headers_in
+        self.headers_out = req.headers_out
 
         # Default values for the output members
         self.status = Request.OK
