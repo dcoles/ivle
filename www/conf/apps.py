@@ -28,6 +28,11 @@ app_browser =   App(dir = "browser",
                     requireauth = True,
                     hashelp = True)
 
+app_fileservice = App(dir = "fileservice",
+                    name = "File Service (AJAX server)",
+                    requireauth = True,
+                    hashelp = False)
+
 app_server =    App(dir = "server",
                     name = "Server",
                     requireauth = False,
@@ -53,6 +58,7 @@ app_debuginfo = App(dir = "debuginfo",
 app_url = {
     "dummy" : app_dummy,
     "files" : app_browser,
+    "fileservice" : app_fileservice,
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
