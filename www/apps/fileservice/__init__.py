@@ -155,7 +155,6 @@ def handle_return(req):
         req.write("File not found")
     elif os.path.isdir(path):
         # It's a directory. Return the directory listing.
-        req.status = req.OK
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
         # Start by trying to do an SVN status, so we can report file version
@@ -179,7 +178,6 @@ def handle_return(req):
         req.write(cjson.encode(list))
     else:
         # It's a file. Return the file contents.
-        req.status = req.OK
         req.content_type = mime_filedump
         req.headers_out['X-IVLE-Return'] = 'File'
 

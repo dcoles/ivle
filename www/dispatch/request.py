@@ -158,7 +158,7 @@ class Request:
         self.headers_out = req.headers_out
 
         # Default values for the output members
-        self.status = Request.OK
+        self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
         self.title = None     # Will be set by dispatch before passing to app
