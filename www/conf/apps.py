@@ -23,6 +23,11 @@ app_dummy =     App(dir = "dummy",
                     requireauth = True,
                     hashelp = True)
 
+app_browser =   App(dir = "browser",
+                    name = "File Browser",
+                    requireauth = True,
+                    hashelp = True)
+
 app_server =    App(dir = "server",
                     name = "Server",
                     requireauth = False,
@@ -47,6 +52,7 @@ app_debuginfo = App(dir = "debuginfo",
 
 app_url = {
     "dummy" : app_dummy,
+    "files" : app_browser,
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
@@ -57,4 +63,4 @@ app_url = {
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["dummy", "help"]
+apps_in_tabs = ["dummy", "files", "help"]
