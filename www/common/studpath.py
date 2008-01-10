@@ -48,8 +48,8 @@ def url_to_local(urlpath):
     """
     # First normalise the path
     urlpath = os.path.normpath(urlpath)
-    # Now if it begins with ".." then it's illegal
-    if urlpath.startswith(".."):
+    # Now if it begins with ".." or separator, then it's illegal
+    if urlpath.startswith("..") or urlpath.startswith(os.sep):
         return (None, None)
     # Note: User can be a group name. There is absolutely no difference in our
     # current directory scheme.
