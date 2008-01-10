@@ -78,7 +78,64 @@
 # action=remove: Delete a file(s) or directory(s) (recursively).
 #       path:   The path to the file or directory to delete. Can be specified
 #               multiple times.
-# TODO: More actions.
+#
+# action=move: Move or rename a file or directory.
+#       from:   The path to the file or directory to be renamed.
+#       to:     The path of the target filename. Error if the file already
+#               exists.
+#
+# action=putfile: Upload a file to the student workspace.
+#       path:   The path to the file to be written. If it exists, will
+#               overwrite. Error if the target file is a directory.
+#       data:   Bytes to be written to the file verbatim. May either be
+#               a string variable or a file upload.
+#
+# Clipboard-based actions. Cut/copy/paste work in the same way as modern
+# file browsers, by keeping a server-side clipboard of files that have been
+# cut and copied. The clipboard is stored in the session data, so it persists
+# across navigation, tabs and browser windows, but not across browser
+# sessions.
+# 
+# action=copy: Write file(s) to the session-based clipboard. Overrides any
+#               existing clipboard data. Does not actually copy the file.
+#               The files are physically copied when the clipboard is pasted.
+#       path:   The path to the file or directory to copy. Can be specified
+#               multiple times.
+# 
+# action=cut: Write file(s) to the session-based clipboard. Overrides any
+#               existing clipboard data. Does not actually move the file.
+#               The files are physically moved when the clipboard is pasted.
+#       path:   The path to the file or directory to cut. Can be specified
+#               multiple times.
+# 
+# action=paste: Copy or move the files stored in the clipboard. Clears the
+#               clipboard. The files are copied or moved to a specified dir.
+#       path:   The path to the DIRECTORY to paste the files to. Must not
+#               be a file.
+#
+# Subversion actions.
+# action=svnadd: Add an existing file(s) to version control.
+#       path:   The path to the file to be added. Can be specified multiple
+#               times.
+#
+# action=svnrevert: Revert a file(s) to its state as of the current revision
+#               / undo local edits.
+#       path:   The path to the file to be reverted. Can be specified multiple
+#               times.
+#
+# action=svnupdate: Bring a file up to date with the head revision.
+#       path:   The path to the file to be updated. Can be specified multiple
+#               times.
+#
+# action=svncommit: Commit a file(s) or directory(s) to the repository.
+#       path:   The path to the file or directory to be committed. Can be
+#               specified multiple times. Directories are committed
+#               recursively.
+#       logmsg: Text of the log message. Optional. There is a default log
+#               message if unspecified.
+# 
+# TODO: Implement the following actions:
+#   move, copy, cut, paste, svnadd, svnrevert, svnupdate, svncommit
 
 import os
 import shutil
