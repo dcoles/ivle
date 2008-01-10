@@ -75,8 +75,7 @@ def handle(req):
 
     print_table(req, "Field Storage",
         getfieldvalues(req.get_fieldstorage().items()))
-    print_table(req, "Session Variables",
-        getfieldvalues(req.get_session().items()))
+    print_table(req, "Session Variables", req.get_session().items())
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())

@@ -63,7 +63,7 @@ def login(req):
             if (password is not None and
                 authenticate.authenticate(username.value, password.value)):
                 # Success - Set the session and redirect to avoid POSTDATA
-                session['login_name'] = username
+                session['login_name'] = username.value
                 session.save()
                 req.throw_redirect(req.uri)
             else:
@@ -103,6 +103,6 @@ def get_username(req):
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
     try:
-        return session['login_name'].value
+        return session['login_name']
     except KeyError:
         return None
