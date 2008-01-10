@@ -125,8 +125,7 @@ def handle(req):
     # side-effects on the server.
     action = None
     fields = None
-    # FIXME: Remove "True", making sure only POST
-    if True or req.method == 'POST':
+    if req.method == 'POST':
         fields = req.get_fieldstorage()
         action = fields.getfirst('action')
 
@@ -287,6 +286,8 @@ def actionpath_to_local(req, path):
     May raise an ActionError("Invalid path"). The caller is expected to
     let this fall through to the top-level handler, where it will be
     put into the HTTP response field. Never returns None.
+
+    Does not mutate req.
     """
     if path is None:
         path = req.path
@@ -305,7 +306,10 @@ def actionpath_to_local(req, path):
 def action_remove(req, fields):
     # TODO: Do an SVN rm if the file is versioned.
     # TODO: Disallow removal of student's home directory
-    """Removes a list of files or directories."""
+    """Removes a list of files or directories.
+
+    Reads fields: 'path' (multiple)
+    """
     paths = fields.getlist('path')
     goterror = False
     for path in paths:
@@ -326,8 +330,29 @@ def action_remove(req, fields):
             raise ActionError(
                 "Could not delete one or more of the files specified")
 
+def action_putfile(req, fields):
+    """Writes data to a file, overwriting it if it exists and creating it if
+    it doesn't.
+
+    Reads fields: 'path', 'data' (file upload)
+    """
+    path = fields.getfirst('path')
+    data = fields.getfirst('data')
+    if path is None: raise ActionError("No path specified")
+    if data is None: raise ActionError("No data specified")
+    path = actionpath_to_local(req, path)
+    data = data.file
+
+    # Copy the contents of file object 'data' to the path 'path'
+    try:
+        dest = open(path, 'wb')
+        shutil.copyfileobj(data, dest)
+    except OSError:
+        raise ActionError("Could not write to target file")
+
 # Table of all action functions #
 
 actions_table = {
     "remove" : action_remove,
+    "putfile" : action_putfile,
 }
