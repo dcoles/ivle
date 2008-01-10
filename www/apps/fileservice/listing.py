@@ -34,7 +34,10 @@
 # will include the header "X-IVLE-Return: Dir".
 #
 # The JSON structure is as follows:
-# * The top-level value is an object, with one member for each file in the
+# * The top-level value is an object. It always contains the key "listing",
+# whose value is the primary listing object. It may also contain a key
+# "clipboard" which contains the clipboard object.
+# * The value for "listing" is an object, with one member for each file in the
 #   directory, plus an additional member (key ".") for the directory itself.
 # * Each member's key is the filename. Its value is an object, which has
 #   various members describing the file.
@@ -75,6 +78,20 @@
 # member does NOT have a "svnstatus" key, or "svnstatus" is "unversioned",
 # then the directory is not under revision control (and no other files will
 # have "svnstatus" either).
+#
+# The top-level object MAY contain a "clipboard" key, which specifies the
+# files copied to the clipboard. This can be used by the client to show the
+# user what files will be pasted. At the very least, the client should take
+# the presence or absence of a "clipboard" key as whether to grey out the
+# "paste" button.
+#
+# The "clipboard" object has three members:
+#   * mode: String. Either "copy" or "cut".
+#   * base: String. Path relative to the user's root. The common path between
+#   the files.
+#   * files: Array of Strings. Each element is a filename relative to base.
+#   Base and files exactly correspond to the listing path and argument paths
+#   which were supplied during the last copy or cut request.
 
 import os
 import shutil
@@ -118,7 +135,7 @@ def handle_return(req, svnclient):
         # It's a directory. Return the directory listing.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
-        req.write(cjson.encode(get_dirlisting(svnclient, path)))
+        req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
     else:
         # It's a file. Return the file contents.
         # First get the mime type of this file
@@ -131,9 +148,15 @@ def handle_return(req, svnclient):
 
         req.sendfile(path)
 
-def get_dirlisting(svnclient, path):
+def get_dirlisting(req, svnclient, path):
     """Given a local absolute path, creates a directory listing object
-    ready to be JSONized and sent to the client."""
+    ready to be JSONized and sent to the client.
+
+    req: Request object. Will not be mutated; just reads the session.
+    svnclient: Svn client object.
+    path: String. Absolute path on the local file system. Not checked,
+        must already be guaranteed safe.
+    """
     # Start by trying to do an SVN status, so we can report file version
     # status
     listing = {}
@@ -153,6 +176,18 @@ def get_dirlisting(svnclient, path):
         # unversioned.
         listing["."] = {"isdir" : True,
             "mtime" : time.ctime(os.path.getmtime(path))}
+
+    # Listing is a nested object inside the top-level JSON.
+    listing = {"listing" : listing}
+
+    # The other object is the clipboard, if present in the browser session.
+    # This can go straight from the session to JSON.
+    session = req.get_session()
+    try:
+        listing['clipboard'] = session['clipboard']
+    except KeyError:
+        pass
+    
     return listing
 
 def file_to_fileinfo(path, filename):
