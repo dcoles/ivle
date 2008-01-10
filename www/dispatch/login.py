@@ -103,6 +103,6 @@ def get_username(req):
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
     try:
-        return session['login_name']
+        return session['login_name'].value
     except KeyError:
         return None

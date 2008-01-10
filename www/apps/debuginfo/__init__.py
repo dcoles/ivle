@@ -73,8 +73,10 @@ def handle(req):
         ("path_info", req.apache_req.path_info),
     ])
 
-    print_table(req, "Field Storage", req.get_fieldstorage().items())
-    print_table(req, "Session Variables", req.get_session().items())
+    print_table(req, "Field Storage",
+        getfieldvalues(req.get_fieldstorage().items()))
+    print_table(req, "Session Variables",
+        getfieldvalues(req.get_session().items()))
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())
@@ -89,6 +91,15 @@ def handle(req):
     dictionary in conf/apps.py.</p>
     <p>For extra security, it may be removed completely by deleting the
     apps/debuginfo directory.</p>\n""")
+
+def getfieldvalues(pairs):
+    """Given a list of pairs of strings and fields, returns a new list with
+    the 2nd elements of each pair modified to be the field's value."""
+    if pairs is None: return None
+    newlist = []
+    for k,v in pairs:
+        newlist.append((k,v.value))
+    return newlist
 
 def print_table(req, tablename, mapping):
     """Prints an HTML table with a heading.
