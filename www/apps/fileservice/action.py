@@ -171,6 +171,39 @@ def actionpath_to_local(req, path):
         raise ActionError("Invalid path")
     return r
 
+def movefile(req, frompath, topath, copy=False):
+    """Performs a file move, resolving filenames, checking for any errors,
+    and throwing ActionErrors if necessary. Can also be used to do a copy
+    operation instead.
+
+    frompath and topath are straight paths from the client. Will be checked.
+    """
+    # TODO: Do an SVN mv if the file is versioned.
+    # TODO: Disallow tampering with student's home directory
+    if frompath is None or topath is None:
+        raise ActionError("Required field missing")
+    frompath = actionpath_to_local(req, frompath)
+    topath = actionpath_to_local(req, topath)
+    if not os.path.exists(frompath):
+        raise ActionError("The source file does not exist")
+    if os.path.exists(topath):
+        if frompath == topath:
+            raise ActionError("Source and destination are the same")
+        raise ActionError("Another file already exists with that name")
+
+    try:
+        if copy:
+            if os.path.isdir(frompath):
+                shutil.copytree(frompath, topath)
+            else:
+                shutil.copy2(frompath, topath)
+        else:
+            shutil.move(frompath, topath)
+    except OSError:
+        raise ActionError("Could not move the file specified")
+    except shutil.Error:
+        raise ActionError("Could not move the file specified")
+
 ### ACTIONS ###
 
 def action_remove(req, fields):
@@ -209,21 +242,7 @@ def action_move(req, fields):
     """
     frompath = fields.getfirst('from')
     topath = fields.getfirst('to')
-    if frompath is None or topath is None:
-        raise ActionError("Required field missing")
-    frompath = actionpath_to_local(req, frompath)
-    topath = actionpath_to_local(req, topath)
-    if not os.path.exists(frompath):
-        raise ActionError("The source file does not exist")
-    if os.path.exists(topath):
-        raise ActionError("Another file already exists with that name")
-
-    try:
-        shutil.move(frompath, topath)
-    except OSError:
-        raise ActionError("Could not move the file specified")
-    except shutil.Error:
-        raise ActionError("Could not move the file specified")
+    movefile(req, frompath, topath)
 
 def action_putfile(req, fields):
     """Writes data to a file, overwriting it if it exists and creating it if
@@ -245,6 +264,98 @@ def action_putfile(req, fields):
     except OSError:
         raise ActionError("Could not write to target file")
 
+def action_copy_or_cut(req, fields, mode):
+    """Marks specified files on the clipboard, stored in the
+    browser session. Sets clipboard for either a cut or copy operation
+    as specified.
+
+    Reads fields: 'path'
+    """
+    # The clipboard object created conforms to the JSON clipboard
+    # specification given at the top of listing.py.
+    # Note that we do not check for the existence of files here. That is done
+    # in the paste operation.
+    files = fields.getlist('path')
+    files = map(lambda field: field.value, files)
+    clipboard = { "mode" : mode, "base" : req.path, "files" : files }
+    session = req.get_session()
+    session['clipboard'] = clipboard
+    session.save()
+
+def action_copy(req, fields):
+    """Marks specified files on the clipboard, stored in the
+    browser session. Sets clipboard for a "copy" action.
+
+    Reads fields: 'path'
+    """
+    action_copy_or_cut(req, fields, "copy")
+
+def action_cut(req, fields):
+    """Marks specified files on the clipboard, stored in the
+    browser session. Sets clipboard for a "cut" action.
+
+    Reads fields: 'path'
+    """
+    action_copy_or_cut(req, fields, "cut")
+
+def action_paste(req, fields):
+    """Performs the copy or move action with the files stored on
+    the clipboard in the browser session. Copies/moves the files
+    to the specified directory. Clears the clipboard.
+
+    Reads fields: 'path'
+    """
+    errormsg = None
+
+    todir = fields.getfirst('path')
+    if todir is None:
+        raise ActionError("Required field missing")
+    todir_local = actionpath_to_local(req, todir)
+    if not os.path.isdir(todir_local):
+        raise ActionError("Target is not a directory")
+
+    session = req.get_session()
+    try:
+        clipboard = session['clipboard']
+        files = clipboard['files']
+        base = clipboard['base']
+        if clipboard['mode'] == "copy":
+            copy = True
+        else:
+            copy = False
+    except KeyError:
+        raise ActionError("Clipboard was empty")
+
+    errorfiles = []
+    for file in files:
+        # The source must not be interpreted as relative to req.path
+        # Add a slash (relative to top-level)
+        frompath = os.sep + os.path.join(base, file)
+        # The destination is found by taking just the basename of the file
+        topath = os.path.join(todir, os.path.basename(file))
+        try:
+            movefile(req, frompath, topath, copy)
+        except ActionError, message:
+            # Store the error for later; we want to copy as many as possible
+            if errormsg is None:
+                errormsg = message
+            else:
+                # Multiple errors; generic message
+                errormsg = "One or more files could not be pasted"
+            # Add this file to errorfiles; it will be put back on the
+            # clipboard for possible future pasting.
+            errorfiles.append(file)
+    # If errors occured, augment the clipboard and raise ActionError
+    if len(errorfiles) > 0:
+        clipboard['files'] = errorfiles
+        session['clipboard'] = clipboard
+        session.save()
+        raise ActionError(errormsg)
+
+    # Success: Clear the clipboard
+    del session['clipboard']
+    session.save()
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -252,4 +363,8 @@ actions_table = {
     "remove" : action_remove,
     "move" : action_move,
     "putfile" : action_putfile,
+
+    "copy" : action_copy,
+    "cut" : action_cut,
+    "paste" : action_paste,
 }
