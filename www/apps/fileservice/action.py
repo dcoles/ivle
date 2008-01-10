@@ -427,6 +427,21 @@ def action_svnrevert(req, fields):
     except pysvn.ClientError:
         raise ActionError("One or more files could not be reverted")
 
+def action_svncommit(req, fields):
+    """Performs a "svn commit" to each file specified.
+
+    Reads fields: 'path' (multiple), 'logmsg' (optional)
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, str(path)), paths)
+    logmsg = str(fields.getfirst('logmsg', DEFAULT_LOGMESSAGE))
+    if logmsg == '': logmsg = DEFAULT_LOGMESSAGE
+
+    try:
+        svnclient.checkin(paths, logmsg, recurse=True)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be committed")
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -442,4 +457,5 @@ actions_table = {
     "svnadd" : action_svnadd,
     "svnupdate" : action_svnupdate,
     "svnrevert" : action_svnrevert,
+    "svncommit" : action_svncommit,
 }
