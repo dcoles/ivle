@@ -161,23 +161,25 @@ def handle_return(req):
         req.headers_out['X-IVLE-Return'] = 'Dir'
         # Start by trying to do an SVN status, so we can report file version
         # status
+        listing = {}
         try:
             status_list = svnclient.status(path, recurse=False, get_all=True,
                             update=False)
-            list = filter(lambda x: x != None,
-                map(PysvnStatus_to_fileinfo(path), status_list))
+            for status in status_list:
+                filename, attrs = PysvnStatus_to_fileinfo(path, status)
+                listing[filename] = attrs
         except pysvn.ClientError:
             # Presumably the directory is not under version control.
             # Fallback to just an OS file listing.
-            filenames = os.listdir(path)
-            list = map(file_to_fileinfo(path), filenames)
+            for filename in os.listdir(path):
+                listing[filename] = file_to_fileinfo(path, filename)
             # The subversion one includes "." while the OS one does not.
             # Add "." to the output, so the caller can see we are
             # unversioned.
-            list.append({"filename" : ".", "isdir" : True,
-                "mtime" : time.ctime(os.path.getmtime(path))})
+            listing["."] = {"isdir" : True,
+                "mtime" : time.ctime(os.path.getmtime(path))}
 
-        req.write(cjson.encode(list))
+        req.write(cjson.encode(listing))
     else:
         # It's a file. Return the file contents.
         # First get the mime type of this file
@@ -190,68 +192,60 @@ def handle_return(req):
 
         req.sendfile(path)
 
-def file_to_fileinfo(path):
+def file_to_fileinfo(path, filename):
     """Given a filename (relative to a given path), gets all the info "ls"
-    needs to display about the filename. Returns a dict mapping a number of
-    fields which are returned."""
-    # Note: curried so it can be used with map
-    def ftf(filename):
-        fullpath = os.path.join(path, filename)
-        d = {"filename" : filename}
+    needs to display about the filename. Returns a dict containing a number
+    of fields related to the file (excluding the filename itself)."""
+    fullpath = os.path.join(path, filename)
+    d = {}
+    file_stat = os.stat(fullpath)
+    if stat.S_ISDIR(file_stat.st_mode):
+        d["isdir"] = True
+    else:
+        d["isdir"] = False
+        d["size"] = file_stat.st_size
+        (type, _) = mimetypes.guess_type(filename)
+        if type is None:
+            type = conf.mimetypes.default_mimetype
+        d["type"] = type
+    d["mtime"] = time.ctime(file_stat.st_mtime)
+    return d
+
+def PysvnStatus_to_fileinfo(path, status):
+    """Given a PysvnStatus object, gets all the info "ls"
+    needs to display about the filename. Returns a pair mapping filename to
+    a dict containing a number of other fields."""
+    path = os.path.normcase(path)
+    fullpath = status.path
+    # If this is "." (the directory itself)
+    if path == os.path.normcase(fullpath):
+        # If this directory is unversioned, then we aren't
+        # looking at any interesting files, so throw
+        # an exception and default to normal OS-based listing. 
+        if status.text_status == pysvn.wc_status_kind.unversioned:
+            raise pysvn.ClientError
+        # We actually want to return "." because we want its
+        # subversion status.
+        filename = "."
+    else:
+        filename = os.path.basename(fullpath)
+    d = {}
+    text_status = status.text_status
+    d["svnstatus"] = str(text_status)
+    try:
         file_stat = os.stat(fullpath)
         if stat.S_ISDIR(file_stat.st_mode):
             d["isdir"] = True
         else:
             d["isdir"] = False
             d["size"] = file_stat.st_size
-            (type, _) = mimetypes.guess_type(filename)
+            (type, _) = mimetypes.guess_type(fullpath)
             if type is None:
                 type = conf.mimetypes.default_mimetype
             d["type"] = type
         d["mtime"] = time.ctime(file_stat.st_mtime)
-        return d
-    return ftf
-
-def PysvnStatus_to_fileinfo(path):
-    """Given a PysvnStatus object, gets all the info "ls"
-    needs to display about the filename. Returns a dict mapping a number of
-    fields which are returned.
-    """
-    # Note: curried so it can be used with map
-    path = os.path.normcase(path)
-    def ftf(status):
-        fullpath = status.path
-        # If this is "." (the directory itself)
-        if path == os.path.normcase(fullpath):
-            # If this directory is unversioned, then we aren't
-            # looking at any interesting files, so throw
-            # an exception and default to normal OS-based listing. 
-            if status.text_status == pysvn.wc_status_kind.unversioned:
-                raise pysvn.ClientError
-            # We actually want to return "." because we want its
-            # subversion status.
-            filename = "."
-        else:
-            filename = os.path.basename(fullpath)
-        d = {"filename" : filename}
-        text_status = status.text_status
-        d["svnstatus"] = str(text_status)
-        try:
-            file_stat = os.stat(fullpath)
-            if stat.S_ISDIR(file_stat.st_mode):
-                d["isdir"] = True
-            else:
-                d["isdir"] = False
-                d["size"] = file_stat.st_size
-                (type, _) = mimetypes.guess_type(fullpath)
-                if type is None:
-                    type = conf.mimetypes.default_mimetype
-                d["type"] = type
-            d["mtime"] = time.ctime(file_stat.st_mtime)
-        except OSError:
-            # Here if, eg, the file is missing.
-            # Can't get any more information so just return d
-            pass
-        return d
-    return ftf
-
+    except OSError:
+        # Here if, eg, the file is missing.
+        # Can't get any more information so just return d
+        pass
+    return filename, d
