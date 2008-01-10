@@ -75,8 +75,9 @@
 # directory seen when fileservice has no arguments or path). Paths without a
 # slash are taken relative to the specified path.
 
-# action=rm: Delete a file or directory (recursively).
-#       path:   The path to the file or directory to delete.
+# action=remove: Delete a file(s) or directory(s) (recursively).
+#       path:   The path to the file or directory to delete. Can be specified
+#               multiple times.
 # TODO: More actions.
 
 import os
@@ -98,8 +99,19 @@ svnclient = pysvn.Client()
 # Mime types
 # application/json is the "best" content type but is not good for
 # debugging because Firefox just tries to download it
-mime_dirlisting = "text/plain"
+mime_dirlisting = "text/html"
 #mime_dirlisting = "application/json"
+
+class ActionError(Exception):
+    """Represents an error processing an action. This can be
+    raised by any of the action functions, and will be caught
+    by the top-level handler, put into the HTTP response field,
+    and continue.
+
+    Important Security Consideration: The message passed to this
+    exception will be relayed to the client.
+    """
+    pass
 
 def handle(req):
     """Handler for the File Services application."""
@@ -112,12 +124,15 @@ def handle(req):
     # side-effects on the server.
     action = None
     fields = None
-    if req.method == 'POST':
+    if True or req.method == 'POST':
         fields = req.get_fieldstorage()
         action = fields.getfirst('action')
 
     if action is not None:
-        handle_action(req, action, fields)
+        try:
+            handle_action(req, action, fields)
+        except ActionError, message:
+            req.headers_out['X-IVLE-Action-Error'] = str(message)
 
     handle_return(req)
 
@@ -128,14 +143,18 @@ def handle_action(req, action, fields):
     writes the X-IVLE-Action-Error header to the request object. Otherwise,
     does not touch the request object. Does NOT write any bytes in response.
 
+    May throw an ActionError. The caller should put this string into the
+    X-IVLE-Action-Error header, and then continue normally.
+
     action: String, the action requested. Not sanitised.
     fields: FieldStorage object containing all arguments passed.
     """
-    if action == "rm":
-        path = fields.getfirst('path')
-        # TODO: Delete the file
-        # Do an SVN rm if possible
-        pass
+    if action == "remove":
+        path = fields.getlist('path')
+        action_remove(req, path)
+    else:
+        # Default, just send an error but then continue
+        raise ActionError("Unknown action")
 
 def handle_return(req):
     """Perform the "return" part of the response.
@@ -249,3 +268,50 @@ def PysvnStatus_to_fileinfo(path, status):
         # Can't get any more information so just return d
         pass
     return filename, d
+
+### ACTIONS ###
+
+def actionpath_to_local(req, path):
+    """Determines the local path upon which an action is intended to act.
+    Note that fileservice actions accept two paths: the request path,
+    and the "path" argument given to the action.
+    According to the rules, if the "path" argument begins with a '/' it is
+    relative to the user's home; if it does not, it is relative to the
+    supplied path.
+
+    This resolves the path, given the request and path argument.
+
+    May raise an ActionError("Invalid path"). The caller is expected to
+    let this fall through to the top-level handler, where it will be
+    put into the HTTP response field. Never returns None.
+    """
+    if path is None:
+        path = req.path
+    elif len(path) > 0 and path[0] == os.sep:
+        # Relative to student home
+        path = path[1:]
+    else:
+        # Relative to req.path
+        path = os.path.join(req.path, path)
+
+    _, r = studpath.url_to_local(path)
+    if r is None:
+        raise ActionError("Invalid path")
+    return r
+
+def action_remove(req, paths):
+    # TODO: Do an SVN rm if the file is versioned.
+    """Removes a list of files or directories."""
+    goterror = False
+    for path in paths:
+        path = actionpath_to_local(req, path)
+        try:
+            os.remove(path)
+        except OSError:
+            goterror = True
+    if goterror:
+        if len(paths) == 1:
+            raise ActionError("Could not delete the file specified")
+        else:
+            raise ActionError(
+                "Could not delete one or more of the files specified")
