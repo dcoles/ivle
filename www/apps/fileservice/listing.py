@@ -118,27 +118,7 @@ def handle_return(req, svnclient):
         # It's a directory. Return the directory listing.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
-        # Start by trying to do an SVN status, so we can report file version
-        # status
-        listing = {}
-        try:
-            status_list = svnclient.status(path, recurse=False, get_all=True,
-                            update=False)
-            for status in status_list:
-                filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename] = attrs
-        except pysvn.ClientError:
-            # Presumably the directory is not under version control.
-            # Fallback to just an OS file listing.
-            for filename in os.listdir(path):
-                listing[filename] = file_to_fileinfo(path, filename)
-            # The subversion one includes "." while the OS one does not.
-            # Add "." to the output, so the caller can see we are
-            # unversioned.
-            listing["."] = {"isdir" : True,
-                "mtime" : time.ctime(os.path.getmtime(path))}
-
-        req.write(cjson.encode(listing))
+        req.write(cjson.encode(get_dirlisting(svnclient, path)))
     else:
         # It's a file. Return the file contents.
         # First get the mime type of this file
@@ -150,6 +130,30 @@ def handle_return(req, svnclient):
         req.headers_out['X-IVLE-Return'] = 'File'
 
         req.sendfile(path)
+
+def get_dirlisting(svnclient, path):
+    """Given a local absolute path, creates a directory listing object
+    ready to be JSONized and sent to the client."""
+    # Start by trying to do an SVN status, so we can report file version
+    # status
+    listing = {}
+    try:
+        status_list = svnclient.status(path, recurse=False, get_all=True,
+                        update=False)
+        for status in status_list:
+            filename, attrs = PysvnStatus_to_fileinfo(path, status)
+            listing[filename] = attrs
+    except pysvn.ClientError:
+        # Presumably the directory is not under version control.
+        # Fallback to just an OS file listing.
+        for filename in os.listdir(path):
+            listing[filename] = file_to_fileinfo(path, filename)
+        # The subversion one includes "." while the OS one does not.
+        # Add "." to the output, so the caller can see we are
+        # unversioned.
+        listing["."] = {"isdir" : True,
+            "mtime" : time.ctime(os.path.getmtime(path))}
+    return listing
 
 def file_to_fileinfo(path, filename):
     """Given a filename (relative to a given path), gets all the info "ls"
