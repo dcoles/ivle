@@ -29,6 +29,10 @@ def handle(req):
 
     # Set request attributes
     req.content_type = "text/html"
+    # These files don't really exist - just a test of our linking
+    # capabilities
+    req.styles = ["media/dummy/dummy.css"]
+    req.scripts = ["media/dummy/dummy.js", "media/dummy/hello.js"]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data

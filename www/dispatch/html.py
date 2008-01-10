@@ -43,11 +43,19 @@ def write_html_head(req):
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <title>IVLE%s</title>
-  <meta http-equiv="Content-Type"
-    content="%s; charset=utf-8" />
-</head>
+  <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="%s" />
+""" % (titlepart, req.content_type, util.make_path('media/common/ivle.css')))
 
-""" % (titlepart, req.content_type))
+    # Write any app-specific style and script links
+    for style in req.styles:
+        req.write('  <link rel="stylesheet" type="text/css" href="%s" />\n'
+            % util.make_path(style))
+    for script in req.scripts:
+        req.write('  <script type="text/javascript" src="%s" />\n'
+            % util.make_path(script))
+
+    req.write("</head>\n\n")
 
     # Open the body element and write a bunch of stuff there (the header)
     req.write("""<body>

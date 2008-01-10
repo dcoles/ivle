@@ -61,6 +61,18 @@ class Request:
         title (write)
             String. HTML page title. Used if write_html_head_foot is True, in
             the HTML title element text.
+        styles (write)
+            List of strings. Write a list of URLs to CSS files here, and they
+            will be incorporated as <link rel="stylesheet" type="text/css">
+            elements in the head, if write_html_head_foot is True.
+            URLs should be relative to the IVLE root; they will be fixed up
+            to be site-relative.
+        scripts (write)
+            List of strings. Write a list of URLs to JS files here, and they
+            will be incorporated as <script type="text/javascript"> elements
+            in the head, if write_html_head_foot is True.
+            URLs should be relative to the IVLE root; they will be fixed up
+            to be site-relative.
         write_html_head_foot (write)
             Boolean. If True, dispatch assumes that this is an XHTML page, and
             will immediately write a full HTML head, open the body element,
@@ -162,6 +174,8 @@ class Request:
         self.content_type = None        # Use Apache's default
         self.location = None
         self.title = None     # Will be set by dispatch before passing to app
+        self.styles = []
+        self.scripts = []
         self.write_html_head_foot = False
 
     def __writeheaders(self):
