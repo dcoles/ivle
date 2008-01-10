@@ -54,14 +54,14 @@ def login(req):
     # Check if there is any postdata containing login information
     if req.method == 'POST':
         fields = req.get_fieldstorage()
-        username = fields.getfirst('user').value
-        password = fields.getfirst('pass').value
+        username = fields.getfirst('user')
+        password = fields.getfirst('pass')
         if username is not None:
             # From this point onwards, we will be showing an error message
             # if unsuccessful.
             # Authenticate
             if (password is not None and
-                authenticate.authenticate(username, password)):
+                authenticate.authenticate(username.value, password.value)):
                 # Success - Set the session and redirect to avoid POSTDATA
                 session['login_name'] = username
                 session.save()
