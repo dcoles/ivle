@@ -81,6 +81,7 @@
 # TODO: More actions.
 
 import os
+import shutil
 import stat
 import time
 import mimetypes
@@ -124,7 +125,7 @@ def handle(req):
     # side-effects on the server.
     action = None
     fields = None
-    if True or req.method == 'POST':
+    if req.method == 'POST':
         fields = req.get_fieldstorage()
         action = fields.getfirst('action')
 
@@ -301,13 +302,19 @@ def actionpath_to_local(req, path):
 
 def action_remove(req, paths):
     # TODO: Do an SVN rm if the file is versioned.
+    # TODO: Disallow removal of student's home directory
     """Removes a list of files or directories."""
     goterror = False
     for path in paths:
         path = actionpath_to_local(req, path)
         try:
-            os.remove(path)
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
         except OSError:
+            goterror = True
+        except shutil.Error:
             goterror = True
     if goterror:
         if len(paths) == 1:
