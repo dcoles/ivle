@@ -94,7 +94,6 @@
 #   which were supplied during the last copy or cut request.
 
 import os
-import shutil
 import stat
 import time
 import mimetypes
@@ -104,8 +103,6 @@ import pysvn
 
 from common import (util, studpath)
 import conf.mimetypes
-
-import action
 
 # Mime types
 # application/json is the "best" content type but is not good for
