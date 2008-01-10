@@ -72,7 +72,7 @@ def write_html_head(req):
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:
         req.write("<p>Warning: debuginfo is enabled. Remove this app from "
-            "conf.apps.app_url when placed into production.</p>")
+            "conf.apps.app_url when placed into production.</p>\n")
 
     print_apps_list(req)
 

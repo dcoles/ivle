@@ -29,6 +29,11 @@ def handle(req):
 
     # Set request attributes
     req.content_type = "text/html"
+    req.styles = ["media/browser/browser.css"]
+    req.scripts = [
+        "media/common/json2.js",
+        "media/browser/browser.js",
+    ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data
