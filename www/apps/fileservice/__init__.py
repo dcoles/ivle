@@ -65,77 +65,9 @@
 # response status. (404 File Not Found, 403 Forbidden, etc), and a header
 # "X-IVLE-Return-Error: <errormessage>".
 
-### Actions ###
-
-# The most important argument is "action". This determines which action is
-# taken. Note that action, and all other arguments, are ignored unless the
-# request is a POST request. The other arguments depend upon the action.
-# Note that paths are often specified as arguments. Paths that begin with a
-# slash are taken relative to the user's home directory (the top-level
-# directory seen when fileservice has no arguments or path). Paths without a
-# slash are taken relative to the specified path.
-
-# action=remove: Delete a file(s) or directory(s) (recursively).
-#       path:   The path to the file or directory to delete. Can be specified
-#               multiple times.
-#
-# action=move: Move or rename a file or directory.
-#       from:   The path to the file or directory to be renamed.
-#       to:     The path of the target filename. Error if the file already
-#               exists.
-#
-# action=putfile: Upload a file to the student workspace.
-#       path:   The path to the file to be written. If it exists, will
-#               overwrite. Error if the target file is a directory.
-#       data:   Bytes to be written to the file verbatim. May either be
-#               a string variable or a file upload.
-#
-# Clipboard-based actions. Cut/copy/paste work in the same way as modern
-# file browsers, by keeping a server-side clipboard of files that have been
-# cut and copied. The clipboard is stored in the session data, so it persists
-# across navigation, tabs and browser windows, but not across browser
-# sessions.
-# 
-# action=copy: Write file(s) to the session-based clipboard. Overrides any
-#               existing clipboard data. Does not actually copy the file.
-#               The files are physically copied when the clipboard is pasted.
-#       path:   The path to the file or directory to copy. Can be specified
-#               multiple times.
-# 
-# action=cut: Write file(s) to the session-based clipboard. Overrides any
-#               existing clipboard data. Does not actually move the file.
-#               The files are physically moved when the clipboard is pasted.
-#       path:   The path to the file or directory to cut. Can be specified
-#               multiple times.
-# 
-# action=paste: Copy or move the files stored in the clipboard. Clears the
-#               clipboard. The files are copied or moved to a specified dir.
-#       path:   The path to the DIRECTORY to paste the files to. Must not
-#               be a file.
-#
-# Subversion actions.
-# action=svnadd: Add an existing file(s) to version control.
-#       path:   The path to the file to be added. Can be specified multiple
-#               times.
-#
-# action=svnrevert: Revert a file(s) to its state as of the current revision
-#               / undo local edits.
-#       path:   The path to the file to be reverted. Can be specified multiple
-#               times.
-#
-# action=svnupdate: Bring a file up to date with the head revision.
-#       path:   The path to the file to be updated. Can be specified multiple
-#               times.
-#
-# action=svncommit: Commit a file(s) or directory(s) to the repository.
-#       path:   The path to the file or directory to be committed. Can be
-#               specified multiple times. Directories are committed
-#               recursively.
-#       logmsg: Text of the log message. Optional. There is a default log
-#               message if unspecified.
-# 
-# TODO: Implement the following actions:
-#   move, copy, cut, paste, svnadd, svnrevert, svnupdate, svncommit
+# See action.py for a full description of the actions.
+# See listing.py for a full description of the output format of the directory
+# listing.
 
 import os
 import shutil
@@ -149,7 +81,7 @@ import pysvn
 from common import (util, studpath)
 import conf.mimetypes
 
-DEFAULT_LOGMESSAGE = "No log message supplied."
+import action, listing
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
@@ -160,17 +92,6 @@ svnclient = pysvn.Client()
 mime_dirlisting = "text/html"
 #mime_dirlisting = "application/json"
 
-class ActionError(Exception):
-    """Represents an error processing an action. This can be
-    raised by any of the action functions, and will be caught
-    by the top-level handler, put into the HTTP response field,
-    and continue.
-
-    Important Security Consideration: The message passed to this
-    exception will be relayed to the client.
-    """
-    pass
-
 def handle(req):
     """Handler for the File Services application."""
 
@@ -180,236 +101,16 @@ def handle(req):
     # Get all the arguments, if POST.
     # Ignore arguments if not POST, since we aren't allowed to cause
     # side-effects on the server.
-    action = None
+    act = None
     fields = None
     if req.method == 'POST':
         fields = req.get_fieldstorage()
-        action = fields.getfirst('action')
+        act = fields.getfirst('action')
 
-    if action is not None:
+    if act is not None:
         try:
-            handle_action(req, action, fields)
-        except ActionError, message:
+            action.handle_action(req, svnclient, act, fields)
+        except action.ActionError, message:
             req.headers_out['X-IVLE-Action-Error'] = str(message)
 
-    handle_return(req)
-
-def handle_action(req, action, fields):
-    """Perform the "action" part of the response.
-    This function should only be called if the response is a POST.
-    This performs the action's side-effect on the server. If unsuccessful,
-    writes the X-IVLE-Action-Error header to the request object. Otherwise,
-    does not touch the request object. Does NOT write any bytes in response.
-
-    May throw an ActionError. The caller should put this string into the
-    X-IVLE-Action-Error header, and then continue normally.
-
-    action: String, the action requested. Not sanitised.
-    fields: FieldStorage object containing all arguments passed.
-    """
-    global actions_table        # Table of function objects
-    try:
-        action = actions_table[action]
-    except KeyError:
-        # Default, just send an error but then continue
-        raise ActionError("Unknown action")
-    action(req, fields)
-
-def handle_return(req):
-    """Perform the "return" part of the response.
-    This function returns the file or directory listing contained in
-    req.path. Sets the HTTP response code in req, writes additional headers,
-    and writes the HTTP response, if any."""
-
-    (user, path) = studpath.url_to_local(req.path)
-
-    # FIXME: What to do about req.path == ""?
-    # Currently goes to 403 Forbidden.
-    if path is None:
-        req.status = req.HTTP_FORBIDDEN
-        req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
-        req.write("Forbidden")
-    elif not os.access(path, os.R_OK):
-        req.status = req.HTTP_NOT_FOUND
-        req.headers_out['X-IVLE-Return-Error'] = 'File not found'
-        req.write("File not found")
-    elif os.path.isdir(path):
-        # It's a directory. Return the directory listing.
-        req.content_type = mime_dirlisting
-        req.headers_out['X-IVLE-Return'] = 'Dir'
-        # Start by trying to do an SVN status, so we can report file version
-        # status
-        listing = {}
-        try:
-            status_list = svnclient.status(path, recurse=False, get_all=True,
-                            update=False)
-            for status in status_list:
-                filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename] = attrs
-        except pysvn.ClientError:
-            # Presumably the directory is not under version control.
-            # Fallback to just an OS file listing.
-            for filename in os.listdir(path):
-                listing[filename] = file_to_fileinfo(path, filename)
-            # The subversion one includes "." while the OS one does not.
-            # Add "." to the output, so the caller can see we are
-            # unversioned.
-            listing["."] = {"isdir" : True,
-                "mtime" : time.ctime(os.path.getmtime(path))}
-
-        req.write(cjson.encode(listing))
-    else:
-        # It's a file. Return the file contents.
-        # First get the mime type of this file
-        # (Note that importing common.util has already initialised mime types)
-        (type, _) = mimetypes.guess_type(path)
-        if type is None:
-            type = conf.mimetypes.default_mimetype
-        req.content_type = type
-        req.headers_out['X-IVLE-Return'] = 'File'
-
-        req.sendfile(path)
-
-def file_to_fileinfo(path, filename):
-    """Given a filename (relative to a given path), gets all the info "ls"
-    needs to display about the filename. Returns a dict containing a number
-    of fields related to the file (excluding the filename itself)."""
-    fullpath = os.path.join(path, filename)
-    d = {}
-    file_stat = os.stat(fullpath)
-    if stat.S_ISDIR(file_stat.st_mode):
-        d["isdir"] = True
-    else:
-        d["isdir"] = False
-        d["size"] = file_stat.st_size
-        (type, _) = mimetypes.guess_type(filename)
-        if type is None:
-            type = conf.mimetypes.default_mimetype
-        d["type"] = type
-    d["mtime"] = time.ctime(file_stat.st_mtime)
-    return d
-
-def PysvnStatus_to_fileinfo(path, status):
-    """Given a PysvnStatus object, gets all the info "ls"
-    needs to display about the filename. Returns a pair mapping filename to
-    a dict containing a number of other fields."""
-    path = os.path.normcase(path)
-    fullpath = status.path
-    # If this is "." (the directory itself)
-    if path == os.path.normcase(fullpath):
-        # If this directory is unversioned, then we aren't
-        # looking at any interesting files, so throw
-        # an exception and default to normal OS-based listing. 
-        if status.text_status == pysvn.wc_status_kind.unversioned:
-            raise pysvn.ClientError
-        # We actually want to return "." because we want its
-        # subversion status.
-        filename = "."
-    else:
-        filename = os.path.basename(fullpath)
-    d = {}
-    text_status = status.text_status
-    d["svnstatus"] = str(text_status)
-    try:
-        file_stat = os.stat(fullpath)
-        if stat.S_ISDIR(file_stat.st_mode):
-            d["isdir"] = True
-        else:
-            d["isdir"] = False
-            d["size"] = file_stat.st_size
-            (type, _) = mimetypes.guess_type(fullpath)
-            if type is None:
-                type = conf.mimetypes.default_mimetype
-            d["type"] = type
-        d["mtime"] = time.ctime(file_stat.st_mtime)
-    except OSError:
-        # Here if, eg, the file is missing.
-        # Can't get any more information so just return d
-        pass
-    return filename, d
-
-### ACTIONS ###
-
-def actionpath_to_local(req, path):
-    """Determines the local path upon which an action is intended to act.
-    Note that fileservice actions accept two paths: the request path,
-    and the "path" argument given to the action.
-    According to the rules, if the "path" argument begins with a '/' it is
-    relative to the user's home; if it does not, it is relative to the
-    supplied path.
-
-    This resolves the path, given the request and path argument.
-
-    May raise an ActionError("Invalid path"). The caller is expected to
-    let this fall through to the top-level handler, where it will be
-    put into the HTTP response field. Never returns None.
-
-    Does not mutate req.
-    """
-    if path is None:
-        path = req.path
-    elif len(path) > 0 and path[0] == os.sep:
-        # Relative to student home
-        path = path[1:]
-    else:
-        # Relative to req.path
-        path = os.path.join(req.path, path)
-
-    _, r = studpath.url_to_local(path)
-    if r is None:
-        raise ActionError("Invalid path")
-    return r
-
-def action_remove(req, fields):
-    # TODO: Do an SVN rm if the file is versioned.
-    # TODO: Disallow removal of student's home directory
-    """Removes a list of files or directories.
-
-    Reads fields: 'path' (multiple)
-    """
-    paths = fields.getlist('path')
-    goterror = False
-    for path in paths:
-        path = actionpath_to_local(req, path)
-        try:
-            if os.path.isdir(path):
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
-        except OSError:
-            goterror = True
-        except shutil.Error:
-            goterror = True
-    if goterror:
-        if len(paths) == 1:
-            raise ActionError("Could not delete the file specified")
-        else:
-            raise ActionError(
-                "Could not delete one or more of the files specified")
-
-def action_putfile(req, fields):
-    """Writes data to a file, overwriting it if it exists and creating it if
-    it doesn't.
-
-    Reads fields: 'path', 'data' (file upload)
-    """
-    path = fields.getfirst('path')
-    data = fields.getfirst('data')
-    if path is None: raise ActionError("No path specified")
-    if data is None: raise ActionError("No data specified")
-    path = actionpath_to_local(req, path)
-    data = data.file
-
-    # Copy the contents of file object 'data' to the path 'path'
-    try:
-        dest = open(path, 'wb')
-        shutil.copyfileobj(data, dest)
-    except OSError:
-        raise ActionError("Could not write to target file")
-
-# Table of all action functions #
-
-actions_table = {
-    "remove" : action_remove,
-    "putfile" : action_putfile,
-}
+    listing.handle_return(req, svnclient)
