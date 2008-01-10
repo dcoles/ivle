@@ -104,13 +104,16 @@ import pysvn
 from common import (util, studpath)
 import conf.mimetypes
 
+# Make a Subversion client object
+svnclient = pysvn.Client()
+
 # Mime types
 # application/json is the "best" content type but is not good for
 # debugging because Firefox just tries to download it
 mime_dirlisting = "text/html"
 #mime_dirlisting = "application/json"
 
-def handle_return(req, svnclient):
+def handle_return(req):
     """Perform the "return" part of the response.
     This function returns the file or directory listing contained in
     req.path. Sets the HTTP response code in req, writes additional headers,

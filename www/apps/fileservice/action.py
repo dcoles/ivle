@@ -41,11 +41,32 @@
 #       to:     The path of the target filename. Error if the file already
 #               exists.
 #
-# action=putfile: Upload a file to the student workspace.
+# action=putfile: Upload a file to the student workspace, and optionally
+#               accept zip files which will be unpacked.
 #       path:   The path to the file to be written. If it exists, will
 #               overwrite. Error if the target file is a directory.
 #       data:   Bytes to be written to the file verbatim. May either be
 #               a string variable or a file upload.
+#       unpack: Optional. If "true", and the data is a valid ZIP file,
+#               will create a directory instead and unpack the ZIP file
+#               into it.
+#
+# action=putfiles: Upload multiple files to the student workspace, and
+#                 optionally accept zip files which will be unpacked.
+#       path:   The path to the DIRECTORY to place files in. Must not be a
+#               file.
+#       data:   A file upload (may not be a simple string). The filename
+#               will be used to determine the target filename within
+#               the given path.
+#       unpack: Optional. If "true", if any data is a valid ZIP file,
+#               will create a directory instead and unpack the ZIP file
+#               into it.
+#
+# The differences between putfile and putfiles are:
+# * putfile can only accept a single file.
+# * putfile can accept string data, doesn't have to be a file upload.
+# * putfile ignores the upload filename, the entire filename is specified on
+#       path. putfiles calls files after the name on the user's machine.
 #
 # Clipboard-based actions. Cut/copy/paste work in the same way as modern
 # file browsers, by keeping a server-side clipboard of files that have been
@@ -92,7 +113,8 @@
 #               message if unspecified.
 # 
 # TODO: Implement the following actions:
-#   move, copy, cut, paste, svnadd, svnrevert, svnupdate, svncommit
+#   putfiles, svnrevert, svnupdate, svncommit
+# TODO: Implement ZIP unpacking in putfile and putfiles.
 
 import os
 import shutil
@@ -100,6 +122,9 @@ import shutil
 import pysvn
 
 from common import (util, studpath)
+
+# Make a Subversion client object
+svnclient = pysvn.Client()
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -120,7 +145,7 @@ class ActionError(Exception):
     """
     pass
 
-def handle_action(req, svnclient, action, fields):
+def handle_action(req, action, fields):
     """Perform the "action" part of the response.
     This function should only be called if the response is a POST.
     This performs the action's side-effect on the server. If unsuccessful,
@@ -356,6 +381,19 @@ def action_paste(req, fields):
     del session['clipboard']
     session.save()
 
+def action_svnadd(req, fields):
+    """Performs a "svn add" to each file specified.
+
+    Reads fields: 'path'
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, path), paths)
+
+    try:
+        svnclient.add(paths, recurse=True, force=True)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be added")
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -367,4 +405,6 @@ actions_table = {
     "copy" : action_copy,
     "cut" : action_cut,
     "paste" : action_paste,
+
+    "svnadd" : action_svnadd,
 }

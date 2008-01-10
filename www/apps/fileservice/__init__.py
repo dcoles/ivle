@@ -83,9 +83,6 @@ import conf.mimetypes
 
 import action, listing
 
-# Make a Subversion client object
-svnclient = pysvn.Client()
-
 # Mime types
 # application/json is the "best" content type but is not good for
 # debugging because Firefox just tries to download it
@@ -109,8 +106,8 @@ def handle(req):
 
     if act is not None:
         try:
-            action.handle_action(req, svnclient, act, fields)
+            action.handle_action(req, act, fields)
         except action.ActionError, message:
             req.headers_out['X-IVLE-Action-Error'] = str(message)
 
-    listing.handle_return(req, svnclient)
+    listing.handle_return(req)
