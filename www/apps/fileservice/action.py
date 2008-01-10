@@ -200,6 +200,31 @@ def action_remove(req, fields):
             raise ActionError(
                 "Could not delete one or more of the files specified")
 
+def action_move(req, fields):
+    # TODO: Do an SVN mv if the file is versioned.
+    # TODO: Disallow tampering with student's home directory
+    """Removes a list of files or directories.
+
+    Reads fields: 'from', 'to'
+    """
+    frompath = fields.getfirst('from')
+    topath = fields.getfirst('to')
+    if frompath is None or topath is None:
+        raise ActionError("Required field missing")
+    frompath = actionpath_to_local(req, frompath)
+    topath = actionpath_to_local(req, topath)
+    if not os.path.exists(frompath):
+        raise ActionError("The source file does not exist")
+    if os.path.exists(topath):
+        raise ActionError("Another file already exists with that name")
+
+    try:
+        shutil.move(frompath, topath)
+    except OSError:
+        raise ActionError("Could not move the file specified")
+    except shutil.Error:
+        raise ActionError("Could not move the file specified")
+
 def action_putfile(req, fields):
     """Writes data to a file, overwriting it if it exists and creating it if
     it doesn't.
@@ -208,8 +233,8 @@ def action_putfile(req, fields):
     """
     path = fields.getfirst('path')
     data = fields.getfirst('data')
-    if path is None: raise ActionError("No path specified")
-    if data is None: raise ActionError("No data specified")
+    if path is None or data is None:
+        raise ActionError("Required field missing")
     path = actionpath_to_local(req, path)
     data = data.file
 
@@ -221,8 +246,10 @@ def action_putfile(req, fields):
         raise ActionError("Could not write to target file")
 
 # Table of all action functions #
+# Each function has the interface f(req, fields).
 
 actions_table = {
     "remove" : action_remove,
+    "move" : action_move,
     "putfile" : action_putfile,
 }
