@@ -115,6 +115,11 @@
 # TODO: Implement the following actions:
 #   putfiles, svnrevert, svnupdate, svncommit
 # TODO: Implement ZIP unpacking in putfile and putfiles.
+# TODO: svnupdate needs a digest to tell the user the files that were updated.
+#   This can be implemented by some message passing between action and
+#   listing, and having the digest included in the listing. (Problem if
+#   the listing is not a directory, but we could make it an error to do an
+#   update if the path is not a directory).
 
 import os
 import shutil
@@ -384,7 +389,7 @@ def action_paste(req, fields):
 def action_svnadd(req, fields):
     """Performs a "svn add" to each file specified.
 
-    Reads fields: 'path'
+    Reads fields: 'path' (multiple)
     """
     paths = fields.getlist('path')
     paths = map(lambda path: actionpath_to_local(req, path), paths)
@@ -393,6 +398,34 @@ def action_svnadd(req, fields):
         svnclient.add(paths, recurse=True, force=True)
     except pysvn.ClientError:
         raise ActionError("One or more files could not be added")
+
+def action_svnupdate(req, fields):
+    """Performs a "svn update" to each file specified.
+
+    Reads fields: 'path'
+    """
+    path = fields.getfirst('path')
+    if path is None:
+        raise ActionError("Required field missing")
+    path = actionpath_to_local(req, path)
+
+    try:
+        svnclient.update(path, recurse=True)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be updated")
+
+def action_svnrevert(req, fields):
+    """Performs a "svn revert" to each file specified.
+
+    Reads fields: 'path' (multiple)
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, path), paths)
+
+    try:
+        svnclient.revert(paths, recurse=True)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be reverted")
 
 # Table of all action functions #
 # Each function has the interface f(req, fields).
@@ -407,4 +440,6 @@ actions_table = {
     "paste" : action_paste,
 
     "svnadd" : action_svnadd,
+    "svnupdate" : action_svnupdate,
+    "svnrevert" : action_svnrevert,
 }
