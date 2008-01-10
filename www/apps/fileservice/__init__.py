@@ -125,7 +125,8 @@ def handle(req):
     # side-effects on the server.
     action = None
     fields = None
-    if req.method == 'POST':
+    # FIXME: Remove "True", making sure only POST
+    if True or req.method == 'POST':
         fields = req.get_fieldstorage()
         action = fields.getfirst('action')
 
@@ -150,12 +151,13 @@ def handle_action(req, action, fields):
     action: String, the action requested. Not sanitised.
     fields: FieldStorage object containing all arguments passed.
     """
-    if action == "remove":
-        path = fields.getlist('path')
-        action_remove(req, path)
-    else:
+    global actions_table        # Table of function objects
+    try:
+        action = actions_table[action]
+    except KeyError:
         # Default, just send an error but then continue
         raise ActionError("Unknown action")
+    action(req, fields)
 
 def handle_return(req):
     """Perform the "return" part of the response.
@@ -300,10 +302,11 @@ def actionpath_to_local(req, path):
         raise ActionError("Invalid path")
     return r
 
-def action_remove(req, paths):
+def action_remove(req, fields):
     # TODO: Do an SVN rm if the file is versioned.
     # TODO: Disallow removal of student's home directory
     """Removes a list of files or directories."""
+    paths = fields.getlist('path')
     goterror = False
     for path in paths:
         path = actionpath_to_local(req, path)
@@ -322,3 +325,9 @@ def action_remove(req, paths):
         else:
             raise ActionError(
                 "Could not delete one or more of the files specified")
+
+# Table of all action functions #
+
+actions_table = {
+    "remove" : action_remove,
+}
