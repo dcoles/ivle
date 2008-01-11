@@ -79,6 +79,8 @@ def login(req):
 
     # Write the HTML for the login page
     # If badlogin, display an error message indicating a failed login
+    req.write("""<p>Welcome to the Informatics Virtual Learning Environment.
+   Please log in to access your files and assessment.</p>""")
     if badlogin:
         req.write("""<p class="error">Invalid username or password.</p>""")
     req.write("""<form action="" method="post">

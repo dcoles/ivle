@@ -70,18 +70,20 @@ def write_html_head(req):
 """)
 
     if req.username:
-        req.write("""<p>Hello, %s. <a href="%s">Logout</a></p>\n""" %
+        req.write('<p class="userhello">Hello, %s. '
+            '<a href="%s">Logout</a></p>\n' %
             (req.username, util.make_path('logout')))
     else:
-        req.write("<p>Not logged in.</p>")
+        req.write('<p class="userhello">Not logged in.</p>')
+
+    print_apps_list(req)
 
     # If the "debuginfo" app is installed, display a warning to the admin to
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:
-        req.write("<p>Warning: debuginfo is enabled. Remove this app from "
-            "conf.apps.app_url when placed into production.</p>\n")
-
-    print_apps_list(req)
+        req.write("<p><small>Warning: debuginfo is enabled. Remove this app "
+            "from conf.apps.app_url when placed into production."
+            "</small></p>\n")
 
 def write_html_foot(req):
     """Writes the HTML footer, given a request object.
