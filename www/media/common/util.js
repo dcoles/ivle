@@ -190,6 +190,34 @@ function parse_url(url)
     return obj;
 }
 
+/** Builds a query_string from an args object. Encodes the arguments.
+ * \param args Args object as described in parse_url.
+ * \return Query string portion of a URL.
+ */
+function make_query_string(args)
+{
+    var query_string = "";
+    var arg_val;
+    for (var arg_key in args)
+    {
+        arg_val = args[arg_key];
+        if (arg_val instanceof Array)
+            for (var i=0; i<arg_val.length; i++)
+                query_string += "&" + encodeURIComponent(arg_key) + "=" +
+                    encodeURIComponent(arg_val[i]);
+        else
+            query_string += "&" + encodeURIComponent(arg_key) + "=" +
+                encodeURIComponent(arg_val);
+    }
+    if (query_string == "")
+        query_string = null;
+    else
+        /* Drop the first "&" */
+        query_string = query_string.substr(1);
+
+    return query_string;
+}
+
 /** Given an object exactly of the form described for the output of parseurl,
  * returns a URL string built from those parameters. The URL is properly
  * encoded.
@@ -222,26 +250,7 @@ function build_url(obj)
     if (("query_string" in obj) && obj.query_string != null)
         query_string = obj.query_string.toString();
     else if (("args" in obj) && obj.args != null)
-    {
-        query_string = "";
-        var arg_val;
-        for (var arg_key in obj.args)
-        {
-            arg_val = obj.args[arg_key];
-            if (arg_val instanceof Array)
-                for (var i=0; i<arg_val.length; i++)
-                    query_string += "&" + encodeURIComponent(arg_key) + "=" +
-                        encodeURIComponent(arg_val[i]);
-            else
-                query_string += "&" + encodeURIComponent(arg_key) + "=" +
-                    encodeURIComponent(arg_val);
-        }
-        if (query_string == "")
-            query_string = null;
-        else
-            /* Drop the first "&" */
-            query_string = query_string.substr(1);
-    }
+        query_string = make_query_string(obj.args);
 
     if (query_string != null)
         url += "?" + query_string;
@@ -362,7 +371,7 @@ function ajax_call(app, path, args, method)
         xhr.open(method, url, false);
         xhr.setRequestHeader("Content-Type",
             "application/x-www-form-urlencoded");
-        var message = build_url({"args": args}).substr(1); /* Remove "?" */
+        var message = make_query_string(args);
         xhr.send(message);
     }
     return xhr;
