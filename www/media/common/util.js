@@ -320,6 +320,52 @@ function path_join(path1 /*, path2, ... */)
     return path;
 }
 
+
+/** Builds a multipart_formdata string from an args object. Similar to
+ * make_query_string, but it returns data of type "multipart/form-data"
+ * instead of "application/x-www-form-urlencoded". This is good for
+ * encoding large strings such as text objects from the editor.
+ * Should be written with a Content-Type of
+ * "multipart/form-data, boundary=<boundary>".
+ * All fields are sent with a Content-Type of text/plain.
+ * \param args Args object as described in parse_url.
+ * \param boundary Random "magic" string which DOES NOT appear in any of
+ *  the argument values. This should match the "boundary=" value written to
+ *  the Content-Type header.
+ * \return String in multipart/form-data format.
+ */
+function make_multipart_formdata(args, boundary)
+{
+    var data = "";
+    var arg_val;
+    /* Mutates data */
+    var extend_data = function(arg_key, arg_val)
+    {
+        /* FIXME: Encoding not supported here (should not matter if we
+         * only use ASCII names */
+        data += "--" + boundary + "\n"
+            + "Content-Disposition: form-data; name=\"" + arg_key
+            + "\"\n\n"
+            + arg_val + "\n";
+    }
+
+    for (var arg_key in args)
+    {
+        arg_val = args[arg_key];
+        if (arg_val instanceof Array)
+            for (var i=0; i<arg_val.length; i++)
+            {
+                extend_data(arg_key, arg_val[i]);
+            }
+        else
+            extend_data(arg_key, arg_val);
+    }
+    /* End boundary */
+    data += "--" + boundary + "--\n";
+
+    return data;
+}
+
 /** Converts a list of directories into a path name, with a slash at the end.
  * \param pathlist List of strings.
  * \return String.
@@ -348,12 +394,21 @@ function make_path(path)
  * \param path URL path to make the request to, within the application.
  * \param args Argument object, as described in parse_url and friends.
  * \param method String; "GET" or "POST"
+ * \param content_type String, optional. Only applies if method is "POST".
+ *      May be "application/x-www-form-urlencoded" or "multipart/form-data".
+ *      Defaults to "application/x-www-form-urlencoded".
  * \return An XMLHttpRequest object containing the completed response.
  */
-function ajax_call(app, path, args, method)
+function ajax_call(app, path, args, method, content_type)
 {
+    if (content_type != "multipart/form-data")
+        content_type = "application/x-www-form-urlencoded";
     path = make_path(path_join(app, path));
     var url;
+    /* A random string, for multipart/form-data
+     * (This is not checked against anywhere else, it is solely defined and
+     * used within this function) */
+    var boundary = "48234n334nu7n4n2ynonjn234t683jyh80j";
     var xhr = new XMLHttpRequest();
     if (method == "GET")
     {
@@ -369,10 +424,20 @@ function ajax_call(app, path, args, method)
         /* POST sends the args in application/x-www-form-urlencoded */
         url = encodeURI(path);
         xhr.open(method, url, false);
-        xhr.setRequestHeader("Content-Type",
-            "application/x-www-form-urlencoded");
-        var message = make_query_string(args);
+        var message;
+        if (content_type == "multipart/form-data")
+        {
+            xhr.setRequestHeader("Content-Type",
+                "multipart/form-data, boundary=" + boundary);
+            message = make_multipart_formdata(args, boundary);
+        }
+        else
+        {
+            xhr.setRequestHeader("Content-Type", content_type);
+            message = make_query_string(args);
+        }
         xhr.send(message);
     }
     return xhr;
 }
+
