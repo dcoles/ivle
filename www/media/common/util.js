@@ -212,27 +212,27 @@ function parse_url(url)
  * \param obj Object as returned by parseurl.
  * \return String, a URL.
  */
-function buildurl(obj)
+function build_url(obj)
 {
     var url = "";
     var query_string = null;
 
-    if (!("scheme" in obj) || obj.scheme != null)
+    if (("scheme" in obj) && obj.scheme != null)
         url = obj.scheme.toString() + "://";
-    if (!("server_name" in obj) || obj.server_name != null)
+    if (("server_name" in obj) && obj.server_name != null)
         url += obj.server_name.toString();
-    if (!("server_port" in obj) || obj.server_port != null)
+    if (("server_port" in obj) && obj.server_port != null)
         url += ":" + obj.server_port.toString();
-    if (!("path" in obj) || obj.path != null)
+    if (("path" in obj) && obj.path != null)
     {
         var path = obj.path.toString();
         if (path.length > 0 && path[0] != "/")
             path = "/" + path;
         url += path;
     }
-    if (!("query_string" in obj) || obj.query_string != null)
+    if (("query_string" in obj) && obj.query_string != null)
         query_string = obj.query_string.toString();
-    else if (!("args" in obj) || obj.args != null)
+    else if (("args" in obj) && obj.args != null)
     {
         query_string = "";
         var arg_val;
@@ -246,7 +246,6 @@ function buildurl(obj)
             else
                 query_string += "&" + encodeURI(arg_key) + "=" +
                     encodeURI(arg_val);
-   
         }
         if (query_string == "")
             query_string = null;
@@ -300,3 +299,4 @@ function arg_getlist(args, arg)
     else
         return [r];
 }
+
