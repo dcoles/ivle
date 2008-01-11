@@ -97,8 +97,8 @@ function pathlist_to_path(pathlist)
  * whose names appear multiple times.
  * args is never null, though it may be empty.
  *
- * The args strings are decoded from URL encoding form. Other strings are left
- * in raw URL form.
+ * All strings are decoded/unescaped. Reserved characters
+ * (; , / ? : @ & = + * $) are not decoded except in args.
  *
  * \param url String. A URL. To read from the current browser window, use
  *  window.location.href.
@@ -110,6 +110,8 @@ function parse_url(url)
     var index;
     var serverpart;
     var args;
+
+    url = decodeURI(url);
 
     /* Split scheme from rest */
     index = url.indexOf("://");
@@ -182,8 +184,8 @@ function parse_url(url)
             /* Ignore malformed args */
             if (index >= 0)
             {
-                arg_key = decodeURI(arg_str.substr(0, index));
-                arg_val = decodeURI(arg_str.substr(index+1));
+                arg_key = decodeURIComponent(arg_str.substr(0, index));
+                arg_val = decodeURIComponent(arg_str.substr(index+1));
                 if (arg_key in args)
                 {
                     /* Collision - make an array */
@@ -203,7 +205,8 @@ function parse_url(url)
 }
 
 /** Given an object exactly of the form described for the output of parseurl,
- * returns a URL string built from those parameters.
+ * returns a URL string built from those parameters. The URL is properly
+ * encoded.
  * parseurl and buildurl are strict inverses of each other.
  * Note that either query_string or args may be supplied. If both are
  * supplied, query_string is preferred (because it keeps the argument order).
@@ -241,11 +244,11 @@ function build_url(obj)
             arg_val = obj.args[arg_key];
             if (arg_val instanceof Array)
                 for (var i=0; i<arg_val.length; i++)
-                    query_string += "&" + encodeURI(arg_key) + "=" +
-                        encodeURI(arg_val[i]);
+                    query_string += "&" + encodeURIComponent(arg_key) + "=" +
+                        encodeURIComponent(arg_val[i]);
             else
-                query_string += "&" + encodeURI(arg_key) + "=" +
-                    encodeURI(arg_val);
+                query_string += "&" + encodeURIComponent(arg_key) + "=" +
+                    encodeURIComponent(arg_val);
         }
         if (query_string == "")
             query_string = null;
@@ -257,7 +260,7 @@ function build_url(obj)
     if (query_string != null)
         url += "?" + query_string;
 
-    return url;
+    return encodeURI(url);
 }
 
 /** Given an argument map, as output in the args parameter of the return of
