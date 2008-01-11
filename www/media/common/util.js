@@ -64,20 +64,6 @@ function dom_make_link_elem(tagname, text, href, onclick)
     return elem;
 }
 
-/** Converts a list of directories into a path name, with a slash at the end.
- * \param pathlist List of strings.
- * \return String.
- */
-function pathlist_to_path(pathlist)
-{
-    ret = "";
-    for (var i=0; i<pathlist.length; i++)
-    {
-        ret += pathlist[i] + "/";
-    }
-    return ret;
-}
-
 /** Given a URL, returns an object containing a number of attributes
  * describing the components of the URL, similar to CGI request variables.
  * The object has the following attributes:
@@ -229,7 +215,7 @@ function build_url(obj)
     if (("path" in obj) && obj.path != null)
     {
         var path = obj.path.toString();
-        if (path.length > 0 && path[0] != "/")
+        if (url.length > 0 && path.length > 0 && path[0] != "/")
             path = "/" + path;
         url += path;
     }
@@ -325,6 +311,18 @@ function path_join(path1 /*, path2, ... */)
     return path;
 }
 
+/** Converts a list of directories into a path name, with a slash at the end.
+ * \param pathlist List of strings.
+ * \return String.
+ */
+function pathlist_to_path(pathlist)
+{
+    ret = path_join.apply(null, pathlist);
+    if (ret[ret.length-1] != '/')
+        ret += '/';
+    return ret;
+}
+
 /** Given a path relative to the IVLE root, gives a path relative to
  * the site root.
  */
@@ -333,3 +331,39 @@ function make_path(path)
     return path_join(root_dir, path);
 }
 
+/** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
+ * response, and returns an XMLHttpRequest object containing the completed
+ * response.
+ *
+ * \param app IVLE app to call (such as "fileservice").
+ * \param path URL path to make the request to, within the application.
+ * \param args Argument object, as described in parse_url and friends.
+ * \param method String; "GET" or "POST"
+ * \return An XMLHttpRequest object containing the completed response.
+ */
+function ajax_call(app, path, args, method)
+{
+    path = make_path(path_join(app, path));
+    var url;
+    var xhr = new XMLHttpRequest();
+    if (method == "GET")
+    {
+        /* GET sends the args in the URL */
+        url = build_url({"path": path, "args": args});
+        /* open's 3rd argument = false -> SYNCHRONOUS (wait for response)
+         * (No need for a callback function) */
+        xhr.open(method, url, false);
+        xhr.send("");
+    }
+    else
+    {
+        /* POST sends the args in application/x-www-form-urlencoded */
+        url = encodeURI(path);
+        xhr.open(method, url, false);
+        xhr.setRequestHeader("Content-Type",
+            "application/x-www-form-urlencoded");
+        var message = build_url({"args": args}).substr(1); /* Remove "?" */
+        xhr.send(message);
+    }
+    return xhr;
+}
