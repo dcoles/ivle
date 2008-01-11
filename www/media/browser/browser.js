@@ -43,10 +43,12 @@ function do_action(action, path, args, content_type)
 {
     args.action = action;
     /* Call the server and perform the action. This mutates the server. */
-    response = call_ajax("fileservice", path, args, "POST", content_type);
+    response = ajax_call("fileservice", path, args, "POST", content_type);
     /* Check for action errors reported by the server, and report them to the
      * user */
-    /* TODO */
+    error = response.getResponseHeader("X-IVLE-Action-Error");
+    if (error != null)
+        alert("Error: " + error.toString() + ".");
     /* Now read the response and set up the page accordingly */
     handle_response(path, response);
 }
@@ -62,7 +64,7 @@ function do_action(action, path, args, content_type)
 function navigate(path)
 {
     /* Call the server and request the listing. This mutates the server. */
-    response = call_ajax("fileservice", path, null, "GET");
+    response = ajax_call("fileservice", path, null, "GET");
     /* Now read the response and set up the page accordingly */
     handle_response(path, response);
 }

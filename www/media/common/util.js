@@ -440,7 +440,7 @@ function ajax_call(app, path, args, method, content_type)
         /* open's 3rd argument = false -> SYNCHRONOUS (wait for response)
          * (No need for a callback function) */
         xhr.open(method, url, false);
-        xhr.send("");
+        xhr.send(null);
     }
     else
     {
