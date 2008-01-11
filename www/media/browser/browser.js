@@ -114,6 +114,12 @@ function navigate(path)
 function handle_response(path, response)
 {
     /* TODO: Set location bar to "path" */
+
+    /* Clear away the existing page contents */
+    clearpage();
+    /* Display the path at the top, for navigation */
+    presentpath(path);
+
     /* Check the status, and if not 200, read the error and handle this as an
      * error. */
     if (response.status != 200)
@@ -199,15 +205,26 @@ function clearpage()
 function handle_error(message)
 {
     /* TODO: Find a better place to put this message. */
-    var msg_elem = document.getElementById("path");
-    var txt_elem = dom_make_text_elem("span", "Error: "
+    var files = document.getElementById("files");
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    tr.appendChild(td);
+    var td = document.createElement("td");
+    tr.appendChild(td);
+    var td = document.createElement("td");
+    tr.appendChild(td);
+    var txt_elem = dom_make_text_elem("td", "Error: "
         + message.toString() + ".")
     txt_elem.setAttribute("class", "error");
-    msg_elem.appendChild(txt_elem)
+    tr.appendChild(txt_elem);
+    var td = document.createElement("td");
+    tr.appendChild(td);
+    var td = document.createElement("td");
+    tr.appendChild(td);
+    files.appendChild(tr);
 }
 
 /** Presents a path list (address bar inside the page) for clicking.
- * (Dir listing).
  */
 function presentpath(path)
 {
@@ -234,7 +251,6 @@ function presentpath(path)
 function handle_dir_listing(path, listing)
 {
     var row_toggle = 1;
-    presentpath(path);
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
 
