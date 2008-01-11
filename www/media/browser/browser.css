@@ -59,6 +59,10 @@ th {
     text-align: left;
 }
 
+td.thincol {
+    width: 24px;
+}
+
 #filetablediv {
     overflow: auto;
 }

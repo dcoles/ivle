@@ -20,6 +20,10 @@
  * Date: 11/1/2008
  */
 
+/* Url names for apps */
+this_app = "files";
+service_app = "fileservice";
+
 /* Mapping MIME types onto handlers.
  * "text" : When navigating to a text file, the text editor is opened.
  * "image" : When navigating to an image, the image is displayed (rather than
@@ -70,7 +74,7 @@ function do_action(action, path, args, content_type)
 {
     args.action = action;
     /* Call the server and perform the action. This mutates the server. */
-    response = ajax_call("fileservice", path, args, "POST", content_type);
+    response = ajax_call(service_app, path, args, "POST", content_type);
     /* Check for action errors reported by the server, and report them to the
      * user */
     error = response.getResponseHeader("X-IVLE-Action-Error");
@@ -91,7 +95,7 @@ function do_action(action, path, args, content_type)
 function navigate(path)
 {
     /* Call the server and request the listing. This mutates the server. */
-    response = ajax_call("fileservice", path, null, "GET");
+    response = ajax_call(service_app, path, null, "GET");
     /* Now read the response and set up the page accordingly */
     handle_response(path, response);
 }
@@ -173,22 +177,133 @@ function handle_response(path, response)
     }
 }
 
+/** Deletes all "dynamic" content on the page.
+ * This returns the page back to the state it is in when the HTML arrives to
+ * the browser, ready for another handler to populate it.
+ */
+function clearpage()
+{
+    /* Note: For now clear just enough to repopulate with a dir listing.
+     * Later, will have to clear more to make way for other handlers.
+     * Possibly have a "full clear" for all handlers, and special
+     * less-violent clearers for each handler if the same handler is going to
+     * be used that was used last time. */
+    dom_removechildren(document.getElementById("path"));
+    dom_removechildren(document.getElementById("files"));
+    dom_removechildren(document.getElementById("sidepanel"));
+}
+
 /*** HANDLERS for different types of responses (such as dir listing, file,
  * etc). */
 
 function handle_error(message)
 {
-    /* TODO: Rather than alert, rebuild the page into a page showing an error
-     * message */
-    alert("Error: " + message.toString() + ".");
+    /* TODO: Find a better place to put this message. */
+    var msg_elem = document.getElementById("path");
+    var txt_elem = dom_make_text_elem("span", "Error: "
+        + message.toString() + ".")
+    txt_elem.setAttribute("class", "error");
+    msg_elem.appendChild(txt_elem)
+}
+
+/** Presents a path list (address bar inside the page) for clicking.
+ * (Dir listing).
+ */
+function presentpath(path)
+{
+    var dom_path = document.getElementById("path");
+    var navlist = [];
+    var href_path = make_path(this_app);
+
+    /* Create all of the paths */
+    for each (dir in path.split("/"))
+    {
+        if (dir == "") continue;
+        navlist.push(dir);
+        /* Make an 'a' element */
+        href_path = path_join(href_path, dir);
+        var link = dom_make_link_elem("a", dir, href_path,
+                "navigate(" + href_path + ")");
+        dom_path.appendChild(link);
+        dom_path.appendChild(document.createTextNode("/"));
+    }
 }
 
 /** Presents the directory listing.
  */
 function handle_dir_listing(path, listing)
 {
-    /* TODO */
-    alert(listing);
+    var row_toggle = 1;
+    presentpath(path);
+    /* Nav through the top-level of the JSON to the actual listing object. */
+    var listing = listing.listing;
+
+    /* Get "." out, it's special */
+    var thisdir = listing["."];
+    delete listing["."];
+    /* Is this dir under svn? */
+    var under_subversion = "svnstatus" in thisdir;
+
+    var files = document.getElementById("files");
+    var file;
+    var row;
+    var td;
+    var checkbox;
+
+    /* Create all of the files */
+    for (var filename in listing)
+    {
+        file = listing[filename];
+        /* Make a 'tr' element */
+        row = document.createElement("tr");
+        /* Column 1: Selection checkbox */
+        row.setAttribute("class", "row" + row_toggle.toString())
+        row_toggle = row_toggle == 1 ? 2 : 1;
+        td = document.createElement("td");
+        checkbox = document.createElement("input");
+        checkbox.setAttribute("type", "checkbox");
+        checkbox.setAttribute("title", "Select this file");
+        td.appendChild(checkbox);
+        row.appendChild(td);
+        if (file.isdir)
+        {
+            /* Column 2: Filetype and subversion icons. */
+            td = document.createElement("td");
+            td.setAttribute("class", "thincol");
+            td.appendChild(document.createTextNode("dir"));
+            row.appendChild(td);
+            td = document.createElement("td");
+            td.setAttribute("class", "thincol");
+            if (under_subversion)
+                td.appendChild(document.createTextNode(file.svnstatus));
+            row.appendChild(td);
+            /* Column 3: Filename */
+            row.appendChild(dom_make_link_elem("td", filename,
+                make_path(path_join(this_app, path, filename)),
+                "navigate(" + path_join(path, filename) + ")"));
+        }
+        else
+        {
+            /* Column 2: Filetype and subversion icons. */
+            td = document.createElement("td");
+            td.setAttribute("class", "thincol");
+            td.appendChild(document.createTextNode(file.type));
+            row.appendChild(td);
+            td = document.createElement("td");
+            td.setAttribute("class", "thincol");
+            if (under_subversion)
+                td.appendChild(document.createTextNode(file.svnstatus));
+            row.appendChild(td);
+            /* Column 3: Filename */
+            row.appendChild(dom_make_text_elem("td", filename));
+        }
+        /* Column 4: Size */
+        row.appendChild(dom_make_text_elem("td", nice_filesize(file.size)));
+        /* Column 4: Date */
+        row.appendChild(dom_make_text_elem("td", file.mtime_nice));
+        files.appendChild(row);
+    }
+
 }
 
 /** Presents the text editor.
@@ -211,4 +326,14 @@ function handle_binary(path)
  */
 window.onload = function()
 {
+    /* Navigate (internally) to the path in the URL bar.
+     * This causes the page to be populated with whatever is at that address,
+     * whether it be a directory or a file.
+     */
+    var path = parse_url(window.location.href).path;
+    /* Strip out root_dir + "/files" from the front of the path */
+    strip_chars = make_path(this_app).length + 1;
+    path = path.substr(strip_chars);
+
+    navigate(path);
 }

@@ -38,6 +38,7 @@ function dom_removechildren(elem)
  */
 function dom_make_text_elem(tagname, text)
 {
+    if (text == null) text = "";
     var elem = document.createElement(tagname);
     elem.appendChild(document.createTextNode(text));
     return elem;
@@ -54,6 +55,8 @@ function dom_make_text_elem(tagname, text)
  */
 function dom_make_link_elem(tagname, text, href, onclick)
 {
+    if (text == null) text = "";
+    if (href == null) href = "";
     var elem = document.createElement(tagname);
     var link = document.createElement("a");
     link.setAttribute("href", encodeURI(href));
@@ -74,9 +77,10 @@ function dom_make_link_elem(tagname, text, href, onclick)
  */
 function nice_filesize(bytes)
 {
+    if (bytes == null) return "";
     var size;
     if (bytes < 1024)
-        return bytes.toString() + " bytes";
+        return bytes.toString() + " B";
     size = bytes / 1024;
     if (size < 1024)
         return size.toFixed(1) + " kB";
