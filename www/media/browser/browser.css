@@ -5,3 +5,177 @@
  * License version 2 or later.
  */
 
+/* GENERAL FORMATTING */
+
+body {
+    background-color: white;
+    color: black;
+    font-family: sans;
+}
+
+a:link, a:visited {
+    color: navy;
+}
+a:hover, a:active, a:focus {
+    color: blue;
+}
+
+p, h1, h2, h3 {
+    padding: 0;
+    margin: 0;
+    margin-top: 11px;
+    margin-bottom: 11px;
+}
+p, h2, h3 {
+    font-size: 1em;
+}
+h1 {
+    font-size: 1.1em;
+}
+
+/* OVERALL LAYOUT */
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#middle, #middle tbody {
+    width: 100%;
+    vertical-align: top;
+    border-collapse: collapse;
+}
+
+#sidepanel {
+    width: 300px;
+}
+
+/* TOP BAR */
+
+#topbar {
+    padding: 8px;
+    background-color: #aaf;
+}
+#topbar a {
+    font-weight: bold;
+}
+
+/* FILE LISTINGS TABLE */
+
+#filetable {
+    border-collapse: collapse;
+    border-right: 1px solid #888;
+    padding: 0;
+}
+
+th {
+    text-align: left;
+}
+
+#filetablediv {
+    overflow: auto;
+}
+
+/* Individual column sizes */
+/* All columns have fixed widths except filename, which expands to fit. */
+
+.col-check {
+    width: 20px;
+}
+.col-icons {
+    width: 50px;
+}
+.col-filename {
+    width: auto;
+}
+.col-size {
+    width: 100px;
+}
+.col-date {
+    width: 150px;
+}
+
+/* Table borders and rows */
+
+tr.rowhead {
+    background-color: #336;
+    color: white;
+}
+tr.rowhead a:link, tr.rowhead a:visited {
+    color: #aaf;
+}
+/* Unselected (grey shades)
+ * Note alternating rows are different shades
+ */
+tr.row1 {
+    background-color: #ccc;
+    cursor: pointer;
+}
+tr.row2 {
+    background-color: #aaa;
+    cursor: pointer;
+}
+tr.row1:hover, tr.row2:hover {
+    background-color: #eee;
+}
+/* And if they are selected (blue shades) */
+tr.row1sel {
+    background-color: #88e;
+    cursor: pointer;
+}
+tr.row2sel {
+    background-color: #66c;
+    cursor: pointer;
+}
+tr.row1sel:hover, tr.row2sel:hover {
+    background-color: #eee;
+}
+
+#filetable table {
+    border-collapse: collapse;
+}
+
+#filetable td, #filetable th {
+    border: 1px solid #888;
+}
+
+/* Borders between icons and filename are turned off. */
+
+#filetable td.col-icons, #filetable th.col-date, #filetable td.col-date {
+    border-right: 0 none;
+}
+#filetable td.col-filename {
+    border-left: 0 none;
+}
+
+/* SIDE PANEL */
+
+#sidepanel {
+    border-left: 1px solid #888;
+    border-top: 1px solid #888;
+    background-color: #ccc;
+    font-size: 0.8em;
+    padding: 8px;
+    text-align: center;
+}
+
+#sidepanel p, h1, h2 {
+    margin: 0;
+    padding: 0;
+}
+
+#sidepanel h2 {
+    margin-top: 8px;
+}
+
+#sidepanel a {
+    font-weight: bold;
+}
+
+/* STATUS BAR */
+
+#statusbar {
+    background-color: #aaa;
+    border-top: 1px solid #888;
+    font-size: 0.8em;
+}
