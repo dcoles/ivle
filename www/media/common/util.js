@@ -64,6 +64,29 @@ function dom_make_link_elem(tagname, text, href, onclick)
     return elem;
 }
 
+/** Given a number of bytes, returns a string representing the file size in a
+ * human-readable format.
+ * eg. nice_filesize(6) -> "6 bytes"
+ *     nice_filesize(81275) -> "79.4 kB"
+ *     nice_filesize(13498346) -> "12.9 MB"
+ * \param bytes Number of bytes. Must be an integer.
+ * \return String.
+ */
+function nice_filesize(bytes)
+{
+    var size;
+    if (bytes < 1024)
+        return bytes.toString() + " bytes";
+    size = bytes / 1024;
+    if (size < 1024)
+        return size.toFixed(1) + " kB";
+    size = size / 1024;
+    if (size < 1024)
+        return size.toFixed(1) + " MB";
+    size = size / 1024;
+    return size.toFixed(1) + " GB";
+}
+
 /** Given a URL, returns an object containing a number of attributes
  * describing the components of the URL, similar to CGI request variables.
  * The object has the following attributes:
