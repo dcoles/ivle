@@ -32,6 +32,7 @@ def handle(req):
     req.styles = ["media/browser/browser.css"]
     req.scripts = [
         "media/common/json2.js",
+        "media/common/util.js",
         "media/browser/browser.js",
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
