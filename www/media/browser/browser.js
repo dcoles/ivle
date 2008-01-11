@@ -43,6 +43,29 @@ type_handlers = {
     "application/xml" : "text",
 };
 
+/* Mapping MIME types to icons, just the file's basename */
+type_icons = {
+    "text/directory": "dir.png",
+    "text/x-python": "py.png",
+};
+
+default_type_icon = "txt.png";
+
+/* Relative to IVLE root */
+type_icons_path = "media/images/mime";
+type_icons_path_large = "media/images/mime/large";
+
+/* Mapping SVN status to icons, just the file's basename */
+svn_icons = {
+    "unversioned": "unversioned.png",
+    "normal": "normal.png",
+    "modified": "modified.png",
+};
+
+default_svn_icon = "normal.png";
+
+svn_icons_path = "media/images/svn";
+
 /* List of MIME types considered "executable" by the system.
  * Executable files offer a "run" link, implying that the "serve"
  * application can interpret them.
@@ -246,6 +269,40 @@ function presentpath(path)
     }
 }
 
+/** Given a mime type, returns the path to the icon.
+ * \param type String, Mime type.
+ * \param sizelarge Boolean, optional.
+ * \return Path to the icon. Has applied make_path, so it is relative to site
+ * root.
+ */
+function mime_type_to_icon(type, sizelarge)
+{
+    var filename;
+    if (type in type_icons)
+        filename = type_icons[type];
+    else
+        filename = default_type_icon;
+    if (sizelarge)
+        return make_path(path_join(type_icons_path_large, filename));
+    else
+        return make_path(path_join(type_icons_path, filename));
+}
+
+/** Given an svnstatus, returns the path to the icon.
+ * \param type String, svn status.
+ * \return Path to the icon. Has applied make_path, so it is relative to site
+ * root.
+ */
+function svnstatus_to_icon(svnstatus)
+{
+    var filename;
+    if (svnstatus in svn_icons)
+        filename = svn_icons[svnstatus];
+    else
+        filename = default_svn_icon;
+    return make_path(path_join(svn_icons_path, filename));
+}
+
 /** Presents the directory listing.
  */
 function handle_dir_listing(path, listing)
@@ -286,12 +343,14 @@ function handle_dir_listing(path, listing)
             /* Column 2: Filetype and subversion icons. */
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
-            td.appendChild(document.createTextNode("dir"));
+            td.appendChild(dom_make_img(mime_type_to_icon("text/directory"),
+                22, 22, file.type));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
-                td.appendChild(document.createTextNode(file.svnstatus));
+                td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
+                    22, 22, file.svnstatus));
             row.appendChild(td);
             /* Column 3: Filename */
             row.appendChild(dom_make_link_elem("td", filename,
@@ -303,12 +362,14 @@ function handle_dir_listing(path, listing)
             /* Column 2: Filetype and subversion icons. */
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
-            td.appendChild(document.createTextNode(file.type));
+            td.appendChild(dom_make_img(mime_type_to_icon(file.type),
+                22, 22, file.type));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
-                td.appendChild(document.createTextNode(file.svnstatus));
+                td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
+                    22, 22, file.svnstatus));
             row.appendChild(td);
             /* Column 3: Filename */
             row.appendChild(dom_make_text_elem("td", filename));

@@ -67,6 +67,24 @@ function dom_make_link_elem(tagname, text, href, onclick)
     return elem;
 }
 
+/** Creates a DOM img element. All parameters are optional except src.
+ * If alt (compulsory in HTML) is omitted, will be set to "".
+ */
+function dom_make_img(src, width, height, title, alt)
+{
+    var img = document.createElement("img");
+    img.setAttribute("src", src);
+    if (width != null)
+        img.setAttribute("width", width);
+    if (height != null)
+        img.setAttribute("height", height);
+    if (title != null)
+        img.setAttribute("title", title);
+    if (alt == null) alt = "";
+    img.setAttribute("alt", alt);
+    return img;
+}
+
 /** Given a number of bytes, returns a string representing the file size in a
  * human-readable format.
  * eg. nice_filesize(6) -> "6 bytes"
