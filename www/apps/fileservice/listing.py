@@ -66,7 +66,10 @@
 #   files.
 #   * type: String. Guessed mime type of the file. Present for non-directory
 #   files.
-#   * mtime: String. Modification time of the file or directory. Always
+#   * mtime: Number. Number of seconds elapsed since the epoch.
+#   The epoch is not defined (this is an arbitrary number used for sorting
+#   dates).
+#   * mtime_nice: String. Modification time of the file or directory. Always
 #   present unless svnstatus is "Missing". Human-friendly.
 #
 # Members are not guaranteed to be present - client code should always check
@@ -174,8 +177,9 @@ def get_dirlisting(req, svnclient, path):
         # The subversion one includes "." while the OS one does not.
         # Add "." to the output, so the caller can see we are
         # unversioned.
+        mtime = os.path.getmtime(path)
         listing["."] = {"isdir" : True,
-            "mtime" : time.ctime(os.path.getmtime(path))}
+            "mtime" : mtime, "mtime_nice" : time.ctime(mtime)}
 
     # Listing is a nested object inside the top-level JSON.
     listing = {"listing" : listing}
@@ -206,7 +210,8 @@ def file_to_fileinfo(path, filename):
         if type is None:
             type = conf.mimetypes.default_mimetype
         d["type"] = type
-    d["mtime"] = time.ctime(file_stat.st_mtime)
+    d["mtime"] = file_stat.st_mtime
+    d["mtime_nice"] = time.ctime(file_stat.st_mtime)
     return d
 
 def PysvnStatus_to_fileinfo(path, status):
@@ -241,7 +246,8 @@ def PysvnStatus_to_fileinfo(path, status):
             if type is None:
                 type = conf.mimetypes.default_mimetype
             d["type"] = type
-        d["mtime"] = time.ctime(file_stat.st_mtime)
+        d["mtime"] = file_stat.st_mtime
+        d["mtime_nice"] = time.ctime(file_stat.st_mtime)
     except OSError:
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d
