@@ -303,3 +303,33 @@ function arg_getlist(args, arg)
         return [r];
 }
 
+/** Joins one or more paths together. Accepts 1 or more arguments.
+ */
+function path_join(path1 /*, path2, ... */)
+{
+    var arg;
+    path = path1;
+    for (var i=1; i<arguments.length; i++)
+    {
+        arg = arguments[i];
+        if (arg.length == 0) continue;
+        if (arg[0] == '/')
+            path = arg;
+        else
+        {
+            if (path[path.length-1] != '/')
+                path += '/';
+            path += arg;
+        }
+    }
+    return path;
+}
+
+/** Given a path relative to the IVLE root, gives a path relative to
+ * the site root.
+ */
+function make_path(path)
+{
+    return path_join(root_dir, path);
+}
+

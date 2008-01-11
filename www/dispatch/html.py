@@ -34,6 +34,8 @@ def write_html_head(req):
     write to."""
 
     # Write the XHTML opening and head element
+    # Note the inline JavaScript, which provides the client with constants
+    # derived from the server configuration.
     if req.title != None:
         titlepart = ' - ' + req.title
     else:
@@ -44,8 +46,13 @@ def write_html_head(req):
 <head>
   <title>IVLE%s</title>
   <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
+  <script type="text/javascript">
+    root_dir = "%s";
+  </script>
   <link rel="stylesheet" type="text/css" href="%s" />
-""" % (titlepart, req.content_type, util.make_path('media/common/ivle.css')))
+""" % (titlepart, req.content_type,
+        repr(conf.root_dir)[1:-1],
+        util.make_path('media/common/ivle.css')))
 
     # Write any app-specific style and script links
     for style in req.styles:
