@@ -202,6 +202,65 @@ function parse_url(url)
     return obj;
 }
 
+/** Given an object exactly of the form described for the output of parseurl,
+ * returns a URL string built from those parameters.
+ * parseurl and buildurl are strict inverses of each other.
+ * Note that either query_string or args may be supplied. If both are
+ * supplied, query_string is preferred (because it keeps the argument order).
+ * If you take a url from parseurl, modify args, and pass to buildurl,
+ * you need to set query_string to null to use the new args.
+ * \param obj Object as returned by parseurl.
+ * \return String, a URL.
+ */
+function buildurl(obj)
+{
+    var url = "";
+    var query_string = null;
+
+    if (!("scheme" in obj) || obj.scheme != null)
+        url = obj.scheme.toString() + "://";
+    if (!("server_name" in obj) || obj.server_name != null)
+        url += obj.server_name.toString();
+    if (!("server_port" in obj) || obj.server_port != null)
+        url += ":" + obj.server_port.toString();
+    if (!("path" in obj) || obj.path != null)
+    {
+        var path = obj.path.toString();
+        if (path.length > 0 && path[0] != "/")
+            path = "/" + path;
+        url += path;
+    }
+    if (!("query_string" in obj) || obj.query_string != null)
+        query_string = obj.query_string.toString();
+    else if (!("args" in obj) || obj.args != null)
+    {
+        query_string = "";
+        var arg_val;
+        for (var arg_key in obj.args)
+        {
+            arg_val = obj.args[arg_key];
+            if (arg_val instanceof Array)
+                for (var i=0; i<arg_val.length; i++)
+                    query_string += "&" + encodeURI(arg_key) + "=" +
+                        encodeURI(arg_val[i]);
+            else
+                query_string += "&" + encodeURI(arg_key) + "=" +
+                    encodeURI(arg_val);
+   
+        }
+        if (query_string == "")
+            query_string = null;
+        else
+            /* Drop the first "&" */
+            query_string = query_string.substr(1);
+    }
+
+    if (query_string != null)
+        url += "?" + query_string;
+
+    return url;
+}
+
 /** Given an argument map, as output in the args parameter of the return of
  * parseurl, gets the first occurence of an argument in the URL string.
  * If the argument was not found, returns null.
