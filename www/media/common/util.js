@@ -142,7 +142,7 @@ function parse_url(url)
     else
     {
         serverpart = url.substr(0, index);
-        url = url.substr(index+1);
+        url = url.substr(index);
     }
 
     /* Split server name from port */
