@@ -20,6 +20,33 @@
  * Date: 11/1/2008
  */
 
+/* Mapping MIME types onto handlers.
+ * "text" : When navigating to a text file, the text editor is opened.
+ * "image" : When navigating to an image, the image is displayed (rather than
+ *              going to the text editor).
+ * "audio" : When navigating to an audio file, a "play" button is presented.
+ * "binary" : When navigating to a binary file, offer it as a download through
+ *              "serve".
+ *
+ * If a file is not on the list, its default action is determined by the first
+ * part of its content type, where "text/*", "image/*" and "audio/*" are
+ * treated as above, and other types are simply treated as binary.
+ */
+type_handlers = {
+    "application/x-javascript" : "text",
+    "application/javascript" : "text",
+    "application/json" : "text",
+    "application/xml" : "text",
+};
+
+/* List of MIME types considered "executable" by the system.
+ * Executable files offer a "run" link, implying that the "serve"
+ * application can interpret them.
+ */
+types_exec = [
+    "text/x-python",
+];
+
 /** Calls the server using Ajax, performing an action on the server side.
  * Receives the response from the server and performs a refresh of the page
  * contents, updating it to display the returned data (such as a directory
@@ -82,6 +109,102 @@ function navigate(path)
  */
 function handle_response(path, response)
 {
+    /* TODO: Set location bar to "path" */
+    /* Check the status, and if not 200, read the error and handle this as an
+     * error. */
+    if (response.status != 200)
+    {
+        var error = response.getResponseHeader("X-IVLE-Return-Error");
+        if (error == null)
+            error = response.statusText;
+        handle_error(error);
+        return;
+    }
+
+    /* Check if this is a directory listing or file contents */
+    if (response.getResponseHeader("X-IVLE-Return") == "Dir")
+    {
+        var listing = response.responseText;
+        /* The listing SHOULD be valid JSON text. Parse it into an object. */
+        try
+        {
+            listing = JSON.parse(listing);
+        }
+        catch (e)
+        {
+            handle_error("The server returned an invalid directory listing");
+            return;
+        }
+        handle_dir_listing(path, listing);
+    }
+    else
+    {
+        /* Treat this as an ordinary file. Get the file type. */
+        var content_type = response.getResponseHeader("Content-Type");
+        var handler_type;
+        if (content_type in type_handlers)
+            handler_type = type_handlers[content_type];
+        else
+        {   /* Based on the first part of the MIME type */
+            handler_type = content_type.split('/')[0];
+            if (handler_type != "text" && handler_type != "image" &&
+                handler_type != "audio")
+                handler_type = "binary";
+        }
+        /* handler_type should now be set to either
+         * "text", "image", "audio" or "binary". */
+        switch (handler_type)
+        {
+        case "text":
+            handle_text(path, response.responseText);
+            break;
+        case "image":
+            /* TODO: Custom image handler */
+            handle_binary(path, response.responseText);
+            break;
+        case "audio":
+            /* TODO: Custom audio handler */
+            handle_binary(path, response.responseText);
+            break;
+        case "binary":
+            handle_binary(path);
+            break;
+        }
+    }
+}
+
+/*** HANDLERS for different types of responses (such as dir listing, file,
+ * etc). */
+
+function handle_error(message)
+{
+    /* TODO: Rather than alert, rebuild the page into a page showing an error
+     * message */
+    alert("Error: " + message.toString() + ".");
+}
+
+/** Presents the directory listing.
+ */
+function handle_dir_listing(path, listing)
+{
+    /* TODO */
+    alert(listing);
+}
+
+/** Presents the text editor.
+ */
+function handle_text(path, text)
+{
+    /* TODO */
+    alert(text);
+}
+
+/** Displays a download link to the binary file.
+ */
+function handle_binary(path)
+{
+    /* TODO */
+    alert(path);
 }
 
 /** Called when the page loads initially.
