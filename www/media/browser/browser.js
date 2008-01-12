@@ -212,11 +212,18 @@ function handle_response(path, response)
  */
 function clearpage()
 {
-    /* Note: For now clear just enough to repopulate with a dir listing.
-     * Later, will have to clear more to make way for other handlers.
-     * Possibly have a "full clear" for all handlers, and special
-     * less-violent clearers for each handler if the same handler is going to
-     * be used that was used last time. */
+    dom_removechildren(document.getElementById("path"));
+    dom_removechildren(document.getElementById("filesbody"));
+}
+
+/** Deletes all "dynamic" content on the page necessary to navigate from
+ * one directory listing to another (does not clear as much as clearpage
+ * does).
+ * This is the equivalent of calling clearpage() then
+ * setup_for_dir_listing(), assuming the page is already on a dir listing.
+ */
+function clearpage_dir()
+{
     dom_removechildren(document.getElementById("path"));
     dom_removechildren(document.getElementById("files"));
     dom_removechildren(document.getElementById("sidepanel"));
@@ -303,10 +310,79 @@ function svnstatus_to_icon(svnstatus)
     return make_path(path_join(svn_icons_path, filename));
 }
 
+/** Initialises the DOM elements required to present a dir listing,
+ * assuming that clear_page has just been called or the page just
+ * loaded for the first time.
+ */
+function setup_for_dir_listing()
+{
+    var filesbody = document.getElementById("filesbody");
+
+    /* Using a table-based layout, for reasons of sanity */
+    /* One row, 2 columns */
+    var middle = document.createElement("table");
+    filesbody.appendChild(middle);
+    middle.setAttribute("id", "middle");
+    var middle_tbody = document.createElement("tbody");
+    middle.appendChild(middle_tbody);
+    var middle_tr = document.createElement("tr");
+    middle_tbody.appendChild(middle_tr);
+
+    /* Column 1: File table */
+    var filetable = document.createElement("td");
+    middle_tr.appendChild(filetable);
+    filetable.setAttribute("id", "filetable");
+    var filetablediv = document.createElement("div");
+    filetable.appendChild(filetablediv);
+    filetablediv.setAttribute("id", "filetablediv");
+    /* A nested table within this div - the actual files listing */
+    var filetabletable = document.createElement("table");
+    filetablediv.appendChild(filetabletable);
+    filetabletable.setAttribute("width", "100%");
+    var filetablethead = document.createElement("thead");
+    filetabletable.appendChild(filetablethead);
+    var filetablethead_tr = document.createElement("tr");
+    filetablethead.appendChild(filetablethead_tr);
+    filetablethead_tr.setAttribute("class", "rowhead");
+    /* Row headers */
+    var filetablethead_th = document.createElement("th");
+    filetablethead_tr.appendChild(filetablethead_th);
+    filetablethead_th.setAttribute("class", "col-check");
+    filetablethead_th = dom_make_link_elem("th", "Filename",
+        "Sort by filename", "")
+    filetablethead_tr.appendChild(filetablethead_th);
+    filetablethead_th.setAttribute("class", "col-filename");
+    filetablethead_th.setAttribute("colspan", 3);
+    filetablethead_th = dom_make_link_elem("th", "Size",
+        "Sort by file size", "")
+    filetablethead_tr.appendChild(filetablethead_th);
+    filetablethead_th.setAttribute("class", "col-size");
+    filetablethead_th = dom_make_link_elem("th", "Modified",
+        "Sort by date modified", "")
+    filetablethead_tr.appendChild(filetablethead_th);
+    filetablethead_th.setAttribute("class", "col-date");
+    /* Empty body */
+    var filetabletbody = document.createElement("tbody");
+    filetabletable.appendChild(filetabletbody);
+    filetabletbody.setAttribute("id", "files");
+
+    /* Column 2: Side-panel */
+    var sidepanel = document.createElement("td");
+    middle_tr.appendChild(sidepanel);
+    sidepanel.setAttribute("id", "sidepanel");
+
+
+    /* Now after the table "middle", there is a status bar */
+    var statusbar = dom_make_text_elem("div", "5 files, 14 kB");
+    filesbody.appendChild(statusbar);
+    statusbar.setAttribute("id", "statusbar");
+}
+
 /** Presents the directory listing.
  */
 function handle_dir_listing(path, listing)
 {
+    setup_for_dir_listing();
     var row_toggle = 1;
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;

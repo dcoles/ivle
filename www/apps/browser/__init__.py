@@ -53,54 +53,12 @@ def handle(req):
 </div>
 <!-- End topbar -->
 
-<!-- Centre section - files and side panel -->
-<!-- Using a table-based layout, for reasons of sanity -->
-<table id="middle"><tr>
-
-<!-- File table -->
-<td id="filetable">
-
-<div id="filetablediv">
-
-<table width="100%%">
-<thead>
-<tr class="rowhead">
-    <th class="col-check"></th>
-    <th colspan="3" class="col-filename"><a href="javascript:alert(&quot;Sort by name&quot;)" title="Sort by name">Filename</a>
-        <img src="%s/images/interface/sortdown.png" alt="*" /></th>
-    <th class="col-size"><a href="javascript:alert(&quot;Sort by file size&quot;)" title="Sort by file size">Size</a></th>
-    <th class="col-date"><a href="javascript:alert(&quot;Sort by date modified&quot;)" title="Sort by date modified">Modified</a></th>
-</tr>
-</thead>
-<tbody id="files">
-</tbody>
-</table>
+<!-- Body. The JavaScript places content here relevant to the path -->
+<div id="filesbody">
 </div>
-</td>
-<!-- End filetable -->
-
-<!-- Side panel -->
-
-<td id="sidepanel">
-</td>
-<!-- End sidepanel -->
-
-</tr></table>
-<!-- End middle -->
-
-<!-- Bottom status bar -->
-
-<div id="statusbar">
-<table>
-<tr><td>5 files, 14 kB</td></tr>
-</table>
-</div>
-<!-- End statusbar -->
+<!-- End body -->
 
 </body>
 </html>
-""" %
-    # All the %ses above refer to the location of the IVLE media directory
-    util.make_path("media")
-)
+""")
 
