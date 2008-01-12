@@ -23,6 +23,8 @@
 # content (the common parts of the HTML pages shared across the entire site).
 # Does not include the login page. See login.py.
 
+import os.path
+
 import conf
 import conf.apps
 from common import util
@@ -72,9 +74,11 @@ def write_html_head(req):
 
     if req.username:
         req.write('  <p class="userhello">Welcome, <span '
-            'class="username">%s</span>. '
-            '<a href="%s">Logout</a>.</p>\n' %
-            (req.username, util.make_path('logout')))
+            'class="username">%s</span> |\n'
+            '    <a href="%s">Help</a> |\n'
+            '    <a href="%s">Logout</a>\n'
+            '  </p>\n' %
+            (req.username, get_help_url(req), util.make_path('logout')))
     else:
         req.write('  <p class="userhello">Not logged in.</p>')
 
@@ -85,7 +89,9 @@ def write_html_head(req):
             "app from conf.apps.app_url when placed into production."
             "</small></p>\n")
 
-    print_apps_list(req, req.app)
+    if req.username:
+        # Only print app tabs if logged in
+        print_apps_list(req, req.app)
     req.write('</div>\n<div id="ivlebody">\n')
 
 def write_html_foot(req):
@@ -94,6 +100,19 @@ def write_html_foot(req):
     req: An IVLE request object. Written to.
     """
     req.write("</div>\n</body>\n</html>\n")
+
+def get_help_url(req):
+    """Gets the help URL most relevant to this page, to place as the
+    "help" link at the top of the page."""
+    if req.app == 'help':
+        # We're already in help. Link to the exact current page
+        # instead of the generic help page.
+        return req.uri
+    if conf.apps.app_url[req.app].hashelp:
+        help_path = os.path.join('help', req.app)
+    else:
+        help_path = 'help'
+    return util.make_path(help_path)
 
 def print_apps_list(file, thisapp):
     """Prints all app tabs, as a UL. Prints a list item for each app that has
