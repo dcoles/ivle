@@ -31,16 +31,17 @@ a:hover, a:active, a:focus {
 
 #ivleheader {
     background-color: #fea;
-    /* Pad left and right. Pad 1px top to extend colour. */
-    padding: 1px 1em 0 1em;
+    /* Pad left and right. */
+    padding: 0 1em;
     border-bottom: 1px solid black;
+    min-height: 4.3em;
 }
 
 /* Special "IVLE" and "Informatics Virtual Learning Environment" titles */
 #ivleheader h1 {
     position: absolute;
     text-align: left;
-    font-size: 4em;
+    font-size: 3.8em;
     font-style: italic;
     color: #ffc;
     margin: 0;
@@ -65,6 +66,8 @@ p.userhello {
     font-size: .8em;
     top: 0;
     text-align: right;
+    padding: 11px 0;
+    margin: 0;
 }
 p.userhello .username {
     font-weight: bold;
