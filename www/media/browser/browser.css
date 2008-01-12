@@ -20,6 +20,10 @@ h2 {
     font-size: 1.1em;
 }
 
+.padding {
+    padding: 1em;
+}
+
 /* OVERALL LAYOUT */
 
 /* Override common #ivlebody */
@@ -170,4 +174,11 @@ tr.row1sel:hover, tr.row2sel:hover {
     border-top: 1px solid #888;
     font-size: 0.8em;
     padding: 2px;
+}
+
+/* TEXT EDITOR */
+
+#editbox {
+    width: 100%;
+    height: 100%;
 }

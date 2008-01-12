@@ -23,6 +23,8 @@
 /* Url names for apps */
 this_app = "files";
 service_app = "fileservice";
+serve_app = "serve";
+download_app = "download";
 
 /* Mapping MIME types onto handlers.
  * "text" : When navigating to a text file, the text editor is opened.
@@ -234,24 +236,11 @@ function clearpage_dir()
 
 function handle_error(message)
 {
-    /* TODO: Find a better place to put this message. */
-    var files = document.getElementById("files");
-    var tr = document.createElement("tr");
-    var td = document.createElement("td");
-    tr.appendChild(td);
-    var td = document.createElement("td");
-    tr.appendChild(td);
-    var td = document.createElement("td");
-    tr.appendChild(td);
-    var txt_elem = dom_make_text_elem("td", "Error: "
+    var files = document.getElementById("filesbody");
+    var txt_elem = dom_make_text_elem("div", "Error: "
         + message.toString() + ".")
-    txt_elem.setAttribute("class", "error");
-    tr.appendChild(txt_elem);
-    var td = document.createElement("td");
-    tr.appendChild(td);
-    var td = document.createElement("td");
-    tr.appendChild(td);
-    files.appendChild(tr);
+    txt_elem.setAttribute("class", "padding error");
+    files.appendChild(txt_elem);
 }
 
 /** Presents a path list (address bar inside the page) for clicking.
@@ -477,16 +466,38 @@ function handle_dir_listing(path, listing)
  */
 function handle_text(path, text)
 {
-    /* TODO */
-    alert(text);
+    /* Create a textarea with the text in it
+     * (The makings of a primitive editor).
+     */
+    var files = document.getElementById("filesbody");
+    var div = document.createElement("div");
+    files.appendChild(div);
+    div.setAttribute("class", "padding");
+    var txt_elem = dom_make_text_elem("textarea",
+        text.toString())
+    div.appendChild(txt_elem);
+    txt_elem.setAttribute("id", "editbox");
+    /* TODO: Make CSS height: 100% work */
+    txt_elem.setAttribute("rows", "20");
 }
 
 /** Displays a download link to the binary file.
  */
 function handle_binary(path)
 {
-    /* TODO */
-    alert(path);
+
+    var files = document.getElementById("filesbody");
+    var div = document.createElement("div");
+    files.appendChild(div);
+    div.setAttribute("class", "padding");
+    var download_link = make_path(path_join(download_app, path));
+    var par1 = dom_make_text_elem("p",
+        "The file " + path + " is a binary file. To download this file, " +
+        "click the following link:");
+    var par2 = dom_make_link_elem("p",
+        "Download " + path, "Download " + path, download_link);
+    div.appendChild(par1);
+    div.appendChild(par2);
 }
 
 /** Called when the page loads initially.
