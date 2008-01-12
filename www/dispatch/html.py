@@ -35,26 +35,31 @@ def write_html_head(req):
     req: An IVLE request object. Reads attributes such as title. Also used to
     write to."""
 
+    app = conf.apps.app_url[req.app]
     # Write the XHTML opening and head element
     # Note the inline JavaScript, which provides the client with constants
     # derived from the server configuration.
     if req.title != None:
-        titlepart = ' - ' + req.title
+        titlepart = req.title + ' - '
     else:
         titlepart = ''
     req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>IVLE%s</title>
+  <title>%sIVLE</title>
   <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
   <script type="text/javascript">
     root_dir = "%s";
   </script>
-  <link rel="stylesheet" type="text/css" href="%s" />
 """ % (titlepart, req.content_type,
-        repr(conf.root_dir)[1:-1],
-        util.make_path('media/common/ivle.css')))
+        repr(conf.root_dir)[1:-1]))
+    iconurl = get_icon_url(conf.apps.app_url[req.app])
+    if iconurl:
+        req.write("""  <link rel="shortcut icon" href="%s" />
+""" % iconurl)
+    req.write("""  <link rel="stylesheet" type="text/css" href="%s" />
+""" % util.make_path('media/common/ivle.css'))
 
     # Write any app-specific style and script links
     for style in req.styles:
@@ -115,6 +120,16 @@ def get_help_url(req):
         help_path = 'help'
     return util.make_path(help_path)
 
+def get_icon_url(app, small=False):
+    """Given an App object, gets the URL of the icon image for this app,
+    relative to the site root. Returns None if the app has no icon."""
+    if small:
+        icon_dir = conf.apps.app_icon_dir_small
+    else:
+        icon_dir = conf.apps.app_icon_dir
+    if app.icon is None: return None
+    return util.make_path(os.path.join(icon_dir, app.icon))
+
 def print_apps_list(file, thisapp):
     """Prints all app tabs, as a UL. Prints a list item for each app that has
     a tab.
@@ -132,9 +147,7 @@ def print_apps_list(file, thisapp):
             li_attr = ''
         file.write('    <li%s>' % li_attr)
         if app.icon:
-            file.write('<img src="%s" alt="" /> ' %
-                util.make_path(os.path.join(conf.apps.app_icon_dir,
-                app.icon)))
+            file.write('<img src="%s" alt="" /> ' % get_icon_url(app))
         file.write('<a href="%s">%s</a></li>\n'
             % (util.make_path(urlname), app.name))
 
