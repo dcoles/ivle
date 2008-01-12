@@ -61,7 +61,7 @@ def handler(req):
 
     # app is the App object for the chosen app
     if req.app is None:
-        app = conf.apps.app_url[conf.default_app]
+        app = conf.apps.app_url[conf.apps.default_app]
     else:
         app = conf.apps.app_url[req.app]
 
@@ -77,7 +77,7 @@ def handler(req):
         # If user did not specify an app, HTTP redirect to default app and
         # exit.
         if req.app is None:
-            req.throw_redirect(util.make_path(conf.default_app))
+            req.throw_redirect(util.make_path(conf.apps.default_app))
 
         # Set the default title to the app's tab name, if any. Otherwise URL
         # name.

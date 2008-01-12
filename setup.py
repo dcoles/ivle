@@ -74,9 +74,18 @@ import getopt
 # Also this allows you to hit Return to accept the existing value.
 try:
     confmodule = __import__("www/conf/conf")
-    root_dir = confmodule.root_dir
-    ivle_install_dir = confmodule.ivle_install_dir
-    jail_base = confmodule.jail_base
+    try:
+        root_dir = confmodule.root_dir
+    except:
+        root_dir = "/ivle"
+    try:
+        ivle_install_dir = confmodule.ivle_install_dir
+    except:
+        ivle_install_dir = "/opt/ivle"
+    try:
+        jail_base = confmodule.jail_base
+    except:
+        jail_base = "/home/informatics/jails"
 except ImportError:
     # Just set reasonable defaults
     root_dir = "/ivle"
@@ -308,9 +317,6 @@ def conf(args):
     conffile = os.path.join(cwd, "www/conf/conf.py")
     conf_hfile = os.path.join(cwd, "trampoline/conf.h")
 
-    # Fixed config options that we don't ask the admin
-    default_app = "dummy"
-
     # Get command-line arguments to avoid asking questions.
 
     (opts, args) = getopt.gnu_getopt(args, "", ['root_dir=',
@@ -394,13 +400,7 @@ ivle_install_dir = "%s"
 # The user jails are expected to be located immediately in subdirectories of
 # this location.
 jail_base = "%s"
-
-# Which application to load by default (if the user navigates to the top level
-# of the site). This is the app's URL name.
-# Note that if this app requires authentication, the user will first be
-# presented with the login screen.
-default_app = "%s"
-""" % (root_dir, ivle_install_dir, jail_base, default_app))
+""" % (root_dir, ivle_install_dir, jail_base))
 
         conf.close()
     except IOError, (errno, strerror):

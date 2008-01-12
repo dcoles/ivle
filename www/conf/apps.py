@@ -16,6 +16,12 @@ class App:
             ", requireauth=" + repr(self.requireauth) + ", hashelp="
             + repr(self.hashelp) + ")")
 
+# Which application to load by default (if the user navigates to the top level
+# of the site). This is the app's URL name.
+# Note that if this app requires authentication, the user will first be
+# presented with the login screen.
+default_app = "files"
+
 # Application definitions
 
 app_browser =   App(dir = "browser",
