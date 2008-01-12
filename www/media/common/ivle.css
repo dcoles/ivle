@@ -23,13 +23,6 @@ a:hover, a:active, a:focus {
     color: blue;
 }
 
-h1 {
-    text-align: center;
-    font-size: 1.3em;
-    margin-top: 0.67em;
-    margin-bottom: 0.67em;
-}
-
 .error {
     color: #a00;
 }
@@ -42,6 +35,26 @@ h1 {
     padding: 1px 1em 0 1em;
     border-bottom: 1px solid black;
 }
+
+/* Special "IVLE" and "Informatics Virtual Learning Environment" titles */
+#ivleheader h1 {
+    position: absolute;
+    text-align: left;
+    font-size: 4em;
+    font-style: italic;
+    color: #ffc;
+    margin: 0;
+    padding: 0;
+}
+#ivleheader h2 {
+    position: absolute;
+    text-align: left;
+    font-size: 1.3em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding: 0;
+}
+
 /* Note: You can override this in app-specific CSS if you want to
  * push the body all the way to the edge. */
 #ivlebody {
@@ -50,9 +63,8 @@ h1 {
 
 p.userhello {
     font-size: .8em;
-    position: absolute;
     top: 0;
-    right: 1em;
+    text-align: right;
 }
 p.userhello .username {
     font-weight: bold;

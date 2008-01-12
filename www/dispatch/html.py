@@ -69,7 +69,8 @@ def write_html_head(req):
     # Open the body element and write a bunch of stuff there (the header)
     req.write("""<body>
 <div id="ivleheader">
-  <h1>IVLE - Informatics Virtual Learning Environment</h1>
+  <h1>IVLE</h1>
+  <h2>Informatics Virtual Learning Environment</h2>
 """)
 
     if req.username:
