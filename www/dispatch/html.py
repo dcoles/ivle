@@ -129,7 +129,12 @@ def print_apps_list(file, thisapp):
             li_attr = ' class="thisapp"'
         else:
             li_attr = ''
-        file.write('    <li%s><a href="%s">%s</a></li>\n'
-            % (li_attr, util.make_path(urlname), app.name))
+        file.write('    <li%s>' % li_attr)
+        if app.icon:
+            file.write('<img src="%s" alt="" /> ' %
+                util.make_path(os.path.join(conf.apps.app_icon_dir,
+                app.icon)))
+        file.write('<a href="%s">%s</a></li>\n'
+            % (util.make_path(urlname), app.name))
 
     file.write('  </ul>\n')

@@ -5,16 +5,24 @@
 # plugged in.
 
 # Allow App objects
+# Note: icon is a string of a file basename. The icon files are found in
+# app_icon_dir, defined below.
 class App:
-    def __init__(self, dir, name, requireauth = True, hashelp = False):
+    def __init__(self, dir, name, icon = None, requireauth = True,
+        hashelp = False):
         self.dir = dir
         self.name = name
+        self.icon = icon
         self.requireauth = requireauth
         self.hashelp = hashelp
     def __repr__(self):
         return ("App(dir=" + repr(self.dir) + ", name=" + repr(self.name) +
+            ", icon=" + repr(self.icon) +
             ", requireauth=" + repr(self.requireauth) + ", hashelp="
             + repr(self.hashelp) + ")")
+
+# Directory where app icons are stored, relative to the IVLE root.
+app_icon_dir = "media/images/apps"
 
 # Which application to load by default (if the user navigates to the top level
 # of the site). This is the app's URL name.
@@ -26,11 +34,13 @@ default_app = "files"
 
 app_browser =   App(dir = "browser",
                     name = "File Browser",
+                    icon = "browser.png",
                     requireauth = True,
                     hashelp = True)
 
 app_editor =   App(dir = "editor",
                     name = "Text Editor",
+                    icon = "editor.png",
                     requireauth = True,
                     hashelp = True)
 
@@ -41,11 +51,13 @@ app_fileservice = App(dir = "fileservice",
 
 app_console =     App(dir = "console",
                     name = "Console",
+                    icon = "console.png",
                     requireauth = True,
                     hashelp = True)
 
 app_tutorial =     App(dir = "tutorial",
                     name = "Tutorial",
+                    icon = "tutorial.png",
                     requireauth = True,
                     hashelp = True)
 
@@ -61,6 +73,7 @@ app_download =  App(dir = "download",
 
 app_help =      App(dir = "help",
                     name = "Help",
+                    icon = "help.png",
                     requireauth = True,
                     hashelp = False)
 
