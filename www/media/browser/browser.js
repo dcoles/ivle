@@ -263,6 +263,7 @@ function presentpath(path)
         dom_path.appendChild(link);
         dom_path.appendChild(document.createTextNode("/"));
     }
+    dom_path.removeChild(dom_path.lastChild);
 }
 
 /** Given a mime type, returns the path to the icon.
