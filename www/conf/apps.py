@@ -18,13 +18,13 @@ class App:
 
 # Application definitions
 
-app_dummy =     App(dir = "dummy",
-                    name = "My Dummy App",
+app_browser =   App(dir = "browser",
+                    name = "File Browser",
                     requireauth = True,
                     hashelp = True)
 
-app_browser =   App(dir = "browser",
-                    name = "File Browser",
+app_editor =   App(dir = "editor",
+                    name = "Text Editor",
                     requireauth = True,
                     hashelp = True)
 
@@ -32,6 +32,16 @@ app_fileservice = App(dir = "fileservice",
                     name = "File Service (AJAX server)",
                     requireauth = True,
                     hashelp = False)
+
+app_console =     App(dir = "console",
+                    name = "Console",
+                    requireauth = True,
+                    hashelp = True)
+
+app_tutorial =     App(dir = "tutorial",
+                    name = "Tutorial",
+                    requireauth = True,
+                    hashelp = True)
 
 app_server =    App(dir = "server",
                     name = "Server",
@@ -56,9 +66,11 @@ app_debuginfo = App(dir = "debuginfo",
 # Mapping URL names to apps
 
 app_url = {
-    "dummy" : app_dummy,
     "files" : app_browser,
+    "edit" : app_editor,
     "fileservice" : app_fileservice,
+    "console" : app_console,
+    "tutorial" : app_tutorial,
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
@@ -69,4 +81,4 @@ app_url = {
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["dummy", "files", "help"]
+apps_in_tabs = ["files", "edit", "console", "tutorial", "help"]
