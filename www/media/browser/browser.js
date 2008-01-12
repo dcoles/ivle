@@ -373,7 +373,7 @@ function setup_for_dir_listing()
 
 
     /* Now after the table "middle", there is a status bar */
-    var statusbar = dom_make_text_elem("div", "5 files, 14 kB");
+    var statusbar = document.createElement("div");
     filesbody.appendChild(statusbar);
     statusbar.setAttribute("id", "statusbar");
 }
@@ -399,10 +399,16 @@ function handle_dir_listing(path, listing)
     var td;
     var checkbox;
 
+    var total_files = 0;
+    var total_file_size = 0;    /* In bytes */
+
     /* Create all of the files */
     for (var filename in listing)
     {
         file = listing[filename];
+        total_files++;
+        if ("size" in file)
+            total_file_size += file.size;
         /* Make a 'tr' element */
         row = document.createElement("tr");
         /* Column 1: Selection checkbox */
@@ -459,6 +465,12 @@ function handle_dir_listing(path, listing)
         files.appendChild(row);
     }
 
+    /* Write to the status bar */
+    var statusbar = document.getElementById("statusbar");
+    var statusmsg = total_files.toString() + " files, "
+        + nice_filesize(total_file_size);
+    dom_removechildren(statusbar);
+    statusbar.appendChild(document.createTextNode(statusmsg));
 }
 
 /** Presents the text editor.
