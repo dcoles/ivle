@@ -84,6 +84,9 @@ ul.apptabs li {
     background-color: #fc6;
     padding: 0 3px;
 }
+ul.apptabs li:hover {
+    background-color: #fd8;
+}
 /* Currently active app tab */
 ul.apptabs li.thisapp {
     background-color: white;
@@ -91,5 +94,6 @@ ul.apptabs li.thisapp {
 }
 
 ul.apptabs a {
+    color: navy;    /* Text colour not to change */
     text-decoration: none;
 }
