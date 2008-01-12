@@ -28,5 +28,7 @@ def authenticate(username, password):
 
     # WARNING: Both username and password may contain any characters, and must
     # be sanitized within this function.
-    # TEMP: Just a hardcoded login
-    return username == 'user' and password == 'pass'
+    # TEMP: Just allow any user to log in
+    return True
+    ## TEMP: Just a hardcoded login
+    #return username == 'user' and password == 'pass'
