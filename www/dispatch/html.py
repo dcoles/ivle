@@ -66,44 +66,51 @@ def write_html_head(req):
 
     # Open the body element and write a bunch of stuff there (the header)
     req.write("""<body>
-<h1>IVLE - Informatics Virtual Learning Environment</h1>
+<div id="ivleheader">
+  <h1>IVLE - Informatics Virtual Learning Environment</h1>
 """)
 
     if req.username:
-        req.write('<p class="userhello">Hello, %s. '
-            '<a href="%s">Logout</a></p>\n' %
+        req.write('  <p class="userhello">Welcome, <span '
+            'class="username">%s</span>. '
+            '<a href="%s">Logout</a>.</p>\n' %
             (req.username, util.make_path('logout')))
     else:
-        req.write('<p class="userhello">Not logged in.</p>')
-
-    print_apps_list(req)
+        req.write('  <p class="userhello">Not logged in.</p>')
 
     # If the "debuginfo" app is installed, display a warning to the admin to
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:
-        req.write("<p><small>Warning: debuginfo is enabled. Remove this app "
-            "from conf.apps.app_url when placed into production."
+        req.write("  <p><small>Warning: debuginfo is enabled. Remove this "
+            "app from conf.apps.app_url when placed into production."
             "</small></p>\n")
+
+    print_apps_list(req, req.app)
+    req.write('</div>\n<div id="ivlebody">\n')
 
 def write_html_foot(req):
     """Writes the HTML footer, given a request object.
 
     req: An IVLE request object. Written to.
     """
-    req.write("</body>\n</html>\n")
+    req.write("</div>\n</body>\n</html>\n")
 
-def print_apps_list(file):
+def print_apps_list(file, thisapp):
     """Prints all app tabs, as a UL. Prints a list item for each app that has
     a tab.
 
     file: Object with a "write" method - ie. the request object.
     Reads from: conf
     """
-    file.write('<ul class="apptabs">\n')
+    file.write('  <ul class="apptabs">\n')
 
     for urlname in conf.apps.apps_in_tabs:
         app = conf.apps.app_url[urlname]
-        file.write('  <li><a href="%s">%s</a></li>\n'
-            % (util.make_path(urlname), app.name))
+        if urlname == thisapp:
+            li_attr = ' class="thisapp"'
+        else:
+            li_attr = ''
+        file.write('    <li%s><a href="%s">%s</a></li>\n'
+            % (li_attr, util.make_path(urlname), app.name))
 
-    file.write('</ul>\n')
+    file.write('  </ul>\n')

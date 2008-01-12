@@ -22,9 +22,9 @@ h2 {
 
 /* OVERALL LAYOUT */
 
-body {
-    margin: 0;
-    padding: 0;
+/* Override common #ivlebody */
+#ivlebody {
+    padding: 0 ! important;
 }
 
 #middle, #middle tbody {
@@ -150,7 +150,7 @@ tr.row1sel:hover, tr.row2sel:hover {
     text-align: center;
 }
 
-#sidepanel p, h1, h2 {
+#sidepanel p, #sidepanel h1, #sidepanel h2 {
     margin: 0;
     padding: 0;
 }

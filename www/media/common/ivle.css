@@ -5,10 +5,15 @@
  * License version 2 or later.
  */
 
-body {
+/** Generic styling **/
+
+html, body {
+    margin: 0;
+    padding: 0;
     background-color: white;
     color: black;
     font-family: sans;
+    font-size: 0.95em;
 }
 
 a:link, a:visited {
@@ -21,23 +26,55 @@ a:hover, a:active, a:focus {
 h1 {
     text-align: center;
     font-size: 1.3em;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+}
+
+.error {
+    color: #a00;
+}
+
+/** Special styles for header section **/
+
+#ivleheader {
+    background-color: #fea;
+    /* Pad left and right. Pad 1px top to extend colour. */
+    padding: 1px 1em 0 1em;
+    border-bottom: 1px solid black;
+}
+/* Note: You can override this in app-specific CSS if you want to
+ * push the body all the way to the edge. */
+#ivlebody {
+    padding: 1em;
 }
 
 p.userhello {
     font-size: .8em;
-    text-align: right;
+    position: absolute;
+    top: 0;
+    right: 1em;
+}
+p.userhello .username {
     font-weight: bold;
 }
 
 ul.apptabs {
     text-align: right;
+    margin-bottom: 0;
 }
 ul.apptabs li {
     display: inline;
     padding: 3px;
     border: 1px solid black;
+    background-color: #fc6;
+    padding: 0 3px;
+}
+/* Currently active app tab */
+ul.apptabs li.thisapp {
+    background-color: white;
+    border-bottom: 1px solid white;
 }
 
-.error {
-    color: red;
+ul.apptabs a {
+    text-decoration: none;
 }
