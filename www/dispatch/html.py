@@ -35,7 +35,6 @@ def write_html_head(req):
     req: An IVLE request object. Reads attributes such as title. Also used to
     write to."""
 
-    app = conf.apps.app_url[req.app]
     # Write the XHTML opening and head element
     # Note the inline JavaScript, which provides the client with constants
     # derived from the server configuration.
@@ -49,12 +48,19 @@ def write_html_head(req):
 <head>
   <title>%sIVLE</title>
   <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
-  <script type="text/javascript">
-    root_dir = "%s";
+""" % (titlepart, req.content_type))
+    # Write inline JavaScript which gives the client code access to certain
+    # server-side variables.
+    if req.username:
+        username = repr(req.username)
+    else:
+        username = "null"
+    req.write("""  <script type="text/javascript">
+    root_dir = %s;
+    username = %s;
   </script>
-""" % (titlepart, req.content_type,
-        repr(conf.root_dir)[1:-1]))
-    iconurl = get_icon_url(conf.apps.app_url[req.app])
+""" % (repr(conf.root_dir), username))
+    iconurl = get_icon_url(req.app)
     if iconurl:
         req.write("""  <link rel="shortcut icon" href="%s" />
 """ % iconurl)
@@ -120,9 +126,11 @@ def get_help_url(req):
         help_path = 'help'
     return util.make_path(help_path)
 
-def get_icon_url(app, small=False):
-    """Given an App object, gets the URL of the icon image for this app,
+def get_icon_url(appurl, small=False):
+    """Given an app's url name, gets the URL of the icon image for this app,
     relative to the site root. Returns None if the app has no icon."""
+    if appurl is None: return None
+    app = conf.apps.app_url[appurl]
     if small:
         icon_dir = conf.apps.app_icon_dir_small
     else:
@@ -147,7 +155,7 @@ def print_apps_list(file, thisapp):
             li_attr = ''
         file.write('    <li%s>' % li_attr)
         if app.icon:
-            file.write('<img src="%s" alt="" /> ' % get_icon_url(app))
+            file.write('<img src="%s" alt="" /> ' % get_icon_url(urlname))
         file.write('<a href="%s">%s</a></li>\n'
             % (util.make_path(urlname), app.name))
 
