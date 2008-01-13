@@ -28,6 +28,9 @@ ELEMENT_NODE = 1;
 /** Filenames of all files selected */
 selected_files = [];
 
+/** The listing object returned by the server as JSON */
+file_listing = null;
+
 /** Updates the side-panel and status bar to reflect the current set of
  * selected files. This is done by inspecting the states of the check boxes.
  * Also changes the styling to highlight selected files.
@@ -41,9 +44,24 @@ function update_selection()
     var checkbox;
     var row_toggle = 1;
     selected_files = [];  /* Clear global selected_files */
+
+    var total_files = 0;
+    var total_file_size = 0;    /* In bytes */
+    var total_file_size_sel = 0;
+
     /* Children are trs */
-    for (var i=0; i<files_children.length; i++)
+    var i = 0;
+    var file;
+    if (file_listing == null) return;
+    for (var filename in file_listing)
     {
+        /* Count total files and size so we can write to the status bar later
+         */
+        file = file_listing[filename];
+        total_files++;
+        if ("size" in file)
+            total_file_size += file.size;
+
         tr = files_children[i];
         checked = tr.firstChild.firstChild.checked;
         /* Set the class for every row based on both the checked state,
@@ -54,14 +72,31 @@ function update_selection()
         if (checked)
         {
             /* Add the filename (column 3) to the selected_files list */
-            filename = tr.childNodes[3].firstChild;
-            if (filename.nodeType == ELEMENT_NODE)
-                filename = filename.firstChild.data;
-            else
-                filename = filename.data;
             selected_files[selected_files.length] = filename;
+            if ("size" in file)
+                total_file_size_sel += file.size;
         }
+        i++;
     }
+
+    /* Write to the status bar */
+    var statusbar = document.getElementById("statusbar");
+    var statusmsg;
+    var file_plural;
+    if (selected_files.length > 0)
+    {
+        statusmsg = selected_files.length.toString() + " file"
+            + (selected_files.length == 1 ? "" : "s") + " selected, "
+            + nice_filesize(total_file_size_sel);
+    }
+    else
+    {
+        statusmsg = total_files.toString() + " file"
+            + (total_files == 1 ? "" : "s") + ", "
+            + nice_filesize(total_file_size);
+    }
+    dom_removechildren(statusbar);
+    statusbar.appendChild(document.createTextNode(statusmsg));
 }
 
 /** Clears all selected files and causes the single file specified to become
@@ -159,6 +194,7 @@ function handle_dir_listing(path, listing)
     var i;
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
+    file_listing = listing;     /* Global */
 
     /* Get "." out, it's special */
     var thisdir = listing["."];
@@ -172,9 +208,6 @@ function handle_dir_listing(path, listing)
     var td;
     var checkbox;
 
-    var total_files = 0;
-    var total_file_size = 0;    /* In bytes */
-
     var selection_string;
 
     /* Create all of the files */
@@ -183,9 +216,6 @@ function handle_dir_listing(path, listing)
     {
         selection_string = "select_file(" + i.toString() + ")";
         file = listing[filename];
-        total_files++;
-        if ("size" in file)
-            total_file_size += file.size;
         /* Make a 'tr' element */
         row = document.createElement("tr");
         /* Column 1: Selection checkbox */
@@ -252,11 +282,8 @@ function handle_dir_listing(path, listing)
         i++;
     }
 
-    /* Write to the status bar */
-    var statusbar = document.getElementById("statusbar");
-    var statusmsg = total_files.toString() + " files, "
-        + nice_filesize(total_file_size);
-    dom_removechildren(statusbar);
-    statusbar.appendChild(document.createTextNode(statusmsg));
+    /* Do a selection update (create initial elements for side panel and
+     * status bar). */
+    update_selection();
 }
 
