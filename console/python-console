@@ -11,43 +11,67 @@ import cjson
 import cgi
 import cStringIO
 import signal
+import Queue
+from threading import Thread
 
-globs = {}
-globs['__builtins__'] = globals()['__builtins__']
-locls = {}
-compiler = codeop.CommandCompiler()
-curr_cmd = ''
+class StdinFromWeb(object):
+    def __init__(self, cmdQ, lineQ):
+        self.cmdQ = cmdQ
+        self.lineQ = lineQ
 
-def do_chat(txt):
-    global curr_cmd
-    if curr_cmd == '':
-        curr_cmd = txt
-    else:
-        curr_cmd = curr_cmd + '\n' + txt
-    try:
-        cmd = compiler(curr_cmd)
-        if cmd is None:
-            # The command was incomplete,
-            # so send back a None, so the
-            # client can print a '...'
-            web.output(cjson.encode(None))
-        else:
-            # The command was complete,
-            # so evaluate it!
-            out = cStringIO.StringIO()
-            sys.stdout = out
-            sys.stderr = out
-            signal.alarm(5)
-            res = eval(cmd, globs, locls)
-            signal.alarm(0)
-            v = (out.getvalue(), res, None)
-            web.output(cjson.encode(v))
-            curr_cmd = ''
-    except Exception, exc:
+    def readline(self):
+        # stop the clock!
         signal.alarm(0)
-        v = (None, None, str(exc))
-        web.output(cjson.encode(v))
+        self.cmdQ.put({"input":None})
+        l = self.lineQ.get()
+        # restart the clock:
+        # Some of our 5 seconds may have elapsed, but
+        # never mind.
+        signal.alarm(5)
+        return l
+
+class PythonRunner(Thread):
+    def __init__(self, cmdQ, lineQ):
+        self.cmdQ = cmdQ
+        self.lineQ = lineQ
+        Thread.__init__(self)
+
+    def run(self):
+        globs = {}
+        globs['__builtins__'] = globals()['__builtins__']
+        locls = {}
+        compiler = codeop.CommandCompiler()
         curr_cmd = ''
+
+        while True:
+            l = self.lineQ.get()
+            if curr_cmd == '':
+                curr_cmd = l
+            else:
+                curr_cmd = curr_cmd + '\n' + l
+            try:
+                cmd = compiler(curr_cmd)
+                if cmd is None:
+                    # The command was incomplete,
+                    # so send back a None, so the
+                    # client can print a '...'
+                    self.cmdQ.put({"more":None})
+                else:
+                    # The command was complete,
+                    # so evaluate it!
+                    sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
+                    out = cStringIO.StringIO()
+                    sys.stdout = out
+                    sys.stderr = out
+                    signal.alarm(5)
+                    res = eval(cmd, globs, locls)
+                    signal.alarm(0)
+                    self.cmdQ.put({"okay":(out.getvalue(),res)})
+                    curr_cmd = ''
+            except Exception, exc:
+                signal.alarm(0)
+                self.cmdQ.put({"exc":str(exc)})
+                curr_cmd = ''
 
 urls = (
     '/',            'index',
@@ -85,9 +109,9 @@ class style:
         web.output(file(name, "r").read())
 
 class chat:
+
     def POST(self):
         inp = web.input()
-        sys.stderr.write(str(inp) + "\n")
 
         # Authenticate
         digest = md5.new(inp.text + magic).digest().encode('hex')
@@ -98,9 +122,17 @@ class chat:
         # Okay, so the authentication succeeded,
         # so now we have the trivial matter of actually
         # executing the python....
-        do_chat(inp.text)
+        lineQ.put(inp.text)
+        r = cmdQ.get()
+        sys.__stderr__.write(cjson.encode(r) + "\n")
+        web.output(cjson.encode(r))
+
+cmdQ = Queue.Queue()
+lineQ = Queue.Queue()
+interpThread = PythonRunner(cmdQ, lineQ)
 
 if __name__ == "__main__":
     # FIXME jail!
     magic = sys.argv[2]
+    interpThread.start()
     web.run(urls, globals())

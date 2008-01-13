@@ -131,7 +131,6 @@ function enter_line()
     var inp = document.getElementById('inputText');
     var digest = hex_md5(inp.value + magic);
     var xmlhttp = new XMLHttpRequest();
-    alert(inp.value);
     xmlhttp.open("POST", "chat", false);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(make_post_body({"digest":digest, "text":inp.value}))
@@ -143,40 +142,45 @@ function enter_line()
         pre.appendChild(document.createTextNode(inp.value + "\n"));
         output.appendChild(pre);
     }
-    if (res && res[0])
+    if (res.hasOwnProperty('okay'))
     {
         // Success!
-        // print out the output (res[0])
+        // print out the output (res.okay[0])
         var pre = document.createElement("pre");
         pre.setAttribute("class", "outputMsg");
-        pre.appendChild(document.createTextNode(res[0]));
+        pre.appendChild(document.createTextNode(res.okay[0]));
         output.appendChild(pre);
-        // print out the return value (res[1])
-        if (res[1])
+        // print out the return value (res.okay[1])
+        if (res.okay[1])
         {
             var pre = document.createElement("pre");
             pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(res[1] + "\n"));
+            pre.appendChild(document.createTextNode(res.okay[1] + "\n"));
             output.appendChild(pre);
         }
         // set the prompt to >>>
         var prompt = document.getElementById("prompt");
         prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
     }
-    else if (res)
+    else if (res.hasOwnProperty('exc'))
     {
         // Failure!
-        // print out the error message (res[2])
+        // print out the error message (res.exc)
         var pre = document.createElement("pre");
         pre.setAttribute("class", "errorMsg");
-        pre.appendChild(document.createTextNode(res[2]));
+        pre.appendChild(document.createTextNode(res.exc));
         output.appendChild(pre);
     }
-    else
+    else if (res.hasOwnProperty('more'))
     {
         // Need more input, so set the prompt to ...
         var prompt = document.getElementById("prompt");
         prompt.replaceChild(document.createTextNode("... "), prompt.firstChild);
+    }
+    else {
+        // assert res.hasOwnProperty('input')
+        var prompt = document.getElementById("prompt");
+        prompt.replaceChild(document.createTextNode("+++ "), prompt.firstChild);
     }
 }
 
