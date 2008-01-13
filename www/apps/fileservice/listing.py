@@ -270,7 +270,7 @@ def make_date_nice(seconds_since_epoch):
     "ddd mmm dd, yyyy h:m a"
     """
     #return time.ctime(seconds_since_epoch)
-    return time.strftime("%a %b %d, %Y %I:%M %p",
+    return time.strftime("%a %b %d %Y, %I:%M %p",
         time.localtime(seconds_since_epoch))
 
 def make_date_nice_short(seconds_since_epoch):

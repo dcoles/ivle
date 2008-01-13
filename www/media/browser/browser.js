@@ -77,6 +77,11 @@ types_exec = [
     "text/x-python",
 ];
 
+
+/* Global variables */
+
+current_path = "";
+
 /** Calls the server using Ajax, performing an action on the server side.
  * Receives the response from the server and performs a refresh of the page
  * contents, updating it to display the returned data (such as a directory
@@ -128,6 +133,25 @@ function navigate(path, editmode)
     handle_response(path, response, editmode);
 }
 
+/** Determines the "handler type" from a MIME type.
+ * The handler type is a string, either "text", "image", "audio" or "binary".
+ */
+function get_handler_type(content_type)
+{
+    if (!content_type)
+        return null;
+    if (content_type in type_handlers)
+        return type_handlers[content_type];
+    else
+    {   /* Based on the first part of the MIME type */
+        var handler_type = content_type.split('/')[0];
+        if (handler_type != "text" && handler_type != "image" &&
+            handler_type != "audio")
+            handler_type = "binary";
+        return handler_type;
+    }
+}
+
 /** Given an HTTP response object, cleans up and rebuilds the contents of the
  * page using the response data. This does not navigate away from the page, it
  * merely rebuilds most of the data.
@@ -144,6 +168,7 @@ function navigate(path, editmode)
 function handle_response(path, response, editmode)
 {
     /* TODO: Set location bar to "path" */
+    current_path = path;
     settitle(path);
 
     /* Clear away the existing page contents */
@@ -182,16 +207,7 @@ function handle_response(path, response, editmode)
     {
         /* Treat this as an ordinary file. Get the file type. */
         var content_type = response.getResponseHeader("Content-Type");
-        var handler_type;
-        if (content_type in type_handlers)
-            handler_type = type_handlers[content_type];
-        else
-        {   /* Based on the first part of the MIME type */
-            handler_type = content_type.split('/')[0];
-            if (handler_type != "text" && handler_type != "image" &&
-                handler_type != "audio")
-                handler_type = "binary";
-        }
+        var handler_type = get_handler_type(content_type);
         /* If we're in "edit mode", always treat this file as text */
         would_be_handler_type = handler_type;
         if (editmode) handler_type = "text";

@@ -148,13 +148,13 @@ tr.row2sel {
     text-align: center;
 }
 
-#sidepanel p, #sidepanel h1, #sidepanel h2 {
+#sidepanel p, #sidepanel h2, #sidepanel h3 {
     margin: 0;
     padding: 0;
 }
 
-#sidepanel h2 {
-    margin-top: 8px;
+#sidepanel h3 {
+    margin-top: 1em;
 }
 
 #sidepanel a {

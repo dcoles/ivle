@@ -30,6 +30,155 @@ selected_files = [];
 
 /** The listing object returned by the server as JSON */
 file_listing = null;
+thisdir = null;
+
+/** Updates the side-panel. Expects selected_files reflects the current
+ * selected files.
+ */
+function update_sidepanel(total_file_size_sel)
+{
+    var sidepanel = document.getElementById("sidepanel");
+    var filename;
+    var file;
+    var p;
+    /* Is this dir under svn? */
+    var under_subversion = "svnstatus" in thisdir;
+    dom_removechildren(sidepanel);
+    if (selected_files.length <= 1)
+    {
+        if (selected_files.length == 0)
+        {
+            /* Display information about the current directory instead */
+            filename = path_basename(current_path);
+            file = thisdir;
+        }
+        else if (selected_files.length == 1)
+        {
+            filename = selected_files;
+            file = file_listing[filename];
+        }
+        var filetype;
+        if ("isdir" in file && file.isdir)
+            filetype = "text/directory";
+        else if ("type" in file)
+            filetype = file.type;
+        else
+            filetype = "text/plain";
+
+        p = document.createElement("p");
+        sidepanel.appendChild(p);
+        p.appendChild(dom_make_img(mime_type_to_icon(filetype, true),
+            null, null, filetype));
+        p = dom_make_text_elem("h2", filename);
+        sidepanel.appendChild(p);
+        p = dom_make_text_elem("p", filetype);
+        sidepanel.appendChild(p);
+        if ("size" in file)
+        {
+            p = dom_make_text_elem("p", "Size: " + nice_filesize(file.size));
+            sidepanel.appendChild(p);
+        }
+        if ("mtime_nice" in file)
+        {
+            p = dom_make_text_elem("p", "Modified: " + file.mtime_nice);
+            sidepanel.appendChild(p);
+        }
+    }
+    else
+    {
+        /* Multiple files selected */
+        p = document.createElement("p");
+        sidepanel.appendChild(p);
+        p.appendChild(dom_make_img(
+            make_path(path_join(type_icons_path_large, "multi.png")),
+            null, null, "Multiple files"));
+        p = dom_make_text_elem("h2",
+            selected_files.length.toString() + " files selected");
+        sidepanel.appendChild(p);
+        p = dom_make_text_elem("p", "Total size: "
+            + nice_filesize(total_file_size_sel));
+        sidepanel.appendChild(p);
+    }
+
+    p = dom_make_text_elem("h3", "Actions");
+    sidepanel.appendChild(p);
+
+    if (selected_files.length <= 1)
+    {
+        var handler_type = null;
+        if ("type" in file)
+            handler_type = get_handler_type(file.type);
+        /* Action: Use the "files" / "edit" app */
+        if (file.isdir)
+            p = dom_make_link_elem("p", "Browse",
+                "Browse this directory in the file browser");
+        else if (handler_type == "text")
+            p = dom_make_link_elem("p", "Edit", "Edit this file");
+        else
+            p = dom_make_link_elem("p", "Browse",
+                "View this file in the file browser");
+        sidepanel.appendChild(p);
+
+        /* Action: Use the "serve" app */
+        /* TODO: Figure out if this file is executable,
+         * and change the link to "Run" */
+        p = null;
+        if (file.isdir || handler_type == "binary") {}
+        else
+            p = dom_make_link_elem("p", "View",
+                "View this file");
+        if (p)
+            sidepanel.appendChild(p);
+
+        /* Action: Use the "download" app */
+        p = null;
+        if (file.isdir)
+            p = dom_make_link_elem("p", "Download as zip",
+                "Download this directory as a ZIP file");
+        else
+            p = dom_make_link_elem("p", "Download",
+                "Download this file to your computer");
+        if (p)
+            sidepanel.appendChild(p);
+
+        p = dom_make_link_elem("p", "Rename",
+            "Change the name of this file");
+        sidepanel.appendChild(p);
+    }
+    else
+    {
+        /* Multiple files selected */
+        p = dom_make_link_elem("p", "Download as zip",
+            "Download the selected files as a ZIP file");
+        sidepanel.appendChild(p);
+    }
+
+    /* Common actions */
+    p = dom_make_link_elem("p", "Cut",
+        "Prepare to move the selected files to another directory");
+    sidepanel.appendChild(p);
+    p = dom_make_link_elem("p", "Copy",
+        "Prepare to copy the selected files to another directory");
+    sidepanel.appendChild(p);
+    p = dom_make_link_elem("p", "Paste",
+        "Paste the copied or cut files to the current directory");
+    sidepanel.appendChild(p);
+
+    /*
+     <p><a href="">Cut</a></p>
+     <p><a href="">Copy</a></p>
+     */
+    if (under_subversion)
+    {
+        p = dom_make_text_elem("h3", "Subversion");
+        sidepanel.appendChild(p);
+        /*
+     <p><a href="">Commit</a></p>
+     <p><a href="">Update</a></p>
+         */
+    }
+
+}
 
 /** Updates the side-panel and status bar to reflect the current set of
  * selected files. This is done by inspecting the states of the check boxes.
@@ -78,6 +227,9 @@ function update_selection()
         }
         i++;
     }
+
+    /* Write to the side-panel */
+    update_sidepanel(total_file_size_sel);
 
     /* Write to the status bar */
     var statusbar = document.getElementById("statusbar");
@@ -197,7 +349,7 @@ function handle_dir_listing(path, listing)
     file_listing = listing;     /* Global */
 
     /* Get "." out, it's special */
-    var thisdir = listing["."];
+    thisdir = listing["."];     /* Global */
     delete listing["."];
     /* Is this dir under svn? */
     var under_subversion = "svnstatus" in thisdir;
