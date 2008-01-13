@@ -73,27 +73,27 @@ p.userhello .username {
     font-weight: bold;
 }
 
-ul.apptabs {
+ul#apptabs {
     text-align: right;
     margin-bottom: 0;
 }
-ul.apptabs li {
+ul#apptabs li {
     display: inline;
     padding: 3px;
     border: 1px solid black;
     background-color: #fc6;
     padding: 0 3px;
 }
-ul.apptabs li:hover {
+ul#apptabs li:hover {
     background-color: #fd8;
 }
 /* Currently active app tab */
-ul.apptabs li.thisapp {
+ul#apptabs li.thisapp {
     background-color: white;
     border-bottom: 1px solid white;
 }
 
-ul.apptabs a {
+ul#apptabs a {
     color: navy;    /* Text colour not to change */
     text-decoration: none;
 }

@@ -145,7 +145,7 @@ def print_apps_list(file, thisapp):
     file: Object with a "write" method - ie. the request object.
     Reads from: conf
     """
-    file.write('  <ul class="apptabs">\n')
+    file.write('  <ul id="apptabs">\n')
 
     for urlname in conf.apps.apps_in_tabs:
         app = conf.apps.app_url[urlname]

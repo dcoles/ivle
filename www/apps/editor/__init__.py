@@ -24,14 +24,11 @@
 # the editor will be integrated with the file browser app.
 
 from common import util
+import apps.browser
 
 def handle(req):
     """Handler for the Editor application."""
-
-    # Set request attributes
-    req.content_type = "text/html"
-    req.write_html_head_foot = True     # Have dispatch print head and foot
-
-    # Start writing data
-    req.write("<p>Text Editor (not yet implemented)</p>\n")
+    # All we do here is call the File Browser handler. Editor and File Browser
+    # are actually the same app.
+    apps.browser.handle(req)
 

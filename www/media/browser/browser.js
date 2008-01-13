@@ -22,6 +22,7 @@
 
 /* Url names for apps */
 this_app = "files";
+edit_app = "edit";
 service_app = "fileservice";
 serve_app = "serve";
 download_app = "download";
@@ -116,13 +117,15 @@ function do_action(action, path, args, content_type)
  * Called "navigate", can also be used for a simple refresh.
  * Always makes a GET request.
  * No return value.
+ * \param editmode Optional boolean. If true, then the user navigated here
+ * with an "edit" URL so we should favour using the editor.
  */
-function navigate(path)
+function navigate(path, editmode)
 {
     /* Call the server and request the listing. This mutates the server. */
     response = ajax_call(service_app, path, null, "GET");
     /* Now read the response and set up the page accordingly */
-    handle_response(path, response);
+    handle_response(path, response, editmode);
 }
 
 /** Given an HTTP response object, cleans up and rebuilds the contents of the
@@ -135,10 +138,13 @@ function navigate(path)
  * things) be used to update the URL in the location bar.
  * \param response XMLHttpRequest object returned by the server. Should
  * contain all the response data.
+ * \param editmode Optional boolean. If true, then the user navigated here
+ * with an "edit" URL so we should favour using the editor.
  */
-function handle_response(path, response)
+function handle_response(path, response, editmode)
 {
     /* TODO: Set location bar to "path" */
+    settitle(path);
 
     /* Clear away the existing page contents */
     clearpage();
@@ -186,12 +192,15 @@ function handle_response(path, response)
                 handler_type != "audio")
                 handler_type = "binary";
         }
+        /* If we're in "edit mode", always treat this file as text */
+        would_be_handler_type = handler_type;
+        if (editmode) handler_type = "text";
         /* handler_type should now be set to either
          * "text", "image", "audio" or "binary". */
         switch (handler_type)
         {
         case "text":
-            handle_text(path, response.responseText);
+            handle_text(path, response.responseText, would_be_handler_type);
             break;
         case "image":
             /* TODO: Custom image handler */
@@ -231,11 +240,55 @@ function clearpage_dir()
     dom_removechildren(document.getElementById("sidepanel"));
 }
 
+/** Sets the mode to either "file browser" or "text editor" mode.
+ * This modifies the window icon, and selected tab.
+ * \param editmode If True, editor mode. Else, file browser mode.
+ */
+function setmode(editmode)
+{
+    /* Find the DOM elements for the file browser and editor tabs */
+    var tabs = document.getElementById("apptabs");
+    var tab_files = null;
+    var tab_edit = null;
+    var a;
+    var href;
+    for (var i=0; i<tabs.childNodes.length; i++)
+    {
+        /* Find the href of the link within */
+        if (!tabs.childNodes[i].getElementsByTagName) continue;
+        a = tabs.childNodes[i].getElementsByTagName("a");
+        if (a.length == 0) continue;
+        href = a[0].getAttribute("href");
+        if (href == null) continue;
+        if (endswith(href, this_app))
+            tab_files = tabs.childNodes[i];
+        else if (endswith(href, edit_app))
+            tab_edit = tabs.childNodes[i];
+    }
+
+    if (editmode)
+    {
+        tab_files.removeAttribute("class");
+        tab_edit.setAttribute("class", "thisapp");
+    }
+    else
+    {
+        tab_edit.removeAttribute("class");
+        tab_files.setAttribute("class", "thisapp");
+    }
+}
+
+function settitle(path)
+{
+    document.title = path_basename(path) + " - IVLE";
+}
+
 /*** HANDLERS for different types of responses (such as dir listing, file,
  * etc). */
 
 function handle_error(message)
 {
+    setmode(false);
     var files = document.getElementById("filesbody");
     var txt_elem = dom_make_text_elem("div", "Error: "
         + message.toString() + ".")
@@ -252,7 +305,7 @@ function presentpath(path)
     var nav_path = "";
 
     /* Create all of the paths */
-    for each (dir in path.split("/"))
+    for each (var dir in path.split("/"))
     {
         if (dir == "") continue;
         /* Make an 'a' element */
@@ -372,6 +425,7 @@ function setup_for_dir_listing()
  */
 function handle_dir_listing(path, listing)
 {
+    setmode(false);
     setup_for_dir_listing();
     var row_toggle = 1;
     /* Nav through the top-level of the JSON to the actual listing object. */
@@ -465,15 +519,27 @@ function handle_dir_listing(path, listing)
 
 /** Presents the text editor.
  */
-function handle_text(path, text)
+function handle_text(path, text, handler_type)
 {
     /* Create a textarea with the text in it
      * (The makings of a primitive editor).
      */
+
+    setmode(true);
     var files = document.getElementById("filesbody");
     var div = document.createElement("div");
     files.appendChild(div);
     div.setAttribute("class", "padding");
+    /* First, print a warning message if this is not actually a text file.
+     */
+    if (handler_type != "text")
+    {
+        var warn = dom_make_text_elem("p",
+            "Warning: You are editing a binary " +
+            "file, which explains any strange characters you may see. If " +
+            "you save this file, you could corrupt it.");
+        div.appendChild(warn);
+    }
     var txt_elem = dom_make_text_elem("textarea",
         text.toString())
     div.appendChild(txt_elem);
@@ -486,7 +552,7 @@ function handle_text(path, text)
  */
 function handle_binary(path)
 {
-
+    setmode(false);
     var files = document.getElementById("filesbody");
     var div = document.createElement("div");
     files.appendChild(div);
@@ -511,8 +577,20 @@ window.onload = function()
      */
     var path = parse_url(window.location.href).path;
     /* Strip out root_dir + "/files" from the front of the path */
-    strip_chars = make_path(this_app).length + 1;
-    path = path.substr(strip_chars);
+    var strip = make_path(this_app);
+    var editmode = false;
+    if (path.substr(0, strip.length) == strip)
+        path = path.substr(strip.length+1);
+    else
+    {
+        /* See if this is an edit path */
+        strip = make_path(edit_app);
+        if (path.substr(0, strip.length) == strip)
+        {
+            path = path.substr(strip.length+1);
+            editmode = true;
+        }
+    }
 
     if (path.length == 0)
     {
@@ -521,5 +599,5 @@ window.onload = function()
         path = username;
     }
 
-    navigate(path);
+    navigate(path, editmode);
 }

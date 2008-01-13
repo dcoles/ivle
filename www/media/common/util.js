@@ -451,6 +451,24 @@ function make_path(path)
     return path_join(root_dir, path);
 }
 
+/** Given a path, gets the "basename" (the last path segment).
+ */
+function path_basename(path)
+{
+    segments = path.split("/");
+    if (segments[segments.length-1].length == 0)
+        return segments[segments.length-2];
+    else
+        return segments[segments.length-1];
+}
+
+/** Given a string str, determines whether it ends with substr */
+function endswith(str, substring)
+{
+    if (str.length < substring.length) return false;
+    return str.substr(str.length - substring.length) == substring;
+}
+
 /** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
  * response, and returns an XMLHttpRequest object containing the completed
  * response.
