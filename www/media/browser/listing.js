@@ -409,7 +409,7 @@ function handle_dir_listing(path, listing)
             td = dom_make_link_elem("td", filename,
                 "Navigate to " + path_join(path, filename),
                 make_path(path_join(this_app, path, filename)),
-                "navigate(" + path_join(path, filename) + ")");
+                "navigate(" + repr(path_join(path, filename)) + ")");
             td.setAttribute("onclick", selection_string);
             row.appendChild(td);
         }

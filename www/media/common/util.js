@@ -469,6 +469,15 @@ function endswith(str, substring)
     return str.substr(str.length - substring.length) == substring;
 }
 
+/** Equivalent to Python's repr.
+ * Gets the JavaScript string representation.
+ * Actually just calls JSON.stringify.
+ */
+function repr(str)
+{
+    return JSON.stringify(str);
+}
+
 /** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
  * response, and returns an XMLHttpRequest object containing the completed
  * response.
