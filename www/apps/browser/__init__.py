@@ -37,6 +37,7 @@ def handle(req):
         "media/common/json2.js",
         "media/common/util.js",
         "media/browser/browser.js",
+        "media/browser/listing.js",
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
