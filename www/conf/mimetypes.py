@@ -25,3 +25,12 @@ additional_mime_types = {
     ".js" : "application/javascript",   # Override bad default
 }
 
+# Mapping mime types to friendly names
+
+nice_mimetypes = {
+    "text/x-python" : "Python source code",
+    "text/plain" : "Text file",
+    "text/html" : "HTML file",
+    "image/png" : "PNG image",
+}
+

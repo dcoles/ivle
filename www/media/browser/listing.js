@@ -65,14 +65,28 @@ function update_sidepanel(total_file_size_sel)
         else
             filetype = "text/plain";
 
+        if ("type_nice" in file)
+            filetype_nice = file.type_nice;
+        else
+            filetype_nice = "File";
+
         p = document.createElement("p");
         sidepanel.appendChild(p);
         p.appendChild(dom_make_img(mime_type_to_icon(filetype, true),
             null, null, filetype));
         p = dom_make_text_elem("h2", filename);
         sidepanel.appendChild(p);
-        p = dom_make_text_elem("p", filetype);
+        p = dom_make_text_elem("p", filetype_nice);
         sidepanel.appendChild(p);
+        if (under_subversion)
+        {
+            p = document.createElement("p");
+            p.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
+                22, 22, svnstatus_to_string(file.svnstatus)));
+            sidepanel.appendChild(p);
+            p = dom_make_text_elem("p", svnstatus_to_string(file.svnstatus));
+            sidepanel.appendChild(p);
+        }
         if ("size" in file)
         {
             p = dom_make_text_elem("p", "Size: " + nice_filesize(file.size));
@@ -164,10 +178,6 @@ function update_sidepanel(total_file_size_sel)
         "Paste the copied or cut files to the current directory");
     sidepanel.appendChild(p);
 
-    /*
-     <p><a href="">Cut</a></p>
-     <p><a href="">Copy</a></p>
-     */
     if (under_subversion)
     {
         p = dom_make_text_elem("h3", "Subversion");
@@ -387,13 +397,13 @@ function handle_dir_listing(path, listing)
             td.setAttribute("class", "thincol");
             td.setAttribute("onclick", selection_string);
             td.appendChild(dom_make_img(mime_type_to_icon("text/directory"),
-                22, 22, file.type));
+                22, 22, file.type_nice));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
                 td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    22, 22, file.svnstatus));
+                    22, 22, svnstatus_to_string(file.svnstatus)));
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
@@ -409,13 +419,13 @@ function handle_dir_listing(path, listing)
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             td.appendChild(dom_make_img(mime_type_to_icon(file.type),
-                22, 22, file.type));
+                22, 22, file.type_nice));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
                 td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    22, 22, file.svnstatus));
+                    22, 22, svnstatus_to_string(file.svnstatus)));
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_text_elem("td", filename);

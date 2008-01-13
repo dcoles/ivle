@@ -62,10 +62,27 @@ type_icons_path_large = "media/images/mime/large";
 svn_icons = {
     "unversioned": "unversioned.png",
     "normal": "normal.png",
+    "added": "added.png",
+    "missing": "missing.png",
+    "deleted": "deleted.png",
     "modified": "modified.png",
 };
 
-default_svn_icon = "normal.png";
+/* Mapping SVN status to "nice" strings */
+svn_nice = {
+    "unversioned": "Temporary file",
+    "normal": "Permanent file",
+    "added": "Temporary file (scheduled to be added)",
+    "missing": "Permanent file (missing)",
+    "deleted": "Permanent file (scheduled for deletion)",
+    "replaced": "Permanent file (replaced)",
+    "modified": "Permanent file (modified)",
+    "merged": "Permanent file (merged)",
+    "conflicted": "Permanent file (conflicted)",
+};
+
+default_svn_icon = "modified.png";
+default_svn_nice = "Unknown status";
 
 svn_icons_path = "media/images/svn";
 
@@ -367,6 +384,16 @@ function svnstatus_to_icon(svnstatus)
     else
         filename = default_svn_icon;
     return make_path(path_join(svn_icons_path, filename));
+}
+
+/** Given an svnstatus, returns the "nice" string.
+ */
+function svnstatus_to_string(svnstatus)
+{
+    if (svnstatus in svn_nice)
+        return svn_nice[svnstatus];
+    else
+        return default_svn_nice;
 }
 
 /** Presents the text editor.

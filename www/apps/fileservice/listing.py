@@ -187,7 +187,8 @@ def get_dirlisting(req, svnclient, path):
         mtime = os.path.getmtime(path)
         listing["."] = {"isdir" : True,
             "mtime" : mtime, "mtime_nice" : make_date_nice(mtime),
-            "mtime_short" : make_date_nice_short(mtime)}
+            "mtime_short" : make_date_nice_short(mtime),
+            "type_nice" : util.nice_filetype("/")}
 
     # Listing is a nested object inside the top-level JSON.
     listing = {"listing" : listing}
@@ -211,6 +212,7 @@ def file_to_fileinfo(path, filename):
     file_stat = os.stat(fullpath)
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
+        d["type_nice"] = util.nice_filetype("/")
     else:
         d["isdir"] = False
         d["size"] = file_stat.st_size
@@ -218,6 +220,7 @@ def file_to_fileinfo(path, filename):
         if type is None:
             type = conf.mimetypes.default_mimetype
         d["type"] = type
+        d["type_nice"] = util.nice_filetype(filename)
     d["mtime"] = file_stat.st_mtime
     d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
     d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
@@ -248,6 +251,7 @@ def PysvnStatus_to_fileinfo(path, status):
         file_stat = os.stat(fullpath)
         if stat.S_ISDIR(file_stat.st_mode):
             d["isdir"] = True
+            d["type_nice"] = util.nice_filetype("/")
         else:
             d["isdir"] = False
             d["size"] = file_stat.st_size
@@ -255,6 +259,7 @@ def PysvnStatus_to_fileinfo(path, status):
             if type is None:
                 type = conf.mimetypes.default_mimetype
             d["type"] = type
+            d["type_nice"] = util.nice_filetype(filename)
         d["mtime"] = file_stat.st_mtime
         d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
         d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
