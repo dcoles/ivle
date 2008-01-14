@@ -31,6 +31,11 @@ def handle(req):
     req.content_type = "text/html"
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
-    # Start writing data
-    req.write("<p>Console (not yet implemented)</p>\n")
+    req.scripts = [
+        "media/common/json2.js",
+        "media/common/md5.js",
+        "media/common/util.js",
+        "media/console/console.js",
+    ]
 
+    req.write('<div id="consolebody"></div>\n')
