@@ -155,7 +155,7 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
   <meta http-equiv="Content-Type"
     content="text/html; charset=utf-8" />
 </head>
-<body style="margin: 0; padding: 0; font-family: sans;">
+<body style="margin: 0; padding: 0; font-family: sans-serif;">
   <div style="background-color: #faa; border-bottom: 1px solid black;
     padding: 8px;">
     <p><strong>Warning</strong>: You did not print a "Content-Type" header.
