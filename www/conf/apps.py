@@ -57,6 +57,11 @@ app_console =     App(dir = "console",
                     requireauth = True,
                     hashelp = True)
 
+app_consoleservice = App(dir = "consoleservice",
+                    name = "Console Service",
+                    requireauth = True,
+                    hashelp = False)
+
 app_tutorial =     App(dir = "tutorial",
                     name = "Tutorial",
                     icon = "tutorial.png",
@@ -91,6 +96,7 @@ app_url = {
     "edit" : app_editor,
     "fileservice" : app_fileservice,
     "console" : app_console,
+    "consoleservice" : app_consoleservice,
     "tutorial" : app_tutorial,
     "serve" : app_server,
     "download" : app_download,
