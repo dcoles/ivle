@@ -205,7 +205,8 @@ function handle_response(path, response, editmode)
     }
 
     /* Check if this is a directory listing or file contents */
-    if (response.getResponseHeader("X-IVLE-Return") == "Dir")
+    var isdir = response.getResponseHeader("X-IVLE-Return") == "Dir";
+    if (!editmode && isdir)
     {
         var listing = response.responseText;
         /* The listing SHOULD be valid JSON text. Parse it into an object. */
@@ -233,7 +234,16 @@ function handle_response(path, response, editmode)
         switch (handler_type)
         {
         case "text":
-            handle_text(path, response.responseText, would_be_handler_type);
+            if (isdir)
+            {
+                handle_text(path_join(path, "untitled"), "",
+                    would_be_handler_type);
+            }
+            else
+            {
+                handle_text(path, response.responseText,
+                    would_be_handler_type);
+            }
             break;
         case "image":
             /* TODO: Custom image handler */
