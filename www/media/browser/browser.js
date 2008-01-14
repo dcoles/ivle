@@ -186,7 +186,6 @@ function handle_response(path, response, editmode)
 {
     /* TODO: Set location bar to "path" */
     current_path = path;
-    settitle(path);
 
     /* Clear away the existing page contents */
     clearpage();
@@ -321,11 +320,6 @@ function setmode(editmode)
     }
 }
 
-function settitle(path)
-{
-    document.title = path_basename(path) + " - IVLE";
-}
-
 /*** HANDLERS for different types of responses (such as dir listing, file,
  * etc). */
 
@@ -347,6 +341,8 @@ function presentpath(path)
     var href_path = make_path(this_app);
     var nav_path = "";
 
+    /* Also set the document title */
+    document.title = path_basename(path) + " - IVLE";
     /* Create all of the paths */
     for each (var dir in path.split("/"))
     {

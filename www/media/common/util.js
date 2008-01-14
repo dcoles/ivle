@@ -149,7 +149,7 @@ function nice_filesize(bytes)
  * args is never null, though it may be empty.
  *
  * All strings are decoded/unescaped. Reserved characters
- * (; , / ? : @ & = + * $) are not decoded except in args.
+ * (; , / ? : @ & = + * $) are not decoded except in args and path.
  *
  * \param url String. A URL. To read from the current browser window, use
  *  window.location.href.
@@ -161,8 +161,6 @@ function parse_url(url)
     var index;
     var serverpart;
     var args;
-
-    url = decodeURI(url);
 
     /* Split scheme from rest */
     index = url.indexOf("://");
@@ -220,6 +218,7 @@ function parse_url(url)
             obj.query_string = url.substr(index+1);
         }
     }
+    obj.path = decodeURIComponent(obj.path);
 
     /* Split query string into arguments */
     args = {};
@@ -307,20 +306,20 @@ function build_url(obj)
         url += ":" + obj.server_port.toString();
     if (("path" in obj) && obj.path != null)
     {
-        var path = obj.path.toString();
+        var path = urlencode_path(obj.path.toString());
         if (url.length > 0 && path.length > 0 && path[0] != "/")
             path = "/" + path;
         url += path;
     }
     if (("query_string" in obj) && obj.query_string != null)
-        query_string = obj.query_string.toString();
+        query_string = encodeURI(obj.query_string.toString());
     else if (("args" in obj) && obj.args != null)
         query_string = make_query_string(obj.args);
 
     if (query_string != null)
         url += "?" + query_string;
 
-    return encodeURI(url);
+    return url;
 }
 
 /** URL-encodes a path. This is a special case of URL encoding as all
@@ -519,7 +518,7 @@ function ajax_call(app, path, args, method, content_type)
 {
     if (content_type != "multipart/form-data")
         content_type = "application/x-www-form-urlencoded";
-    path = urlencode_path(app_path(app, path));
+    path = app_path(app, path);
     var url;
     /* A random string, for multipart/form-data
      * (This is not checked against anywhere else, it is solely defined and
