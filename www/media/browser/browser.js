@@ -345,7 +345,7 @@ function presentpath(path)
         href_path = path_join(href_path, dir);
         nav_path = path_join(nav_path, dir);
         var link = dom_make_link_elem("a", dir, "Navigate to " + nav_path,
-                href_path, "navigate(" + repr(href_path) + ")");
+                href_path/*, "navigate(" + repr(href_path) + ")"*/);
         dom_path.appendChild(link);
         dom_path.appendChild(document.createTextNode("/"));
     }

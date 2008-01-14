@@ -22,6 +22,8 @@
  * Handles directory listings on the client side.
  */
 
+/* TODO: encodeURI on all generated paths for links */
+
 /* DOM nodeType constants */
 ELEMENT_NODE = 1;
 
@@ -31,6 +33,42 @@ selected_files = [];
 /** The listing object returned by the server as JSON */
 file_listing = null;
 thisdir = null;
+
+/** ACTIONS **/
+
+function action_rename(fromfilename)
+{
+    tofilename = prompt("Rename file \"" + fromfilename + "\" to?");
+    if (tofilename == null) return;
+    do_action("move", current_path, {"from":fromfilename, "to":tofilename});
+    return false;
+}
+
+function action_remove(files)
+{
+    do_action("remove", current_path, {"path":files});
+    return false;
+}
+
+function action_copy(files)
+{
+    do_action("copy", current_path, {"path":files});
+    return false;
+}
+
+function action_cut(files)
+{
+    do_action("cut", current_path, {"path":files});
+    return false;
+}
+
+function action_paste()
+{
+    do_action("paste", current_path, {"path":"."});
+    return false;
+}
+
+/** END ACTIONS **/
 
 /** Updates the side-panel. Expects selected_files reflects the current
  * selected files.
@@ -54,7 +92,7 @@ function update_sidepanel(total_file_size_sel)
         }
         else if (selected_files.length == 1)
         {
-            filename = selected_files;
+            filename = selected_files[0];
             file = file_listing[filename];
         }
         var filetype;
@@ -123,15 +161,23 @@ function update_sidepanel(total_file_size_sel)
         if ("type" in file)
             handler_type = get_handler_type(file.type);
         /* Action: Use the "files" / "edit" app */
-        if (file.isdir)
-            p = dom_make_link_elem("p", "Browse",
-                "Browse this directory in the file browser");
-        else if (handler_type == "text")
-            p = dom_make_link_elem("p", "Edit", "Edit this file");
-        else
-            p = dom_make_link_elem("p", "Browse",
-                "View this file in the file browser");
-        sidepanel.appendChild(p);
+        var path;
+        if (selected_files.length == 1)
+        {
+            /* Don't have "Browse" if this is the current dir */
+            if (file.isdir)
+                p = dom_make_link_elem("p", "Browse",
+                    "Navigate to this directory in the file browser",
+                    make_path(path_join(this_app, current_path, filename)));
+            else if (handler_type == "text")
+                p = dom_make_link_elem("p", "Edit", "Edit this file",
+                    make_path(path_join(edit_app, current_path, filename)));
+            else
+                p = dom_make_link_elem("p", "Browse",
+                    "View this file in the file browser",
+                    make_path(path_join(this_app, current_path, filename)));
+            sidepanel.appendChild(p);
+        }
 
         /* Action: Use the "serve" app */
         /* TODO: Figure out if this file is executable,
@@ -140,42 +186,56 @@ function update_sidepanel(total_file_size_sel)
         if (file.isdir || handler_type == "binary") {}
         else
             p = dom_make_link_elem("p", "View",
-                "View this file");
+                "View this file",
+                make_path(path_join(serve_app, current_path, filename)));
         if (p)
             sidepanel.appendChild(p);
 
         /* Action: Use the "download" app */
         p = null;
+        path = make_path(path_join(download_app, current_path, filename));
         if (file.isdir)
             p = dom_make_link_elem("p", "Download as zip",
-                "Download this directory as a ZIP file");
+                "Download this directory as a ZIP file", path);
         else
             p = dom_make_link_elem("p", "Download",
-                "Download this file to your computer");
+                "Download this file to your computer", path);
         if (p)
             sidepanel.appendChild(p);
 
         p = dom_make_link_elem("p", "Rename",
-            "Change the name of this file");
+            "Change the name of this file", null,
+            "return action_rename(" + repr(filename) + ")");
         sidepanel.appendChild(p);
     }
     else
     {
+        path = make_path(path_join(download_app, current_path) + "?");
+        for (var i=0; i<selected_files.length; i++)
+            path += "path=" + encodeURIComponent(selected_files[i]) + "&";
+        path = path.substr(0, path.length-1);
         /* Multiple files selected */
         p = dom_make_link_elem("p", "Download as zip",
-            "Download the selected files as a ZIP file");
+            "Download the selected files as a ZIP file", path);
         sidepanel.appendChild(p);
     }
 
     /* Common actions */
+    p = dom_make_link_elem("p", "Delete",
+        "Delete the selected files", null,
+        "return action_remove(selected_files)");
+    sidepanel.appendChild(p);
     p = dom_make_link_elem("p", "Cut",
-        "Prepare to move the selected files to another directory");
+        "Prepare to move the selected files to another directory", null,
+        "return action_cut(selected_files)");
     sidepanel.appendChild(p);
     p = dom_make_link_elem("p", "Copy",
-        "Prepare to copy the selected files to another directory");
+        "Prepare to copy the selected files to another directory", null,
+        "return action_copy(selected_files)");
     sidepanel.appendChild(p);
     p = dom_make_link_elem("p", "Paste",
-        "Paste the copied or cut files to the current directory");
+        "Paste the copied or cut files to the current directory", null,
+        "return action_paste()");
     sidepanel.appendChild(p);
 
     if (under_subversion)
@@ -408,8 +468,8 @@ function handle_dir_listing(path, listing)
             /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
                 "Navigate to " + path_join(path, filename),
-                make_path(path_join(this_app, path, filename)),
-                "navigate(" + repr(path_join(path, filename)) + ")");
+                make_path(path_join(this_app, path, filename))/*,
+                "navigate(" + repr(path_join(path, filename)) + ")"*/);
             td.setAttribute("onclick", selection_string);
             row.appendChild(td);
         }
