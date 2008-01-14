@@ -280,17 +280,20 @@ def action_putfile(req, fields):
 
     Reads fields: 'path', 'data' (file upload)
     """
+    # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields.getfirst('data')
-    if path is None or data is None:
+    if path is None:
         raise ActionError("Required field missing")
     path = actionpath_to_local(req, path)
-    data = data.file
+    if data is not None:
+        data = data.file
 
     # Copy the contents of file object 'data' to the path 'path'
     try:
         dest = open(path, 'wb')
-        shutil.copyfileobj(data, dest)
+        if data is not None:
+            shutil.copyfileobj(data, dest)
     except OSError:
         raise ActionError("Could not write to target file")
 
