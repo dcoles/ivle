@@ -323,6 +323,22 @@ function build_url(obj)
     return encodeURI(url);
 }
 
+/** URL-encodes a path. This is a special case of URL encoding as all
+ * characters *except* the slash must be encoded.
+ */
+function urlencode_path(path)
+{
+    /* Split up the path, URLEncode each segment with encodeURIComponent,
+     * and rejoin.
+     */
+    var split = path.split('/');
+    for (var i=0; i<split.length; i++)
+        split[i] = encodeURIComponent(split[i]);
+    path = path_join.apply(null, split);
+    if (split[0] == "") path = "/" + path;
+    return path;
+}
+
 /** Given an argument map, as output in the args parameter of the return of
  * parseurl, gets the first occurence of an argument in the URL string.
  * If the argument was not found, returns null.
@@ -451,6 +467,14 @@ function make_path(path)
     return path_join(root_dir, path);
 }
 
+/** Shorthand for urlencode_path(make_path(path_join(app, ...)))
+ * Creates a URL-encoded path for a given path within a given app.
+ */
+function encoded_app_path(app /*,...*/)
+{
+    return urlencode_path(make_path(path_join.apply(null, arguments)));
+}
+
 /** Given a path, gets the "basename" (the last path segment).
  */
 function path_basename(path)
@@ -495,7 +519,7 @@ function ajax_call(app, path, args, method, content_type)
 {
     if (content_type != "multipart/form-data")
         content_type = "application/x-www-form-urlencoded";
-    path = make_path(path_join(app, path));
+    path = encoded_app_path(app, path);
     var url;
     /* A random string, for multipart/form-data
      * (This is not checked against anywhere else, it is solely defined and

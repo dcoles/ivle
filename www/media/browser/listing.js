@@ -84,6 +84,7 @@ function action_commit(files)
 {
     /* Get a commit log from the user */
     var logmsg = prompt("Enter commit log:");
+    if (logmsg == null) return;
     do_action("svncommit", current_path, {"path":files, "logmsg": logmsg});
     return false;
 }
@@ -162,7 +163,7 @@ function update_sidepanel(total_file_size_sel)
         p = document.createElement("p");
         sidepanel.appendChild(p);
         p.appendChild(dom_make_img(
-            make_path(path_join(type_icons_path_large, "multi.png")),
+            encoded_app_path(type_icons_path_large, "multi.png"),
             null, null, "Multiple files"));
         p = dom_make_text_elem("h2",
             selected_files.length.toString() + " files selected");
@@ -188,14 +189,14 @@ function update_sidepanel(total_file_size_sel)
             if (file.isdir)
                 p = dom_make_link_elem("p", "Browse",
                     "Navigate to this directory in the file browser",
-                    make_path(path_join(this_app, current_path, filename)));
+                    encoded_app_path(this_app, current_path, filename));
             else if (handler_type == "text")
                 p = dom_make_link_elem("p", "Edit", "Edit this file",
-                    make_path(path_join(edit_app, current_path, filename)));
+                    encoded_app_path(edit_app, current_path, filename));
             else
                 p = dom_make_link_elem("p", "Browse",
                     "View this file in the file browser",
-                    make_path(path_join(this_app, current_path, filename)));
+                    encoded_app_path(this_app, current_path, filename));
             sidepanel.appendChild(p);
         }
 
@@ -207,13 +208,13 @@ function update_sidepanel(total_file_size_sel)
         else
             p = dom_make_link_elem("p", "View",
                 "View this file",
-                make_path(path_join(serve_app, current_path, filename)));
+                encoded_app_path(serve_app, current_path, filename));
         if (p)
             sidepanel.appendChild(p);
 
         /* Action: Use the "download" app */
         p = null;
-        path = make_path(path_join(download_app, current_path, filename));
+        path = encoded_app_path(download_app, current_path, filename);
         if (file.isdir)
             p = dom_make_link_elem("p", "Download as zip",
                 "Download this directory as a ZIP file", path);
@@ -230,7 +231,7 @@ function update_sidepanel(total_file_size_sel)
     }
     else
     {
-        path = make_path(path_join(download_app, current_path) + "?");
+        path = encoded_app_path(download_app, current_path) + "?";
         for (var i=0; i<selected_files.length; i++)
             path += "path=" + encodeURIComponent(selected_files[i]) + "&";
         path = path.substr(0, path.length-1);
@@ -503,7 +504,7 @@ function handle_dir_listing(path, listing)
             /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
                 "Navigate to " + path_join(path, filename),
-                make_path(path_join(this_app, path, filename))/*,
+                encoded_app_path(this_app, path, filename)/*,
                 "navigate(" + repr(path_join(path, filename)) + ")"*/);
             td.setAttribute("onclick", selection_string);
             row.appendChild(td);

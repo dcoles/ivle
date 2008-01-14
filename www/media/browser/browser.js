@@ -352,7 +352,7 @@ function presentpath(path)
     {
         if (dir == "") continue;
         /* Make an 'a' element */
-        href_path = path_join(href_path, dir);
+        href_path = urlencode_path(path_join(href_path, dir));
         nav_path = path_join(nav_path, dir);
         var link = dom_make_link_elem("a", dir, "Navigate to " + nav_path,
                 href_path/*, "navigate(" + repr(href_path) + ")"*/);
@@ -415,7 +415,7 @@ function handle_binary(path)
     var div = document.createElement("div");
     files.appendChild(div);
     div.setAttribute("class", "padding");
-    var download_link = make_path(path_join(download_app, path));
+    var download_link = encoded_app_path(download_app, path);
     var par1 = dom_make_text_elem("p",
         "The file " + path + " is a binary file. To download this file, " +
         "click the following link:");
