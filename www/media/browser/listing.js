@@ -38,7 +38,7 @@ thisdir = null;
 
 function action_rename(fromfilename)
 {
-    tofilename = prompt("Rename file \"" + fromfilename + "\" to?");
+    var tofilename = prompt("Rename file \"" + fromfilename + "\" to?");
     if (tofilename == null) return;
     do_action("move", current_path, {"from":fromfilename, "to":tofilename});
     return false;
@@ -65,6 +65,26 @@ function action_cut(files)
 function action_paste()
 {
     do_action("paste", current_path, {"path":"."});
+    return false;
+}
+
+function action_add(files)
+{
+    do_action("svnadd", current_path, {"path":files});
+    return false;
+}
+
+function action_revert(files)
+{
+    do_action("svnrevert", current_path, {"path":files});
+    return false;
+}
+
+function action_commit(files)
+{
+    /* Get a commit log from the user */
+    var logmsg = prompt("Enter commit log:");
+    do_action("svncommit", current_path, {"path":files, "logmsg": logmsg});
     return false;
 }
 
@@ -240,12 +260,27 @@ function update_sidepanel(total_file_size_sel)
 
     if (under_subversion)
     {
+        /* TODO: Only show relevant links */
         p = dom_make_text_elem("h3", "Subversion");
         sidepanel.appendChild(p);
-        /*
-     <p><a href="">Commit</a></p>
-     <p><a href="">Update</a></p>
-         */
+
+        /* TODO: if any selected files are unversioned */
+        p = dom_make_link_elem("p", "Add",
+            "Schedule the selected temporary files to be added permanently",
+            null,
+            "return action_add(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Revert",
+            "Restore the selected files back to their last committed state",
+            null,
+            "return action_revert(selected_files)");
+        sidepanel.appendChild(p);
+        /* TODO: Update */
+        p = dom_make_link_elem("p", "Commit",
+            "Commit any changes to the permanent repository",
+            null,
+            "return action_commit(selected_files)");
+        sidepanel.appendChild(p);
     }
 
 }

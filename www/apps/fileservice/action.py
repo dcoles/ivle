@@ -102,8 +102,8 @@
 #               times.
 #
 # action=svnupdate: Bring a file up to date with the head revision.
-#       path:   The path to the file to be updated. Can be specified multiple
-#               times.
+#       path:   The path to the file to be updated. Only one file may be
+#               specified.
 #
 # action=svncommit: Commit a file(s) or directory(s) to the repository.
 #       path:   The path to the file or directory to be committed. Can be
