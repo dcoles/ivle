@@ -1,3 +1,17 @@
+saved_status = null;
+
+function save_file()
+{
+    filename = document.getElementById("save_filename").value;
+    data = document.getElementById("editbox").value;
+    do_action("putfile", filename, {"path":".", "data":data});
+    saved_status.data = "Saved.";
+}
+
+function edit_text()
+{
+    saved_status.data = "Not saved.";
+}
 
 /** Presents the text editor.
  */
@@ -12,7 +26,27 @@ function handle_text(path, text, handler_type)
     var div = document.createElement("div");
     files.appendChild(div);
     div.setAttribute("class", "padding");
-    /* First, print a warning message if this is not actually a text file.
+
+    /* Set up minimal interface */
+    var p = dom_make_text_elem("p", "Path: ");
+    var pathname = document.createElement("input");
+    pathname.setAttribute("type", "text");
+    pathname.setAttribute("size", "30");
+    pathname.setAttribute("id", "save_filename");
+    pathname.setAttribute("value", path);
+    p.appendChild(pathname);
+    var savebutton = document.createElement("input");
+    savebutton.setAttribute("type", "button");
+    savebutton.setAttribute("value", "Save");
+    savebutton.setAttribute("onclick", "save_file()");
+    p.appendChild(savebutton);
+    var t = document.createTextNode(" ");
+    p.appendChild(t);
+    saved_status = document.createTextNode("Saved.");
+    //p.appendChild(saved_status);
+    div.appendChild(p);
+
+    /* Print a warning message if this is not actually a text file.
      */
     if (handler_type != "text")
     {
@@ -26,6 +60,7 @@ function handle_text(path, text, handler_type)
         text.toString())
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
+    txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "20");
 }
