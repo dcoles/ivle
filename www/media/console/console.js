@@ -29,7 +29,5 @@ function onload()
         + server_info.host.toString() + ":"
         + server_info.port.toString() + "?digest=" + digest;
 
-    alert(url);
-
     iframe.setAttribute("src", url);
 }
