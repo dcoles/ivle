@@ -38,6 +38,7 @@ def handle(req):
         "media/common/util.js",
         "media/browser/browser.js",
         "media/browser/listing.js",
+        "media/browser/editor.js",
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
@@ -48,9 +49,6 @@ def handle(req):
 <div id="topbar">
 <h2>IVLE File Browser</h2>
 <p id="path"></p>
-<p><input type="button" value="Refresh" onclick="action_refresh()" />
-<input type="button" value="New File" onclick="action_newfile()" />
-<input type="button" value="Commit All" onclick="action_svncommitall()" /></p>
 </div>
 <!-- End topbar -->
 
