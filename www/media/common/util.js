@@ -77,7 +77,7 @@ function dom_make_link_elem(tagname, text, title, href, onclick)
     if (href == null) href = "";
     var elem = document.createElement(tagname);
     var link = document.createElement("a");
-    link.setAttribute("href", encodeURI(href));
+    link.setAttribute("href", urlencode_path(href));
     if (title != null)
         link.setAttribute("title", title);
     if (onclick != null)
@@ -467,12 +467,12 @@ function make_path(path)
     return path_join(root_dir, path);
 }
 
-/** Shorthand for urlencode_path(make_path(path_join(app, ...)))
- * Creates a URL-encoded path for a given path within a given app.
+/** Shorthand for make_path(path_join(app, ...))
+ * Creates an absolute path for a given path within a given app.
  */
-function encoded_app_path(app /*,...*/)
+function app_path(app /*,...*/)
 {
-    return urlencode_path(make_path(path_join.apply(null, arguments)));
+    return make_path(path_join.apply(null, arguments));
 }
 
 /** Given a path, gets the "basename" (the last path segment).
@@ -519,7 +519,7 @@ function ajax_call(app, path, args, method, content_type)
 {
     if (content_type != "multipart/form-data")
         content_type = "application/x-www-form-urlencoded";
-    path = encoded_app_path(app, path);
+    path = urlencode_path(app_path(app, path));
     var url;
     /* A random string, for multipart/form-data
      * (This is not checked against anywhere else, it is solely defined and
