@@ -50,8 +50,7 @@ def handle(req):
     console_dir = os.path.join(jail, "opt/ivle/console/")
     console_path = os.path.join(console_dir, "python-console")
     os.system("cd " + console_dir + "; "
-        + console_path + " " + str(port) + " " + str(magic)
-        + " > /home/mgiuca/Desktop/python_console_log 2>&1 &")
+        + console_path + " " + str(port) + " " + str(magic) + " &")
 
     # Return port, magic
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
