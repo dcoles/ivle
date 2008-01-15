@@ -334,7 +334,7 @@ function urlencode_path(path)
     for (var i=0; i<split.length; i++)
         split[i] = encodeURIComponent(split[i]);
     path = path_join.apply(null, split);
-    if (split[0] == "") path = "/" + path;
+    if (split[0] == "" && split.length > 1) path = "/" + path;
     return path;
 }
 
