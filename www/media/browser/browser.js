@@ -60,7 +60,7 @@ type_icons_path_large = "media/images/mime/large";
 
 /* Mapping SVN status to icons, just the file's basename */
 svn_icons = {
-    "unversioned": "unversioned.png",
+    "unversioned": null,
     "normal": "normal.png",
     "added": "added.png",
     "missing": "missing.png",
@@ -81,7 +81,7 @@ svn_nice = {
     "conflicted": "Permanent file (conflicted)",
 };
 
-default_svn_icon = "modified.png";
+default_svn_icon = null;
 default_svn_nice = "Unknown status";
 
 svn_icons_path = "media/images/svn";
@@ -380,7 +380,7 @@ function mime_type_to_icon(type, sizelarge)
 /** Given an svnstatus, returns the path to the icon.
  * \param type String, svn status.
  * \return Path to the icon. Has applied make_path, so it is relative to site
- * root.
+ * root. May return null to indicate no SVN icon.
  */
 function svnstatus_to_icon(svnstatus)
 {
@@ -389,6 +389,7 @@ function svnstatus_to_icon(svnstatus)
         filename = svn_icons[svnstatus];
     else
         filename = default_svn_icon;
+    if (filename == null) return null;
     return make_path(path_join(svn_icons_path, filename));
 }
 

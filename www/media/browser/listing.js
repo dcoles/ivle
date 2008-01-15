@@ -143,8 +143,10 @@ function update_sidepanel(total_file_size_sel)
         if (under_subversion)
         {
             p = document.createElement("p");
-            p.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
+            var icon = svnstatus_to_icon(file.svnstatus);
+            if (icon)
+                p.appendChild(dom_make_img(icon, icon_size, icon_size,
+                    svnstatus_to_string(file.svnstatus)));
             sidepanel.appendChild(p);
             p = dom_make_text_elem("p", svnstatus_to_string(file.svnstatus));
             sidepanel.appendChild(p);
@@ -501,8 +503,12 @@ function handle_dir_listing(path, listing)
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
-                td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
+            {
+                var icon = svnstatus_to_icon(file.svnstatus);
+                if (icon)
+                    td.appendChild(dom_make_img(icon, icon_size, icon_size,
+                        svnstatus_to_string(file.svnstatus)));
+            }
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
@@ -523,8 +529,12 @@ function handle_dir_listing(path, listing)
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
-                td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
+            {
+                var icon = svnstatus_to_icon(file.svnstatus);
+                if (icon)
+                    td.appendChild(dom_make_img(icon, icon_size, icon_size,
+                        svnstatus_to_string(file.svnstatus)));
+            }
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_text_elem("td", filename);
