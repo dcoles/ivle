@@ -35,6 +35,7 @@ def handle(req):
     req.styles = ["media/browser/browser.css"]
     req.scripts = [
         "media/common/json2.js",
+        "media/common/edit_area/edit_area_full.js",
         "media/common/util.js",
         "media/browser/browser.js",
         "media/browser/listing.js",

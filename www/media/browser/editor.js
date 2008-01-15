@@ -3,7 +3,7 @@ saved_status = null;
 function save_file()
 {
     filename = document.getElementById("save_filename").value;
-    data = document.getElementById("editbox").value;
+    data = editAreaLoader.getValue("editbox");
     do_action("putfile", filename, {"path":".", "data":data});
     saved_status.data = "Saved.";
 }
@@ -63,5 +63,12 @@ function handle_text(path, text, handler_type)
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "20");
+
+    /* Load EditArea into the editbox */
+    editAreaLoader.init({
+        id : "editbox",
+        syntax: "python",
+        start_highlight: true
+    });
 }
 
