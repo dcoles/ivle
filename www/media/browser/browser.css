@@ -64,7 +64,7 @@ th {
 }
 
 td.thincol {
-    width: 24px;
+    width: 18px;
 }
 
 #filetablediv {
@@ -107,7 +107,7 @@ tr.row1 {
     cursor: pointer;
 }
 tr.row2 {
-    background-color: #aaa;
+    background-color: #bbb;
     cursor: pointer;
 }
 /* And if they are selected (blue shades) */
@@ -116,7 +116,7 @@ tr.row1sel {
     cursor: pointer;
 }
 tr.row2sel {
-    background-color: #66c;
+    background-color: #77d;
     cursor: pointer;
 }
 

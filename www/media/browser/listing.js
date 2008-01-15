@@ -34,6 +34,9 @@ selected_files = [];
 file_listing = null;
 thisdir = null;
 
+/** The width/height of filetype, svnstatus and publishstatus icons */
+icon_size = 16;
+
 /** ACTIONS **/
 
 function action_rename(fromfilename)
@@ -141,7 +144,7 @@ function update_sidepanel(total_file_size_sel)
         {
             p = document.createElement("p");
             p.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                22, 22, svnstatus_to_string(file.svnstatus)));
+                icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
             sidepanel.appendChild(p);
             p = dom_make_text_elem("p", svnstatus_to_string(file.svnstatus));
             sidepanel.appendChild(p);
@@ -493,13 +496,13 @@ function handle_dir_listing(path, listing)
             td.setAttribute("class", "thincol");
             td.setAttribute("onclick", selection_string);
             td.appendChild(dom_make_img(mime_type_to_icon("text/directory"),
-                22, 22, file.type_nice));
+                icon_size, icon_size, file.type_nice));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
                 td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    22, 22, svnstatus_to_string(file.svnstatus)));
+                    icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
@@ -515,13 +518,13 @@ function handle_dir_listing(path, listing)
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             td.appendChild(dom_make_img(mime_type_to_icon(file.type),
-                22, 22, file.type_nice));
+                icon_size, icon_size, file.type_nice));
             row.appendChild(td);
             td = document.createElement("td");
             td.setAttribute("class", "thincol");
             if (under_subversion)
                 td.appendChild(dom_make_img(svnstatus_to_icon(file.svnstatus),
-                    22, 22, svnstatus_to_string(file.svnstatus)));
+                    icon_size, icon_size, svnstatus_to_string(file.svnstatus)));
             row.appendChild(td);
             /* Column 3: Filename */
             td = dom_make_text_elem("td", filename);
