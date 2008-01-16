@@ -420,8 +420,11 @@ function sort_listing(sort_field, sort_ascending)
  */
 function compare_files(a, b)
 {
-    if (a.fileinfo.isdir < b.fileinfo.isdir) return -1;
-    else if (a.fileinfo.isdir > b.fileinfo.isdir) return 1;
+    /* First sort by whether or not it is a directory */
+    var aisdir = a.fileinfo.isdir == true;
+    var bisdir = b.fileinfo.isdir == true;
+    if (aisdir > bisdir) return -1;
+    else if (aisdir < bisdir) return 1;
 
     /* TEMP: Just sort by filename */
     if (a.filename < b.filename) return -1;
