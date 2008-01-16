@@ -22,7 +22,9 @@
  * Handles directory listings on the client side.
  */
 
-/* TODO: encodeURI on all generated paths for links */
+/* Note: The DOM "tr" nodes of the file listing have extra attributes added
+ * to them: "filename" and "fileinfo", which stores the key and value as
+ * returned by the server. */
 
 /* DOM nodeType constants */
 ELEMENT_NODE = 1;
@@ -364,17 +366,18 @@ function update_selection()
 
 /** Clears all selected files and causes the single file specified to become
  * selected.
- * \param fileid The index of the file in the list to select.
+ * \param filename The file in the list to select.
  */
-function select_file(fileid)
+function select_file(filename)
 {
     var files_children = document.getElementById("files").childNodes;
     var checkbox;
+    var tr;
     for (var i=0; i<files_children.length; i++)
     {
         tr = files_children[i];
         checkbox = tr.firstChild.firstChild;
-        checkbox.checked = i == fileid;
+        checkbox.checked = tr.filename == filename;
     }
     update_selection();
 }
@@ -454,7 +457,6 @@ function handle_dir_listing(path, listing)
     setmode(false);
     setup_for_dir_listing();
     var row_toggle = 1;
-    var i;
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
     file_listing = listing;     /* Global */
@@ -474,13 +476,15 @@ function handle_dir_listing(path, listing)
     var selection_string;
 
     /* Create all of the files */
-    i = 0;
     for (var filename in listing)
     {
-        selection_string = "select_file(" + i.toString() + ")";
+        selection_string = "select_file(" + repr(filename) + ")";
         file = listing[filename];
-        /* Make a 'tr' element */
+        /* Make a 'tr' element. Store the filename and fileinfo in
+         * here. */
         row = document.createElement("tr");
+        row.filename = filename;
+        row.fileinfo = file;
         /* Column 1: Selection checkbox */
         row.setAttribute("class", "row" + row_toggle.toString())
         row_toggle = row_toggle == 1 ? 2 : 1;
@@ -550,7 +554,6 @@ function handle_dir_listing(path, listing)
         td.setAttribute("onclick", selection_string);
         row.appendChild(td);
         files.appendChild(row);
-        i++;
     }
 
     /* Do a selection update (create initial elements for side panel and

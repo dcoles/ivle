@@ -93,7 +93,7 @@ function dom_make_link_elem(tagname, text, title, href, onclick)
 function dom_make_img(src, width, height, title, alt)
 {
     var img = document.createElement("img");
-    img.setAttribute("src", src);
+    img.setAttribute("src", urlencode_path(src));
     if (width != null)
         img.setAttribute("width", width);
     if (height != null)
