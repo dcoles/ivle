@@ -23,8 +23,10 @@
  */
 
 /* Note: The DOM "tr" nodes of the file listing have extra attributes added
- * to them: "filename" and "fileinfo", which stores the key and value as
- * returned by the server. */
+ * to them:
+ *  filename: String.
+ *  fileinfo: The file object as returned by the server.
+ */
 
 /* DOM nodeType constants */
 ELEMENT_NODE = 1;
@@ -364,6 +366,72 @@ function update_selection()
     statusbar.appendChild(document.createTextNode(statusmsg));
 }
 
+/** SORTING FUNCTIONS **/
+
+/** Sorts the file table. Physically manipulates the DOM table to reflect the
+ * sorted nodes, and also updates the little sort arrow.
+ *
+ * \param sort_field The name of the field to sort on primarily. This can
+ * either be "filename", or one of the fields of a fileinfo object. Note that
+ * while this determines the primary sort key, the secondary sort keys are
+ * determined by the global sort_order. Calling sort_listing reorders
+ * sort_order, bringing the specified sort_field to the top.
+ * Also note that sorting by "isdir" is more prominent than whatever field is
+ * provided here.
+ * \param sort_ascending If true, sorts ascending. If false, descending.
+ */
+function sort_listing(sort_field, sort_ascending)
+{
+    var i;
+    var files = document.getElementById("files");
+    var files_children = files.childNodes;
+    var files_array = new Array(files_children.length);
+    /* Update sort_order, bringing sort_field to the top. */
+    /* TODO */
+
+    /* Build an array of DOM tr elements (with the additional 'filename' and
+     * 'fileinfo' attributes as written when the listing is created). */
+    /* Note: Must manually create an array from files_children, which is a DOM
+     * NodeList, not an array. */
+    for (i=0; i<files_children.length; i++)
+        files_array[i] = files_children[i];
+
+    /* Sort this array */
+    files_array.sort(compare_files);
+
+    /* Clean out the table (the TRs are safely stored in the array) */
+    dom_removechildren(files);
+
+    /* Insert the TRs back into the table, in their sorted order */
+    for (i=0; i<files_array.length; i++)
+        files.appendChild(files_array[i]);
+
+    /* Fix the coloring classes on the rows so they are interleaved. */
+    update_selection();
+
+    return false;
+}
+
+/** Comparison function used for sorting. Compares two DOM tr nodes (with
+ * the additional 'filename' and 'fileinfo' attributes as written when the
+ * listing is created).
+ * Returns an integer, which is -1 if a < b, 0 if a == b, and 1 if a > b.
+ * The fields to compare by are determined by the global variable sort_order.
+ */
+function compare_files(a, b)
+{
+    if (a.fileinfo.isdir < b.fileinfo.isdir) return -1;
+    else if (a.fileinfo.isdir > b.fileinfo.isdir) return 1;
+
+    /* TEMP: Just sort by filename */
+    if (a.filename < b.filename) return -1;
+    else if (a.filename > b.filename) return 1;
+
+    return 0;
+}
+
+/** END SORTING **/
+
 /** Clears all selected files and causes the single file specified to become
  * selected.
  * \param filename The file in the list to select.
@@ -421,16 +489,16 @@ function setup_for_dir_listing()
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-check");
     filetablethead_th = dom_make_link_elem("th", "Filename",
-        "Sort by filename", "")
+        "Sort by filename", null, "return sort_listing(\"filename\")");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-filename");
     filetablethead_th.setAttribute("colspan", 3);
     filetablethead_th = dom_make_link_elem("th", "Size",
-        "Sort by file size", "")
+        "Sort by file size", null, "return sort_listing(\"size\")");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-size");
     filetablethead_th = dom_make_link_elem("th", "Modified",
-        "Sort by date modified", "")
+        "Sort by date modified", null, "return sort_listing(\"mtime\")");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-date");
     /* Empty body */
