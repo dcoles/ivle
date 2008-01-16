@@ -309,20 +309,19 @@ function update_selection()
     var row_toggle = 1;
     selected_files = [];  /* Clear global selected_files */
 
-    var total_files = 0;
     var total_file_size = 0;    /* In bytes */
     var total_file_size_sel = 0;
 
     /* Children are trs */
-    var i = 0;
+    var filename;
     var file;
     if (file_listing == null) return;
-    for (var filename in file_listing)
+    for (var i=0; i<files_children.length; i++)
     {
-        /* Count total files and size so we can write to the status bar later
+        filename = files_children[i].filename;
+        file = files_children[i].fileinfo;
+        /* Count total file size so we can write to the status bar later
          */
-        file = file_listing[filename];
-        total_files++;
         if ("size" in file)
             total_file_size += file.size;
 
@@ -340,7 +339,6 @@ function update_selection()
             if ("size" in file)
                 total_file_size_sel += file.size;
         }
-        i++;
     }
 
     /* Write to the side-panel */
@@ -358,8 +356,8 @@ function update_selection()
     }
     else
     {
-        statusmsg = total_files.toString() + " file"
-            + (total_files == 1 ? "" : "s") + ", "
+        statusmsg = files_children.length.toString() + " file"
+            + (files_children.length == 1 ? "" : "s") + ", "
             + nice_filesize(total_file_size);
     }
     dom_removechildren(statusbar);
@@ -627,8 +625,12 @@ function handle_dir_listing(path, listing)
         files.appendChild(row);
     }
 
+    /* Apply an initial sort by filename */
+    sort_listing("filename");
+
     /* Do a selection update (create initial elements for side panel and
      * status bar). */
-    update_selection();
+    /* Commented out; already called by sort_listing */
+    /*update_selection();*/
 }
 
