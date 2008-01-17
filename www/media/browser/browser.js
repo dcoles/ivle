@@ -340,12 +340,15 @@ function presentpath(path)
     var dom_path = document.getElementById("path");
     var href_path = make_path(this_app);
     var nav_path = "";
+    var dir;
 
     /* Also set the document title */
     document.title = path_basename(path) + " - IVLE";
     /* Create all of the paths */
-    for each (var dir in path.split("/"))
+    var pathlist = path.split("/");
+    for (var i=0; i<pathlist.length; i++)
     {
+        dir = pathlist[i];
         if (dir == "") continue;
         /* Make an 'a' element */
         href_path = path_join(href_path, dir);

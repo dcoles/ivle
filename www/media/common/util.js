@@ -506,7 +506,7 @@ function repr(str)
 Array.prototype.removeall = function(val)
 {
     var i, j;
-    arr = this;
+    var arr = this;
     j = 0;
     for (i=0; i<arr.length; i++)
     {
