@@ -69,15 +69,20 @@ function dom_make_text_elem(tagname, text, title)
  *  it will automatically be URL-encoded.
  * \param onclick Optional string. Will be set as the "onclick" attribute
  *  of the "a" element.
+ * \param dontencode Optional boolean. If true, will not encode the href.
+ *  if including query strings, you must set this to true and use build_url
+ *  to escape the URI correctly.
  * \return DOM Element object.
  */
-function dom_make_link_elem(tagname, text, title, href, onclick)
+function dom_make_link_elem(tagname, text, title, href, onclick, dontencode)
 {
     if (text == null) text = "";
     if (href == null) href = "";
     var elem = document.createElement(tagname);
     var link = document.createElement("a");
-    link.setAttribute("href", urlencode_path(href));
+    if (dontencode != true)
+        href = urlencode_path(href);
+    link.setAttribute("href", href);
     if (title != null)
         link.setAttribute("title", title);
     if (onclick != null)

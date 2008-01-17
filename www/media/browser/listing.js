@@ -245,13 +245,13 @@ function update_sidepanel(total_file_size_sel)
     }
     else
     {
-        path = app_path(download_app, current_path) + "?";
+        path = urlencode_path(app_path(download_app, current_path)) + "?";
         for (var i=0; i<selected_files.length; i++)
             path += "path=" + encodeURIComponent(selected_files[i]) + "&";
         path = path.substr(0, path.length-1);
         /* Multiple files selected */
         p = dom_make_link_elem("p", "Download as zip",
-            "Download the selected files as a ZIP file", path);
+            "Download the selected files as a ZIP file", path, null, true);
         sidepanel.appendChild(p);
     }
 
