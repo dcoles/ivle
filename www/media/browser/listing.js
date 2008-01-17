@@ -38,6 +38,11 @@ selected_files = [];
 file_listing = null;
 thisdir = null;
 
+/** The current sort order (a list of fields to sort by, in order of
+ * priority), and whether it is ascending or descending. */
+sort_order = [];
+sort_ascending = true;
+
 /** The width/height of filetype, svnstatus and publishstatus icons */
 icon_size = 16;
 
@@ -376,16 +381,18 @@ function update_selection()
  * sort_order, bringing the specified sort_field to the top.
  * Also note that sorting by "isdir" is more prominent than whatever field is
  * provided here.
- * \param sort_ascending If true, sorts ascending. If false, descending.
+ * \param ascending If true, sorts ascending. If false, descending.
  */
-function sort_listing(sort_field, sort_ascending)
+function sort_listing(sort_field, ascending)
 {
     var i;
     var files = document.getElementById("files");
     var files_children = files.childNodes;
     var files_array = new Array(files_children.length);
     /* Update sort_order, bringing sort_field to the top. */
-    /* TODO */
+    sort_order.removeall(sort_field);
+    sort_order.push(sort_field);
+    sort_ascending = ascending != false ? true : false;
 
     /* Build an array of DOM tr elements (with the additional 'filename' and
      * 'fileinfo' attributes as written when the listing is created). */
@@ -421,12 +428,30 @@ function compare_files(a, b)
     /* First sort by whether or not it is a directory */
     var aisdir = a.fileinfo.isdir == true;
     var bisdir = b.fileinfo.isdir == true;
-    if (aisdir > bisdir) return -1;
-    else if (aisdir < bisdir) return 1;
+    var LESS = sort_ascending == true ? -1 : 1;
+    var GREATER = -LESS;
+    if (aisdir > bisdir) return LESS;
+    else if (aisdir < bisdir) return GREATER;
 
-    /* TEMP: Just sort by filename */
-    if (a.filename < b.filename) return -1;
-    else if (a.filename > b.filename) return 1;
+    /* Reverse order of sort_order. (top is highest priority) */
+    for (var i=sort_order.length-1; i>=0; i--)
+    {
+        var field = sort_order[i];
+        if (field == "filename")
+        {
+            if (a.filename < b.filename) return LESS;
+            else if (a.filename > b.filename) return GREATER;
+        }
+        else
+        {
+            /* null > anything else (so it appears at the bottom) */
+            if (!(field in a))
+                if (field in b) return GREATER; else break;
+            if (!(field in b)) return LESS;
+            if (a.fileinfo[field] < b.fileinfo[field]) return LESS;
+            else if (a.fileinfo[field] > b.fileinfo[field]) return GREATER;
+        }
+    }
 
     return 0;
 }
