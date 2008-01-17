@@ -501,6 +501,21 @@ function repr(str)
     return JSON.stringify(str);
 }
 
+/** Removes all occurences of a value from an array.
+ */
+Array.prototype.removeall = function(val)
+{
+    var i, j;
+    arr = this;
+    j = 0;
+    for (i=0; i<arr.length; i++)
+    {
+        arr[j] = arr[i];
+        if (arr[i] != val) j++;
+    }
+    arr.splice(j, i-j);
+}
+
 /** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
  * response, and returns an XMLHttpRequest object containing the completed
  * response.
