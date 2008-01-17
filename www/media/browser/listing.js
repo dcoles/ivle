@@ -228,7 +228,10 @@ function update_sidepanel(total_file_size_sel)
 
         /* Action: Use the "download" app */
         p = null;
-        path = app_path(download_app, current_path, filename);
+        if (selected_files.length == 0)
+            path = app_path(download_app, current_path);
+        else
+            path = app_path(download_app, current_path, filename);
         if (file.isdir)
             p = dom_make_link_elem("p", "Download as zip",
                 "Download this directory as a ZIP file", path);
