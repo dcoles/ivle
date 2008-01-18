@@ -17,7 +17,7 @@
 
 # Module: Interpret
 # Author: Matt Giuca
-# Date: 20/12/2007
+# Date: 18/1/2008
 
 # Runs a student script in a safe execution environment.
 
@@ -28,6 +28,8 @@ import functools
 import os
 import pwd
 import subprocess
+
+CGI_BLOCK_SIZE = 65535
 
 def interpret_file(req, owner, filename, interpreter):
     """Serves a file by interpreting it using one of IVLE's builtin
@@ -71,9 +73,13 @@ def interpret_file(req, owner, filename, interpreter):
 
     return interpreter(uid, jail_dir, working_dir, path, req)
 
-# Used to store mutable data
-class Dummy:
-    pass
+class CGIFlags:
+    """Stores flags regarding the state of reading CGI output."""
+    def __init__(self):
+        self.got_cgi_header = False
+        self.started_cgi_body = False
+        self.wrote_html_warning = False
+        self.linebuf = ""
 
 def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
                 script_path, req):
@@ -115,40 +121,100 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
     # process_cgi_line: Reads a single line of CGI output and processes it.
     # Prints to req, and also does fancy HTML warnings if Content-Type
     # omitted.
-    cgiflags = Dummy()
-    cgiflags.got_cgi_header = False
-    cgiflags.started_cgi_body = False
-    cgiflags.wrote_html_warning = False
-    def process_cgi_line(line):
-        # FIXME? Issue with binary files (processing per-line?)
-        if cgiflags.started_cgi_body:
-            # FIXME: HTML escape text if wrote_html_warning
-            req.write(line)
-        else:
-            # Read CGI headers
-            if line.strip() == "" and cgiflags.got_cgi_header:
-                cgiflags.started_cgi_body = True
-            elif line.startswith("Content-Type:"):
-                req.content_type = line[13:].strip()
-                cgiflags.got_cgi_header = True
-            elif line.startswith("Location:"):
-                # TODO
-                cgiflags.got_cgi_header = True
-            elif line.startswith("Status:"):
-                # TODO
-                cgiflags.got_cgi_header = True
-            elif cgiflags.got_cgi_header:
-                # Invalid header
-                # TODO
-                req.write("Invalid header")
-                pass
-            else:
-                # Assume the user is not printing headers and give a warning
-                # about that.
-                # User program did not print header.
-                # Make a fancy HTML warning for them.
-                req.content_type = "text/html"
-                req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    cgiflags = CGIFlags()
+
+    # Read from the process's stdout into req
+    data = pid.stdout.read(CGI_BLOCK_SIZE)
+    while len(data) > 0:
+        process_cgi_output(req, data, cgiflags)
+        data = pid.stdout.read(CGI_BLOCK_SIZE)
+
+    # If we wrote an HTML warning header, write the footer
+    if cgiflags.wrote_html_warning:
+        req.write("""</pre>
+  </div>
+</body>
+</html>""")
+
+def process_cgi_output(req, data, cgiflags):
+    """Processes a chunk of CGI output. data is a string of arbitrary length;
+    some arbitrary chunk of output written by the CGI script."""
+    if cgiflags.started_cgi_body:
+        # FIXME: HTML escape text if wrote_html_warning
+        req.write(data)
+    else:
+        # Break data into lines of CGI header data. 
+        linebuf = cgiflags.linebuf + data
+        # First see if we can split all header data
+        split = linebuf.split('\r\n\r\n', 1)
+        if len(split) == 1:
+            # Allow UNIX newlines instead
+            split = linebuf.split('\n\n', 1)
+        if len(split) == 1:
+            # Haven't seen all headers yet. Buffer and come back later.
+            cgiflags.linebuf = linebuf
+            return
+
+        headers = split[0]
+        data = split[1]
+        cgiflags.linebuf = ""
+        cgiflags.started_cgi_body = True
+        # Process all the header lines
+        split = headers.split('\r\n', 1)
+        if len(split) == 1:
+            split = headers.split('\n', 1)
+        while True:
+            process_cgi_header_line(req, split[0], cgiflags)
+            if len(split) == 1: break
+            headers = split[1]
+            split = headers.split('\r\n', 1)
+            if len(split) == 1:
+                split = headers.split('\n', 1)
+
+        # Call myself to flush out the extra bit of data we read
+        process_cgi_output(req, data, cgiflags)
+
+def process_cgi_header_line(req, line, cgiflags):
+    """Process a line of CGI header data. line is a string representing a
+    complete line of text, stripped and without the newline.
+    Will set cgiflags.started_cgi_body when it detects an empty line, so the
+    caller should realise this and change to byte stream output mode.
+    """
+    # Read CGI headers
+    if line.strip() == "" and cgiflags.got_cgi_header:
+        cgiflags.started_cgi_body = True
+    elif line.startswith("Content-Type:"):
+        req.content_type = line[13:].strip()
+        cgiflags.got_cgi_header = True
+    elif line.startswith("Location:"):
+        # TODO
+        cgiflags.got_cgi_header = True
+    elif line.startswith("Status:"):
+        # TODO
+        cgiflags.got_cgi_header = True
+    elif cgiflags.got_cgi_header:
+        # Invalid header
+        # TODO
+        req.write("Invalid header")
+        pass
+    else:
+        # Assume the user is not printing headers and give a warning
+        # about that.
+        # User program did not print header.
+        # Make a fancy HTML warning for them.
+        req.content_type = "text/html"
+        write_html_warning(req,
+"""You did not print a "Content-Type" header.
+CGI requires you to print some content type. You may wish to try:</p>
+<pre style="margin-left: 1em">Content-Type: text/html</pre>""", cgiflags)
+        cgiflags.got_cgi_header = True
+        cgiflags.started_cgi_body = True
+        req.write(line)
+
+def write_html_warning(req, text, cgiflags):
+    """Prints an HTML warning about invalid CGI interaction on the part of the
+    user. text may contain HTML markup."""
+    req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -158,30 +224,14 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
 <body style="margin: 0; padding: 0; font-family: sans-serif;">
   <div style="background-color: #faa; border-bottom: 1px solid black;
     padding: 8px;">
-    <p><strong>Warning</strong>: You did not print a "Content-Type" header.
-    CGI requires you to print some content type. You may wish to try:</p>
-    <pre style="margin-left: 1em">Content-Type: text/html</pre>
+    <p><strong>Warning</strong>: %s
   </div>
   <div style="margin: 8px;">
     <pre>
-""")
-                cgiflags.got_cgi_header = True
-                cgiflags.wrote_html_warning = True
-                cgiflags.started_cgi_body = True
-                req.write(line)
+""" % text)
+    cgiflags.wrote_html_warning = True
+    
 
-    # Read from the process's stdout into req
-    for line in pid.stdout:
-        process_cgi_line(line)
-
-    # If we wrote an HTML warning header, write the footer
-    if cgiflags.wrote_html_warning:
-        req.write("""</pre>
-  </div>
-</body>
-</html>""")
-
-# TODO: Replace mytest with cgi trampoline handler script
 location_cgi_python = os.path.join(conf.ivle_install_dir,
     "bin/trampoline")
 
