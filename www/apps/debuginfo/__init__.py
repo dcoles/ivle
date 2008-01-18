@@ -39,6 +39,7 @@ def handle(req):
     req.write("<h2>IVLE Debug Information</h2>\n")
 
     print_table(req, "System Constants", [
+        ("ivle_version", conf.ivle_version),
         ("ivle_install_dir", conf.ivle_install_dir),
         ("root_dir", conf.root_dir),
         ("jail_base", conf.jail_base),
