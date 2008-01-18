@@ -20,6 +20,12 @@
 # Date: 18/1/2008
 
 # Runs a student script in a safe execution environment.
+#
+# NOTE: This script currently disables cookies. This means students will be
+# unable to write session-based or stateful web applications. This is done for
+# security reasons (we do not want the students to see the IVLE cookie of
+# whoever is visiting their pages).
+# This can be resolved but needs careful sanitisation. See fixup_environ.
 
 from common import studpath
 import conf
@@ -125,6 +131,7 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
         del os.environ[k]
     for (k,v) in req.get_cgi_environ().items():
         os.environ[k] = v
+    fixup_environ(req)
 
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
@@ -315,3 +322,60 @@ interpreter_objects = {
     # python-server-page
 }
 
+def fixup_environ(req):
+    """Assuming os.environ has been written with the CGI variables from
+    apache, make a few changes for security and correctness.
+
+    Does not modify req, only reads it.
+    """
+    env = os.environ
+    # Comments here are on the heavy side, explained carefully for security
+    # reasons. Please read carefully before making changes.
+
+    # Remove HTTP_COOKIE. It is a security risk to have students see the IVLE
+    # cookie of their visitors.
+    del env['HTTP_COOKIE']
+
+    # Remove DOCUMENT_ROOT and SCRIPT_FILENAME. Not part of CGI spec and
+    # exposes unnecessary details about server.
+    del env['DOCUMENT_ROOT']
+    del env['SCRIPT_FILENAME']
+
+    # Remove PATH. The PATH here is the path on the server machine; not useful
+    # inside the jail. It may be a good idea to add another path, reflecting
+    # the inside of the jail, but not done at this stage.
+    del env['PATH']
+
+    # Remove SCRIPT_FILENAME. Not part of CGI spec (see SCRIPT_NAME).
+
+    # PATH_INFO is wrong because the script doesn't physically exist.
+    # Apache makes it relative to the "serve" app. It should actually be made
+    # relative to the student's script.
+    # TODO: At this stage, it is not possible to add a path after the script,
+    # so PATH_INFO is always "".
+    path_info = ""
+    env['PATH_INFO'] = path_info
+
+    # PATH_TRANSLATED currently points to a non-existant location within the
+    # local web server directory. Instead make it represent a path within the
+    # student jail.
+    (_, _, path_translated) = studpath.url_to_jailpaths(req.path)
+    if len(path_translated) == 0 or path_translated[0] != os.sep:
+        path_translated = os.sep + path_translated
+    env['PATH_TRANSLATED'] = path_translated
+
+    # CGI specifies that REMOTE_HOST SHOULD be set, and MAY just be set to
+    # REMOTE_ADDR. Since Apache does not appear to set this, set it to
+    # REMOTE_ADDR.
+    if 'REMOTE_HOST' not in env and 'REMOTE_ADDR' in env:
+        env['REMOTE_HOST'] = env['REMOTE_ADDR']
+
+    # SCRIPT_NAME is the path to the script WITHOUT PATH_INFO.
+    script_name = req.uri
+    if len(path_info) > 0:
+        script_name = script_name[:-len(path_info)]
+    env['SCRIPT_NAME'] = script_name
+
+    # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
+    # custom-making the CGI request.
+    env['SERVER_SOFTWARE'] = "IVLE/" + str(conf.ivle_version)
