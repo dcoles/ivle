@@ -177,6 +177,7 @@ class Request:
         self.styles = []
         self.scripts = []
         self.write_html_head_foot = False
+        self.got_common_vars = False
 
     def __writeheaders(self):
         """Writes out the HTTP and HTML headers before any real data is
@@ -261,3 +262,12 @@ class Request:
         if not hasattr(self, 'fields'):
             self.fields = util.FieldStorage(self.apache_req)
         return self.fields
+
+    def get_cgi_environ(self):
+        """Returns the CGI environment emulation for this request. (Calls
+        add_common_vars). The environment is returned as a mapping
+        compatible with os.environ."""
+        if not self.got_common_vars:
+            self.apache_req.add_common_vars()
+            self.got_common_vars = True
+        return self.apache_req.subprocess_env

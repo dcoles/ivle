@@ -117,12 +117,27 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
         f.flush()
         f.seek(0)       # Rewind, for reading
 
+    # Set up the environment
+    # This automatically asks mod_python to load up the CGI variables into the
+    # environment (which is a good first approximation)
+    old_env = os.environ.copy()
+    for k in os.environ.keys():
+        del os.environ[k]
+    for (k,v) in req.get_cgi_environ().items():
+        os.environ[k] = v
+
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
         [trampoline, str(uid), jail_dir, working_dir, interpreter,
         script_path],
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
+
+    # Restore the environment
+    for k in os.environ.keys():
+        del os.environ[k]
+    for (k,v) in old_env.items():
+        os.environ[k] = v
 
     # process_cgi_line: Reads a single line of CGI output and processes it.
     # Prints to req, and also does fancy HTML warnings if Content-Type

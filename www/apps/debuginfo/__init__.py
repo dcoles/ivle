@@ -79,9 +79,8 @@ def handle(req):
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())
-    req.apache_req.add_common_vars()
     print_table(req, "CGI Environment Variables",
-        req.apache_req.subprocess_env.items())
+        req.get_cgi_environ().items())
     print_table(req, "Server Environment Variables", os.environ.items())
 
     req.write("<h3>Removal instructions</h3>\n")
