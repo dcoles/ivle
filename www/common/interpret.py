@@ -28,6 +28,11 @@ import functools
 import os
 import pwd
 import subprocess
+import cgi
+
+# TODO: Make progressive output work
+# Question: Will having a large buffer size stop progressive output from
+# working on smaller output
 
 CGI_BLOCK_SIZE = 65535
 
@@ -76,10 +81,11 @@ def interpret_file(req, owner, filename, interpreter):
 class CGIFlags:
     """Stores flags regarding the state of reading CGI output."""
     def __init__(self):
-        self.got_cgi_header = False
         self.started_cgi_body = False
+        self.got_cgi_headers = False
         self.wrote_html_warning = False
         self.linebuf = ""
+        self.headers = {}       # Header names : values
 
 def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
                 script_path, req):
@@ -129,6 +135,10 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
         process_cgi_output(req, data, cgiflags)
         data = pid.stdout.read(CGI_BLOCK_SIZE)
 
+    # If we haven't processed headers yet, now is a good time
+    if not cgiflags.started_cgi_body:
+        process_cgi_output(req, '\n', cgiflags)
+
     # If we wrote an HTML warning header, write the footer
     if cgiflags.wrote_html_warning:
         req.write("""</pre>
@@ -140,8 +150,11 @@ def process_cgi_output(req, data, cgiflags):
     """Processes a chunk of CGI output. data is a string of arbitrary length;
     some arbitrary chunk of output written by the CGI script."""
     if cgiflags.started_cgi_body:
-        # FIXME: HTML escape text if wrote_html_warning
-        req.write(data)
+        if cgiflags.wrote_html_warning:
+            # HTML escape text if wrote_html_warning
+            req.write(cgi.escape(data))
+        else:
+            req.write(data)
     else:
         # Break data into lines of CGI header data. 
         linebuf = cgiflags.linebuf + data
@@ -167,9 +180,37 @@ def process_cgi_output(req, data, cgiflags):
             process_cgi_header_line(req, split[0], cgiflags)
             if len(split) == 1: break
             headers = split[1]
+            if cgiflags.wrote_html_warning:
+                # We're done with headers. Treat the rest as data.
+                data = headers + '\n' + data
+                break
             split = headers.split('\r\n', 1)
             if len(split) == 1:
                 split = headers.split('\n', 1)
+
+        # Check to make sure the required headers were written
+        if cgiflags.wrote_html_warning:
+            # We already reported an error, that's enough
+            pass
+        elif "Content-Type" in cgiflags.headers:
+            pass
+        elif "Location" in cgiflags.headers:
+            if ("Status" in cgiflags.headers and req.status >= 300
+                and req.status < 400):
+                pass
+            else:
+                message = """You did not write a valid status code for
+the given location. To make a redirect, you may wish to try:</p>
+<pre style="margin-left: 1em">Status: 302 Found
+Location: &lt;redirect address&gt;</pre>"""
+                write_html_warning(req, message)
+                cgiflags.wrote_html_warning = True
+        else:
+            message = """You did not print a Content-Type header.
+CGI requires that you print a "Content-Type". You may wish to try:</p>
+<pre style="margin-left: 1em">Content-Type: text/html</pre>"""
+            write_html_warning(req, message)
+            cgiflags.wrote_html_warning = True
 
         # Call myself to flush out the extra bit of data we read
         process_cgi_output(req, data, cgiflags)
@@ -177,43 +218,57 @@ def process_cgi_output(req, data, cgiflags):
 def process_cgi_header_line(req, line, cgiflags):
     """Process a line of CGI header data. line is a string representing a
     complete line of text, stripped and without the newline.
-    Will set cgiflags.started_cgi_body when it detects an empty line, so the
-    caller should realise this and change to byte stream output mode.
     """
-    # Read CGI headers
-    if line.strip() == "" and cgiflags.got_cgi_header:
-        cgiflags.started_cgi_body = True
-    elif line.startswith("Content-Type:"):
-        req.content_type = line[13:].strip()
-        cgiflags.got_cgi_header = True
-    elif line.startswith("Location:"):
-        # TODO
-        cgiflags.got_cgi_header = True
-    elif line.startswith("Status:"):
-        # TODO
-        cgiflags.got_cgi_header = True
-    elif cgiflags.got_cgi_header:
-        # Invalid header
-        # TODO
-        req.write("Invalid header")
-        pass
-    else:
-        # Assume the user is not printing headers and give a warning
-        # about that.
-        # User program did not print header.
-        # Make a fancy HTML warning for them.
-        req.content_type = "text/html"
-        write_html_warning(req,
-"""You did not print a "Content-Type" header.
-CGI requires you to print some content type. You may wish to try:</p>
-<pre style="margin-left: 1em">Content-Type: text/html</pre>""", cgiflags)
-        cgiflags.got_cgi_header = True
-        cgiflags.started_cgi_body = True
-        req.write(line)
+    try:
+        name, value = line.split(':', 1)
+    except ValueError:
+        # No colon. The user did not write valid headers.
+        if len(cgiflags.headers) == 0:
+            # First line was not a header line. We can assume this is not
+            # a CGI app.
+            message = """You did not print a CGI header.
+CGI requires that you print a "Content-Type". You may wish to try:</p>
+<pre style="margin-left: 1em">Content-Type: text/html</pre>"""
+        else:
+            # They printed some header at least, but there was an invalid
+            # header.
+            message = """You printed an invalid CGI header. You need to leave
+a blank line after the headers, before writing the page contents."""
+        write_html_warning(req, message)
+        cgiflags.wrote_html_warning = True
+        # Handle the rest of this line as normal data
+        process_cgi_output(req, line + '\n', cgiflags)
+        return
 
-def write_html_warning(req, text, cgiflags):
+    # Read CGI headers
+    value = value.strip()
+    if name == "Content-Type":
+        req.content_type = value
+    elif name == "Location":
+        req.location = value
+    elif name == "Status":
+        # Must be an integer, followed by a space, and then the status line
+        # which we ignore (seems like Apache has no way to send a custom
+        # status line).
+        try:
+            req.status = int(value.split(' ', 1)[0])
+        except ValueError:
+            message = """The "Status" CGI header was invalid. You need to
+print a number followed by a message, such as "302 Found"."""
+            write_html_warning(req, message)
+            cgiflags.wrote_html_warning = True
+            # Handle the rest of this line as normal data
+            process_cgi_output(req, line + '\n', cgiflags)
+    else:
+        # Generic HTTP header
+        # FIXME: Security risk letting users write arbitrary headers?
+        req.headers_out[name] = value
+    cgiflags.headers[name] = value
+
+def write_html_warning(req, text):
     """Prints an HTML warning about invalid CGI interaction on the part of the
     user. text may contain HTML markup."""
+    req.content_type = "text/html"
     req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -229,8 +284,6 @@ def write_html_warning(req, text, cgiflags):
   <div style="margin: 8px;">
     <pre>
 """ % text)
-    cgiflags.wrote_html_warning = True
-    
 
 location_cgi_python = os.path.join(conf.ivle_install_dir,
     "bin/trampoline")
