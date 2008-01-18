@@ -220,9 +220,9 @@ class Request:
         """Reads at most len bytes directly from the client. (See mod_python
         Request.read)."""
         if len is None:
-            self.apache_req.read()
+            return self.apache_req.read()
         else:
-            self.apache_req.read(len)
+            return self.apache_req.read(len)
 
     def throw_error(self, httpcode):
         """Writes out an HTTP error of the specified code. Raises an exception
