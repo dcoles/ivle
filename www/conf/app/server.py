@@ -55,6 +55,7 @@ served_filetypes_whitelist = set([
     "image/gif",
     "image/jpeg",
     "image/png",
+    "image/svg+xml",
 
     "text/css",
     "text/csv",
