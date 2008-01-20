@@ -68,6 +68,27 @@ import mimetypes
 import compileall
 import getopt
 
+# Operating system files to copy over into the jail.
+# These will be copied from the given place on the OS file system into the
+# same place within the jail.
+JAIL_FILES = [
+    '/lib/ld-linux.so.2',
+    '/lib/tls/i686/cmov/libc.so.6',
+    '/lib/tls/i686/cmov/libdl.so.2',
+    '/lib/tls/i686/cmov/libm.so.6',
+    '/lib/tls/i686/cmov/libpthread.so.0',
+    '/lib/tls/i686/cmov/libutil.so.1',
+    '/usr/bin/python2.5',
+]
+# Symlinks to make within the jail. Src mapped to dst.
+JAIL_LINKS = {
+    'python2.5': 'jail/usr/bin/python',
+}
+# Trees to copy. Src mapped to dst (these will be passed to action_copytree).
+JAIL_COPYTREES = {
+    '/usr/lib/python2.5': 'jail/usr/lib/python2.5',
+}
+
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
 # of setup besides conf, so we need to know them.
@@ -481,15 +502,12 @@ def copy_os_files_jail(dry):
     """Copies necessary Operating System files from their usual locations
     into the jail/ directory of the cwd."""
     # Currently source paths are configured for Ubuntu.
-    copy_file_to_jail('/lib/ld-linux.so.2', dry)
-    copy_file_to_jail('/lib/tls/i686/cmov/libc.so.6', dry)
-    copy_file_to_jail('/lib/tls/i686/cmov/libdl.so.2', dry)
-    copy_file_to_jail('/lib/tls/i686/cmov/libm.so.6', dry)
-    copy_file_to_jail('/lib/tls/i686/cmov/libpthread.so.0', dry)
-    copy_file_to_jail('/lib/tls/i686/cmov/libutil.so.1', dry)
-    copy_file_to_jail('/usr/bin/python2.5', dry)
-    action_symlink('python2.5', 'jail/usr/bin/python', dry)
-    action_copytree('/usr/lib/python2.5', 'jail/usr/lib/python2.5', dry)
+    for filename in JAIL_FILES:
+        copy_file_to_jail(filename, dry)
+    for src, dst in JAIL_LINKS.items():
+        action_symlink(src, dst, dry)
+    for src, dst in JAIL_COPYTREES.items():
+        action_copytree(src, dst, dry)
 
 def copy_file_to_jail(src, dry):
     """Copies a single file from an absolute location into the same location
