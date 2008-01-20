@@ -84,7 +84,37 @@ JAIL_FILES = [
     '/lib/tls/i686/cmov/libm.so.6',
     '/lib/tls/i686/cmov/libpthread.so.0',
     '/lib/tls/i686/cmov/libutil.so.1',
+    '/etc/ld.so.conf',
+    '/etc/ld.so.cache',
+    # These 2 files do not exist in Ubuntu
+    #'/etc/ld.so.preload',
+    #'/etc/ld.so.nohwcap',
+    # UNIX commands
+    '/usr/bin/strace',
+    '/bin/ls',
+    '/bin/echo',
+    # Needed by python
     '/usr/bin/python2.5',
+    # Needed by matplotlib
+    '/usr/lib/i686/cmov/libssl.so.0.9.8',
+    '/usr/lib/i686/cmov/libcrypto.so.0.9.8',
+    '/lib/tls/i686/cmov/libnsl.so.1',
+    '/usr/lib/libz.so.1',
+    '/usr/lib/atlas/liblapack.so.3',
+    '/usr/lib/atlas/libblas.so.3',
+    '/usr/lib/libg2c.so.0',
+    '/usr/lib/libstdc++.so.6',
+    '/usr/lib/libfreetype.so.6',
+    '/usr/lib/libpng12.so.0',
+    '/usr/lib/libBLT.2.4.so.8.4',
+    '/usr/lib/libtk8.4.so.0',
+    '/usr/lib/libtcl8.4.so.0',
+    '/usr/lib/tcl8.4/init.tcl',
+    '/usr/lib/libX11.so.6',
+    '/usr/lib/libXau.so.6',
+    '/usr/lib/libXdmcp.so.6',
+    '/lib/libgcc_s.so.1',
+    '/etc/matplotlibrc',
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
@@ -93,6 +123,8 @@ JAIL_LINKS = {
 # Trees to copy. Src mapped to dst (these will be passed to action_copytree).
 JAIL_COPYTREES = {
     '/usr/lib/python2.5': 'jail/usr/lib/python2.5',
+    '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
+    '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
 }
 
 # Try importing existing conf, but if we can't just set up defaults
@@ -505,6 +537,9 @@ def build(args):
     # Copy all console and operating system files into the jail
     action_copylist(install_list.list_console, 'jail/opt/ivle', dry)
     copy_os_files_jail(dry)
+    # Chmod the python console
+    action_chmod_x('jail/opt/ivle/console/python-console', dry)
+    
 
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
@@ -740,6 +775,12 @@ def action_chown_setuid(file, dry):
     if not dry:
         os.chmod(file, stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
             | stat.S_ISUID | stat.S_IRUSR | stat.S_IWUSR)
+
+def action_chmod_x(file, dry):
+    """Chmod +xs a file (sets execute permission)."""
+    print "chmod u+rwx", file
+    if not dry:
+        os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
