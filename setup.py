@@ -68,6 +68,12 @@ import mimetypes
 import compileall
 import getopt
 
+# Import modules from the website is tricky since they're in the www
+# directory.
+sys.path.append(os.path.join(os.getcwd(), 'www'))
+import conf
+import common.makeuser
+
 # Operating system files to copy over into the jail.
 # These will be copied from the given place on the OS file system into the
 # same place within the jail.
@@ -157,7 +163,8 @@ IVLE Setup
         return 1
 
     # Disallow run as root unless installing
-    if operation != 'install' and os.geteuid() == 0:
+    if (operation != 'install' and operation != 'updatejails'
+        and os.geteuid() == 0):
         print >>sys.stderr, "I do not want to run this stage as root."
         print >>sys.stderr, "Please run as a normal user."
         return 1
@@ -169,6 +176,7 @@ IVLE Setup
             'build' : build,
             'listmake' : listmake,
             'install' : install,
+            'updatejails' : updatejails,
         }[operation]
     except KeyError:
         print >>sys.stderr, (
@@ -251,6 +259,12 @@ Copy www/ to $target.
 Copy jail/ to jails template directory (unless --nojail specified).
 
 --nojail    Do not copy the jail.
+--dry | -n  Print out the actions but don't do anything."""
+    elif operation == 'updatejails':
+        print """sudo python setup.py updatejails [--dry|-n]
+(Requires root)
+Copy jail/ to each subdirectory in jails directory.
+
 --dry | -n  Print out the actions but don't do anything."""
     else:
         print >>sys.stderr, (
@@ -551,6 +565,41 @@ def install(args):
 
     return 0
 
+def updatejails(args):
+    # Get "dry" variable from command line
+    (opts, args) = getopt.gnu_getopt(args, "n", ['dry'])
+    opts = dict(opts)
+    dry = '-n' in opts or '--dry' in opts
+
+    if dry:
+        print "Dry run (no actions will be executed\n"
+
+    if not dry and os.geteuid() != 0:
+        print >>sys.stderr, "Must be root to run install"
+        print >>sys.stderr, "(I need to chown some files)."
+        return 1
+
+    # Update the template jail directory in case it hasn't been installed
+    # recently.
+    action_copytree('jail', os.path.join(jail_base, 'template'), dry)
+
+    # Re-link all the files in all students jails.
+    for dir in os.listdir(jail_base):
+        if dir == 'template': continue
+        # First back up the student's home directory
+        temp_home = os.tmpnam()
+        action_rename(os.path.join(jail_base, dir, 'home'), temp_home, dry)
+        # Delete the student's jail and relink the jail files
+        action_linktree(os.path.join(jail_base, 'template'),
+            os.path.join(jail_base, dir), dry)
+        # Restore the student's home directory
+        action_rename(temp_home, os.path.join(jail_base, dir, 'home'), dry)
+        # Set up the user's home directory just in case they don't have a
+        # directory for this yet
+        action_mkdir(os.path.join(jail_base, dir, 'home', dir), dry)
+
+    return 0
+
 # The actions call Python os functions but print actions and handle dryness.
 # May still throw os exceptions if errors occur.
 
@@ -580,6 +629,20 @@ def action_runprog(prog, args, dry):
     if ret != 0:
         raise RunError(prog, ret)
 
+def action_rename(src, dst, dry):
+    """Calls rename. Deletes the target if it already exists."""
+    if os.access(dst, os.F_OK):
+        print "rm -r", dst
+        if not dry:
+            shutil.rmtree(dst, True)
+    print "mv ", src, dst
+    if dry: return
+    try:
+        os.rename(src, dst)
+    except OSError, (err, msg):
+        if err != errno.EEXIST:
+            raise
+
 def action_mkdir(path, dry):
     """Calls mkdir. Silently ignored if the directory already exists.
     Creates all parent directories as necessary."""
@@ -604,6 +667,18 @@ def action_copytree(src, dst, dry):
     print "cp -r", src, dst
     if dry: return
     shutil.copytree(src, dst, True)
+
+def action_linktree(src, dst, dry):
+    """Hard-links an entire directory tree. Same as copytree but the created
+    files are hard-links not actual copies. Removes the existing destination.
+    """
+    if os.access(dst, os.F_OK):
+        print "rm -r", dst
+        if not dry:
+            shutil.rmtree(dst, True)
+    print "<cp with hardlinks> -r", src, dst
+    if dry: return
+    common.makeuser.linktree(src, dst)
 
 def action_copylist(srclist, dst, dry):
     """Copies all files in a list to a new location. The files in the list
