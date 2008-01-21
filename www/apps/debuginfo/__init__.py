@@ -61,6 +61,7 @@ def handle(req):
         ("app", req.app),
         ("path", req.path),
         ("username", req.username),
+        ("hostname", req.hostname),
     ])
 
     # Violate encapsulation here to print out the hidden properties

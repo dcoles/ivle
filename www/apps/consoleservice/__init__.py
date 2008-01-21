@@ -34,7 +34,7 @@ def handle(req):
     req.write_html_head_foot = False
 
     # TODO: Figure out the host name the console server is running on.
-    host = "localhost"
+    host = req.hostname
 
     # Find an available port on the server.
     # TODO

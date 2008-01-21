@@ -45,6 +45,8 @@ class Request:
         username (read)
             String. Login name of the user who is currently logged in, or
             None.
+        hostname (read)
+            String. Hostname the server is running on.
         headers_in (read)
             Table object representing headers sent by the client.
         headers_out (read, can be written to)
@@ -166,6 +168,7 @@ class Request:
         (self.app, self.path) = (
             common.util.split_path(common.util.unmake_path(req.uri)))
         self.username = None
+        self.hostname = req.hostname
         self.headers_in = req.headers_in
         self.headers_out = req.headers_out
 
