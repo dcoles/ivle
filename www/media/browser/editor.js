@@ -62,7 +62,7 @@ function handle_text(path, text, handler_type)
     txt_elem.setAttribute("id", "editbox");
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
-    txt_elem.setAttribute("rows", "20");
+    txt_elem.setAttribute("rows", "35");
 
     /* Load EditArea into the editbox */
     editAreaLoader.init({

@@ -359,7 +359,7 @@ def fixup_environ(req):
     # PATH_TRANSLATED currently points to a non-existant location within the
     # local web server directory. Instead make it represent a path within the
     # student jail.
-    (_, _, path_translated) = studpath.url_to_jailpaths(req.path)
+    (username, _, path_translated) = studpath.url_to_jailpaths(req.path)
     if len(path_translated) == 0 or path_translated[0] != os.sep:
         path_translated = os.sep + path_translated
     env['PATH_TRANSLATED'] = path_translated
@@ -379,3 +379,6 @@ def fixup_environ(req):
     # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
     # custom-making the CGI request.
     env['SERVER_SOFTWARE'] = "IVLE/" + str(conf.ivle_version)
+
+    # Additional environment variables
+    env['HOME'] = os.path.join('/home', username)
