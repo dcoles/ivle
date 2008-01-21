@@ -13,6 +13,10 @@ subdirectories.
 Apache configuration
 --------------------
 
+IVLE should be installed into a place on the file system, and then there
+should be a symlink created from Apache. Apache should symlink its IVLE
+directory to the "www" directory, a subdirectory of the IVLE trunk.
+
 The Apache conf file should have the following directives added to it, which
 configures the site to direct all URLs to the main dispatcher (except for
 files in the /media directory).
@@ -21,22 +25,39 @@ files in the /media directory).
     # See src/README for instructions and explanation
     <Directory "/ivle-directory"> 
         SetHandler mod_python
-        PythonHandler dispatch_handler
+        PythonHandler dispatch
         #PythonDebug On
         Options FollowSymLinks
-        PythonOption ivle.handlerpath "/ivle-directory"
     </Directory>
     <Directory "/ivle-directory/media"> 
         SetHandler None
     </Directory>
 
 Where `ivle-directory` is the path to root directory of IVLE on the web
-server.
+server (the symlink which points to "www").
 
 Uncomment `PythonDebug On` to turn on debugging.
 
 Note that this disables directory listings across the whole site (which
 essentially only affects the /media directory).
+
+Python Site configuration
+-------------------------
+
+The setup install script automatically configures ivle.pth in the Python site
+packages directory. This section is for if you run into trouble.
+
+You need to set up IVLE as a Python site to allow importing of IVLE modules.
+If this step is done improperly, you will see "ImportError: No module named
+dispatch".
+
+Place a file in the Python site packages directory
+(ie. /usr/lib/python2.5/site-packages) called "ivle.pth". In it place a
+single line containing the full path to the "www" directory inside
+trunk in the installed location.
+
+See http://docs.python.org/lib/module-site.html for information about
+configuring .pth files.
 
 Application configuration
 -------------------------

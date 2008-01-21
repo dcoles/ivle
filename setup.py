@@ -598,6 +598,23 @@ def install(args):
         # for all the students' jails).
         action_copytree('jail', os.path.join(jail_base, 'template'), dry)
 
+    # Append IVLE path to ivle.pth in python site packages
+    # (Unless it's already there)
+    ivle_pth = os.path.join(sys.prefix,
+        "lib/python2.5/site-packages/ivle.pth")
+    ivle_www = os.path.join(ivle_install_dir, "www")
+    write_ivle_pth = True
+    try:
+        file = open(ivle_pth, 'r')
+        for line in file:
+            if line.strip() == ivle_www:
+                write_ivle_pth = False
+                break
+    except (IOError, OSError):
+        pass
+    if write_ivle_pth:
+        action_append(ivle_pth, ivle_www)
+
     return 0
 
 def updatejails(args):
@@ -761,6 +778,11 @@ def action_symlink(src, dst, dry):
     print "ln -fs", src, dst
     if not dry:
         os.symlink(src, dst)
+
+def action_append(ivle_pth, ivle_www):
+    file = open(ivle_pth, 'a+')
+    file.write(ivle_www + '\n')
+    file.close()
 
 def action_chown_setuid(file, dry):
     """Chowns a file to root, and sets the setuid bit on the file.
