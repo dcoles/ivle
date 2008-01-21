@@ -20,14 +20,30 @@
 # Date: 14/1/2008
 
 import os
+import pwd
 
 import cjson
 
 from common import (util, studpath)
 import conf
 
+trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
+python_path = "/usr/bin/python"                     # Within jail
+console_dir = "/opt/ivle/console"                   # Within jail
+console_path = "/opt/ivle/console/python-console"   # Within jail
+
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
+    jail_path = os.path.join(conf.jail_base, req.username)
+    working_dir = os.path.join("/home", req.username)   # Within jail
+
+    # Get the UID of the logged-in user
+    try:
+        (_,_,uid,_,_,_,_) = pwd.getpwnam(req.username)
+    except KeyError:
+        # The user does not exist. This should have already failed the
+        # previous test.
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
 
     # Set request attributes
     req.content_type = "text/plain"
@@ -45,12 +61,15 @@ def handle(req):
     magic = "xyzzy"
 
     # Start the console server (port, magic)
-    # TODO: Trampoline into the jail, and run it as a background process
-    jail = os.path.join(conf.jail_base, req.username)
-    console_dir = os.path.join(jail, "opt/ivle/console/")
-    console_path = os.path.join(console_dir, "python-console")
-    os.system("cd " + console_dir + "; "
-        + console_path + " " + str(port) + " " + str(magic) + " &")
+    # trampoline usage: tramp uid jail_dir working_dir script_path args
+    # console usage:    python-console port magic
+    # TODO: Cleanup (don't use os.system)
+    # TODO: Pass working_dir as argument, let console cd to it
+    # Use "&" to run as a background process
+    cmd = ' '.join([trampoline_path, str(uid), jail_path, console_dir,
+        python_path, console_path, str(port), str(magic), "&"])
+    #req.write(cmd + '\n')
+    os.system(cmd)
 
     # Return port, magic
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
