@@ -135,7 +135,7 @@ lineQ = Queue.Queue()
 interpThread = PythonRunner(cmdQ, lineQ)
 
 if __name__ == "__main__":
-    # FIXME jail!
     magic = sys.argv[2]
+    interpThread.setDaemon(True)
     interpThread.start()
     web.run(urls, globals())
