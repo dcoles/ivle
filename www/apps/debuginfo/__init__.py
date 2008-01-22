@@ -42,8 +42,10 @@ def handle(req):
         ("ivle_version", conf.ivle_version),
         ("ivle_install_dir", conf.ivle_install_dir),
         ("root_dir", conf.root_dir),
+        ("public_host", conf.public_host),
         ("jail_base", conf.jail_base),
-        ("default_app", conf.default_app),
+        ("default_app", conf.apps.default_app),
+        ("public_app", conf.apps.public_app),
     ])
 
     print_table(req, "Operating System Variables", [
