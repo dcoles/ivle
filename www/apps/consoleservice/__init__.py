@@ -34,6 +34,19 @@ console_path = "/opt/ivle/console/python-console"   # Within jail
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
+    if len(req.path) > 0 and req.path[-1] == os.sep:
+        path = req.path[:-1]
+    else:
+        path = req.path
+    # The path determines which "command" we are receiving
+    if req.path == "start":
+        handle_start(req)
+    elif req.path == "chat":
+        handle_chat(req)
+    else:
+        req.throw_error(req.HTTP_BAD_REQUEST)
+
+def handle_start(req):
     jail_path = os.path.join(conf.jail_base, req.username)
     working_dir = os.path.join("/home", req.username)   # Within jail
 
@@ -73,3 +86,6 @@ def handle(req):
 
     # Return port, magic
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
+
+def handle_chat(req):
+    req.throw_error(req.HTTP_NOT_IMPLEMENTED)

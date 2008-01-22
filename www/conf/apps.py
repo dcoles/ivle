@@ -75,7 +75,7 @@ app_tutorial =     App(dir = "tutorial",
 
 app_server =    App(dir = "server",
                     name = "Server",
-                    requireauth = False,
+                    requireauth = True,
                     hashelp = False)
 
 app_download =  App(dir = "download",

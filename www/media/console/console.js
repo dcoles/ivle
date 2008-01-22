@@ -6,7 +6,7 @@ digest_constant = "hello";
  */
 function start_server()
 {
-    var xhr = ajax_call("consoleservice", "", "", "POST");
+    var xhr = ajax_call("consoleservice", "start", "", "POST");
     var json_text = xhr.responseText;
     return JSON.parse(json_text);
 }
