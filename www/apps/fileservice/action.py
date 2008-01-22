@@ -105,6 +105,14 @@
 #       path:   The path to the file to be updated. Only one file may be
 #               specified.
 #
+# action=svnpublish: Set the "published" flag on a file to True.
+#       path:   The path to the file to be published. Can be specified
+#               multiple times.
+#
+# action=svnunpublish: Set the "published" flag on a file to False.
+#       path:   The path to the file to be unpublished. Can be specified
+#               multiple times.
+#
 # action=svncommit: Commit a file(s) or directory(s) to the repository.
 #       path:   The path to the file or directory to be committed. Can be
 #               specified multiple times. Directories are committed
@@ -430,6 +438,35 @@ def action_svnrevert(req, fields):
     except pysvn.ClientError:
         raise ActionError("One or more files could not be reverted")
 
+def action_svnpublish(req, fields):
+    """Sets svn property "ivle:published" on each file specified.
+
+    Reads fields: 'path'
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, path), paths)
+
+    try:
+        for path in paths:
+            # Note: Property value doesn't matter
+            svnclient.propset("ivle:published", "", path, recurse=False)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be updated")
+
+def action_svnunpublish(req, fields):
+    """Deletes svn property "ivle:published" on each file specified.
+
+    Reads fields: 'path'
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, path), paths)
+
+    try:
+        for path in paths:
+            svnclient.propdel("ivle:published", path, recurse=False)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be updated")
+
 def action_svncommit(req, fields):
     """Performs a "svn commit" to each file specified.
 
@@ -460,5 +497,7 @@ actions_table = {
     "svnadd" : action_svnadd,
     "svnupdate" : action_svnupdate,
     "svnrevert" : action_svnrevert,
+    "svnpublish" : action_svnpublish,
+    "svnunpublish" : action_svnunpublish,
     "svncommit" : action_svncommit,
 }

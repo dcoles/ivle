@@ -60,6 +60,8 @@
 #   - incomplete - a directory doesn't contain a complete entries list
 #   (From pysvn)
 #   If svnstatus is "Missing" then the file has no other attributes.
+#   * published: Boolean. True if the file has ivle:published property in
+#   Subversion.
 #   * isdir: Boolean. True if the file is a directory. Always present unless
 #   svnstatus is "missing".
 #   * size: Number. Size of the file in bytes. Present for non-directory
@@ -263,6 +265,7 @@ def PysvnStatus_to_fileinfo(path, status):
         d["mtime"] = file_stat.st_mtime
         d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
         d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
+        d["published"] = studpath.published(fullpath)
     except OSError:
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d

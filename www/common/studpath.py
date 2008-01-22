@@ -26,8 +26,13 @@
 
 import os
 
+import pysvn
+
 import conf
 from common import util
+
+# Make a Subversion client object (for published)
+svnclient = pysvn.Client()
 
 def url_to_local(urlpath):
     """Given a URL path (part of a URL query string, see below), returns a
@@ -96,6 +101,18 @@ def url_to_jailpaths(urlpath):
 
     return (user, jail, path)
 
+def published(path):
+    """Given a path on the LOCAL file system, determines whether the path has
+    its "ivle:published" property active (in subversion). Returns True
+    or False."""
+    # Read SVN properties for this path
+    try:
+        props = svnclient.propget("ivle:published", path, recurse=False)
+    except pysvn.ClientError:
+        # Not under version control? Then it isn't published.
+        return False
+    return len(props) > 0
+
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
     access req.path. Returns None on authorization success. Raises
@@ -113,4 +130,16 @@ def authorize(req):
 
     (owner, _) = util.split_path(urlpath)
     if req.username != owner:
+        req.throw_error(req.HTTP_FORBIDDEN)
+
+def authorize_public(req):
+    """A different kind of authorization. Rather than making sure the
+    logged-in user owns the file, this checks if the file has been published
+    (ignoring the user). This is for the "public mode" of the serve app.
+
+    Same interface as "authorize" - None on success, HTTP_FORBIDDEN exception
+    raised on failure.
+    """
+    _, path = url_to_local(req.path)
+    if not published(path):
         req.throw_error(req.HTTP_FORBIDDEN)

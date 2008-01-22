@@ -52,10 +52,9 @@ def authorize(req):
     """
     if req.publicmode:
         # Public mode authorization: any user can access any other user's
-        # files, BUT the accessed file needs to have its "published" flag
+        # files, BUT the accessed file needs to have its "ivle:published" flag
         # turned on in the SVN status.
-        # TODO
-        pass
+        studpath.authorize_public(req)
     else:
         # Private mode authorization: standard (only logged in user can access
         # their own files, and can access all of them).
