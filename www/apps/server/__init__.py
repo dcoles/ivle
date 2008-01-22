@@ -45,6 +45,22 @@ def handle(req):
 
     serve_file(req, user, path)
 
+def authorize(req):
+    """Given a request, checks whether req.username is allowed to
+    access req.path. Returns None on authorization success. Raises
+    HTTP_FORBIDDEN on failure.
+    """
+    if req.publicmode:
+        # Public mode authorization: any user can access any other user's
+        # files, BUT the accessed file needs to have its "published" flag
+        # turned on in the SVN status.
+        # TODO
+        pass
+    else:
+        # Private mode authorization: standard (only logged in user can access
+        # their own files, and can access all of them).
+        studpath.authorize(req)
+
 def serve_file(req, owner, filename):
     """Serves a file, using one of three possibilities: interpreting the file,
     serving it directly, or denying it and returning a 403 Forbidden error.
@@ -55,6 +71,8 @@ def serve_file(req, owner, filename):
     owner: Username of the user who owns the file being served.
     filename: Filename in the local file system.
     """
+    # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
+    authorize(req)
 
     # First get the mime type of this file
     # (Note that importing common.util has already initialised mime types)

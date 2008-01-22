@@ -91,6 +91,9 @@ mime_dirlisting = "text/html"
 
 def handle(req):
     """Handler for the File Services application."""
+    # Make sure the logged in user has permission to see this file
+    # FIXME: Still need to authorize subpaths in actions
+    studpath.authorize(req)
 
     # Set request attributes
     req.write_html_head_foot = False     # No HTML

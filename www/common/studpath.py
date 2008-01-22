@@ -21,6 +21,8 @@
 
 # Provides functions for translating URLs into physical locations in the
 # student directories in the local file system.
+# Also performs common authorization, disallowing students from visiting paths
+# they dont own.
 
 import os
 
@@ -93,3 +95,22 @@ def url_to_jailpaths(urlpath):
     path = os.path.join('home', urlpath)
 
     return (user, jail, path)
+
+def authorize(req):
+    """Given a request, checks whether req.username is allowed to
+    access req.path. Returns None on authorization success. Raises
+    HTTP_FORBIDDEN on failure.
+
+    This is for general authorization (assuming not in public mode; this is
+    the standard auth code for fileservice, download and serve).
+    """
+    # TODO: Groups
+    # First normalise the path
+    urlpath = os.path.normpath(req.path)
+    # Now if it begins with ".." or separator, then it's illegal
+    if urlpath.startswith("..") or urlpath.startswith(os.sep):
+        req.throw_error(req.HTTP_FORBIDDEN)
+
+    (owner, _) = util.split_path(urlpath)
+    if req.username != owner:
+        req.throw_error(req.HTTP_FORBIDDEN)

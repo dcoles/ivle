@@ -40,6 +40,9 @@ zip_mimetype = "application/zip"
 def handle(req):
     """Handler for the Download application which serves files for
     download."""
+    # Make sure the logged in user has permission to see this file
+    studpath.authorize(req)
+
     zipmode = False
     zipbasepath = None
     zipfilename = None
