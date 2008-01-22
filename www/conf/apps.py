@@ -4,6 +4,8 @@
 # These should not need to be modified by admins unless new applications are
 # plugged in.
 
+enable_debuginfo = False
+
 # Allow App objects
 # Note: icon is a string of a file basename. The icon files are found in
 # app_icon_dir, defined below.
@@ -104,8 +106,9 @@ app_url = {
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
-    #"debuginfo" : app_debuginfo,
 }
+if enable_debuginfo:
+    app_url["debuginfo"] = app_debuginfo
 
 # List of apps that go in the tabs at the top
 # (The others are hidden unless they are linked to)
