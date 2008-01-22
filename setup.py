@@ -142,6 +142,10 @@ try:
     except:
         ivle_install_dir = "/opt/ivle"
     try:
+        public_host = confmodule.public_host
+    except:
+        public_host = "public.localhost"
+    try:
         jail_base = confmodule.jail_base
     except:
         jail_base = "/home/informatics/jails"
@@ -149,6 +153,7 @@ except ImportError:
     # Just set reasonable defaults
     root_dir = "/ivle"
     ivle_install_dir = "/opt/ivle"
+    public_host = "public.localhost"
     jail_base = "/home/informatics/jails"
 # Always defaults
 allowed_uids = "0"
@@ -262,6 +267,7 @@ Creates www/conf/conf.py and trampoline/conf.h.
 Args are:
     --root_dir
     --ivle_install_dir
+    --public_host
     --jail_base
     --allowed_uids
 As explained in the interactive prompt or conf.py.
@@ -376,7 +382,7 @@ def writelist_pretty(file, list):
         file.write(']\n')
 
 def conf(args):
-    global root_dir, ivle_install_dir, jail_base, allowed_uids
+    global root_dir, ivle_install_dir, jail_base, public_host, allowed_uids
     # Set up some variables
 
     cwd = os.getcwd()
@@ -417,6 +423,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         jail_base = query_user(jail_base,
         """Root directory where the jails (containing user files) are stored
 (on the local file system):""")
+        public_host = query_user(public_host,
+        """Hostname which will cause the server to go into "public mode",
+providing login-free access to student's published work:""")
         allowed_uids = query_user(allowed_uids,
         """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
@@ -432,6 +441,8 @@ a comma-separated list.
             ivle_install_dir = opts['--ivle_install_dir']
         if '--jail_base' in opts:
             jail_base = opts['--jail_base']
+        if '--public_host' in opts:
+            public_host = opts['--public_host']
         if '--allowed_uids' in opts:
             allowed_uids = opts['--allowed_uids']
 
@@ -463,11 +474,19 @@ root_dir = "%s"
 # This directory should contain the "www" and "bin" directories.
 ivle_install_dir = "%s"
 
+# The server goes into "public mode" if the browser sends a request with this
+# host. This is for security reasons - we only serve public student files on a
+# separate domain to the main IVLE site.
+# Public mode does not use cookies, and serves only public content.
+# Private mode (normal mode) requires login, and only serves files relevant to
+# the logged-in user.
+public_host = "%s"
+
 # In the local file system, where are the student/user file spaces located.
 # The user jails are expected to be located immediately in subdirectories of
 # this location.
 jail_base = "%s"
-""" % (root_dir, ivle_install_dir, jail_base))
+""" % (root_dir, ivle_install_dir, public_host, jail_base))
 
         conf.close()
     except IOError, (errno, strerror):

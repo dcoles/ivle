@@ -26,6 +26,7 @@
 import common.util
 import mod_python
 from mod_python import (util, Session)
+import conf
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -51,6 +52,10 @@ class Request:
             Table object representing headers sent by the client.
         headers_out (read, can be written to)
             Table object representing headers to be sent to the client.
+        publicmode (read)
+            Bool. True if the request came for the "public host" as
+            configured in conf.py. Note that public mode requests do not
+            have an app (app is set to None).
 
         status (write)
             Int. Response status number. Use one of the status codes defined
@@ -160,13 +165,24 @@ class Request:
         self.func_write_html_head = write_html_head
         self.headers_written = False
 
+        # Determine if the browser used the public host name to make the
+        # request (in which case we are in "public mode")
+        if req.hostname == conf.public_host:
+            self.publicmode = True
+        else:
+            self.publicmode = False
+
         # Inherit values for the input members
         self.method = req.method
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        (self.app, self.path) = (
-            common.util.split_path(common.util.unmake_path(req.uri)))
+        path = common.util.unmake_path(req.uri)
+        if self.publicmode:
+            self.app = None
+            self.path = path
+        else:
+            (self.app, self.path) = (common.util.split_path(path))
         self.username = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in

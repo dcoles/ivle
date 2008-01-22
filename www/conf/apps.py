@@ -31,6 +31,9 @@ app_icon_dir_small = "media/images/apps/small"
 # Note that if this app requires authentication, the user will first be
 # presented with the login screen.
 default_app = "files"
+# Which application to use for "public host" URLs.
+# (See conf.py)
+public_app = "serve"
 
 # Application definitions
 

@@ -59,6 +59,14 @@ def handler(req):
             # TODO: Nicer 404 message?
             req.throw_error(Request.HTTP_NOT_FOUND)
 
+    # Special handling for public mode - just call public app and get out
+    # NOTE: This will not behave correctly if the public app uses
+    # write_html_head_foot, but "serve" does not.
+    if req.publicmode:
+        app = conf.apps.app_url[conf.apps.public_app]
+        apps.call_app(app.dir, req)
+        return req.OK
+
     # app is the App object for the chosen app
     if req.app is None:
         app = conf.apps.app_url[conf.apps.default_app]
