@@ -440,6 +440,8 @@ def action_svnrevert(req, fields):
 
 def action_svnpublish(req, fields):
     """Sets svn property "ivle:published" on each file specified.
+    Should only be called on directories (only effective on directories
+    anyway).
 
     Reads fields: 'path'
     """

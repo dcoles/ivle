@@ -134,12 +134,15 @@ def authorize(req):
 
 def authorize_public(req):
     """A different kind of authorization. Rather than making sure the
-    logged-in user owns the file, this checks if the file has been published
-    (ignoring the user). This is for the "public mode" of the serve app.
+    logged-in user owns the file, this checks if the file is in a published
+    directory.
+
+    This is for the "public mode" of the serve app.
 
     Same interface as "authorize" - None on success, HTTP_FORBIDDEN exception
     raised on failure.
     """
     _, path = url_to_local(req.path)
-    if not published(path):
+    dirpath, _ = os.path.split(path)
+    if not published(dirpath):
         req.throw_error(req.HTTP_FORBIDDEN)

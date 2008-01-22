@@ -254,6 +254,8 @@ def PysvnStatus_to_fileinfo(path, status):
         if stat.S_ISDIR(file_stat.st_mode):
             d["isdir"] = True
             d["type_nice"] = util.nice_filetype("/")
+            # Only directories can be published
+            d["published"] = studpath.published(fullpath)
         else:
             d["isdir"] = False
             d["size"] = file_stat.st_size
@@ -265,7 +267,6 @@ def PysvnStatus_to_fileinfo(path, status):
         d["mtime"] = file_stat.st_mtime
         d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
         d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
-        d["published"] = studpath.published(fullpath)
     except OSError:
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d
