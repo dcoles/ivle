@@ -43,16 +43,6 @@
  */
 #include "conf.h"
 
-/* Argument names */
-#define ARG_UID         1
-#define ARG_JAILPATH    2
-#define ARG_CWD         3
-#define ARG_PROG        4
-
-#define MIN_ARGC        5
-
-#define UID_ROOT        0
-
 /* Returns TRUE if the given uid is allowed to execute trampoline.
  * Only root or the web server should be allowed to execute.
  * This is determined by the whitelist allowed_uids in conf.h.
@@ -73,10 +63,65 @@ int uid_allowed(int uid)
     return 0;
 }
 
+/* Turn the process into a daemon using the standard
+ * 2-fork technique.
+ */
+void daemonize(void)
+{
+    pid_t pid, sid;
+
+    /* already a daemon */
+    if ( getppid() == 1 ) return;
+
+    /* Fork off the parent process */
+    pid = fork();
+    if (pid < 0) {
+        exit(1);
+    }
+    /* If we got a good PID, then we can exit the parent process. */
+    if (pid > 0) {
+        exit(0);
+    }
+
+    /* At this point we are executing as the child process */
+
+    /* Change the file mode mask */
+    umask(0);
+
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0) {
+        exit(1);
+    }
+
+    /* Change the current working directory.  This prevents the current
+       directory from being locked; hence not being able to remove it. */
+    if ((chdir("/")) < 0) {
+        exit(1);
+    }
+
+    /* Redirect standard files to /dev/null */
+    freopen( "/dev/null", "r", stdin);
+    freopen( "/dev/null", "w", stdout);
+    freopen( "/dev/null", "w", stderr);
+}
+
+static void usage(const char* nm)
+{
+    fprintf(stderr,
+        "usage: %s [-d] <uid> <jail> <cwd> <program> [args...]\n", nm);
+    exit(1);
+}
+
 int main(int argc, char* const argv[])
 {
     char* jailpath;
+    char* work_dir;
+    char* prog;
+    char* const * args;
     int uid;
+    int arg_num = 1;
+    int daemon_mode = 0;
 
     /* Disallow execution from all users but the whitelisted ones, and root */
     if (!uid_allowed(getuid()))
@@ -86,16 +131,28 @@ int main(int argc, char* const argv[])
     }
 
     /* Args check and usage */
-    if (argc < MIN_ARGC)
+    if (argc < 5)
     {
-        fprintf(stderr, "usage: %s <uid> <jail> <cwd> <program> [args...]\n",
-            argv[0]);
-        exit(EXIT_FAILURE);
+        usage(argv[0]);
     }
 
+    if (strcmp(argv[arg_num], "-d") == 0)
+    {
+        if (argc < 6)
+        {
+            usage(argv[0]);
+        }
+        daemon_mode = 1;
+        arg_num++;
+    }
+    uid = atoi(argv[arg_num++]);
+    jailpath = argv[arg_num++];
+    work_dir = argv[arg_num++];
+    prog = argv[arg_num];
+    args = argv + arg_num;
+
     /* Disallow suiding to the root user */
-    uid = atoi(argv[ARG_UID]);
-    if (uid == UID_ROOT)
+    if (uid == 0)
     {
         fprintf(stderr, "cannot set up a jail as root\n");
         exit(1);
@@ -107,7 +164,6 @@ int main(int argc, char* const argv[])
      * Not contain "/.."
      * Begin with jail_base
      */
-    jailpath = argv[ARG_JAILPATH];
     if (strlen(jailpath) < 1 || jailpath[0] != '/'
             || strstr(jailpath, "/..")
             || strncmp(jailpath, jail_base, strlen(jail_base)))
@@ -126,7 +182,7 @@ int main(int argc, char* const argv[])
     }
 
     /* chdir into the specified working directory */
-    if (chdir(argv[ARG_CWD]))
+    if (chdir(work_dir))
     {
         perror("could not chdir");
         exit(1);
@@ -141,13 +197,19 @@ int main(int argc, char* const argv[])
         exit(1);
     }
 
+    if (daemon_mode)
+    {
+        daemonize();
+    }
+
     /* exec (replace this process with the a new instance of the target
      * program). Pass along all the arguments.
      * Note that for script execution, the "program" will be the interpreter,
      * and the first argument will be the script. */
-    execv(argv[ARG_PROG], argv + ARG_PROG);
+    execv(prog, args);
 
+    /* XXX if (daemon_mode) use syslog? */
     /* nb exec won't return unless there was an error */
     perror("could not exec");
-    return EXIT_FAILURE;
+    return 1;
 }
