@@ -28,7 +28,7 @@ function historyCurr()
 function historyAdd(text)
 {
     this.items[this.items.length] = text;
-    this.cursor = this.items.length
+    this.cursor = this.items.length;
 }
 
 function historyShow()
@@ -93,7 +93,7 @@ function make_query_string(pagename, args)
             {
                 qs += "&";
             }
-            qs += encodeURI(key) + "=" + encodeURI(val);
+            qs += encodeURIComponent(key) + "=" + encodeURIComponent(val);
         }
     }
     return qs;
@@ -120,7 +120,7 @@ function make_post_body(args)
             {
                 qs += "&";
             }
-            qs += encodeURI(key) + "=" + encodeURI(val);
+            qs += encodeURIComponent(key) + "=" + encodeURIComponent(val);
         }
     }
     return qs;
@@ -135,7 +135,7 @@ function enter_line()
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(make_post_body({"digest":digest, "text":inp.value}))
     var res = JSON.parse(xmlhttp.responseText);
-    var output = document.getElementById("output")
+    var output = document.getElementById("output");
     {
         var pre = document.createElement("pre");
         pre.setAttribute("class", "inputMsg");

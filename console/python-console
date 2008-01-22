@@ -37,20 +37,17 @@ class PythonRunner(Thread):
         Thread.__init__(self)
 
     def run(self):
-        globs = {}
-        globs['__builtins__'] = globals()['__builtins__']
-        locls = {}
+        self.init_state()
         compiler = codeop.CommandCompiler()
-        curr_cmd = ''
 
         while True:
             l = self.lineQ.get()
-            if curr_cmd == '':
-                curr_cmd = l
+            if self.curr_cmd == '':
+                self.curr_cmd = l
             else:
-                curr_cmd = curr_cmd + '\n' + l
+                self.curr_cmd = self.curr_cmd + '\n' + l
             try:
-                cmd = compiler(curr_cmd)
+                cmd = compiler(self.curr_cmd)
                 if cmd is None:
                     # The command was incomplete,
                     # so send back a None, so the
@@ -72,6 +69,12 @@ class PythonRunner(Thread):
                 signal.alarm(0)
                 self.cmdQ.put({"exc":str(exc)})
                 curr_cmd = ''
+
+    def init_state(self):
+        self.globs = {}
+        self.globs['__builtins__'] = globals()['__builtins__']
+        self.locls = {}
+        self.curr_cmd = ''
 
 urls = (
     '/',            'index',
