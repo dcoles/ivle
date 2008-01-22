@@ -334,17 +334,25 @@ def fixup_environ(req):
 
     # Remove HTTP_COOKIE. It is a security risk to have students see the IVLE
     # cookie of their visitors.
-    del env['HTTP_COOKIE']
+    try:
+        del env['HTTP_COOKIE']
+    except: pass
 
     # Remove DOCUMENT_ROOT and SCRIPT_FILENAME. Not part of CGI spec and
     # exposes unnecessary details about server.
-    del env['DOCUMENT_ROOT']
-    del env['SCRIPT_FILENAME']
+    try:
+        del env['DOCUMENT_ROOT']
+    except: pass
+    try:
+        del env['SCRIPT_FILENAME']
+    except: pass
 
     # Remove PATH. The PATH here is the path on the server machine; not useful
     # inside the jail. It may be a good idea to add another path, reflecting
     # the inside of the jail, but not done at this stage.
-    del env['PATH']
+    try:
+        del env['PATH']
+    except: pass
 
     # Remove SCRIPT_FILENAME. Not part of CGI spec (see SCRIPT_NAME).
 
