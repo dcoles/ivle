@@ -37,5 +37,17 @@ def handle(req):
         "media/common/util.js",
         "media/console/console.js",
     ]
+    req.styles = [
+        "media/console/console.css",
+    ]
 
-    req.write('<div id="consolebody"></div>\n')
+    req.write("""<div id="consolebody">
+  <div id='output'>
+  </div>
+  <div id='input'>
+   <div id='inputArea'>
+   </div>
+   <label id='prompt'>&gt;&gt;&gt;&nbsp;</label><input id='inputText'
+        type='text' size='80' onkeypress='catch_input(event.keyCode)'/>
+  </div>
+</div>\n""")

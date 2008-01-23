@@ -101,28 +101,32 @@ def handle_chat(req):
         host = fields.getfirst("host").value
         port = fields.getfirst("port").value
         digest = fields.getfirst("digest").value
-        text = fields.getfirst("text").value
     except AttributeError:
         # Any of the getfirsts returned None
         req.throw_error(req.HTTP_BAD_REQUEST)
+    # If text is None, it was probably just an empty line
+    try:
+        text = fields.getfirst("text").value
+    except AttributeError:
+        text = ""
 
     # Open an HTTP connection
     url = ("http://" + urllib.quote(host) + ":" + urllib.quote(port)
             + "/chat");
     body = ("digest=" + urllib.quote(digest)
-            + "&text=" + urllib.quote(text) + '\n\n')
+            + "&text=" + urllib.quote(text))
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     try:
         conn = httplib.HTTPConnection(host, port)
-        conn.request("POST", url, body, headers)
-
-        response = conn.getresponse()
-        
-        req.status = response.status
-        # NOTE: Ignoring arbitrary headers returned by the server
-        # Probably not necessary to proxy them
-        req.content_type = response.getheader("Content-Type", "text/plain")
-        req.write(response.read())
-        conn.close()
     except:
         req.throw_error(req.HTTP_BAD_REQUEST)
+    conn.request("POST", url, body, headers)
+
+    response = conn.getresponse()
+    
+    req.status = response.status
+    # NOTE: Ignoring arbitrary headers returned by the server
+    # Probably not necessary to proxy them
+    req.content_type = response.getheader("Content-Type", "text/plain")
+    req.write(response.read())
+    conn.close()
