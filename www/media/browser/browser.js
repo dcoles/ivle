@@ -86,6 +86,8 @@ default_svn_nice = "Unknown status";
 
 svn_icons_path = "media/images/svn";
 
+published_icon = "media/images/interface/published.png";
+
 /* List of MIME types considered "executable" by the system.
  * Executable files offer a "run" link, implying that the "serve"
  * application can interpret them.

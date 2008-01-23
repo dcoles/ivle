@@ -92,6 +92,18 @@ function action_revert(files)
     return false;
 }
 
+function action_publish(files)
+{
+    do_action("svnpublish", current_path, {"path":files});
+    return false;
+}
+
+function action_unpublish(files)
+{
+    do_action("svnunpublish", current_path, {"path":files});
+    return false;
+}
+
 function action_commit(files)
 {
     /* Get a commit log from the user */
@@ -149,17 +161,36 @@ function update_sidepanel(total_file_size_sel)
         sidepanel.appendChild(p);
         p = dom_make_text_elem("p", filetype_nice);
         sidepanel.appendChild(p);
+        var mini_icons = document.createElement("p");
+        sidepanel.appendChild(mini_icons);
+        var icon;
         if (under_subversion)
         {
-            p = document.createElement("p");
-            var icon = svnstatus_to_icon(file.svnstatus);
+            icon = svnstatus_to_icon(file.svnstatus);
             if (icon)
-                p.appendChild(dom_make_img(icon, icon_size, icon_size,
+                mini_icons.appendChild(dom_make_img(icon, icon_size, icon_size,
                     svnstatus_to_string(file.svnstatus)));
-            sidepanel.appendChild(p);
             p = dom_make_text_elem("p", svnstatus_to_string(file.svnstatus));
             sidepanel.appendChild(p);
         }
+        if ("published" in file && file.published)
+        {
+            icon = make_path(path_join(published_icon));
+            if (icon)
+            {
+                if (mini_icons.childNodes.length > 0)
+                    mini_icons.appendChild(document.createTextNode(" "));
+                mini_icons.appendChild(dom_make_img(icon, icon_size, icon_size,
+                    "Published directory"));
+            }
+            p = dom_make_text_elem("p", "Published directory");
+            p.setAttribute("title",
+                "Anybody on the web can view the files in this directory.");
+            sidepanel.appendChild(p);
+        }
+        /* If we never wrote any mini-icons, remove this element */
+        if (mini_icons.childNodes.length == 0)
+            sidepanel.removeChild(mini_icons);
         if ("size" in file)
         {
             p = dom_make_text_elem("p", "Size: " + nice_filesize(file.size));
@@ -189,6 +220,31 @@ function update_sidepanel(total_file_size_sel)
 
     p = dom_make_text_elem("h3", "Actions");
     sidepanel.appendChild(p);
+
+    if (file.isdir)
+    {
+        /* Publish/unpublish */
+        if (selected_files.length == 0)
+            path = ".";
+        else
+            path = filename;
+        if ("published" in file && file.published)
+        {
+            p = dom_make_link_elem("p", "Unpublish",
+                "Make it so this directory cannot be seen by anyone but you",
+                null,
+                "return action_unpublish(" + repr(path) + ")");
+            sidepanel.appendChild(p);
+        }
+        else
+        {
+            p = dom_make_link_elem("p", "Publish",
+                "Make it so this directory can be seen by anyone on the web",
+                null,
+                "return action_publish(" + repr(path) + ")");
+            sidepanel.appendChild(p);
+        }
+    }
 
     if (selected_files.length <= 1)
     {
@@ -241,10 +297,13 @@ function update_sidepanel(total_file_size_sel)
         if (p)
             sidepanel.appendChild(p);
 
-        p = dom_make_link_elem("p", "Rename",
-            "Change the name of this file", null,
-            "return action_rename(" + repr(filename) + ")");
-        sidepanel.appendChild(p);
+        if (selected_files.length > 0)
+        {   /* Can't rename if we're in it */
+            p = dom_make_link_elem("p", "Rename",
+                "Change the name of this file", null,
+                "return action_rename(" + repr(filename) + ")");
+            sidepanel.appendChild(p);
+        }
     }
     else
     {
@@ -259,18 +318,21 @@ function update_sidepanel(total_file_size_sel)
     }
 
     /* Common actions */
-    p = dom_make_link_elem("p", "Delete",
-        "Delete the selected files", null,
-        "return action_remove(selected_files)");
-    sidepanel.appendChild(p);
-    p = dom_make_link_elem("p", "Cut",
-        "Prepare to move the selected files to another directory", null,
-        "return action_cut(selected_files)");
-    sidepanel.appendChild(p);
-    p = dom_make_link_elem("p", "Copy",
-        "Prepare to copy the selected files to another directory", null,
-        "return action_copy(selected_files)");
-    sidepanel.appendChild(p);
+    if (selected_files.length > 0)
+    {
+        p = dom_make_link_elem("p", "Delete",
+            "Delete the selected files", null,
+            "return action_remove(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Cut",
+            "Prepare to move the selected files to another directory", null,
+            "return action_cut(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Copy",
+            "Prepare to copy the selected files to another directory", null,
+            "return action_copy(selected_files)");
+        sidepanel.appendChild(p);
+    }
     p = dom_make_link_elem("p", "Paste",
         "Paste the copied or cut files to the current directory", null,
         "return action_paste()");
