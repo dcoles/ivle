@@ -94,6 +94,8 @@ def handle_chat(req):
     # host, port: Host and port where the console server apparently lives
     # digest, text: Fields to pass along to the console server
     # It simply acts as a proxy to the console server
+    if req.method != "POST":
+        req.throw_error(req.HTTP_BAD_REQUEST)
     fields = req.get_fieldstorage()
     try:
         host = fields.getfirst("host").value
