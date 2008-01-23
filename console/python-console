@@ -119,6 +119,7 @@ class chat:
         # Authenticate
         digest = md5.new(inp.text + magic).digest().encode('hex')
         if inp.digest != digest:
+            web.output("401 Unauthorized")
             web.ctx.status = '401 Unauthorized'
             return
 
