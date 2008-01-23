@@ -1,4 +1,7 @@
 
+import sys
+sys.path.append('../../www/apps/tutorial/test/')
+
 from parse_tute import *
 
 def print_results((name, results)):
@@ -10,8 +13,11 @@ def print_results((name, results)):
             print "  " + test_result
     print 
 
-problem_suite = parse_tutorial_file('all_input_text.xml')
-print_results(problem_suite.run_tests("all_input.py"))
+for i in range(1, len(sys.argv)):
+    basename = sys.argv[i]
+    xmlfile = basename + '_text.xml'
+    pyfile = basename + '.py'
 
-problem_suite = parse_tutorial_file('fib_text.xml')
-print_results(problem_suite.run_tests("fib.py"))
+    print "Testing:", basename
+    problem_suite = parse_tutorial_file(xmlfile)
+    print_results(problem_suite.run_tests(pyfile))
