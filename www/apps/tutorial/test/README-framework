@@ -1,0 +1,53 @@
+This file explains the parts that make up the test framework as well as how they interact.
+
+----------------
+parse_tute.py
+----------------
+This file provides the function parse_tutorial_file which takes an xml specification of a tutorial problem file and returns a test suite object for that problem. It throws a ParseException if there was a problem parsing the file.
+
+
+----------------
+TestFramework.py
+----------------
+
+---TestSuite---
+This class simply contains all the test cases and has a method (run_tests) to run the test cases and collate all the results.
+
+---TestCase---
+This class contains sets of tests which contain the same inputs. It can optionally test an entire script or an individual function (these different types should be subclassed from a common base class). 
+
+When given an attempt file (with the run method) this class runs both the solution and the attempt file and passes the outputs to its test parts. It then colates and returns the results.
+
+The inputs may be stdin (string), files (filename and file data pairs), or global variables (name-value pairs). Additionally, function tests have arguments with optional names. The files are put into a TestFilespace.
+
+The method _initialise_global_space determines how the global space is modified before running the code to be tested. Currently it simply defines the functions file, open and raw_input (but doesn't overwrite the definitions in __builtins__.
+
+---TestCasePart---
+This implements a comparision test between the solution output and the attemp output. The run method does all the comparisons, then returns the result.
+
+Currently returns the empty string if the test passes, or else an error message.
+
+This class contains a method validate_functions, which evaluates all comparison and normalisation function, and ensures they are valid. It must be called after the include code is available in the testsuite, but before the tests are run.
+
+---TestFilespace---
+This class is used by the test framework by replacing the user's file and open methods with the openfile method of an instance of this class.
+
+The core of this class is a dictionary that maps filenames (strings) to file data (also strings). 
+
+When a file is opened (with the openfile method), a TestStringIO object is created, which attempts to emulate the all the read/write/append modes of fopen. This has not been thoroughly tested, but a few tests are present in filespace_test.py.
+
+Currently, a file cannot be opened more than once without closing it. Removing this restriction is not difficult, but then the actual effect of file operations becomes ambiguous. Simplest way would be to not tracked opened files which are read only.
+
+
+---TestStringIO---
+This class acts like StringIO objects, but raise an error if a file operation is not allowed with the current mode. The flush method writes the modified contents back to the filespace. The close method also flushes the current content, then tells the filespace it is no longer open.
+
+
+
+To change the format of the results, change:
+	TestCasePart.run
+	TestCase.run
+	TestSuite.run
+
+To change how the global space is initialised, change:
+	TestCase._initialise_global_space

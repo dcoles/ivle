@@ -1,0 +1,31 @@
+These files are several examples that may be run by the test framework.
+
+------------------
+all_input_text.xml
+all_input.py
+------------------
+An xml spec for a problem which requires reading various input sources and a possible attempt at the problem.
+
+------------------
+fib_text.xml
+fib.py
+------------------
+An xml spec for a problem which requires writing a function to calculate fibonnaci numbers, and a slightly incorrect implementation.
+
+--------
+tests.py
+--------
+A python script which runs the all_input and fib examples through the test framework.
+
+---------
+hack_1.py
+---------
+An example script that can be used to pass any test case which tests the output of a script (not functoins).
+
+-----------------
+filespace_test.py
+file_test.py
+-----------------
+filespace_test contains a script which to test the TestFilespace class. It does this by executing file_test, which performs various file operations inside the class.
+
+Currently, the output is verified by inspection. I found the idle implementation of various modes is not comppletely robust, making proper verification harder. Probably the best is to actually write a C program and use fopen.

@@ -68,11 +68,13 @@ f.write("File for testing errors\n")
 f.close()
 
 print "Writing to read only files"
+f = file("file_4.txt")
 try:
-    file("file_4.txt").write("a")
+    f.write("a")
     print "Test failed"
 except Exception, e:
     print e
+f.close()
 
 print
 print "Reading non-existant files"
@@ -84,16 +86,20 @@ except Exception, e:
 
 print
 print "Reading form write only files"
+f = file("file_4.txt",'w')
 try:
-    file("file_4.txt",'w').read()
+    f.read()
     print "Test failed"
 except Exception, e:
     print e
+f.close()
 
 print
 print "Reading form append only files"
+f = file("file_4.txt",'a')
 try:
-    file("file_4.txt",'a').read()
+    f.read()
     print "Test failed"
 except Exception, e:
     print e
+f.close()
