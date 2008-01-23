@@ -1,0 +1,34 @@
+<problem name = "Fibonacci numbers">
+    <solution>
+<![CDATA[
+def fib(n):
+  import numpy
+  return int((numpy.matrix([[0, 1], [1, 1]], dtype='object')**(n-1))[1,1])
+]]>
+    </solution>
+    <case name="Low n" function="fib">
+        <arg value="10" />
+	<function desc="Match">int</function>
+    </case>
+    <case name="First number" function="fib">
+        <arg value="1" />
+	<function desc="Match">int</function>
+    </case>
+    <case name="Zeroth number" function="fib">
+	 <file name="patch.py">
+<![CDATA[
+fib_zero = 0 
+]]>
+	</file>
+        <arg value="0" />
+	<function desc="Match">int</function>
+    </case>
+    <case name="High number" function="fib">
+        <arg value="30" />
+	<function desc="Match">int</function>
+    </case>
+    <case name="Very high number" function="fib">
+        <arg value="1000" />
+	<function desc="Match">int</function>
+    </case>
+</problem>

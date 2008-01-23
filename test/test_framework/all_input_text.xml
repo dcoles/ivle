@@ -1,0 +1,58 @@
+<problem name = "Test all IO">
+    <include>
+        <!-- Here you can place any Python functions to use for normalisation.
+             Note: "id" will be in our standard test functions lib.
+          -->
+<![CDATA[
+def id(x):
+    return x
+]]>
+    </include>
+    <solution>
+<![CDATA[
+# Sample solution, used to generate test output
+input1 = raw_input()
+input2 = file('input.txt').read()
+input3 = foo
+
+print input3
+
+print input2
+
+f = file('output.txt','w')
+f.write(input1)
+f.close()
+]]>
+    </solution>
+    <!-- Alternatively, <solution src="all_input_test_soln.py" /> -->
+    <case>
+        <!-- Specify input -->
+        <stdin>This is Standard Input</stdin>
+        <file name='input.txt'>
+            File Input
+        </file>
+        <var name="foo" value="'Variable Input'" />
+
+        <!-- Functions test varying levels of compliance with the spec -->
+        <!-- 'default="match"' means exactly match any unlisted files.
+              (The default behaviour)
+             'default="ignore"' means ignore any unlisted files.
+          -->
+        <!-- Match stdout case insensitive, output.txt match exactly,
+             and ignore other files. -->
+        <function desc="Match case insensitive and ignore other files"
+            default="ignore">
+            <stdout>str.lower</stdout>
+            <!-- 'type="norm"' treats the function as a normalisation
+                 function (the default behaviour).
+                 'type="check"' treats it as a 2-argument check. -->
+            <file name="output.txt" type="norm">str.lower</file>
+    	</function>
+	<function desc="Match expected files" default="ignore">
+		<stdout/>
+		<file name="output.txt"/>
+	</function>
+        <!-- Match all files exactly, even those not listed. -->
+        <function desc="Match output, no unexpected files allowed" />
+    </case>
+</problem>
