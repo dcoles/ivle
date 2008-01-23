@@ -1,12 +1,12 @@
 #output {
-    border: solid blue 1pt;
+    /*border: solid black 1pt;*/
     height: 24em;
     overflow: scroll;
     margin-bottom: 4pt;
     padding: 4pt;
 }
 #input {
-    border: solid green 1pt;
+    /*border: solid green 1pt;*/
 }
 #prompt {
     font-family: monospace;
