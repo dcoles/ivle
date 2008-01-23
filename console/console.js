@@ -73,7 +73,6 @@ var hist = new History();
 
 function make_post_body(args)
 {
-    var first = true;
     var qs = '';
     for (key in args)
     {
@@ -85,11 +84,7 @@ function make_post_body(args)
         var i;
         for (i=0; i<vals.length; i++)
         {
-            if (first)
-            {
-                first = false;
-            }
-            else
+            if (i > 0)
             {
                 qs += "&";
             }
