@@ -21,6 +21,8 @@
 
 import os
 import pwd
+import httplib
+import urllib
 
 import cjson
 
@@ -88,4 +90,37 @@ def handle_start(req):
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
 
 def handle_chat(req):
-    req.throw_error(req.HTTP_NOT_IMPLEMENTED)
+    # The request *should* have the following four fields:
+    # host, port: Host and port where the console server apparently lives
+    # digest, text: Fields to pass along to the console server
+    # It simply acts as a proxy to the console server
+    fields = req.get_fieldstorage()
+    try:
+        host = fields.getfirst("host").value
+        port = fields.getfirst("port").value
+        digest = fields.getfirst("digest").value
+        text = fields.getfirst("text").value
+    except AttributeError:
+        # Any of the getfirsts returned None
+        req.throw_error(req.HTTP_BAD_REQUEST)
+
+    # Open an HTTP connection
+    url = ("http://" + urllib.quote(host) + ":" + urllib.quote(port)
+            + "/chat");
+    body = ("digest=" + urllib.quote(digest)
+            + "&text=" + urllib.quote(text) + '\n\n')
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    try:
+        conn = httplib.HTTPConnection(host, port)
+        conn.request("POST", url, body, headers)
+
+        response = conn.getresponse()
+        
+        req.status = response.status
+        # NOTE: Ignoring arbitrary headers returned by the server
+        # Probably not necessary to proxy them
+        req.content_type = response.getheader("Content-Type", "text/plain")
+        req.write(response.read())
+        conn.close()
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST)
