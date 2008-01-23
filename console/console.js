@@ -71,34 +71,6 @@ function History()
 
 var hist = new History();
 
-function make_query_string(pagename, args)
-{
-    var first = true;
-    var qs = pagename;
-    for (key in args)
-    {
-        vals = args[key];
-        // vals can be an array, to make multiple args with the same name
-        // To handle this, make non-array objects into an array, then loop
-        if (!(vals instanceof Array))
-            vals = [vals];
-        for each (val in vals)
-        {
-            if (first)
-            {
-                qs += "?";
-                first = false;
-            }
-            else
-            {
-                qs += "&";
-            }
-            qs += encodeURIComponent(key) + "=" + encodeURIComponent(val);
-        }
-    }
-    return qs;
-}
-
 function make_post_body(args)
 {
     var first = true;
@@ -110,7 +82,8 @@ function make_post_body(args)
         // To handle this, make non-array objects into an array, then loop
         if (!(vals instanceof Array))
             vals = [vals];
-        for each (val in vals)
+        var i;
+        for (i=0; i<vals.length; i++)
         {
             if (first)
             {
@@ -120,7 +93,7 @@ function make_post_body(args)
             {
                 qs += "&";
             }
-            qs += encodeURIComponent(key) + "=" + encodeURIComponent(val);
+            qs += encodeURIComponent(key) + "=" + encodeURIComponent(vals[i]);
         }
     }
     return qs;
