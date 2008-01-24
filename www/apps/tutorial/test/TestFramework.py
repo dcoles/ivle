@@ -507,7 +507,7 @@ class TestSuite:
         problem_dict['cases'] = test_case_results
         return problem_dict
 
-    def get_name():
+    def get_name(self):
         return self._name
 
 class TestFilespace:
