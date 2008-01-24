@@ -149,12 +149,17 @@ try:
         jail_base = confmodule.jail_base
     except:
         jail_base = "/home/informatics/jails"
+    try:
+        subjects_base = confmodule.subjects_base
+    except:
+        subjects_base = "/home/informatics/subjects"
 except ImportError:
     # Just set reasonable defaults
     root_dir = "/ivle"
     ivle_install_dir = "/opt/ivle"
     public_host = "public.localhost"
     jail_base = "/home/informatics/jails"
+    subjects_base = "/home/informatics/subjects"
 # Always defaults
 allowed_uids = "0"
 
@@ -269,6 +274,7 @@ Args are:
     --ivle_install_dir
     --public_host
     --jail_base
+    --subjects_base
     --allowed_uids
 As explained in the interactive prompt or conf.py.
 """
@@ -382,7 +388,8 @@ def writelist_pretty(file, list):
         file.write(']\n')
 
 def conf(args):
-    global root_dir, ivle_install_dir, jail_base, public_host, allowed_uids
+    global root_dir, ivle_install_dir, jail_base, subjects_base
+    global public_host, allowed_uids
     # Set up some variables
 
     cwd = os.getcwd()
@@ -423,6 +430,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         jail_base = query_user(jail_base,
         """Root directory where the jails (containing user files) are stored
 (on the local file system):""")
+        subjects_base = query_user(subjects_base,
+        """Root directory where the subject directories (containing worksheets
+and other per-subject files) are stored (on the local file system):""")
         public_host = query_user(public_host,
         """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""")
@@ -441,6 +451,8 @@ a comma-separated list.
             ivle_install_dir = opts['--ivle_install_dir']
         if '--jail_base' in opts:
             jail_base = opts['--jail_base']
+        if '--subjects_base' in opts:
+            jail_base = opts['--subjects_base']
         if '--public_host' in opts:
             public_host = opts['--public_host']
         if '--allowed_uids' in opts:
@@ -486,7 +498,12 @@ public_host = "%s"
 # The user jails are expected to be located immediately in subdirectories of
 # this location.
 jail_base = "%s"
-""" % (root_dir, ivle_install_dir, public_host, jail_base))
+
+# In the local file system, where are the per-subject file spaces located.
+# The individual subject directories are expected to be located immediately
+# in subdirectories of this location.
+subjects_base = "%s"
+""" % (root_dir, ivle_install_dir, public_host, jail_base, subjects_base))
 
         conf.close()
     except IOError, (errno, strerror):
