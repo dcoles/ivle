@@ -1,0 +1,257 @@
+\documentstyle[12pt]{article}
+
+\title{Informatics Tutorial System}
+\author{Dilshan Angampitiya}	
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Representing arguments to student programs}
+A student's program must be able to accept arguments and tutorial system must be able to test the program for a wide range of arguments. For the situation where the program is simply a function, providing arguments are simple as they correspond to the arguments of the function. Below are several schemes for providing arguments to more general scripts.
+
+\subsection{Initializing the environment}
+A method of initializing the environment with variables is provided, that is separate to the student's program. The student's program can then assume access to the variables given in the initialization section. There are several methods in which to specify the initialization, but there are some general advantages and disadvantages:
+
+\paragraph{Advantages}
+\begin{itemize}
+\item The initialization section can also be python. Hence the complete program is just the initialization script concatenated with the student's script. 
+\item The data required/provided is clear and self-documented. Little or no explanation of the initialized variables should be required.
+\end{itemize}
+
+\paragraph{Disadvantages}
+\begin{itemize}
+\item Constrains the names of the variables. This doesn't change the way the program is written, but might give students a distorted idea on the importance of variable names
+\end{itemize}
+
+\subsubsection{General script}
+The initialization is a general python script.
+
+Example:
+\paragraph{Initialization}
+\begin{verbatim}
+name="Bob"
+n=3
+\end{verbatim} 
+\paragraph{Program}
+\begin{verbatim}
+for i in range(n):
+    print "Hello %s" %name
+\end{verbatim}
+
+\paragraph{Advantages}
+\begin{itemize}
+\item Flexibility in how variables are initialized.
+\item No conceptual difference for students in how the initialization section is handled.
+\end{itemize}
+
+\paragraph{Disadvantages}
+\begin{itemize}
+\item Allows the initialization section to be entire programs in themselves, which may confuse students.
+\item Students may not be clear that the initialization section is not submitted.
+\item Students may not be clear on which parts of the initialization script they may edit while maintaining the correctness of their program.
+\item As a consequence of the above, a student can have an initialization + program set that generates the required output, but is considered wrong by the testing unit. For example, if the student replaced all instances of \texttt{name} in the example with \texttt{foo}.
+\end{itemize}
+
+The last condition could be checked for during testing, and the student notified. For example, if they used undefined variables or if they have not made use of the required variables.
+
+\subsubsection{Name, value pairs}
+The initialization section consists of a provided list of variable names. Each variable name has an editable value which can be any python expression. Initially it shows a default value.
+
+\paragraph{Initialization} \texttt{ }
+\newline
+name: \texttt{"Bob"}
+\newline
+n: \texttt{3}
+\paragraph{Program}
+\begin{verbatim}
+for i in range(n):
+    print "Hello %s" %name
+\end{verbatim}
+
+\paragraph{Advantages}
+\begin{itemize}
+\item Makes it simpler for students to understand how to edit the initialization to test their program.
+\item Works easily from an implementation poit of view (\texttt{execfile} allow the caller to specify the global variables).
+\end{itemize}
+
+\paragraph{Disadvantages}
+\begin{itemize}
+\item Adds an extra facet to the program which doesn't exist when normally running python.
+\item Complicates the implementation of the interface.
+\end{itemize}
+
+\subsection{Provide a standard input}
+A standard input for the program is provided, which the student may edit for testing. The student's program reads the standard input through the normal python interfaces for stdio. Although the program is more complex in this example, the input parsing lines may be provided to the students if it detracts from the main purpose of the exercise. This is especially true in the first few weeks. 
+
+\paragraph{Input}
+\begin{verbatim}
+Bob
+3
+\end{verbatim} 
+\paragraph{Program}
+\begin{verbatim}
+name = raw_input()
+n = int(raw_input())
+for i in range(n):
+    print "Hello %s" %name\end{verbatim}
+\paragraph{Advantages}
+\begin{itemize}
+\item Works exactly like stdio usually works when it is not read in from the terminal.
+\item Doesn't constrain the student's choice of variable names.
+\item Handles arbitrary input more naturally.
+\end{itemize}
+
+\paragraph{Disadvantages}
+\begin{itemize}
+\item Might confuse students as functions like \texttt{raw\_input} might behave slightly differently in the console (by prompting user for input).
+\item Forces student to parse the input themselves.\
+\item Actual program is more complicated than when simple variable assignment was used.
+\item Arguments to \texttt{raw\_input} get written to stdout, which can make analysis of the output difficult. Overcome this by re-writing \texttt{raw\_input}?
+\end{itemize}
+
+\section{Test case types} \label{sec:testtypes}
+There are several distinct types of programs that will need to be tested:
+
+\subsection{Contents of stdout from running a script} \label{sec:stdoutscript}
+When running a complete script, especially before students know functions, it is common to output a result to stdout. 
+
+\paragraph{Implementation} Stdout of a script can be captured by redirecting \texttt{sys.stdout} and running the script using \texttt{execfile}.
+
+\subsection{Contents of files from running a script} \label{sec:filescript}
+Later in the subject it may be important to include file manipulation in the tutorial problems.
+
+\paragraph{Implementation} This may require redefinition of \texttt{write} or \texttt{open} functions to redirect the output elsewhere, such as a StringIO object in python.
+
+\subsection{Return values of functions} \label{sec:retvalfunc}
+The simplest way to get students to specify a program is to get them to write a function which returns the desired result given inputs. This does require that the students be taught about functions and may not be suitable for early in the subject. It also requires the student to use the function name we specify.
+
+\paragraph{Implementation} Determining the behavior of submitted functions can be determined by loading the submitted file with \texttt{execfile} into a separate space, and calling the function from within that environment. Their script and/or function may write to stdout or files, but that would be ignored
+
+\subsection{Using submitted functions as part of a supplied script}
+The student may be required to write a function for part of a complete program. The aim may be to fill the gaps in an incomplete program, or it may be to enhance an existing program. A simple example of this would be writing a custom comparison function for a sorting routine.
+
+\paragraph{Implementation} This maybe done by loading the function as in \S\ref{sec:retvalfunc}, then extracting out the required function object, and passing it to the incomplete script.
+
+\subsection{IO from within functions}
+It may be necessary to require students to supply a function which writes to stdout or outputs file(s).
+
+\paragraph{Implementation} This should be similar to the approaches in \S\ref{sec:stdoutscript} and \S\ref{sec:filescript} for scripts, the difference being we are calling a function, instead of running the entire script.
+
+\subsection{Short answer}
+This would involve the student writing a short response in answer to a question. Multiple choice can be considered a special case of this.
+
+\paragraph{Implementation}
+This is the simplest to implement, because if the answer is constrained then a direct comparison with the expected answer is possible. More complicated processing may be required depending on the problem.
+
+\section{Testing methods}
+All the test types in \S\ref{sec:testtypes} ultimately produce some output. Ideally this output can be compared directly with that of a provided solution to determine its correctness. However, there are several situations where it is required to go beyond direct comparison:
+
+\begin{itemize}
+\item When no provided solution is available.
+\item When there are multiple correct answers.
+\item When we wish to provide more detailed feedback about what the student did wrong.
+\end{itemize}
+
+For the latter two points, it may be possible to normalize the output and expected output before comparing them. These normalizations can be split into several categories:
+
+\subsection{Maps}
+Each item in the output sequence is mapped to a reduced set.
+\begin{itemize}
+\item Based on character value, such as applying \texttt{str.lower}.
+\item Applying \texttt{len} can determine the dimensions of 2d arrays, or higher.
+\end{itemize}
+
+\subsection{Filters}
+Items in the output are removed based on their value.
+\begin{itemize}
+\item Based on character value. Many such boolean filters are available in the \texttt{curses.ascii} module, for example \texttt{curses.ascii.isalnum}.
+\end{itemize}
+
+\subsection{Type conversions}
+Converting to a different(usually more constrained) data type.
+\begin{itemize}
+\item Floats or strings to ints.
+\item Lists/sequences to dictionaries.
+\end{itemize}
+
+\subsection{Transformations}
+Arbitrary transformations of the output.
+\begin{itemize}
+\item Sorting. May require custom comparison function and/or key.
+\item Minimum or maximum value.
+\item Taking the first or last \textit{n} items of a list: \texttt{xs[:n]} or \texttt{xs[-n:]}.
+\item Getting overall properties, such as \texttt{len} or \texttt{type}.
+\item Numerical operation, including rounding.
+\end{itemize}
+
+\section{Classification of tutorial problems}
+A scheme is required to classify and organize the tutorial problems. The conventional method is to have manually constructed sequence of tutorial problems for each workshop or section of the tutorial. Each problem should have a unique identifier. The following are some ideas that may be augmented with this approach, or used separately. These schemes could allow for detailed queries and also to automatically recommend problems to students.
+
+\subsection{Tagging}
+Tagging of problems could be used to classify them, and to automatically generate subsets of as required. The tagging could be done either exclusively by staff, or the system could be opened up to students to generate a Web 2.0 like system for classification. Any tagging scheme would require a consistent level of input to remain useful. Different types of possible tags are discussed below.
+
+\subsubsection{Concepts required} \label{sec:concepts}
+This type of tagging would indicate what programming concepts are required to complete the problem. This may even be implemented automatically by checking the source of a provided solution. It would also allow the system to generate a list of ``similar'' problems to a given tutorial problem, should the student request it.
+
+The challenge with this tagging scheme is to determine a definitive source for the tags. For example, they could correspond to chapters in a python textbook, or more concrete constructs such as the various data and control structures.
+
+Tagging a problem with every concept that is required to solve a problem would be counter-productive, as the simpler concepts are assumed pre-requisits anyway for the later problems. Therefore, one possible scheme is to tag a problem with the one or two most advanced concepts required to solve it. This implies some linear ordering in the learning of concepts, but this can be inferred from the subject material.
+
+\subsubsection{Dependencies} \label{sec:dep}
+This would indicate what knowledge is assumed or is a pre-requisite for completing the problem. There are a few types of possible dependencies:
+\begin{itemize}
+\item Dependencies at the concept level, which indicate what programming knowledge is required. This type of tagging is similar to that described above in \S\ref{sec:concepts}
+\item Dependencies at the problem level, which indicate if a given problem draws on results from a separate problem. This is useful when developing sets of related problems.
+\end{itemize}
+
+\subsubsection{Domain}
+This would simply be an indication of what application area the problem applies to.
+
+\subsubsection{Tutorial number}
+This would create a very fine grained tagging scheme which would be used to specify tutorial sets implicitly. That is, the tutorial set could be built automatically by the system by analyzing the tags. This may take advantage of the other type of tags described, especially the dependencies (\S\ref{sec:dep}).
+
+\subsection{Difficulty}
+This allows the students to have an idea of what level of skill is expected of them. There are several possible schemes:
+
+\subsubsection{Input from user} \label{sec:diffinput}
+In this type of scheme the users of the system classify the difficulty of the problem into a predefined set of categories. The classification may be restricted to staff, or open to students. Any such scheme should be not be too fine-grained, as that would tend lead to misclassified problems and would imply a level of accuracy which does not exist. This is especially true when a diverse range of people are creating the tags. An example of such a scheme would be:
+\begin{description}
+\item[Easy] Expected skills for all students (required for passing).
+\item[Hard] Expected skills for top (H1) students. Within the scope of the subject, and should still be accessible for most students.
+\item[Challenge] Problems beyond the scope of the subject. This may be because they are complex, require advanced programming/computer science concepts or require domain specific knowledge which is not covered (for example, mathematical knowledge).
+\end{description}
+
+\subsubsection{Generated from student results} \label{sec:studres}
+Once a problem has been attempted a sufficient number of times, data will be available on properties such as success rate, and number of attempts required. This could be used to automatically generate a difficulty rating. Given enough data, this rating scheme could be much more fine-grained than the scheme outlined previously in \S\ref{sec:diffinput}. Consequences of this approach include:
+\begin{itemize}
+\item A difficulty rating is not possible when there have not been enough attempts.
+\item The difficulty might be artificially lowered by the stronger/motivated students being the first to attempt them. The difficulty will adjust as more of the class catch up.
+\item As the skill level of the class as a whole improves the difficulty level of a problem may decrease. This may or may not be desirable.
+\end{itemize}
+
+These effects can be mitigated by aggregating data over the semesters.
+
+There is also the issue of what factors to uses to decide the difficulty. These can include:
+\begin{itemize}
+\item Percentage of students who completed the problem.
+\item Percentage of students who attempted the problem. This may not be as useful because most people who attempt a problem will eventually solve it, and without a significant delay.
+\item Average number of attempts to complete the problem. Even for students of similiar skill, the average number of attempts will vary depending on how much thought is put into debugging each attempt. However, the average data should be meaningful.
+\item Time taken. This is harder to measure as students will not, in general, spend a contiguious block of time on a problem.
+\end{itemize}
+
+
+\section{Motivation of students}
+A wide range of students with varying degrees of skill and aptitude are expected in the subject. This will inevitably lead to a group of students who find the material too easy and have no motivation to complete the exercises. The primary danger in this is if they decide to drop the Informatics course because of this. Therefore it may be valuable to provide challenges and rewards for the high achieving students. Challenges could be in the form of challenge problems that may possibly go beyond the scope of the subject (as described in \S\ref{sec:studres}). 
+
+The student's performance in the challenge and other tutorial problems would contribute to a score. Weighting schemes such as TFIDF could be used to determine the score.
+
+Possible rewards include:
+\begin{itemize}
+\item Name on scoreboard of top scores in the problems.
+\item Extra privileges such as increased CPU limits, disk quota or larger datasets. This was decided to be a bad idea, as it may be seen as discriminatory.
+\item Subject wide or per tutorial prizes (for example, chocolates).
+\end{itemize}
+
+\end{document}
+

@@ -1,4 +1,4 @@
-<problem name = "Test all IO">
+<problem name = "Hello Name">
     <solution>
 <![CDATA[
 # Sample solution, used to generate test output
@@ -11,11 +11,10 @@ print " ".join([greeting, name])
         <!-- Specify input -->
         <var name="name" value="'Dilshan'" />
         <function desc="Match case insensitive" default="ignore">
-            <stdout>lambda x:x.lower()</stdout>
+            <stdout>str.lower</stdout>
     	</function>
-        <function desc="Match exactly" default="ignore">
-            <stdout/>
-    	</function>
+    	<!-- Ensures that all outputs match exactly -->	
+    	<function desc="Match exactly" default="match"/>
     </case>
     <case>
         <!-- Specify input -->

@@ -1,3 +1,10 @@
+"""
+This file provides the function parse_tutorial_file which takes an
+xml specification of a tutorial problem file and returns a test suite object
+for that problem. It throws a ParseException if there was a problem parsing
+the file.
+"""
+
 from xml.dom.minidom import *
 from TestFramework import *
 

@@ -29,3 +29,8 @@ file_test.py
 filespace_test contains a script which to test the TestFilespace class. It does this by executing file_test, which performs various file operations inside the class.
 
 Currently, the output is verified by inspection. I found the idle implementation of various modes is not comppletely robust, making proper verification harder. Probably the best is to actually write a C program and use fopen.
+
+------------
+tute_doc.tex
+------------
+Some notes on requirements of the tutorial system and test framework and how it should operate. Last revised 9th Jan.

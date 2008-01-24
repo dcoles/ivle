@@ -236,11 +236,16 @@ class TestCase:
     """
     A set of tests with a common inputs
     """
-    def __init__(self, name='', function=None, stdin='', filespace={}, global_space={}):
+    def __init__(self, name='', function=None, stdin='', filespace=None, global_space=None):
         """Initialise with name and optionally, a function to test (instead of the entire script)
         The inputs stdin, the filespace and global variables can also be specified at
         initialisation, but may also be set later.
         """
+        if global_space == None:
+            global_space = {}
+        if filespace == None:
+            filespace = {}
+        
         self._name = name
         
         if function == '': function = None
@@ -269,6 +274,7 @@ class TestCase:
         for this test case.
         Throw and exception if thevalue cannot be paresed.
         """
+        
         try:
             self._global_space[variable] = eval(value)
         except:
@@ -467,8 +473,11 @@ class TestFilespace:
     Our dummy file system which is accessed by code being tested.
     Implemented as a dictionary which maps filenames to strings
     """
-    def __init__(self, files={}):
+    def __init__(self, files=None):
         "Initialise, optionally with filename-filedata pairs"
+
+        if files == None:
+            files = {}
 
         # dict mapping files to strings
         self._files = {}
