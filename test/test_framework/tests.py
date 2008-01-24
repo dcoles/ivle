@@ -1,4 +1,7 @@
 
+import sys
+sys.path.append('../../www/apps/tutorial/test/')
+
 from parse_tute import *
 
 def str_exception(test_exception_obj):
