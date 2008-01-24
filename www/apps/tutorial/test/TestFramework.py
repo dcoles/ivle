@@ -81,6 +81,12 @@ class AttemptError(Exception):
         else:
             return False
 
+    def to_dict(self):
+        return {'name': self._name,
+                'detail': self._detail,
+                'critical': self.is_critical()
+                }
+
     def __str__(self):
         return self._name + " - " + str(self._detail)
 
@@ -332,6 +338,9 @@ class TestCase:
         """ Run the solution and the attempt with the inputs specified for this test case.
         Then pass the outputs to each test part and collate the results.
         """
+        case_dict = {}
+        case_dict['name'] = self._name
+        
         # Run solution
         try:
             global_space_copy = copy.deepcopy(self._global_space)
@@ -357,17 +366,25 @@ class TestCase:
                     raise FunctionNotFoundError(self._function)
                 attempt_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
         except:
-            raise AttemptError(sys.exc_info())
+            case_dict['exception'] = AttemptError(sys.exc_info()).to_dict()
+            return case_dict
         
         results = []
 
         # generate results
         for test_part in self._parts:
             result = test_part.run(solution_data, attempt_data)
+            result_dict = {}
+            result_dict['description'] = test_part.get_description()
+            result_dict['passed']  = (result == '')
+            if result_dict['passed'] == False:
+                result_dict['error_message'] = result
+                
+            results.append(result_dict)
 
-            results.append((test_part.get_description(), result))
+        case_dict['parts'] = results
 
-        return results
+        return case_dict
                 
     def _execfile(self, filename, global_space):
         """ Execute the file given by 'filename' in global_space, and return the outputs. """
@@ -473,21 +490,25 @@ class TestSuite:
     def run_tests(self, attempt_file):
         " Run all test cases and collate the results "
         
-        results = []
+        problem_dict = {}
+        problem_dict['name'] = self._name
         
+        test_case_results = []
         for test in self._tests:
-            test_results = []
-            try:
-                for (name, result) in test.run(self._solution, attempt_file):
-                    if result == '':
-                        disp = "Passed: %s" %name
-                    else:
-                        disp = "Failed: %s, %s" %(name,result)
-                    test_results.append(disp)
-            except AttemptError, e:
-                test_results.append("Error running submitted script: %s" %str(e))
-            results.append((test.get_name(), test_results))
-        return (self._name, results)
+            result_dict = test.run(self._solution, attempt_file)
+            if 'exception' in result_dict and result_dict['exception']['critical']:
+                # critical error occured, running more cases is useless
+                # FunctionNotFound, Syntax, Indentation
+                problem_dict['critical_error'] = result_dict['exception']
+                return problem_dict
+            
+            test_case_results.append(result_dict)
+
+        problem_dict['cases'] = test_case_results
+        return problem_dict
+
+    def get_name():
+        return self._name
 
 class TestFilespace:
     """
@@ -688,4 +709,4 @@ class TestStringIO(StringIO.StringIO):
 ##	for node in mod.node.nodes:
 ##		if isinstance(node, compiler.ast.Function) and node.name == function_name:
 ##			return node
-##    
+##  
