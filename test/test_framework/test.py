@@ -4,14 +4,24 @@ sys.path.append('../../www/apps/tutorial/test/')
 
 from parse_tute import *
 
-def print_results((name, results)):
-    """ Print the output of a testsuite nicely """
-    print name
-    for (case_name, test_results) in results:
-        print "Case: " + case_name
-        for test_result in test_results:
-            print "  " + test_result
-    print 
+def print_results(problem):
+    print "Problem: %s" %problem['name']
+    if 'critical_error' in problem:
+        error = problem['critical_error']
+        print "Critical error: %s - %s" %(error['name'], error['detail'])
+    else:
+        for case in problem['cases']:
+            print "Case: %s" %case['name']
+            if 'exception' in case:
+                error = case['exception']
+                print "Exception %s - %s" %(error['name'], error['detail'])
+            else:
+                for part in case['parts']:
+                    if part['passed']:
+                        print "  Passed: %s" %part['description']
+                    else:
+                        print "  Failed: %s -- %s" %(part['description'],part['error_message'])
+    print
 
 for i in range(1, len(sys.argv)):
     basename = sys.argv[i]

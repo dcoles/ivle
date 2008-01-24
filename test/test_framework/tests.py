@@ -4,9 +4,6 @@ sys.path.append('../../www/apps/tutorial/test/')
 
 from parse_tute import *
 
-def str_exception(test_exception_obj):
-    string = ""
-    
 def print_results(problem):
     print "Problem: %s" %problem['name']
     if 'critical_error' in problem:
