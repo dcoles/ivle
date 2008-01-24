@@ -1,0 +1,30 @@
+<problem name = "Test all IO">
+    <solution>
+<![CDATA[
+# Sample solution, used to generate test output
+greeting = "Hello"
+print " ".join([greeting, name])
+]]>
+    </solution>
+    <!-- Alternatively, <solution src="all_input_test_soln.py" /> -->
+    <case>
+        <!-- Specify input -->
+        <var name="name" value="'Dilshan'" />
+        <function desc="Match case insensitive" default="ignore">
+            <stdout>lambda x:x.lower()</stdout>
+    	</function>
+        <function desc="Match exactly" default="ignore">
+            <stdout/>
+    	</function>
+    </case>
+    <case>
+        <!-- Specify input -->
+        <var name="name" value="'Matt'" />
+        <function desc="Match case insensitive" default="ignore">
+            <stdout>lambda x:x.lower()</stdout>
+    	</function>
+        <function desc="Match exactly" default="ignore">
+            <stdout/>
+    	</function>
+    </case>
+</problem>

@@ -272,7 +272,7 @@ class TestCase:
         try:
             self._global_space[variable] = eval(value)
         except:
-            raise TestCreationError("Invalid value for variable %s: %s" %(varible, value))
+            raise TestCreationError("Invalid value for variable %s: %s" %(variable, value))
 
     def add_arg(self, value, name=None):
         """ Add a value to the argument list. This only applies when testing functions.
