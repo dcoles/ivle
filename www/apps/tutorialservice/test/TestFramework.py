@@ -24,54 +24,11 @@
 
 import sys, StringIO, copy
 
-# author error
-class TestCreationError(Exception):
-    """An error occured while creating the test suite or one of its components"""
-    def __init__(self, reason):
-        self._reason = reason
-        
-    def __str__(self):
-        return self._reason
-
-# author error
-class SolutionError(Exception):
-    """Error in the provided solution"""
-    def __init__(self, exc_info):
-        cla, exc, trbk = exc_info
-        self.name = cla.__name__
-        self._detail = str(exc)
-        self._exc_info = exc_info
-
-    def to_dict(self):
-        return {'name': self._name,
-                'detail': self._detail,
-                'critical': False
-                }
-
-    def exc_info(self):
-        return self._exc_info
-
-    def __str__(self):
-        return "Error running solution: %s" %str(self._detail)
-
-# author error
-class TestError(Exception):
-    """Runtime error in the testing framework outside of the provided or student code"""
-    def __init__(self, exc_info):
-        cla, exc, trbk = exc_info
-        self.name = cla.__name__
-        self._detail = str(exc)
-        self._exc_info = exc_info
-
-    def exc_info(self):
-        return self._exc_info
-
-    def __str__(self):
-        return "Error testing solution against attempt: %s" %str(self._detail)
-
-# student error
-class AttemptError(Exception):
-    """Runtime error in the student code"""
+# student error or author error
+# errors in student code get handled internally
+# errors in solution code get passed up
+class ScriptExecutionError(Exception):
+    """Runtime error in the student code or solution code"""
     def __init__(self, exc_info):
         cla, exc, trbk = exc_info
         self._name = cla.__name__
@@ -94,7 +51,43 @@ class AttemptError(Exception):
     def __str__(self):
         return self._name + " - " + str(self._detail)
 
-# student error
+# author error
+class TestCreationError(Exception):
+    """An error occured while creating the test suite or one of its components"""
+    def __init__(self, reason):
+        self._reason = reason
+        
+    def __str__(self):
+        return self._reason
+
+# author error
+class TestError(Exception):
+    """Runtime error in the testing framework outside of the provided or student code"""
+    def __init__(self, exc_info):
+        cla, exc, trbk = exc_info
+        self._name = cla.__name__
+        self._detail = str(exc)
+        self._exc_info = exc_info
+
+    def exc_info(self):
+        return self._exc_info
+
+    def __str__(self):
+        return "Error testing solution against attempt: %s - %s" %(self._name, self._detail)
+
+# author error
+# raised when expected file not found in solution output
+# Always gets caught and passed up as a TestError
+class FileNotFoundError(Exception):
+    def __init__(self, filename):
+        self._filename = filename
+
+    def __str__(self):
+        return "File %s not found in output" %(self._filename)
+    
+
+# Error encountered when executing solution or attempt code
+# Always gets caught and passed up in a ScriptExecutionError
 class FunctionNotFoundError(Exception):
     """This error is returned when a function was expected in a
     test case but was not found"""
@@ -262,7 +255,7 @@ class TestCasePart:
         # check files indicated by test
         for (filename, (test_type, f)) in self._file_tests.items():
             if filename not in solution_files:
-                raise SolutionError('File %s not found' %filename)
+                raise FileNotFoundError(filename)
             elif filename not in attempt_files:
                 return filename + ' not found'
             elif not self._check_output(solution_files[filename], attempt_files[filename], test_type, f):
@@ -383,7 +376,7 @@ class TestCase:
                 solution_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
                 
         except:
-            raise SolutionError(sys.exc_info())
+            raise ScriptExecutionError(sys.exc_info())
 
         # Run student attempt
         try:
@@ -396,7 +389,7 @@ class TestCase:
                     raise FunctionNotFoundError(self._function)
                 attempt_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
         except:
-            case_dict['exception'] = AttemptError(sys.exc_info()).to_dict()
+            case_dict['exception'] = ScriptExecutionError(sys.exc_info()).to_dict()
             case_dict['passed'] = False
             return case_dict
         
@@ -405,7 +398,11 @@ class TestCase:
         
         # generate results
         for test_part in self._parts:
-            result = test_part.run(solution_data, attempt_data)
+            try:
+                result = test_part.run(solution_data, attempt_data)
+            except:
+                raise TestError(sys.exc_info())
+            
             result_dict = {}
             result_dict['description'] = test_part.get_description()
             result_dict['passed']  = (result == '')

@@ -42,7 +42,7 @@ f.close()
              and ignore other files. -->
         <function desc="Match case insensitive and ignore other files"
             default="ignore">
-            <stdout>str.lower</stdout>
+	    <stdout>str.lower</stdout>
             <!-- 'type="norm"' treats the function as a normalisation
                  function (the default behaviour).
                  'type="check"' treats it as a 2-argument check. -->
