@@ -7,12 +7,14 @@ Normal case:
 problem = {
 	name: name of problem <string>
 	cases: test case results <list(case)>
+	passed: <bool>
 }
 
 Critical error occured (Syntax, Indentation, FunctionNotFound):
 problem = {
 	name: name of problem <string>
 	critical_error: details of error <exception_data>
+	passed: False <bool>
 }
 
 ----

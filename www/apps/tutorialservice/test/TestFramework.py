@@ -528,20 +528,25 @@ class TestSuite:
         problem_dict['name'] = self._name
         
         test_case_results = []
+        passed = True
         for test in self._tests:
             result_dict = test.run(self._solution, attempt_code)
             if 'exception' in result_dict and result_dict['exception']['critical']:
                 # critical error occured, running more cases is useless
                 # FunctionNotFound, Syntax, Indentation
                 problem_dict['critical_error'] = result_dict['exception']
+                problem_dict['passed'] = False
                 return problem_dict
             
             test_case_results.append(result_dict)
             
-            if not result_dict['passed'] and stop_on_fail:
-                break
+            if not result_dict['passed']:
+                passed = False
+                if stop_on_fail:
+                    break
 
         problem_dict['cases'] = test_case_results
+        problem_dict['passed'] = passed
         return problem_dict
 
     def get_name(self):
@@ -574,6 +579,9 @@ class TestFilespace:
         """ Open a file from the filespace with the given mode.
         Return a StringIO subclass object with the file contents.
         """
+        # currently very messy, needs to be cleaned up
+        # Probably most of this should be in the initialiser to the TestStringIO
+        
         import re
 
         if filename in self._open_files:
