@@ -23,6 +23,7 @@
 # content (the common parts of the HTML pages shared across the entire site).
 # Does not include the login page. See login.py.
 
+import cgi
 import os.path
 
 import conf
@@ -48,7 +49,7 @@ def write_html_head(req):
 <head>
   <title>%sIVLE</title>
   <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
-""" % (titlepart, req.content_type))
+""" % (cgi.escape(titlepart), cgi.escape(req.content_type)))
     # Write inline JavaScript which gives the client code access to certain
     # server-side variables.
     if req.username:
@@ -63,17 +64,17 @@ def write_html_head(req):
     iconurl = get_icon_url(req.app)
     if iconurl:
         req.write("""  <link rel="shortcut icon" href="%s" />
-""" % iconurl)
+""" % cgi.escape(iconurl))
     req.write("""  <link rel="stylesheet" type="text/css" href="%s" />
-""" % util.make_path('media/common/ivle.css'))
+""" % cgi.escape(util.make_path('media/common/ivle.css')))
 
     # Write any app-specific style and script links
     for style in req.styles:
         req.write('  <link rel="stylesheet" type="text/css" href="%s" />\n'
-            % util.make_path(style))
+            % cgi.escape(util.make_path(style)))
     for script in req.scripts:
         req.write('  <script type="text/javascript" src="%s" />\n'
-            % util.make_path(script))
+            % cgi.escape(util.make_path(script)))
 
     req.write("</head>\n\n")
 
@@ -90,7 +91,9 @@ def write_html_head(req):
             '    <a href="%s">Help</a> |\n'
             '    <a href="%s">Logout</a>\n'
             '  </p>\n' %
-            (req.username, get_help_url(req), util.make_path('logout')))
+            (cgi.escape(req.username),
+             cgi.escape(get_help_url(req)),
+             cgi.escape(util.make_path('logout'))))
     else:
         req.write('  <p class="userhello">Not logged in.</p>')
 
@@ -155,8 +158,9 @@ def print_apps_list(file, thisapp):
             li_attr = ''
         file.write('    <li%s>' % li_attr)
         if app.icon:
-            file.write('<img src="%s" alt="" /> ' % get_icon_url(urlname))
+            file.write('<img src="%s" alt="" /> '
+                % cgi.escape(get_icon_url(urlname)))
         file.write('<a href="%s">%s</a></li>\n'
-            % (util.make_path(urlname), app.name))
+            % (cgi.escape(util.make_path(urlname)), cgi.escape(app.name)))
 
     file.write('  </ul>\n')

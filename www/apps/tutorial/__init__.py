@@ -69,6 +69,11 @@ def handle(req):
 
     # Set request attributes
     req.content_type = "text/html"
+    req.scripts = [
+        "media/common/util.js",
+        "media/common/json2.js",
+        "media/tutorial/tutorial.js",
+    ]
     req.styles = [
         "media/tutorial/tutorial.css",
     ]
@@ -147,6 +152,7 @@ def handle_subject_menu(req, subject):
             worksheets.append(worksheet)
 
     # Now all the errors are out the way, we can begin writing
+    req.title = "Tutorial - %s" % subject
     req.write_html_head_foot = True
     req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
     req.write("<h2>Worksheets</h2>\n<ul>\n")
@@ -182,6 +188,7 @@ def handle_worksheet(req, subject, worksheet):
             elements.append(elem)
 
     # Now all the errors are out the way, we can begin writing
+    req.title = "Tutorial - %s" % worksheetname
     req.write_html_head_foot = True
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
