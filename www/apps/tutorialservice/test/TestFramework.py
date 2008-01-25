@@ -45,6 +45,7 @@ class SolutionError(Exception):
     def to_dict(self):
         return {'name': self._name,
                 'detail': self._detail
+                'critical': False
                 }
 
     def exc_info(self):
@@ -396,10 +397,12 @@ class TestCase:
                 attempt_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
         except:
             case_dict['exception'] = AttemptError(sys.exc_info()).to_dict()
+            case_dict['passed'] = False
             return case_dict
         
         results = []
-
+        passed = True
+        
         # generate results
         for test_part in self._parts:
             result = test_part.run(solution_data, attempt_data)
@@ -408,10 +411,12 @@ class TestCase:
             result_dict['passed']  = (result == '')
             if result_dict['passed'] == False:
                 result_dict['error_message'] = result
+                passed = False
                 
             results.append(result_dict)
 
         case_dict['parts'] = results
+        case_dict['passed'] = passed
 
         return case_dict
                 
@@ -521,7 +526,7 @@ class TestSuite:
         self._tests.append(test_case)
         test_case.validate_functions(self._include_space)
 
-    def run_tests(self, attempt_code):
+    def run_tests(self, attempt_code, stop_on_fail=True):
         " Run all test cases and collate the results "
         
         problem_dict = {}
@@ -537,6 +542,9 @@ class TestSuite:
                 return problem_dict
             
             test_case_results.append(result_dict)
+            
+            if not result_dict['passed'] and stop_on_fail:
+                break
 
         problem_dict['cases'] = test_case_results
         return problem_dict
