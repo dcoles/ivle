@@ -217,8 +217,8 @@ def getTextData(element):
 def present_problem(req, subject, problemsrc):
     """Open a problem file, and write out the problem to the request in HTML.
     subject: Subject name.
-    problemfile: "src" of the problem file. A path relative to the subject
-        directory.
+    problemsrc: "src" of the problem file. A path relative to the top-level
+        subjects base directory, as configured in conf.
     """
     req.write('<div class="tuteproblem">\n')
     # First normalise the path
@@ -227,8 +227,7 @@ def present_problem(req, subject, problemsrc):
     if problemsrc.startswith("..") or problemsrc.startswith(os.sep):
         problemfile = None
     else:
-        problemfile = os.path.join(conf.subjects_base, subject,
-            problemsrc)
+        problemfile = os.path.join(conf.subjects_base, problemsrc)
 
     try:
         problemfile = open(problemfile)
