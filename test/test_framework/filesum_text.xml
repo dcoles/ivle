@@ -1,0 +1,38 @@
+<problem name = "Sum numbers in a file">
+    <solution>
+<![CDATA[
+print sum(map(int,file(raw_input()).readlines()))
+]]>
+    </solution>
+    <!-- Alternatively, <solution src="all_input_test_soln.py" /> -->
+    <case name="Normal case">
+        <!-- Specify input -->
+	<stdin>input.txt</stdin>
+	<file name='input.txt'><![CDATA[
+1
+2
+3
+]]>
+	</file>
+    	<function desc="Match" default="match"/>
+    </case>
+    <case name="Negative numbers">
+        <!-- Specify input -->
+	<stdin>input.txt</stdin>
+	<file name='input.txt'><![CDATA[
+1
+2
+-5
+]]>
+	</file>
+    	<function desc="Match" default="match"/>
+    </case>
+    <case name="No input">
+        <!-- Specify input -->
+	<stdin>input.txt</stdin>
+	<file name='input.txt'><![CDATA[
+]]>
+	</file>
+    	<function desc="Match" default="match"/>
+    </case>
+</problem>

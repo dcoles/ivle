@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('../../www/apps/tutorial/test/')
+sys.path.append('../../www/apps/tutorialservice/test/')
 
 from parse_tute import *
 
@@ -22,6 +22,9 @@ def print_results(problem):
                     else:
                         print "  Failed: %s -- %s" %(part['description'],part['error_message'])
     print
+    
+problem_suite = parse_tutorial_file('filesum_text.xml')
+print_results(problem_suite.run_tests("filesum.py"))
 
 problem_suite = parse_tutorial_file('hello_text.xml')
 print_results(problem_suite.run_tests("hello.py"))
