@@ -35,4 +35,15 @@ print sum(map(int,file(raw_input()).readlines()))
 	</file>
     	<function desc="Match" default="match"/>
     </case>
+    <case name="File does not exist">
+        <!-- Specify input -->
+	<stdin>non_existant_file.txt</stdin>
+	<file name='input.txt'><![CDATA[
+]]>
+	</file>
+	<exception name="IOError"/>
+	<function desc="Match exception" default="ignore">
+		<exception/>
+	</function>
+    </case>
 </problem>

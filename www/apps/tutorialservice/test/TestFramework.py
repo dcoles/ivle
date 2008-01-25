@@ -24,16 +24,6 @@
 
 import sys, StringIO, copy
 
-# student error
-class FunctionNotFoundError(Exception):
-    """This error is returned when a function was expected in student
-    code but was not found"""
-    def __init__(self, function_name):
-        self.function_name = function_name
-
-    def __str__(self):
-        return "Function " + self.function_name + " not found"
-
 # author error
 class TestCreationError(Exception):
     """An error occured while creating the test suite or one of its components"""
@@ -50,6 +40,15 @@ class SolutionError(Exception):
         cla, exc, trbk = exc_info
         self.name = cla.__name__
         self._detail = str(exc)
+        self._exc_info = exc_info
+
+    def to_dict(self):
+        return {'name': self._name,
+                'detail': self._detail
+                }
+
+    def exc_info(self):
+        return self._exc_info
 
     def __str__(self):
         return "Error running solution: %s" %str(self._detail)
@@ -61,6 +60,10 @@ class TestError(Exception):
         cla, exc, trbk = exc_info
         self.name = cla.__name__
         self._detail = str(exc)
+        self._exc_info = exc_info
+
+    def exc_info(self):
+        return self._exc_info
 
     def __str__(self):
         return "Error testing solution against attempt: %s" %str(self._detail)
@@ -89,6 +92,16 @@ class AttemptError(Exception):
 
     def __str__(self):
         return self._name + " - " + str(self._detail)
+
+# student error
+class FunctionNotFoundError(Exception):
+    """This error is returned when a function was expected in a
+    test case but was not found"""
+    def __init__(self, function_name):
+        self.function_name = function_name
+
+    def __str__(self):
+        return "Function " + self.function_name + " not found"
 
 class TestCasePart:
     """
@@ -120,6 +133,7 @@ class TestCasePart:
         self._file_tests = {}
         self._stdout_test = ('check', self._default_func)
         self._stderr_test = ('check', self._default_func)
+        self._exception_test = ('check', self._default_func)
         self._result_test = ('check', self._default_func)
 
     def get_description(self):
@@ -189,6 +203,11 @@ class TestCasePart:
         function = self._set_default_function(function, test_type)
         self._stderr_test = (test_type, function)
 
+    def add_exception_test(self, function, test_type='norm'):
+        "Test part that compares stderr"
+        function = self._set_default_function(function, test_type)
+        self._exception_test = (test_type, function)
+
     def add_file_test(self, filename, function, test_type='norm'):
         "Test part that compares the contents of a specified file"
         function = self._set_default_function(function, test_type)
@@ -201,6 +220,7 @@ class TestCasePart:
         # converts unicode to string
         if type(solution_output) == unicode:    
             solution_output = str(solution_output)
+            
         if type(attempt_output) == unicode:
             attempt_output = str(attempt_output)
             
@@ -228,6 +248,11 @@ class TestCasePart:
         (test_type, f) = self._stderr_test
         if not self._check_output(solution_data['stderr'], attempt_data['stderr'], test_type, f):        
             return 'stderr does not match'
+
+        #check exception
+        (test_type, f) = self._exception_test
+        if not self._check_output(solution_data['exception'], attempt_data['exception'], test_type, f):        
+            return 'exception does not match'
 
 
         solution_files = solution_data['modified_files']
@@ -287,6 +312,7 @@ class TestCase:
         self._filespace = TestFilespace(filespace)
         self._global_space = global_space
         self._parts = []
+        self._allowed_exceptions = set()
 
     def set_stdin(self, stdin):
         """ Set the given string as the stdin for this test case"""
@@ -318,6 +344,9 @@ class TestCase:
                 self._keyword_args[name] = value
         except:
             raise TestCreationError("Invalid value for function argument: %s" %value)
+
+    def add_exception(self, exception_name):
+        self._allowed_exceptions.add(exception_name)
         
     def add_part(self, test_part):
         """ Add a TestPart to this test case"""
@@ -420,23 +449,28 @@ class TestCase:
         output_stream, input_stream, error_stream = StringIO.StringIO(), StringIO.StringIO(self._stdin), StringIO.StringIO()
         sys.stdout, sys.stdin, sys.stderr = output_stream, input_stream, error_stream
 
+        result = None
+        exception_name = None
+        
         try:
             if type(function) == tuple:
                 # very hackish... exec can't be put into a lambda function!
                 # or even with eval
                 exec(function[0], function[1])
-                result = None
             else:
                 result = function()
         except:
             sys.stdout, sys.stdin, sys.stderr = sys_stdout, sys_stdin, sys_stderr
-            raise
+            exception_name = sys.exc_info()[0].__name__
+            if exception_name not in self._allowed_exceptions:
+                raise
         
         sys.stdout, sys.stdin, sys.stderr = sys_stdout, sys_stdin, sys_stderr
 
         self._current_filespace_copy.flush_all()
             
         return {'result': result,
+                'exception': exception_name,
                 'stdout': output_stream.getvalue(),
                 'stderr': output_stream.getvalue(),
                 'modified_files': self._current_filespace_copy.get_modified_files()}

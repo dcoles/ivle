@@ -75,6 +75,10 @@ def getCasePartData(partNode):
             test_type = child.getAttribute('type')
             if test_type == '': test_type = DEFAULT_TEST_TYPE
             part.add_stderr_test(getTextData(child), test_type)
+        elif child.tagName == 'exception':
+            test_type = child.getAttribute('type')
+            if test_type == '': test_type = DEFAULT_TEST_TYPE
+            part.add_exception_test(getTextData(child), test_type)
         elif child.tagName == 'file':
             test_type = child.getAttribute('type')
             if test_type == '': test_type = DEFAULT_TEST_TYPE
@@ -123,6 +127,11 @@ def getCaseData(caseNode):
             if not arg_val:
                 raise ParseException("Incomplete argument in case %s" %case_name)
             case.add_arg(arg_val, arg_name)
+        elif child.tagName == 'exception':
+            exception_name = child.getAttribute('name')
+            if not exception_name:
+                raise ParseException("Incomplete exception in case %s" %case_name)
+            case.add_exception(exception_name)
         elif child.tagName == 'function':
             # specify a test case part
             case.add_part(getCasePartData(child))
