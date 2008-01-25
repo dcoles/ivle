@@ -428,10 +428,10 @@ function make_multipart_formdata(args, boundary)
     {
         /* FIXME: Encoding not supported here (should not matter if we
          * only use ASCII names */
-        data += "--" + boundary + "\n"
+        data += "--" + boundary + "\r\n"
             + "Content-Disposition: form-data; name=\"" + arg_key
-            + "\"\n\n"
-            + arg_val + "\n";
+            + "\"\r\n\r\n"
+            + arg_val + "\r\n";
     }
 
     for (var arg_key in args)
@@ -446,7 +446,7 @@ function make_multipart_formdata(args, boundary)
             extend_data(arg_key, arg_val);
     }
     /* End boundary */
-    data += "--" + boundary + "--\n";
+    data += "--" + boundary + "--\r\n";
 
     return data;
 }
