@@ -24,40 +24,69 @@
 # typed into one of the problem boxes.
 
 # Calling syntax
-# The "path" to this app is the path to a problem file (including the .xml
-# extension), relative to the subjects base directory.
+# Path must be empty.
 # The arguments determine what is to be done on this file.
 
+# "problem" - The path to a problem file (including the .xml extension),
+#    relative to the subjects base directory.
 # "code" - Full text of the student's code being submitted.
 # "action". May be "test". (More to come).
 
 # Returns a JSON response string indicating the results.
 
+import os
+
 import cjson
+
+import test
+import conf
 
 def handle(req):
     """Handler for Ajax backend TutorialService app."""
     # Set request attributes
     req.write_html_head_foot = False     # No HTML
 
+    if req.path != "":
+        req.throw_error(req.HTTP_BAD_REQUEST)
     # Get all the arguments, if POST.
     # Ignore arguments if not POST, since we aren't allowed to cause
     # side-effects on the server.
     fields = req.get_fieldstorage()
     act = fields.getfirst('action')
+    problem = fields.getfirst('problem')
     code = fields.getfirst('code')
 
-    if code == None or act == None:
+    if problem == None or code == None or act == None:
         req.throw_error(req.HTTP_BAD_REQUEST)
     act = act.value
+    problem = problem.value
     code = code.value
 
     if act == "test":
-        handle_test(req, code, fields)
+        handle_test(req, problem, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def handle_test(req, code, fields):
+def handle_test(req, problem, code, fields):
     """Handles a test action."""
-    # TEMP: Just echo the code back in JSON form
-    req.write(cjson.encode({"code": code}))
+
+    # First normalise the path
+    problem = os.path.normpath(problem)
+    # Now if it begins with ".." or separator, then it's illegal
+    if problem.startswith("..") or problem.startswith(os.sep):
+        problemfile = None
+    else:
+        problemfile = os.path.join(conf.subjects_base, problem)
+
+    try:
+        problemfile = open(problemfile)
+    except (TypeError, IOError):    # TypeError if problemfile == None
+        req.throw_error(req.HTTP_NOT_FOUND)
+
+    # Parse the file into a problem object using the test suite
+    problem_obj = test.parse_tutorial_file(problemfile)
+    problemfile.close()
+    # Run the test cases. Get the result back as a JSONable object.
+    # Return it.
+    test_results = problem_obj.run_tests(code)
+    req.write(cjson.encode(test_results))
