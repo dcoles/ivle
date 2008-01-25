@@ -193,6 +193,27 @@ def handle_worksheet(req, subject, worksheet):
             # Just treat this as a normal HTML element
             req.write(elem.toxml() + '\n')
 
+def innerXML(elem):
+    """Given an element, returns its children as XML strings concatenated
+    together."""
+    s = ""
+    for child in elem.childNodes:
+        s += child.toxml()
+    return s
+
+def getTextData(element):
+    """ Get the text and cdata inside an element
+    Leading and trailing whitespace are stripped
+    """
+    data = ''
+    for child in element.childNodes:
+        if child.nodeType == child.CDATA_SECTION_NODE:
+            data += child.data
+        if child.nodeType == child.TEXT_NODE:
+            data += child.data
+
+    return data.strip()
+
 def present_problem(req, subject, problemsrc):
     """Open a problem file, and write out the problem to the request in HTML.
     subject: Subject name.
@@ -217,8 +238,34 @@ def present_problem(req, subject, problemsrc):
         req.write("</div>\n")
         return
     
-    # TODO: Read problem file and present the problem
-    # TEMP: Print out the problem XML source
-    req.write("<p><b>Problem:</b></p>\n")
-    req.write("<pre>%s</pre>\n" % cgi.escape(problemfile.read()))
+    # Read problem file and present the problem
+    # Note: We do not use the testing framework because it does a lot more
+    # work than we need. We just need to get the problem name and a few other
+    # fields from the XML.
+
+    problemdom = minidom.parse(problemfile)
+    problemfile.close()
+    problemdom = problemdom.documentElement
+    if problemdom.tagName != "problem":
+        # TODO: Nicer error message, to help authors
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+    problemname = problemdom.getAttribute("name")
+    # Look for some other fields we need, which are elements:
+    # - desc
+    # - partial
+    problemdesc = None
+    problempartial= ""
+    for elem in problemdom.childNodes:
+        if elem.nodeType == elem.ELEMENT_NODE:
+            if elem.tagName == "desc":
+                problemdesc = innerXML(elem).strip()
+            if elem.tagName == "partial":
+                problempartial= getTextData(elem) + '\n'
+
+    # Print this problem out to HTML 
+    req.write("<p><b>Problem:</b> %s</p>\n" % problemname)
+    if problemdesc is not None:
+        req.write("<p>%s</p>" % problemdesc)
+    req.write('<textarea class="problembox">%s</textarea>' \
+            % problempartial)
     req.write("</div>\n")
