@@ -8,150 +8,129 @@ DROP TABLE users;
 DROP TABLE groups;
 
 CREATE TABLE users (
-    login       varchar(80) PRIMARY KEY,    -- login id
-    nick        varchar(80),
-    fullname    varchar(80),
-    studentid   varchar(80) or NULL  ****
+    login       VARCHAR UNIQUE NOT NULL,
+    loginid     SERIAL PRIMARY KEY NOT NULL,
+    nick        VARCHAR,
+    fullname    VARCHAR,
+    studentid   VARCHAR, -- may be null
 );
 
 CREATE TABLE groups (
-    groupid     varchar(18) PRIMARY KEY,    -- group name Y^4-S^9-G^3    **** use offering-id + group number (compound key)
-    nick        varchar(80),                -- group nickname
-    subject     varchar(9),                 -- subject code         **** use "offerings" table from CASMAS
-    year        varchar(4)                  -- when
+    group       VARCHAR NOT NULL,
+    groupid     SERIAL PRIMARY KEY NOT NULL,
+    offeringid  INT4 REFERENCES offerings (offeringid),
+    nick        VARCHAR,
+    UNIQUE (offeringid, group)
+);
+
+CREATE TABLE group_invitations (
+    loginid     INT4 REFERENCES users (loginid),
+    groupid     INT4 REFERENCES groups (groupid),
+    UNIQUE (loginid,groupid)
 );
 
 CREATE TABLE group_members (
-    login       varchar(80) REFERENCES users (login),
-    groupid     varchar(18) REFERENCES groups (groupid)
+    loginid     INT4 REFERENCES users (loginid),
+    groupid     INT4 REFERENCES groups (groupid),
+    projectid   INT4 REFERENCES projects (projectid),
+    UNIQUE (loginid,projectid),
+    PRIMARY KEY (loginid,groupid)
 );
 
 CREATE TABLE enrolment (
-    login       varchar(80) REFERENCES users (login),
-    subject     varchar(9),
-    result
-    supp_result
-    year        varchar(4)
+    loginid     INT4 REFERENCES users (loginid),
+    offeringid  INT4 REFERENCES offerings (offeringid),
+    result      INT,
+    supp_result INT,
+    notes       VARCHAR,
+    PRIMARY KEY (loginid,offeringid)
 );
 
 CREATE TABLE roles (
-    login       varchar(80) REFERENCES users (login),
-    role        varchar(8)
+    loginid     INT4 PRIMARY KEY REFERENCES users (loginid),
+    role        VARCHAR
 );
 
-CREATE TABLE project (
-    projectid
-    synopsis
-    url
-    subject
-    deadline
+CREATE TABLE projects (
+    projectid   SERIAL PRIMARY KEY NOT NULL,
+    synopsis    VARCHAR,
+    url         VARCHAR,
+    offeringid  INT4 REFERENCES offerings (offeringid) NOT NULL,
+    deadline    TIMESTAMP
 );
 
-CREATE TABLE extension (
+CREATE TABLE project_extension (
     login or groupid
-    projectid
-    deadline
-    approver
-    comment
+    projectid   INT4 REFERENCES projects (projectid) NOT NULL,
+    deadline    TIMESTAMP NOT NULL,
+    approver    INT4 REFERENCES users (loginid) NOT NULL,
+    notes       VARCHAR
 );
 
-CREATE TABLE mark (
-    login or groupid
-    projectid
-    componentid
-    marker
-    mark
-    timestamp
-    feedback
-    comment
-    KEY: (login/groupid, projectid, componentid)
+CREATE TABLE project_mark (
+    loginid or groupid
+    projectid   INT4 REFERENCES projects (projectid) NOT NULL,
+    componentid INT4,
+    marker      INT4 REFERENCES users (loginid) NOT NULL,
+    mark        INT,
+    marked      TIMESTAMP,
+    feedback    VARCHAR,
+    notes       VARCHAR,
+    PRIMARY KEY (loginid/groupid, projectid, componentid)
 );
-
-################
 
 CREATE TABLE problem (
-    problemid
-    specification
-    test (xml)
+    problemid   SERIAL PRIMARY KEY NOT NULL,
+    spec        VARCHAR
 );
 
 CREATE TABLE problem_tags (
-    problemid
-    tag
-    added_by
-    timestamp
+    problemid   INT4 REFERENCES tutorial_problem (problemid),
+    tag         VARCHAR NOT NULL,
+    added_by    INT4 REFERENCES users (loginid) NOT NULL,
+    when        TIMESTAMP NOT NULL,
+    PRIMARY KEY (problemid,added_by,tag)
+);
+
+CREATE TABLE problem_test_case (
+    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    testcaseid  SERIAL UNIQUE NOT NULL,
+    testcase    VARCHAR,
+    description VARCHAR,
+    visibility  VARCHAR CHECK (visibility in ('public', 'protected', 'private'))
+);
+
+CREATE TABLE problem_test_case_tags (
+    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
+    tag         VARCHAR NOT NULL,
+    description VARCHAR,
+    added_by    INT4 REFERENCES users (loginid) NOT NULL,
+    when        TIMESTAMP NOT NULL,
+    PRIMARY KEY (testcaseid,added_by,tag)
 );
 
 CREATE TABLE problem_attempt (
-    problemid
-    login
-    datetime
-    submission
-    complete (boolean)
-    KEY: (problemid, login, datetime)
+    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    loginid     INT4 REFERENCES users (loginid) NOT NULL,
+    when        TIMESTAMP NOT NULL,
+    attempt     VARCHAR NOT NULL,
+    complete    BOOLEAN NOT NULL,
+    PRIMARY KEY (problemid,loginid,when)
 );
 
 CREATE INDEX indexname ON problem_attempt (problemid, login);
 
 CREATE TABLE problem_attempt_breakdown (
-    problemid
-    testcaseid
-    login
-    datetime
-    result (boolean)    **** doesnt tell academic which concepts students are struggling with
+    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
+    loginid     INT4 REFERENCES users (loginid) NOT NULL,
+    when        TIMESTAMP NOT NULL,
+    result      BOOLEAN
 );
 
-CREATE TABLE problem_test_case (
-    problemid
-    testcaseid
-    testcase (sourced from xml)
-    description
-    visibility
-    tags (xref to tag table; break out)
+CREATE TABLE problem_prerequisites (
+    parent      INT4 REFERENCES problem (problemid) NOT NULL,
+    child       INT4 REFERENCES problem (problemid) NOT NULL,
+    PRIMARY KEY (parent,child)
 );
 
-# concept, curriculum, difficulty
-CREATE TABLE tag (
-    tag
-    documentation
-    added_by
-    timestamp
-);
-
-# for multipart problems
-CREATE TABLE prerequisite_problem (
-    parent_problemid
-    child_problemid
-);
-
-
-
-INSERT INTO users (login,nick) values ('conway', 'Tom');
-INSERT INTO roles (login,role) values ('conway', 'student');
-INSERT INTO users (login,nick) values ('apeel', 'Andrew');
-INSERT INTO roles (login,role) values ('apeel', 'student');
-INSERT INTO users (login,nick) values ('mgiuca', 'Matt');
-INSERT INTO roles (login,role) values ('mgiuca', 'tutor');
-INSERT INTO users (login,nick) values ('sb', 'Steven');
-INSERT INTO roles (login,role) values ('sb', 'lecturer');
-INSERT INTO users (login,nick) values ('mpp', 'Mike');
-INSERT INTO roles (login,role) values ('mpp', 'student');
-INSERT INTO users (login,nick) values ('ivo', 'Ivo');
-INSERT INTO roles (login,role) values ('ivo', 'admin');
-
-INSERT INTO groups (groupid, nick, subject, year) values ('2007-INFO10001-321', 'Purple Alert', 'INFO10001', '2008');
-INSERT INTO groups (groupid, nick, subject, year) values ('2007-INFO10001-322', 'Blind Illuminati', 'INFO10001', '2008');
-
-INSERT INTO group_members (login,groupid) values ('conway', '2007-INFO10001-321');
-INSERT INTO group_members (login,groupid) values ('apeel', '2007-INFO10001-321');
-INSERT INTO group_members (login,groupid) values ('mgiuca', '2007-INFO10001-321');
-INSERT INTO group_members (login,groupid) values ('sb', '2007-INFO10001-321');
-INSERT INTO group_members (login,groupid) values ('mpp', '2007-INFO10001-322');
-INSERT INTO group_members (login,groupid) values ('ivo', '2007-INFO10001-322');
-
-INSERT INTO enrolment (login,subject,year) values ('conway' , 'INFO10001', '2008');
-INSERT INTO enrolment (login,subject,year) values ('apeel' , 'INFO10001', '2008');
-INSERT INTO enrolment (login,subject,year) values ('mgiuca' , 'INFO10001', '2008');
-INSERT INTO enrolment (login,subject,year) values ('sb' , 'INFO10001', '2008');
-INSERT INTO enrolment (login,subject,year) values ('mpp' , 'INFO10001', '2008');
-INSERT INTO enrolment (login,subject,year) values ('ivo' , 'INFO10001', '2008');
