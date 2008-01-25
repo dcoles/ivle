@@ -1,10 +1,13 @@
 .tuteproblem {
     border-top: black 1px solid;
     border-bottom: black 1px solid;
+    padding-bottom: 1.2em;
 }
 
 .problembox {
     width: 100%;
-    height: 12em;
-    margin: 0 0 1.2em 0;
+}
+
+.problembuttons {
+    text-align: right;
 }

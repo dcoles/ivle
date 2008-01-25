@@ -34,6 +34,8 @@ import urllib
 import re
 from xml.dom import minidom
 
+import cjson
+
 from common import util
 import conf
 
@@ -193,9 +195,11 @@ def handle_worksheet(req, subject, worksheet):
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
     # Write each element
+    problemid = 0
     for elem in elements:
         if elem.tagName == "problem":
-            present_problem(req, subject, elem.getAttribute("src"))
+            present_problem(req, subject, elem.getAttribute("src"), problemid)
+            problemid += 1
         else:
             # Just treat this as a normal HTML element
             req.write(elem.toxml() + '\n')
@@ -221,13 +225,14 @@ def getTextData(element):
 
     return data.strip()
 
-def present_problem(req, subject, problemsrc):
+def present_problem(req, subject, problemsrc, problemid):
     """Open a problem file, and write out the problem to the request in HTML.
     subject: Subject name.
     problemsrc: "src" of the problem file. A path relative to the top-level
         subjects base directory, as configured in conf.
     """
-    req.write('<div class="tuteproblem">\n')
+    req.write('<div class="tuteproblem" id="problem%d">\n'
+        % problemid)
     # First normalise the path
     problemsrc = os.path.normpath(problemsrc)
     # Now if it begins with ".." or separator, then it's illegal
@@ -272,6 +277,11 @@ def present_problem(req, subject, problemsrc):
     req.write("<p><b>Problem:</b> %s</p>\n" % problemname)
     if problemdesc is not None:
         req.write("<p>%s</p>" % problemdesc)
-    req.write('<textarea class="problembox">%s</textarea>' \
+    req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
             % problempartial)
+    req.write("""<div class="problembuttons">
+  <input type="button" value="Submit"
+    onclick="submitproblem(&quot;problem%d&quot;, %s)" />
+</div>
+""" % (problemid, cgi.escape(cjson.encode(problemsrc), quote=True)))
     req.write("</div>\n")
