@@ -1,0 +1,21 @@
+<worksheet name="Worksheet 1">
+    <p>This is a sample worksheet, to demonstrate the authoring of worksheets
+        in IVLE.</p>
+    <p>You can use <b>any HTML markup</b> that you like.</p>
+    <ul>
+      <li>Such</li>
+      <li>as</li>
+      <li>lists.</li>
+    </ul>
+    <hr />
+    <p>Welcome to your first worksheet.</p>
+    <p><small>You can give students lessons in between problems.</small></p>
+    <p>The Python <code>print</code> statement can be used to write text
+    to the screen. Try it in this exercise.</p>
+    <problem src="sample/hello.xml" />
+    <p>The next problem is a bit harder. It requires you to manipulate
+    several files.</p>
+    <problem src="sample/all_input.xml" />
+    <p>Now functions can be used to compute values.</p>
+    <problem src="sample/fib.xml" />
+</worksheet>
