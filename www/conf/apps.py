@@ -73,6 +73,11 @@ app_tutorial =     App(dir = "tutorial",
                     requireauth = True,
                     hashelp = True)
 
+app_tutorialservice = App(dir = "tutorialservice",
+                    name = "Tutorial Service",
+                    requireauth = True,
+                    hashelp = False)
+
 app_server =    App(dir = "server",
                     name = "Server",
                     requireauth = True,
@@ -103,6 +108,7 @@ app_url = {
     "console" : app_console,
     "consoleservice" : app_consoleservice,
     "tutorial" : app_tutorial,
+    "tutorialservice" : app_tutorialservice,
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,

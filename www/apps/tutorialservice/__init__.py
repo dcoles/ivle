@@ -20,4 +20,44 @@
 # Date:   25/1/2008
 
 # Provides the AJAX backend for the tutorial application.
-# Not yet implemented.
+# This allows several actions to be performed on the code the student has
+# typed into one of the problem boxes.
+
+# Calling syntax
+# The "path" to this app is the path to a problem file (including the .xml
+# extension), relative to the subjects base directory.
+# The arguments determine what is to be done on this file.
+
+# "code" - Full text of the student's code being submitted.
+# "action". May be "test". (More to come).
+
+# Returns a JSON response string indicating the results.
+
+import cjson
+
+def handle(req):
+    """Handler for Ajax backend TutorialService app."""
+    # Set request attributes
+    req.write_html_head_foot = False     # No HTML
+
+    # Get all the arguments, if POST.
+    # Ignore arguments if not POST, since we aren't allowed to cause
+    # side-effects on the server.
+    fields = req.get_fieldstorage()
+    act = fields.getfirst('action')
+    code = fields.getfirst('code')
+
+    if code == None or act == None:
+        req.throw_error(req.HTTP_BAD_REQUEST)
+    act = act.value
+    code = code.value
+
+    if act == "test":
+        handle_test(req, code, fields)
+    else:
+        req.throw_error(req.HTTP_BAD_REQUEST)
+
+def handle_test(req, code, fields):
+    """Handles a test action."""
+    # TEMP: Just echo the code back in JSON form
+    req.write(cjson.encode({"code": code}))
