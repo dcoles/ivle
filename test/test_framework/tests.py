@@ -24,13 +24,13 @@ def print_results(problem):
     print
     
 problem_suite = parse_tutorial_file('filesum_text.xml')
-print_results(problem_suite.run_tests("filesum.py"))
+print_results(problem_suite.run_tests(file("filesum.py").read()))
 
 problem_suite = parse_tutorial_file('hello_text.xml')
-print_results(problem_suite.run_tests("hello.py"))
+print_results(problem_suite.run_tests(file("hello.py").read()))
 
 problem_suite = parse_tutorial_file('all_input_text.xml')
-print_results(problem_suite.run_tests("all_input.py"))
+print_results(problem_suite.run_tests(file("all_input.py").read()))
 
 problem_suite = parse_tutorial_file('fib_text.xml')
-print_results(problem_suite.run_tests("fib.py"))
+print_results(problem_suite.run_tests(file("fib.py").read()))

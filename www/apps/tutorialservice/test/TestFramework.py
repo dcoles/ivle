@@ -363,7 +363,7 @@ class TestCase:
         """ Get the name of the test case """
         return self._name
 
-    def run(self, solution, attempt_file):
+    def run(self, solution, attempt_code):
         """ Run the solution and the attempt with the inputs specified for this test case.
         Then pass the outputs to each test part and collate the results.
         """
@@ -387,7 +387,7 @@ class TestCase:
         # Run student attempt
         try:
             global_space_copy = copy.deepcopy(self._global_space)
-            attempt_data = self._execfile(attempt_file, global_space_copy)
+            attempt_data = self._execstring(attempt_code, global_space_copy)
             
             # if we are just testing a function
             if not self._function == None:
@@ -521,7 +521,7 @@ class TestSuite:
         self._tests.append(test_case)
         test_case.validate_functions(self._include_space)
 
-    def run_tests(self, attempt_file):
+    def run_tests(self, attempt_code):
         " Run all test cases and collate the results "
         
         problem_dict = {}
@@ -529,7 +529,7 @@ class TestSuite:
         
         test_case_results = []
         for test in self._tests:
-            result_dict = test.run(self._solution, attempt_file)
+            result_dict = test.run(self._solution, attempt_code)
             if 'exception' in result_dict and result_dict['exception']['critical']:
                 # critical error occured, running more cases is useless
                 # FunctionNotFound, Syntax, Indentation

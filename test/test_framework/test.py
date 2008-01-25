@@ -30,4 +30,4 @@ for i in range(1, len(sys.argv)):
 
     print "Testing:", basename
     problem_suite = parse_tutorial_file(xmlfile)
-    print_results(problem_suite.run_tests(pyfile))
+    print_results(problem_suite.run_tests(file(pyfile).read()))

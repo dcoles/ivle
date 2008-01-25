@@ -7,7 +7,7 @@ print " ".join([greeting, name])
 ]]>
     </solution>
     <!-- Alternatively, <solution src="all_input_test_soln.py" /> -->
-    <case>
+    <case name="Hello Dilshan">
         <!-- Specify input -->
         <var name="name" value="'Dilshan'" />
         <function desc="Match case insensitive" default="ignore">
@@ -16,7 +16,7 @@ print " ".join([greeting, name])
     	<!-- Ensures that all outputs match exactly -->	
     	<function desc="Match exactly" default="match"/>
     </case>
-    <case>
+    <case name="Hello Matt">
         <!-- Specify input -->
         <var name="name" value="'Matt'" />
         <function desc="Match case insensitive" default="ignore">
