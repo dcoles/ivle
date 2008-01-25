@@ -279,9 +279,11 @@ def present_problem(req, subject, problemsrc, problemid):
         req.write("<p>%s</p>" % problemdesc)
     req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
             % problempartial)
-    req.write("""<div class="problembuttons">
+    req.write("""\n<div class="problembuttons">
   <input type="button" value="Submit"
     onclick="submitproblem(&quot;problem%d&quot;, %s)" />
+</div>
+<div class="testoutput">
 </div>
 """ % (problemid, cgi.escape(cjson.encode(problemsrc), quote=True)))
     req.write("</div>\n")

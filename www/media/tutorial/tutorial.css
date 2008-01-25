@@ -11,3 +11,16 @@
 .problembuttons {
     text-align: right;
 }
+
+/* Test case outputs are shown as a bulleted list, with these icons as the
+ * bullets. */
+
+li.pass {
+    list-style: url(/ivle/media/images/tutorial/pass.png);
+}
+li.fail {
+    list-style: url(/ivle/media/images/tutorial/fail.png);
+}
+li.exception {
+    list-style: url(/ivle/media/images/tutorial/exception.png);
+}
