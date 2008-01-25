@@ -44,7 +44,7 @@ class SolutionError(Exception):
 
     def to_dict(self):
         return {'name': self._name,
-                'detail': self._detail
+                'detail': self._detail,
                 'critical': False
                 }
 
@@ -429,8 +429,11 @@ class TestCase:
     def _execstring(self, string, global_space):
         """ Execute the given string in global_space, and return the outputs. """
         self._initialise_global_space(global_space)
-        # _run_function handles tuples in a special way
-        data = self._run_function((string, global_space))
+        
+        def f():
+            exec string in global_space
+            
+        data = self._run_function(f)
         return data
 
     def _initialise_global_space(self, global_space):
@@ -458,12 +461,7 @@ class TestCase:
         exception_name = None
         
         try:
-            if type(function) == tuple:
-                # very hackish... exec can't be put into a lambda function!
-                # or even with eval
-                exec(function[0], function[1])
-            else:
-                result = function()
+            result = function()
         except:
             sys.stdout, sys.stdin, sys.stderr = sys_stdout, sys_stdin, sys_stderr
             exception_name = sys.exc_info()[0].__name__
