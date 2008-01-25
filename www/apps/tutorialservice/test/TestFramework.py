@@ -33,6 +33,7 @@ class ScriptExecutionError(Exception):
         cla, exc, trbk = exc_info
         self._name = cla.__name__
         self._detail = str(exc)
+        self._trbk = trbk
 
     def is_critical(self):
         if (    self._name == 'FunctionNotFoundError'
@@ -43,9 +44,11 @@ class ScriptExecutionError(Exception):
             return False
 
     def to_dict(self):
+        import traceback
         return {'name': self._name,
                 'detail': self._detail,
                 'critical': self.is_critical()
+                'lineno': traceback.tb_lineno(self._trbk)
                 }
 
     def __str__(self):
