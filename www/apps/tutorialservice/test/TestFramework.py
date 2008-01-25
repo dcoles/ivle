@@ -47,7 +47,7 @@ class ScriptExecutionError(Exception):
         import traceback
         return {'name': self._name,
                 'detail': self._detail,
-                'critical': self.is_critical()
+                'critical': self.is_critical(),
                 'lineno': traceback.tb_lineno(self._trbk)
                 }
 
