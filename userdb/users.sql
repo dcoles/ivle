@@ -1,12 +1,3 @@
--- We need a users database to do authorization, manage groups, &c
--- Here's a first cut.
-
-DROP TABLE roles;
-DROP TABLE enrolment;
-DROP TABLE group_members;
-DROP TABLE users;
-DROP TABLE groups;
-
 CREATE TABLE users (
     login       VARCHAR UNIQUE NOT NULL,
     loginid     SERIAL PRIMARY KEY NOT NULL,

@@ -31,7 +31,7 @@
 # cutting a distribution, and the listfile it generates should be included in
 # the distribution, avoiding the administrator having to run it.
 
-# setup.py conf [args]
+# setup.py config [args]
 # Configures IVLE with machine-specific details, most notably, various paths.
 # Either prompts the administrator for these details or accepts them as
 # command-line args.
@@ -214,7 +214,7 @@ IVLE Setup
     try:
         oper_func = {
             'help' : help,
-            'conf' : conf,
+            'config' : conf,
             'build' : build,
             'listmake' : listmake,
             'install' : install,
@@ -235,7 +235,7 @@ def help(args):
 Operation (and args) can be:
     help [operation]
     listmake (developer use only)
-    conf [args]
+    config [args]
     build
     install [--nojail] [--nosubjects] [-n|--dry]
 """
@@ -256,8 +256,8 @@ Recurses through the source tree and builds a list of all files which should
 be copied upon installation. This should be run by the developer before
 cutting a distribution, and the listfile it generates should be included in
 the distribution, avoiding the administrator having to run it."""
-    elif operation == 'conf':
-        print """python setup.py conf [args]
+    elif operation == 'config':
+        print """python setup.py config [args]
 Configures IVLE with machine-specific details, most notably, various paths.
 Either prompts the administrator for these details or accepts them as
 command-line args. Will be interactive only if there are no arguments given.
