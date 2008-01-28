@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /* conf.h is admin-configured by the setup process.
  * It defines jail_base.
