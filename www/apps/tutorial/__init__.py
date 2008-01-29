@@ -38,6 +38,7 @@ import cjson
 
 from common import util
 import conf
+import plugins.console
 
 THIS_APP = "tutorial"
 
@@ -79,6 +80,8 @@ def handle(req):
     req.styles = [
         "media/tutorial/tutorial.css",
     ]
+    # Let the console plugin insert its own styles and scripts
+    plugins.console.insert_scripts_styles(req.scripts, req.styles)
     # Note: Don't print write_html_head_foot just yet
     # If we encounter errors later we do not want this
 
@@ -98,6 +101,7 @@ def handle(req):
         handle_subject_menu(req, subject)
     else:
         handle_worksheet(req, subject, worksheet)
+        plugins.console.present(req)
 
 def handle_toplevel_menu(req):
     # This is represented as a directory. Redirect and add a slash if it is

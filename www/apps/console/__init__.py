@@ -17,12 +17,14 @@
 
 # App: console
 # Author: Matt Giuca
-# Date: 12/1/2008
+# Date: 30/1/2008
 
 # Console application.
-# Not yet implemented.
+# Presents a Python console as a complete app. (This simply imports the
+# Console plugin - see plugins/console).
 
 from common import util
+import plugins.console
 
 def handle(req):
     """Handler for the Console application."""
@@ -31,25 +33,10 @@ def handle(req):
     req.content_type = "text/html"
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
-    req.scripts = [
-        "media/common/json2.js",
-        "media/common/md5.js",
-        "media/common/util.js",
-        "media/console/console.js",
-    ]
-    req.styles = [
-        "media/console/console.css",
-    ]
+    # Let the plugin mandate the scripts and styles to use
+    req.scripts = []
+    req.styles = []
+    plugins.console.insert_scripts_styles(req.scripts, req.styles)
 
-    req.write("""<div id="console_body">
-  <div id="console_output">
-  </div>
-  <div id="console_input">
-   <div id="console_inputArea">
-   </div>
-   <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
-   <input id="console_inputText"
-     type="text" size="80" onkeypress="catch_input(event.keyCode)" />
-  </div>
-</div>
-""")
+    # Let the plugin write the HTML body
+    plugins.console.present(req)
