@@ -41,13 +41,15 @@ def handle(req):
         "media/console/console.css",
     ]
 
-    req.write("""<div id="consolebody">
-  <div id='output'>
+    req.write("""<div id="console_body">
+  <div id="console_output">
   </div>
-  <div id='input'>
-   <div id='inputArea'>
+  <div id="console_input">
+   <div id="console_inputArea">
    </div>
-   <label id='prompt'>&gt;&gt;&gt;&nbsp;</label><input id='inputText'
-        type='text' size='80' onkeypress='catch_input(event.keyCode)'/>
+   <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
+   <input id="console_inputText"
+     type="text" size="80" onkeypress="catch_input(event.keyCode)" />
   </div>
-</div>\n""")
+</div>
+""")

@@ -228,7 +228,7 @@ class TestCasePart:
 
     def run(self, solution_data, attempt_data):
         """Run the tests to compare the solution and attempt data
-        Returns the empty string is the test passes, or else an error message.
+        Returns the empty string if the test passes, or else an error message.
         """
 
         # check function return value (None for scripts)

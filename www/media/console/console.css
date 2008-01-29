@@ -1,14 +1,14 @@
-#output {
+#console_output {
     /*border: solid black 1pt;*/
     height: 24em;
     overflow: scroll;
     margin-bottom: 4pt;
     padding: 4pt;
 }
-#input {
+#console_input {
     /*border: solid green 1pt;*/
 }
-#prompt {
+#console_prompt {
     font-family: monospace;
 }
 pre.errorMsg {

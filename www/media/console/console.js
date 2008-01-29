@@ -103,14 +103,14 @@ var hist = new History();
 
 function enter_line()
 {
-    var inp = document.getElementById('inputText');
+    var inp = document.getElementById('console_inputText');
     var digest = hex_md5(inp.value + magic);
     var args = {"host": server_host, "port": server_port,
                     "digest":digest, "text":inp.value};
     var xmlhttp = ajax_call("consoleservice", "chat", args, "POST");
 
     var res = JSON.parse(xmlhttp.responseText);
-    var output = document.getElementById("output");
+    var output = document.getElementById("console_output");
     {
         var pre = document.createElement("pre");
         pre.setAttribute("class", "inputMsg");
@@ -134,7 +134,7 @@ function enter_line()
             output.appendChild(pre);
         }
         // set the prompt to >>>
-        var prompt = document.getElementById("prompt");
+        var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
     }
     else if (res.hasOwnProperty('exc'))
@@ -149,19 +149,19 @@ function enter_line()
     else if (res.hasOwnProperty('more'))
     {
         // Need more input, so set the prompt to ...
-        var prompt = document.getElementById("prompt");
+        var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode("... "), prompt.firstChild);
     }
     else {
         // assert res.hasOwnProperty('input')
-        var prompt = document.getElementById("prompt");
+        var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode("+++ "), prompt.firstChild);
     }
 }
 
 function catch_input(key)
 {
-    var inp = document.getElementById('inputText');
+    var inp = document.getElementById('console_inputText');
     if (key == 13)
     {
         enter_line();

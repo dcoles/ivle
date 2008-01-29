@@ -276,7 +276,7 @@ def present_problem(req, subject, problemsrc, problemid):
     # Print this problem out to HTML 
     req.write("<p><b>Problem:</b> %s</p>\n" % problemname)
     if problemdesc is not None:
-        req.write("<p>%s</p>" % problemdesc)
+        req.write("<div>%s</div>" % problemdesc)
     req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
             % problempartial)
     filename = cgi.escape(cjson.encode(problemsrc), quote=True)
@@ -287,7 +287,7 @@ def present_problem(req, subject, problemsrc, problemid):
     onclick="submitproblem(&quot;problem%d&quot;, %s)" />
 </div>
 <p>Output:</p>
-<textarea class="runoutput" cols="80" rows="6" readonly="true">
+<textarea class="runoutput" cols="80" rows="6" readonly="readonly">
 </textarea>
 <div class="testoutput">
 </div>
