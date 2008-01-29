@@ -1,0 +1,114 @@
+# Installation Procedure for IVLE
+# ===============================
+
+# Target Machine: Ubuntu (Versions 6.06 and 7.10 - differences between
+# versions noted)
+#
+# IMPORTANT: This is NOT a shell script. It has interactive sections and
+# things that need to be customized.
+# It is written like a shell script so it can be mostly cut-and-pasted into
+# the shell, but it can't simply be executed.
+
+# While other install guides in this package are generic, this one is very
+# specific to our intended configuration. It will be very helpful if trying to
+# set up IVLE on Ubuntu 7.06 or higher; less helpful for other platforms.
+# This refers to ivle.conf, also included.
+#
+# Author: Matt Giuca
+# Date: 29/1/2008
+
+sudo vim /etc/apt/sources.list
+
+# 7.10 (Gutsy) specific #
+
+# Gutsy by default had the CD-ROM packages selected, and the Internet packages
+# commented out. (A comment in the apt sources list said it was because it
+# failed to verify - IMPORTANT?? Probably not.)
+# Comment out line 4 (deb cdrom:...)
+
+# End 7.10 (Gutsy) specific #
+
+# Uncomment ALL the lines for main, restricted and universe
+# (deb http:...gutsy main restricted, deb-src ... main restricted
+# deb http:...gutsy universe)
+# Universe is important for pysvn (python-svn) later on
+# :wq
+
+sudo apt-get update
+
+# Apt packages
+sudo apt-get install subversion
+sudo apt-get install gcc libc6 libc6-dev
+# On 6.06 (Dapper):
+sudo apt-get install python2.4-dev
+# On 7.10 (Gutsy):
+sudo apt-get install python2.5-dev
+
+# Python packages needed by IVLE or student code
+# See trunk/doc/dependencies.txt
+wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
+
+tar -zxvf python-cjson-1.0.5.tar.gz
+
+cd python-cjson-1.0.5
+./setup.py build
+sudo ./setup.py install
+cd ..
+
+# 6.06 (Dapper) specific
+wget 'http://webpy.org/static/web.py-0.22.tar.gz'
+tar -zxvf web.py-0.22.tar.gz
+cd webpy
+python ./setup.py build
+sudo python ./setup.py install
+cd ..
+
+sudo apt-get install python-svn python-webpy python2.4-gtk2 python-matplotlib
+# End 6.06 (Dapper) specific
+
+# 7.10 (Gutsy) specific
+sudo apt-get install python-svn python-webpy python-numpy python-matplotlib
+# Note: I had a lot of trouble with the python-svn package.
+# After playing around a bit it started working.
+# python -c 'import pysvn'
+# to test if it worked.
+# Do Not install python-svn-dbg.
+# End 7.10 (Gutsy) specific
+
+# Check out the IVLE trunk
+svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
+# Says the SourceForge certificate authority is not trusted.
+# I chose "Accept (p)ermanently" - Problem??
+
+# NOTE: From this point onwards it is 7.10 (Gutsy) specific. This is because I
+# never was able to get IVLE to build with all dependencies on Dapper.
+
+# Set up IVLE
+cd ivle_svn
+./setup.py listmake
+./setup.py config
+
+# "Root directory" - type "/"
+# "UID of web server process" - 1000 at this stage (informatics)
+# Leave others default.
+# Note: This will cause IVLE to get installed to /opt/ivle
+
+./setup.py build
+sudo ./setup.py install
+
+# Create a user
+sudo ./makeuser.py <username>
+
+# Set up the Apache HTTP server
+sudo apt-get install apache2 libapache2-mod-python
+
+# DO: Copy the file "ivle.conf" from this package to
+# /etc/apache2/sites-available.
+# MODIFY the first few lines so it is specific to your server.
+
+# Replace the existing config link with the ivle one
+cd /etc/apache2/sites-enabled/
+sudo ln -fs /etc/apache2/sites-available/ivle.conf 000-default
+
+# Restart the server
+sudo apache2ctl -k restart
