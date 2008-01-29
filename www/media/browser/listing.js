@@ -181,9 +181,9 @@ function update_sidepanel(total_file_size_sel)
                 if (mini_icons.childNodes.length > 0)
                     mini_icons.appendChild(document.createTextNode(" "));
                 mini_icons.appendChild(dom_make_img(icon, icon_size, icon_size,
-                    "Published directory"));
+                    "Published to the web"));
             }
-            p = dom_make_text_elem("p", "Published directory");
+            p = dom_make_text_elem("p", "Published to the web");
             p.setAttribute("title",
                 "Anybody on the web can view the files in this directory.");
             sidepanel.appendChild(p);
