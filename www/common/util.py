@@ -52,10 +52,12 @@ def unmake_path(path):
     root = os.path.normpath(root_dir)
 
     if path.startswith(root):
-        # +1 to take out the slash as well
-        return path[len(root)+1:]
-    else:
-        return path
+        path = path[len(root)+1:]
+        # Take out the slash as well
+        if path[0] == os.sep:
+            path = path[1:]
+
+    return path
 
 def split_path(path):
     """Given a path, returns a tuple consisting of the top-level directory in
