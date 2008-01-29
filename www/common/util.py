@@ -54,7 +54,7 @@ def unmake_path(path):
     if path.startswith(root):
         path = path[len(root):]
         # Take out the slash as well
-        if path[0] == os.sep:
+        if len(path) > 0 and path[0] == os.sep:
             path = path[1:]
 
     return path
