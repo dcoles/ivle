@@ -52,7 +52,7 @@ def unmake_path(path):
     root = os.path.normpath(root_dir)
 
     if path.startswith(root):
-        path = path[len(root)+1:]
+        path = path[len(root):]
         # Take out the slash as well
         if path[0] == os.sep:
             path = path[1:]
