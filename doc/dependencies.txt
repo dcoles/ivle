@@ -20,3 +20,8 @@ site packages directory:
 * [cjson](http://cheeseshop.python.org/pypi/python-cjson)
 * [web.py](http://webpy.org/)
 * [pysvn](http://pysvn.tigris.org/)
+
+Additionally, these libraries are installed by the setup script for the
+purposes of student code using them:
+
+* [matplotlib](http://matplotlib.sourceforge.net/)

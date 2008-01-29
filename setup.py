@@ -74,6 +74,11 @@ sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
 import common.makeuser
 
+# Determine which Python version (2.4 or 2.5, for example) we are running,
+# and use that as the filename to the Python directory.
+# Just get the first 3 characters of sys.version.
+PYTHON_VERSION = sys.version[0:3]
+
 # Operating system files to copy over into the jail.
 # These will be copied from the given place on the OS file system into the
 # same place within the jail.
@@ -94,7 +99,7 @@ JAIL_FILES = [
     '/bin/ls',
     '/bin/echo',
     # Needed by python
-    '/usr/bin/python2.5',
+    '/usr/bin/python%s' % PYTHON_VERSION,
     # Needed by matplotlib
     '/usr/lib/i686/cmov/libssl.so.0.9.8',
     '/usr/lib/i686/cmov/libcrypto.so.0.9.8',
@@ -118,11 +123,12 @@ JAIL_FILES = [
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
-    'python2.5': 'jail/usr/bin/python',
+    'python%s' % PYTHON_VERSION: 'jail/usr/bin/python',
 }
 # Trees to copy. Src mapped to dst (these will be passed to action_copytree).
 JAIL_COPYTREES = {
-    '/usr/lib/python2.5': 'jail/usr/lib/python2.5',
+    '/usr/lib/python%s' % PYTHON_VERSION:
+        'jail/usr/lib/python%s' % PYTHON_VERSION,
     '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
     '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
 }
@@ -657,7 +663,7 @@ def install(args):
     # Append IVLE path to ivle.pth in python site packages
     # (Unless it's already there)
     ivle_pth = os.path.join(sys.prefix,
-        "lib/python2.5/site-packages/ivle.pth")
+        "lib/python%s/site-packages/ivle.pth" % PYTHON_VERSION)
     ivle_www = os.path.join(ivle_install_dir, "www")
     write_ivle_pth = True
     try:
