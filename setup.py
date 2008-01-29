@@ -817,6 +817,7 @@ def action_copylist(srclist, dst, dry, srcdir="."):
 def action_copyfile(src, dst, dry):
     """Copies one file to a new location. Creates all parent directories
     as necessary.
+    Warn if file not found.
     """
     dstdir = os.path.split(dst)[0]
     if not os.path.isdir(dstdir):
@@ -826,8 +827,8 @@ def action_copyfile(src, dst, dry):
         try:
             shutil.copyfile(src, dst)
             shutil.copymode(src, dst)
-        except shutil.Error:
-            pass
+        except (shutil.Error, IOError), e:
+            print "Warning: " + str(e)
 
 def action_symlink(src, dst, dry):
     """Creates a symlink in a given location. Creates all parent directories
