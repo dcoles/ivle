@@ -7,6 +7,15 @@ CREATE TABLE users (
     studentid   VARCHAR -- may be null
 );
 
+DROP TABLE offerings CASCADE;
+CREATE TABLE offerings (
+    offeringid  SERIAL PRIMARY KEY NOT NULL,
+    subj_name   VARCHAR NOT NULL,
+    subj_code   VARCHAR NOT NULL,
+    year        CHAR(4) NOT NULL,
+    semester    INT NOT NULL
+);
+
 DROP TABLE groups CASCADE;
 CREATE TABLE groups (
     groupnm       VARCHAR NOT NULL,
@@ -131,7 +140,7 @@ CREATE TABLE problem_attempt (
 );
 
 DROP INDEX problem_attempt_index;
-CREATE INDEX problem_attempt_index ON problem_attempt (problemid, login);
+CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 
 DROP TABLE problem_attempt_breakdown CASCADE;
 CREATE TABLE problem_attempt_breakdown (
