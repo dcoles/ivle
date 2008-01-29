@@ -2,7 +2,7 @@
     <desc>You need to write <b>Hello</b> and then your name.</desc>
     <partial>
 <![CDATA[
-print "Hello &lt;need to print the variable name&gt;."
+print "Hello &lt;print the contents of the variable 'name' here&gt;."
 ]]>
     </partial>
     <solution>

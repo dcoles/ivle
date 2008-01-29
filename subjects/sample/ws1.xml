@@ -16,6 +16,6 @@
     <p>The next problem is a bit harder. It requires you to manipulate
     several files.</p>
     <problem src="sample/all_input.xml" />
-    <p>Now functions can be used to compute values.</p>
+    <p>Now functions can be used to compute values.  This one will be recursive.</p>
     <problem src="sample/fib.xml" />
 </worksheet>
