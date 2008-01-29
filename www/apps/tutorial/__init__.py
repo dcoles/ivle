@@ -279,11 +279,17 @@ def present_problem(req, subject, problemsrc, problemid):
         req.write("<p>%s</p>" % problemdesc)
     req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
             % problempartial)
+    filename = cgi.escape(cjson.encode(problemsrc), quote=True)
     req.write("""\n<div class="problembuttons">
+  <input type="button" value="Run"
+    onclick="runproblem(&quot;problem%d&quot;, %s)" />
   <input type="button" value="Submit"
     onclick="submitproblem(&quot;problem%d&quot;, %s)" />
 </div>
+<p>Output:</p>
+<textarea class="runoutput" cols="80" rows="6" readonly="true">
+</textarea>
 <div class="testoutput">
 </div>
-""" % (problemid, cgi.escape(cjson.encode(problemsrc), quote=True)))
+""" % (problemid, filename, problemid, filename))
     req.write("</div>\n")

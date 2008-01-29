@@ -20,6 +20,35 @@
  * Date: 25/1/2008
  */
 
+/** User clicks "Run" button. Do an Ajax call and print the test output.
+ */
+function runproblem(problemid, filename)
+{
+    /* Get the source code the student is submitting */
+    var problemdiv = document.getElementById(problemid);
+    var problembox = problemdiv.getElementsByTagName("textarea")[0];
+    var code = problembox.value;
+
+    var args = {"code": code, "problem": filename, "action": "run"};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    var xhr = ajax_call("tutorialservice", "", args, "POST",
+        "multipart/form-data");
+    var testresponse = JSON.parse(xhr.responseText);
+    handle_runresponse(problemdiv, testresponse);
+}
+
+/** Given a response object (JSON-parsed object), displays the result of the
+ * test to the user. This modifies the given problemdiv's children.
+ */
+function handle_runresponse(problemdiv, runresponse)
+{
+    var runoutput = problemdiv.getElementsByTagName("textarea")[1];
+    dom_removechildren(runoutput);
+    runoutput.appendChild(document.createTextNode(runresponse.stdout));
+}
+
 /** User clicks "Submit" button. Do an Ajax call and run the test.
  * problemid: "id" of the problem's div element.
  * filename: Filename of the problem's XML file (used to identify the problem

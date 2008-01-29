@@ -4,7 +4,7 @@
     padding-bottom: 1.2em;
 }
 
-.problembox {
+.problembox, .runoutput {
     width: 100%;
 }
 

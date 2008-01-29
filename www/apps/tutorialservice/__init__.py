@@ -64,6 +64,8 @@ def handle(req):
 
     if act == "test":
         handle_test(req, problem, code, fields)
+    elif act == "run":
+        handle_run(req, problem, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
@@ -90,3 +92,11 @@ def handle_test(req, problem, code, fields):
     # Return it.
     test_results = problem_obj.run_tests(code)
     req.write(cjson.encode(test_results))
+
+def handle_run(req, problem, code, fields):
+    """Handles a run action."""
+    # Extremely makeshift.
+    # For now, just echo the code back
+    output = code
+    out_json = {"stdout": output}
+    req.write(cjson.encode(out_json))
