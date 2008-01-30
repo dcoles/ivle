@@ -101,7 +101,7 @@ def handle(req):
         handle_subject_menu(req, subject)
     else:
         handle_worksheet(req, subject, worksheet)
-        plugins.console.present(req)
+        plugins.console.present(req, windowpane=True)
 
 def handle_toplevel_menu(req):
     # This is represented as a directory. Redirect and add a slash if it is

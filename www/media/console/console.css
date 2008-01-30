@@ -10,16 +10,38 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1;
+    z-index: 1;     /* Go in front of console_filler */
 }
 #console_body2 {
-    padding: 1em;
+    padding: 0.5em;
+}
+/* Heading bar */
+#console_heading {
+    background-color: gray;
+    border: 2px solid black;
+    padding: 2px;
+    color: black;
+    font-family: monospace;
+    font-weight: bold;
+}
+/* If "minimized", console_heading and console_output are hidden */
+#console_body.minimal #console_heading,
+#console_body.minimal #console_output,
+/* If "maximized", the maximize button is hidden */
+#console_body.maximal .maximize {
+    display: none;
+}
+/* Minimize/maximize button */
+.console_button {
+    cursor: pointer;    /* Display hand cursor, since this is a button */
+    position: absolute;
+    right: 0.5em;
 }
 #console_output {
     /*border: solid black 1pt;*/
     height: 20em;
     overflow: scroll;
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
 }
 #console_input {
     /*border: solid green 1pt;*/
@@ -35,20 +57,31 @@
 /* console filler takes up the same space as console_body.windowpane
  * but its position is relative, not fixed.
  * This avoids having the console overlap with the bottom 28em of page
- * content. */
+ * content.
+ * It has two classes. "windowpane" turns it on. "minimal" or "maximal"
+ * control its height.
+ */
 #console_filler {
     display: none;
 }
 #console_filler.windowpane {
     display: block;
-    z-index: -1;
-    /* total height of console = 20em + 1em + 1em + 1em + 1em */
-    height: 24em;
+    z-index: -1;        /* Go behind the actual console */
     width: 100%;
     position: relative;
     bottom: 0;
     left: 0;
     right: 0;
+}
+#console_filler.maximal {
+    /* total height of console = 20em + 1em + 0.5em + 0.5em + 0.5em + 1em + borders
+     */
+    height: 24em;
+}
+#console_filler.minimal {
+    /* total height of console = 1em + 0.5em + 0.5em
+     */
+    height: 2em;
 }
 pre.errorMsg {
     color: red;

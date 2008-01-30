@@ -27,6 +27,7 @@
 # onload events.
 
 from common import util
+import cgi
 
 def insert_scripts_styles(scripts, styles):
     """Given 2 lists of strings: scripts and styles. These lists are lists of
@@ -43,21 +44,45 @@ def insert_scripts_styles(scripts, styles):
     _append_if_absent(styles,
         "media/console/console.css")
 
-def present(req):
+def present(req, windowpane=False):
     """Writes the HTML for this plugin into a request stream.
     May utilise other properties of the Request object in generating the HTML.
+    windowpane: If True, starts the console in "window pane" mode, where it
+    will float over the page and have a "minimize" button.
     """
-    req.write("""<div id="console_body"><div id="console_body2">
+    req.write("""<div id="console_body">
+  <div id="console_heading">Python Console
+""")
+    if windowpane:
+        req.write("""<span class="console_button minimize">
+      <a onclick="console_minimize()"
+        title="Minimize the Python console">
+        <img src="%s" /></a>
+    </span>
+""" % cgi.escape(util.make_path("media/images/interface/minimize.png")))
+    req.write("""</div>
+  <div id="console_body2">
   <div id="console_output">
   </div>
   <div id="console_input">
-   <div id="console_inputArea">
-   </div>
-   <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
-   <input id="console_inputText"
-     type="text" size="80" onkeypress="catch_input(event.keyCode)" />
-  </div>
+    <div id="console_inputArea">
+    </div>
+    <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
+    <input id="console_inputText"
+      type="text" size="80" onkeypress="catch_input(event.keyCode)" />
+""")
+    if windowpane:
+        req.write("""<span class="console_button maximize">
+      <a onclick="console_maximize()"
+        title="Open up the Python console">
+        <img src="%s" /></a>
+    </span>
+""" % cgi.escape(util.make_path("media/images/interface/maximize.png")))
+    req.write("""</div>
 </div></div>
+""")
+    if windowpane:
+        req.write("""
 <!-- Console filler, provides extra vertical space to stop the console
      covering over the bottom content -->
 <div id="console_filler"></div>

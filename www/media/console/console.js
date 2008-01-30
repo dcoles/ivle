@@ -1,8 +1,34 @@
+/* IVLE - Informatics Virtual Learning Environment
+ * Copyright (C) 2007-2008 The University of Melbourne
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Module: Console (Client-side JavaScript)
+ * Author: Tom Conway, Matt Giuca
+ * Date: 30/1/2008
+ */
+
 digest_constant = "hello";
 
 var server_host;
 var server_port;
 var server_magic;
+
+/* Console DOM objects */
+console_body = null;
+console_filler = null;
 
 /* Starts the console server.
  * Returns an object with fields "host", "port", "magic" describing the
@@ -15,21 +41,41 @@ function start_server()
     return JSON.parse(json_text);
 }
 
+/** Initialises the console. All apps which import console are required to
+ * call this function.
+ * Optional "windowpane" (bool), if true, will cause the console to go into
+ * "window pane" mode which will allow it to be opened and closed, and float
+ * over the page.
+ * (Defaults to closed).
+ */
 function console_init(windowpane)
 {
     /* Set up the console as a floating pane */
+    console_body = document.getElementById("console_body");
+    console_filler = document.getElementById("console_filler");
     if (windowpane)
-    {
-        var cb = document.getElementById("console_body");
-        var cb2 = document.getElementById("console_filler");
-        cb.setAttribute("class", "windowpane");
-        cb2.setAttribute("class", "windowpane");
-    }
+        console_minimize();
     /* Start the server */
     var server_info = start_server();
     server_host = server_info.host;
     server_port = server_info.port;
     server_magic = server_info.magic;
+}
+
+/** Hide the main console panel, so the console minimizes to just an input box
+ *  at the page bottom. */
+function console_minimize()
+{
+    console_body.setAttribute("class", "windowpane minimal");
+    console_filler.setAttribute("class", "windowpane minimal");
+}
+
+/** Show the main console panel, so it enlarges out to its full size.
+ */
+function console_maximize()
+{
+    console_body.setAttribute("class", "windowpane maximal");
+    console_filler.setAttribute("class", "windowpane maximal");
 }
 
 /* Below here imported from trunk/console/console.js
@@ -165,6 +211,8 @@ function enter_line()
         var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode("+++ "), prompt.firstChild);
     }
+    /* Open up the console so we can see the output */
+    console_maximize();
 }
 
 function catch_input(key)
