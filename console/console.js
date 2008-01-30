@@ -133,10 +133,19 @@ function enter_line()
     else if (res.hasOwnProperty('exc'))
     {
         // Failure!
+        // print out any output that came before the error
+        if (res.exc[0].length > 0)
+        {
+            var pre = document.createElement("pre");
+            pre.setAttribute("class", "outputMsg");
+            pre.appendChild(document.createTextNode(res.exc[0]));
+            output.appendChild(pre);
+        }
+
         // print out the error message (res.exc)
         var pre = document.createElement("pre");
         pre.setAttribute("class", "errorMsg");
-        pre.appendChild(document.createTextNode(res.exc));
+        pre.appendChild(document.createTextNode(res.exc[1]));
         output.appendChild(pre);
     }
     else if (res.hasOwnProperty('more'))

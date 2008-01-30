@@ -23,12 +23,12 @@ class StdinFromWeb(object):
         # stop the clock!
         signal.alarm(0)
         self.cmdQ.put({"input":None})
-        l = self.lineQ.get()
-        # restart the clock:
-        # Some of our 5 seconds may have elapsed, but
-        # never mind.
-        signal.alarm(5)
-        return l
+        ln = self.lineQ.get()
+        if 'chat' in ln:
+            # restart the clock:
+            # Some of our 5 seconds may have elapsed, but never mind.
+            signal.alarm(5)
+            return ln['chat']
 
 class PythonRunner(Thread):
     def __init__(self, cmdQ, lineQ):
@@ -41,34 +41,54 @@ class PythonRunner(Thread):
         compiler = codeop.CommandCompiler()
 
         while True:
-            l = self.lineQ.get()
-            if self.curr_cmd == '':
-                self.curr_cmd = l
-            else:
-                self.curr_cmd = self.curr_cmd + '\n' + l
-            try:
-                cmd = compiler(self.curr_cmd)
-                if cmd is None:
-                    # The command was incomplete,
-                    # so send back a None, so the
-                    # client can print a '...'
-                    self.cmdQ.put({"more":None})
+            ln = self.lineQ.get()
+            if 'chat' in ln:
+                mode = 
+                if self.curr_cmd == '':
+                    self.curr_cmd = ln['chat']
                 else:
-                    # The command was complete,
-                    # so evaluate it!
+                    self.curr_cmd = self.curr_cmd + '\n' + ln['chat']
+                try:
+                    cmd = compiler(self.curr_cmd)
+                    if cmd is None:
+                        # The command was incomplete,
+                        # so send back a None, so the
+                        # client can print a '...'
+                        self.cmdQ.put({"more":None})
+                    else:
+                        # The command was complete,
+                        # so evaluate it!
+                        sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
+                        self.out = cStringIO.StringIO()
+                        sys.stdout = out
+                        sys.stderr = out
+                        signal.alarm(5)
+                        res = eval(cmd, globs, locls)
+                        signal.alarm(0)
+                        self.cmdQ.put({"okay":(self.out.getvalue(),res)})
+                        self.curr_cmd = ''
+                except Exception, exc:
+                    signal.alarm(0)
+                    self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+                    self.curr_cmd = ''
+            if 'block' in ln:
+                # throw away a partial command.
+                self.curr_cmd = ''
+                try:
+                    cmd = compile(ln['block'], "<web session>", 'exec');
+                    
                     sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-                    out = cStringIO.StringIO()
+                    self.out = cStringIO.StringIO()
                     sys.stdout = out
                     sys.stderr = out
                     signal.alarm(5)
                     res = eval(cmd, globs, locls)
                     signal.alarm(0)
-                    self.cmdQ.put({"okay":(out.getvalue(),res)})
-                    curr_cmd = ''
-            except Exception, exc:
-                signal.alarm(0)
-                self.cmdQ.put({"exc":str(exc)})
-                curr_cmd = ''
+                    self.cmdQ.put({"okay":(self.out.getvalue(),res)})
+                    self.curr_cmd = ''
+                except Exception, exc:
+                    signal.alarm(0)
+                    self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
 
     def init_state(self):
         self.globs = {}
@@ -81,7 +101,8 @@ urls = (
     '/index.html',  'index',
     '/(.*\.js)',    'jscript',
     '/(.*\.css)',   'style',
-    '/chat',        'chat')
+    '/chat',        'chat',
+    '/block',       'block')
 
 # The global 'magic' is the secret that the client and server share
 # which is used to create and md5 digest to authenticate requests.
@@ -126,7 +147,27 @@ class chat:
         # Okay, so the authentication succeeded,
         # so now we have the trivial matter of actually
         # executing the python....
-        lineQ.put(inp.text)
+        lineQ.put({'chat':inp.text})
+        r = cmdQ.get()
+        sys.__stderr__.write(cjson.encode(r) + "\n")
+        web.output(cjson.encode(r))
+
+class block:
+
+    def POST(self):
+        inp = web.input()
+
+        # Authenticate
+        digest = md5.new(inp.text + magic).digest().encode('hex')
+        if inp.digest != digest:
+            web.output("401 Unauthorized")
+            web.ctx.status = '401 Unauthorized'
+            return
+
+        # Okay, so the authentication succeeded,
+        # so now we have the trivial matter of actually
+        # executing the python....
+        lineQ.put({'block':inp.text})
         r = cmdQ.get()
         sys.__stderr__.write(cjson.encode(r) + "\n")
         web.output(cjson.encode(r))
