@@ -15,8 +15,16 @@ function start_server()
     return JSON.parse(json_text);
 }
 
-function onload()
+function console_init(windowpane)
 {
+    /* Set up the console as a floating pane */
+    if (windowpane)
+    {
+        var cb = document.getElementById("console_body");
+        var cb2 = document.getElementById("console_filler");
+        cb.setAttribute("class", "windowpane");
+        cb2.setAttribute("class", "windowpane");
+    }
     /* Start the server */
     var server_info = start_server();
     server_host = server_info.host;

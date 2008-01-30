@@ -1,3 +1,12 @@
+/* Override common #ivlebody */
+/* This allows us to place the console outside the padding box */
+#ivlebody {
+    padding: 0 ! important;
+}
+#tutorialbody {
+    padding: 1em;
+}
+
 .tuteproblem {
     border-top: black 1px solid;
     border-bottom: black 1px solid;

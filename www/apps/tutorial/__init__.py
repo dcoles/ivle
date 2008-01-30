@@ -109,6 +109,7 @@ def handle_toplevel_menu(req):
     if req.uri[-1] != os.sep:
         req.throw_redirect(make_tutorial_path())
     req.write_html_head_foot = True
+    req.write('<div id="tutorialbody">\n')
     req.write("<h1>IVLE Tutorials</h1>\n")
     req.write("""<p>Welcome to the IVLE tutorial system.
   Please select a subject from the list below to take a tutorial problem sheet
@@ -122,6 +123,7 @@ def handle_toplevel_menu(req):
         req.write('  <li><a href="%s">%s</a></li>\n'
             % (urllib.quote(subject) + '/', cgi.escape(subject)))
     req.write("</ul>\n")
+    req.write("</div>\n")   # tutorialbody
 
 def is_valid_subjname(subject):
     m = re_ident.match(subject)
@@ -160,12 +162,14 @@ def handle_subject_menu(req, subject):
     # Now all the errors are out the way, we can begin writing
     req.title = "Tutorial - %s" % subject
     req.write_html_head_foot = True
+    req.write('<div id="tutorialbody">\n')
     req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
     req.write("<h2>Worksheets</h2>\n<ul>\n")
     for worksheet in worksheets:
         req.write('  <li><a href="%s">%s</a></li>\n'
             % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
     req.write("</ul>\n")
+    req.write("</div>\n")   # tutorialbody
 
 def handle_worksheet(req, subject, worksheet):
     # Subject and worksheet names must be valid identifiers
@@ -196,6 +200,7 @@ def handle_worksheet(req, subject, worksheet):
     # Now all the errors are out the way, we can begin writing
     req.title = "Tutorial - %s" % worksheetname
     req.write_html_head_foot = True
+    req.write('<div id="tutorialbody">\n')
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
     # Write each element
@@ -207,6 +212,7 @@ def handle_worksheet(req, subject, worksheet):
         else:
             # Just treat this as a normal HTML element
             req.write(elem.toxml() + '\n')
+    req.write("</div>\n")   # tutorialbody
 
 def innerXML(elem):
     """Given an element, returns its children as XML strings concatenated

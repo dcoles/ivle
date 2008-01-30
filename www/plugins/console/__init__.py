@@ -23,6 +23,8 @@
 # It exposes two functions: "present" and "insert_scripts_styles".
 # These should both be called at the appropriate time by the implementing
 # application. See docs on these functions for details.
+# Applications also need to call console_init in JavaScript from their own
+# onload events.
 
 from common import util
 
@@ -45,7 +47,7 @@ def present(req):
     """Writes the HTML for this plugin into a request stream.
     May utilise other properties of the Request object in generating the HTML.
     """
-    req.write("""<div id="console_body">
+    req.write("""<div id="console_body"><div id="console_body2">
   <div id="console_output">
   </div>
   <div id="console_input">
@@ -55,7 +57,10 @@ def present(req):
    <input id="console_inputText"
      type="text" size="80" onkeypress="catch_input(event.keyCode)" />
   </div>
-</div>
+</div></div>
+<!-- Console filler, provides extra vertical space to stop the console
+     covering over the bottom content -->
+<div id="console_filler"></div>
 """)
 
 def _append_if_absent(list, *values):

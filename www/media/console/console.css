@@ -1,15 +1,54 @@
+#console_body {
+    background-color: black;
+    color: white;
+    padding: 0;
+    width: 100%;
+}
+/* console_body when displayed as a window panel and not the whole app */
+#console_body.windowpane {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+}
+#console_body2 {
+    padding: 1em;
+}
 #console_output {
     /*border: solid black 1pt;*/
-    height: 24em;
+    height: 20em;
     overflow: scroll;
-    margin-bottom: 4pt;
-    padding: 4pt;
+    margin-bottom: 1em;
 }
 #console_input {
     /*border: solid green 1pt;*/
 }
 #console_prompt {
     font-family: monospace;
+}
+#console_inputText {
+    background-color: black;
+    color: white;
+    width: 90%;
+}
+/* console filler takes up the same space as console_body.windowpane
+ * but its position is relative, not fixed.
+ * This avoids having the console overlap with the bottom 28em of page
+ * content. */
+#console_filler {
+    display: none;
+}
+#console_filler.windowpane {
+    display: block;
+    z-index: -1;
+    /* total height of console = 20em + 1em + 1em + 1em + 1em */
+    height: 24em;
+    width: 100%;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 pre.errorMsg {
     color: red;
