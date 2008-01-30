@@ -5,70 +5,46 @@
 #include <unistd.h>
 #include "norm.h"
 
-#if 0
-struct stack_t
-{
-    const char** items;
-    size_t capacity;
-    size_t top;
-};
-typedef stack_t Stack;
+#define SKP()               \
+    do {                    \
+        s++;                \
+    } while (0)
 
-Stack* new_stack()
-{
-    Stack* s = (Stack*) malloc(sizeof(Stack));
-    if (!s)
-    {
-        fprintf(stderr, "new_stack: Memory allocation failure! (1)\n");
-        exit(1);
-    }
-    s->items = (const char**) malloc(16 * sizeof(const char*));
-    if (!s->items)
-    {
-        fprintf(stderr, "new_stack: Memory allocation failure! (2)\n");
-        exit(1);
-    }   
-    s->capacity = 16;
-    s->top = 0;
-    return s;
-}
+#define CPY()               \
+    do {                    \
+        *d++ = *s++;        \
+    } while (0)
 
-void stack_push(Stack* s,const char* itm)
-{
-    if (s->top == s->capacity)
-    {
-        int c = s->capacity * 2;
-        const char** itms = (const char**) malloc(c * sizeof(const char*));
-        if (!itms)
-        {
-            fprintf(stderr, "stack_push: Memory allocation failure! (1)\n");
-            exit(1);
-        }
-        memcpy(itms, s->items, s->capacity * sizeof(const char*));
-        free(s->items);
-        s->items = itms;
-        s->capacity = c;
-    }
-    s->items[s->top++] = itm;
-}
+#define MRK()               \
+    do {                    \
+        PUSH();             \
+    } while (0)
 
-const char* stack_pop(Stack* s)
-{
-    if (s->top == 0)
-    {
-        fprintf(stderr, "stack_pop: underflow!\n");
-        exit(1);
-    }
-    return s->items[--(s->top)];
-}
+#define BKP()               \
+    do {                    \
+        POP();              \
+    } while (0)
 
-void old_stack(Stack* s)
-{
-    free(s->items);
-    free(s);
-}
-#endif 0
+#define BKP2()              \
+    do {                    \
+        POP();              \
+        POP();              \
+    } while (0)
 
+#define PUSH()              \
+    do {                    \
+        stk[top++] = d;     \
+    } while (0)
+
+#define POP()               \
+    do {                    \
+        if (top == 0)       \
+        {                   \
+            dest[0] = '\0'; \
+            return -1;      \
+        }                   \
+        d = stk[--top];     \
+    } while (0)
 
 /*
  * Normalize the unix pathname in src eliminating .. sequences
@@ -78,46 +54,146 @@ void old_stack(Stack* s)
 int norm(char* dest, int len, const char* src)
 {
     const char* s = src;
-    int l = strlen(src);
     char* d = dest;
-    assert(l <= len);
+    char* stk[256];
+    int top = 0;
+    enum { L0, L1, L2, L3, L4 } state = L0;
+    assert(strlen(src) <= len);
 
-    if (!*s || (*d++ = *s++) != '/')
-    {
-        dest[0] = '\0';
-        return -1;
-    }
     while (*s)
     {
-        const char* t;
-        int l;
-        t = s;
-        while (*s && (*d++ = *s++) != '/') ;
-        l = s - t - 1;
-        if (1) {
-            char x[128];
-            printf("%d\n",l);
-            strncpy(x,t,l);
-            x[l] = 0;
-            fprintf(stderr,"%s\n",x);
-        }
-        if (strncmp(t, "..", l) == 0)
+        char c = *s;
+        enum { slash, dot, other } cls;
+        switch (c)
         {
-            fprintf(stderr,"backtracking...\n");
-            d -= 4; /* /../ */
-            while (d > dest && *--d != '/')
+            case '/':
             {
-                d--;
+                cls = slash;
+                break;
             }
-            if (d < dest)
+            case '.':
             {
-                /* underflow: too many .. sequences */
-                dest[0] = '\0';
-                return -1;
+                cls = dot;
+                break;
+            }
+            default:
+            {
+                cls = other;
+            }
+        }
+        switch (state)
+        {
+            case L0:
+            {
+                switch (cls)
+                {
+                    case slash:
+                    {
+                        CPY();
+                        state = L1;
+                        break;
+                    }
+                    case dot:
+                    case other:
+                    {
+                        dest[0] = '\0';
+                        return -1;
+                    }
+                }
+                break;
+            }
+            case L1:
+            {
+                switch (cls)
+                {
+                    case slash:
+                    {
+                        SKP();
+                        break;
+                    }
+                    case dot:
+                    {
+                        MRK();
+                        CPY();
+                        state = L2;
+                        break;
+                    }
+                    case other:
+                    {
+                        MRK();
+                        CPY();
+                        state = L4;
+                        break;
+                    }
+                }
+                break;
+            }
+            case L2:
+            {
+                switch (cls)
+                {
+                    case slash:
+                    {
+                        BKP();
+                        state = L1;
+                        break;
+                    }
+                    case dot:
+                    {
+                        CPY();
+                        state = L3;
+                        break;
+                    }
+                    case other:
+                    {
+                        CPY();
+                        state = L4;
+                        break;
+                    }
+                }
+                break;
+            }
+            case L3:
+            {
+                switch (cls)
+                {
+                    case slash:
+                    {
+                        BKP2();
+                        state = L1;
+                        break;
+                    }
+                    case dot:
+                    case other:
+                    {
+                        CPY();
+                        state = L4;
+                        break;
+                    }
+                }
+                break;
+            }
+            case L4:
+            {
+                switch (cls)
+                {
+                    case slash:
+                    {
+                        CPY();
+                        state = L1;
+                        break;
+                    }
+                    case dot:
+                    case other:
+                    {
+                        CPY();
+                        break;
+                    }
+                }
+                break;
             }
         }
     }
     *d = '\0';
-    fprintf(stderr, "returning: '%s'\n", dest);
     return 0;
 }

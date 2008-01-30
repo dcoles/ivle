@@ -1,0 +1,22 @@
+digraph norm {
+    rankdir=LR;
+    node [shape = doublecircle]; L0 L1 L4;
+    node [shape = circle];
+    L0 -> L1 [ label = "/ cpy" ];
+
+    L1 -> L1 [ label = "/ skp" ];
+    L1 -> L2 [ label = ". mrk cpy" ];
+    L1 -> L4 [ label = "* mrk cpy" ];
+
+    L2 -> L1 [ label = "/ bkp" ];
+    L2 -> L3 [ label = ". cpy" ];
+    L2 -> L4 [ label = "* cpy" ];
+
+    L3 -> L1 [ label = "/ bkp2" ];
+    L3 -> L4 [ label = ". cpy" ];
+    L3 -> L4 [ label = "* cpy" ];
+
+    L4 -> L1 [ label = "/ cpy" ];
+    L4 -> L4 [ label = ". cpy" ];
+    L4 -> L4 [ label = "* cpy" ];
+}
