@@ -26,9 +26,16 @@ var server_host;
 var server_port;
 var server_magic;
 
+/* Begin religious debate (tabs vs spaces) here: */
+/* (This string will be inserted in the console when the user presses the Tab
+ * key) */
+TAB_STRING = "    ";
+
 /* Console DOM objects */
 console_body = null;
 console_filler = null;
+
+windowpane_mode = false;
 
 /* Starts the console server.
  * Returns an object with fields "host", "port", "magic" describing the
@@ -54,7 +61,10 @@ function console_init(windowpane)
     console_body = document.getElementById("console_body");
     console_filler = document.getElementById("console_filler");
     if (windowpane)
+    {
+        windowpane_mode = true;
         console_minimize();
+    }
     /* Start the server */
     var server_info = start_server();
     server_host = server_info.host;
@@ -66,6 +76,7 @@ function console_init(windowpane)
  *  at the page bottom. */
 function console_minimize()
 {
+    if (!windowpane_mode) return;
     console_body.setAttribute("class", "windowpane minimal");
     console_filler.setAttribute("class", "windowpane minimal");
 }
@@ -74,6 +85,7 @@ function console_minimize()
  */
 function console_maximize()
 {
+    if (!windowpane_mode) return;
     console_body.setAttribute("class", "windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
 }
@@ -221,20 +233,50 @@ function console_enter_line(inputline)
 function catch_input(key)
 {
     var inp = document.getElementById('console_inputText');
-    if (key == 13)
+    switch (key)
     {
+    case 9:                 /* Tab key */
+        var selstart = inp.selectionStart;
+        var selend = inp.selectionEnd;
+        if (selstart == selend)
+        {
+            /* No selection, just a carat. Insert a tab here. */
+            inp.value = inp.value.substr(0, selstart)
+                + TAB_STRING + inp.value.substr(selstart);
+        }
+        else
+        {
+            /* Text is selected. Just indent the whole line
+             * by inserting a tab at the start */
+            inp.value = TAB_STRING + inp.value;
+        }
+        /* Update the selection so the same characters as before are selected
+         */
+        inp.selectionStart = selstart + TAB_STRING.length;
+        inp.selectionEnd = inp.selectionStart + (selend - selstart);
+        /* Cancel the event, so the TAB key doesn't move focus away from this
+         * box */
+        return false;
+        /* Note: If it happens that some browsers don't support event
+         * cancelling properly, this hack might work instead:
+        setTimeout(
+            "document.getElementById('console_inputText').focus()",
+            0);
+         */
+        break;
+    case 13:                /* Enter key */
+        /* Send the line of text to the server */
         console_enter_line(inp.value);
         hist.add(inp.value);
         inp.value = hist.curr();
-    }
-    if (key == 38)
-    {
+        break;
+    case 38:                /* Up arrow */
         hist.up();
         inp.value = hist.curr();
-    }
-    if (key == 40)
-    {
+        break;
+    case 40:                /* Down arrow */
         hist.down();
         inp.value = hist.curr();
+        break;
     }
 }

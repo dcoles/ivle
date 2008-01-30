@@ -2,4 +2,8 @@
 #ivlebody {
     padding: 0 ! important;
 }
-
+/* Override the "Console" tab so it has a black border bottom (otherwise it
+ * conflicts with the border at the top of console */
+#apptabs .thisapp {
+    border-bottom: 1px solid black ! important;
+}

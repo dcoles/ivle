@@ -69,7 +69,7 @@ def present(req, windowpane=False):
     </div>
     <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
     <input id="console_inputText"
-      type="text" size="80" onkeypress="catch_input(event.keyCode)" />
+      type="text" size="80" onkeypress="return catch_input(event.keyCode)" />
 """)
     if windowpane:
         req.write("""<span class="console_button maximize">
