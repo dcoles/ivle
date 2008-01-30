@@ -47,9 +47,8 @@
     } while (0)
 
 /*
- * Normalize the unix pathname in src eliminating .. sequences
- * to yield an absolute path. Returns 0 on success, and -1 on
- * error.
+ * Normalize the unix pathname in src eliminating . and .. sequences
+ * to yield an absolute path. Returns 0 on success, and -1 on error.
  */
 int norm(char* dest, int len, const char* src)
 {

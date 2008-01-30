@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 /* conf.h is admin-configured by the setup process.
  * It defines jail_base.
@@ -124,6 +125,7 @@ int main(int argc, char* const argv[])
     int uid;
     int arg_num = 1;
     int daemon_mode = 0;
+    char canonical_jailpath[PATH_MAX];
 
     /* Disallow execution from all users but the whitelisted ones, and root */
     if (!uid_allowed(getuid()))
@@ -160,15 +162,15 @@ int main(int argc, char* const argv[])
         exit(1);
     }
 
-    /* Jail path must:
-     * Be non-empty
-     * Start with a '/'
-     * Not contain "/.."
-     * Begin with jail_base
+    /* Jail path must be an absolute path,
+     * and it must begin with jail_base.
      */
-    if (strlen(jailpath) < 1 || jailpath[0] != '/'
-            || strstr(jailpath, "/..")
-            || strncmp(jailpath, jail_base, strlen(jail_base)))
+    if (norm(canonical_jailpath, PATH_MAX, jailpath) != 0)
+    {
+        fprintf(stderr, "bad jail path: %s\n", jailpath);
+        exit(1);
+    }
+    if (strncmp(canonical_jailpath, jail_base, strlen(jail_base)))
     {
         fprintf(stderr, "bad jail path: %s\n", jailpath);
         exit(1);
@@ -176,8 +178,8 @@ int main(int argc, char* const argv[])
 
     /* chroot into the jail.
      * Henceforth this process, and its children, cannot see anything above
-     * jailpath. */
-    if (chroot(jailpath))
+     * canoncial_jailpath. */
+    if (chroot(canonical_jailpath))
     {
         perror("could not chroot");
         exit(1);
