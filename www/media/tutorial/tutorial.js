@@ -36,6 +36,12 @@ function runproblem(problemid, filename)
     var problembox = problemdiv.getElementsByTagName("textarea")[0];
     var code = problembox.value;
 
+    /* Dump the entire file to the console */
+    /* FIXME: Multiple lines aren't received properly by the server */
+    console_enter_line(code);
+    return;
+
+    /* TEMP: Old code here */
     var args = {"code": code, "problem": filename, "action": "run"};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump

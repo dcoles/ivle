@@ -155,12 +155,15 @@ function History()
 
 var hist = new History();
 
-function enter_line()
+/** Send a line of text to the Python server, wait for its return, and react
+ * to its response by writing to the output box.
+ * Also maximize the console window if not already.
+ */
+function console_enter_line(inputline)
 {
-    var inp = document.getElementById('console_inputText');
-    var digest = hex_md5(inp.value + magic);
+    var digest = hex_md5(inputline + magic);
     var args = {"host": server_host, "port": server_port,
-                    "digest":digest, "text":inp.value};
+                    "digest":digest, "text":inputline};
     var xmlhttp = ajax_call("consoleservice", "chat", args, "POST");
 
     var res = JSON.parse(xmlhttp.responseText);
@@ -168,7 +171,7 @@ function enter_line()
     {
         var pre = document.createElement("pre");
         pre.setAttribute("class", "inputMsg");
-        pre.appendChild(document.createTextNode(inp.value + "\n"));
+        pre.appendChild(document.createTextNode(inputline + "\n"));
         output.appendChild(pre);
     }
     if (res.hasOwnProperty('okay'))
@@ -220,7 +223,7 @@ function catch_input(key)
     var inp = document.getElementById('console_inputText');
     if (key == 13)
     {
-        enter_line();
+        console_enter_line(inp.value);
         hist.add(inp.value);
         inp.value = hist.curr();
     }
