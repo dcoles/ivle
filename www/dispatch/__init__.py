@@ -82,6 +82,8 @@ def handler(req):
         logged_in = True
 
     if logged_in:
+        # Keep the user's session alive by writing to the session object.
+        req.get_session().save()
         # If user did not specify an app, HTTP redirect to default app and
         # exit.
         if req.app is None:
