@@ -97,10 +97,6 @@ class PythonRunner(Thread):
         self.curr_cmd = ''
 
 urls = (
-    '/',            'index',
-    '/index.html',  'index',
-    '/(.*\.js)',    'jscript',
-    '/(.*\.css)',   'style',
     '/chat',        'chat',
     '/block',       'block')
 
@@ -108,29 +104,6 @@ urls = (
 # which is used to create and md5 digest to authenticate requests.
 # It is assigned a real value at startup.
 magic = ''
-
-class index:
-    def GET(self):
-        inp = web.input()
-
-        # Authenticate
-        digest = md5.new('hello' + magic).digest().encode('hex')
-        if inp.digest != digest:
-            web.ctx.status = '401 Unauthorized'
-            return
-
-        # Okay, so the authentication succeeded,
-        # so all we need to do is send back the static
-        # HTML for the console app.
-        web.output(file("index.html", "r").read())
-
-class jscript:
-    def GET(self, name):
-        web.output(file(name, "r").read())
-
-class style:
-    def GET(self, name):
-        web.output(file(name, "r").read())
 
 class chat:
 
