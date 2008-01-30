@@ -221,33 +221,33 @@ function update_sidepanel(total_file_size_sel)
     p = dom_make_text_elem("h3", "Actions");
     sidepanel.appendChild(p);
 
-    if (file.isdir)
-    {
-        /* Publish/unpublish */
-        if (selected_files.length == 0)
-            path = ".";
-        else
-            path = filename;
-        if ("published" in file && file.published)
-        {
-            p = dom_make_link_elem("p", "Unpublish",
-                "Make it so this directory cannot be seen by anyone but you",
-                null,
-                "return action_unpublish(" + repr(path) + ")");
-            sidepanel.appendChild(p);
-        }
-        else
-        {
-            p = dom_make_link_elem("p", "Publish",
-                "Make it so this directory can be seen by anyone on the web",
-                null,
-                "return action_publish(" + repr(path) + ")");
-            sidepanel.appendChild(p);
-        }
-    }
-
     if (selected_files.length <= 1)
     {
+        if (file.isdir)
+        {
+            /* Publish/unpublish */
+            if (selected_files.length == 0)
+                path = ".";
+            else
+                path = filename;
+            if ("published" in file && file.published)
+            {
+                p = dom_make_link_elem("p", "Unpublish",
+                    "Make it so this directory cannot be seen by anyone but you",
+                    null,
+                    "return action_unpublish(" + repr(path) + ")");
+                sidepanel.appendChild(p);
+            }
+            else
+            {
+                p = dom_make_link_elem("p", "Publish",
+                    "Make it so this directory can be seen by anyone on the web",
+                    null,
+                    "return action_publish(" + repr(path) + ")");
+                sidepanel.appendChild(p);
+            }
+        }
+
         var handler_type = null;
         if ("type" in file)
             handler_type = get_handler_type(file.type);
