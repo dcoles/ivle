@@ -1,5 +1,4 @@
-DROP TABLE users CASCADE;
-CREATE TABLE users (
+CREATE TABLE user (
     login       VARCHAR UNIQUE NOT NULL,
     loginid     SERIAL PRIMARY KEY NOT NULL,
     nick        VARCHAR,
@@ -7,8 +6,7 @@ CREATE TABLE users (
     studentid   VARCHAR -- may be null
 );
 
-DROP TABLE offerings CASCADE;
-CREATE TABLE offerings (
+CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
     subj_name   VARCHAR NOT NULL,
     subj_code   VARCHAR NOT NULL,
@@ -16,76 +14,68 @@ CREATE TABLE offerings (
     semester    INT NOT NULL
 );
 
-DROP TABLE groups CASCADE;
-CREATE TABLE groups (
+CREATE TABLE group (
     groupnm       VARCHAR NOT NULL,
     groupid     SERIAL PRIMARY KEY NOT NULL,
-    offeringid  INT4 REFERENCES offerings (offeringid),
+    offeringid  INT4 REFERENCES offering (offeringid),
     nick        VARCHAR,
     UNIQUE (offeringid, groupnm)
 );
 
-DROP TABLE group_invitations CASCADE;
-CREATE TABLE group_invitations (
-    loginid     INT4 REFERENCES users (loginid),
-    groupid     INT4 REFERENCES groups (groupid),
+CREATE TABLE group_invitation (
+    loginid     INT4 REFERENCES user (loginid),
+    groupid     INT4 REFERENCES group (groupid),
     UNIQUE (loginid,groupid)
 );
 
-DROP TABLE group_members CASCADE;
-CREATE TABLE group_members (
-    loginid     INT4 REFERENCES users (loginid),
-    groupid     INT4 REFERENCES groups (groupid),
-    projectid   INT4 REFERENCES projects (projectid),
+CREATE TABLE group_member (
+    loginid     INT4 REFERENCES user (loginid),
+    groupid     INT4 REFERENCES group (groupid),
+    projectid   INT4 REFERENCES project (projectid),
     UNIQUE (loginid,projectid),
     PRIMARY KEY (loginid,groupid)
 );
 
-DROP TABLE enrolment CASCADE;
 CREATE TABLE enrolment (
-    loginid     INT4 REFERENCES users (loginid),
-    offeringid  INT4 REFERENCES offerings (offeringid),
+    loginid     INT4 REFERENCES user (loginid),
+    offeringid  INT4 REFERENCES offering (offeringid),
     result      INT,
     supp_result INT,
     notes       VARCHAR,
     PRIMARY KEY (loginid,offeringid)
 );
 
-DROP TABLE roles CASCADE;
-CREATE TABLE roles (
-    loginid     INT4 PRIMARY KEY REFERENCES users (loginid),
-    role        VARCHAR
+CREATE TABLE ivle_role (
+    loginid     INT4 PRIMARY KEY REFERENCES user (loginid),
+    rolenm      VARCHAR
 );
 
-DROP TABLE projects CASCADE;
-CREATE TABLE projects (
+CREATE TABLE project (
     projectid   SERIAL PRIMARY KEY NOT NULL,
     synopsis    VARCHAR,
     url         VARCHAR,
-    offeringid  INT4 REFERENCES offerings (offeringid) NOT NULL,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     deadline    TIMESTAMP
 );
 
-DROP TABLE project_extension CASCADE;
 CREATE TABLE project_extension (
-    loginid     INT4 REFERENCES users (loginid),
-    groupid     INT4 REFERENCES groups (groupid),
-    projectid   INT4 REFERENCES projects (projectid) NOT NULL,
+    loginid     INT4 REFERENCES user (loginid),
+    groupid     INT4 REFERENCES group (groupid),
+    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
-    approver    INT4 REFERENCES users (loginid) NOT NULL,
+    approver    INT4 REFERENCES user (loginid) NOT NULL,
     notes       VARCHAR,
     -- exactly one of loginid and groupid must be non-null
     CHECK ((loginid IS NOT NULL AND groupid IS NULL)
         OR (loginid IS NULL AND groupid IS NOT NULL))
 );
 
-DROP TABLE project_mark CASCADE;
 CREATE TABLE project_mark (
-    loginid     INT4 REFERENCES users (loginid),
-    groupid     INT4 REFERENCES groups (groupid),
-    projectid   INT4 REFERENCES projects (projectid) NOT NULL,
+    loginid     INT4 REFERENCES user (loginid),
+    groupid     INT4 REFERENCES group (groupid),
+    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     componentid INT4,
-    marker      INT4 REFERENCES users (loginid) NOT NULL,
+    marker      INT4 REFERENCES user (loginid) NOT NULL,
     mark        INT,
     marked      TIMESTAMP,
     feedback    VARCHAR,
@@ -95,22 +85,19 @@ CREATE TABLE project_mark (
         OR (loginid IS NULL AND groupid IS NOT NULL))
 );
 
-DROP TABLE problem CASCADE;
 CREATE TABLE problem (
     problemid   SERIAL PRIMARY KEY NOT NULL,
     spec        VARCHAR
 );
 
-DROP TABLE problem_tags CASCADE;
-CREATE TABLE problem_tags (
+CREATE TABLE problem_tag (
     problemid   INT4 REFERENCES tutorial_problem (problemid),
     tag         VARCHAR NOT NULL,
-    added_by    INT4 REFERENCES users (loginid) NOT NULL,
+    added_by    INT4 REFERENCES user (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (problemid,added_by,tag)
 );
 
-DROP TABLE problem_test_case CASCADE;
 CREATE TABLE problem_test_case (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
     testcaseid  SERIAL UNIQUE NOT NULL,
@@ -119,40 +106,35 @@ CREATE TABLE problem_test_case (
     visibility  VARCHAR CHECK (visibility in ('public', 'protected', 'private'))
 );
 
-DROP TABLE problem_test_case_tags CASCADE;
-CREATE TABLE problem_test_case_tags (
+CREATE TABLE problem_test_case_tag (
     testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
     tag         VARCHAR NOT NULL,
     description VARCHAR,
-    added_by    INT4 REFERENCES users (loginid) NOT NULL,
+    added_by    INT4 REFERENCES user (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (testcaseid,added_by,tag)
 );
 
-DROP TABLE problem_attempt CASCADE;
 CREATE TABLE problem_attempt (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    loginid     INT4 REFERENCES users (loginid) NOT NULL,
+    loginid     INT4 REFERENCES user (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
     PRIMARY KEY (problemid,loginid,date)
 );
 
-DROP INDEX problem_attempt_index;
 CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 
-DROP TABLE problem_attempt_breakdown CASCADE;
 CREATE TABLE problem_attempt_breakdown (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
     testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    loginid     INT4 REFERENCES users (loginid) NOT NULL,
+    loginid     INT4 REFERENCES user (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     result      BOOLEAN
 );
 
-DROP TABLE problem_prerequisites CASCADE;
-CREATE TABLE problem_prerequisites (
+CREATE TABLE problem_prerequisite (
     parent      INT4 REFERENCES problem (problemid) NOT NULL,
     child       INT4 REFERENCES problem (problemid) NOT NULL,
     PRIMARY KEY (parent,child)
