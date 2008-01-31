@@ -103,6 +103,8 @@ def write_html_head(req):
         req.write("  <p><small>Warning: debuginfo is enabled. Remove this "
             "app from conf.apps.app_url when placed into production."
             "</small></p>\n")
+    # ivleheader_tabs is a separate div, so it can be positioned absolutely
+    req.write('</div>\n<div id="ivleheader_tabs">\n')
 
     if req.username:
         # Only print app tabs if logged in
