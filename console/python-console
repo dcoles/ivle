@@ -60,10 +60,10 @@ class PythonRunner(Thread):
                         # so evaluate it!
                         sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
                         self.out = cStringIO.StringIO()
-                        sys.stdout = out
-                        sys.stderr = out
+                        sys.stdout = self.out
+                        sys.stderr = self.out
                         signal.alarm(5)
-                        res = eval(cmd, globs, locls)
+                        res = eval(cmd, self.globs, self.locls)
                         signal.alarm(0)
                         self.cmdQ.put({"okay":(self.out.getvalue(),res)})
                         self.curr_cmd = ''
@@ -82,7 +82,7 @@ class PythonRunner(Thread):
                     sys.stdout = out
                     sys.stderr = out
                     signal.alarm(5)
-                    res = eval(cmd, globs, locls)
+                    res = eval(cmd, self.globs, self.locls)
                     signal.alarm(0)
                     self.cmdQ.put({"okay":(self.out.getvalue(),res)})
                     self.curr_cmd = ''
