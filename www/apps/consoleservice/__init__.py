@@ -19,10 +19,16 @@
 # Author: Matt Giuca, Tom Conway
 # Date: 14/1/2008
 
+import cStringIO
+import httplib
+import md5
 import os
 import pwd
-import httplib
+import random
+import socket
+import sys
 import urllib
+import uuid
 
 import cjson
 
@@ -45,6 +51,8 @@ def handle(req):
         handle_start(req)
     elif req.path == "chat":
         handle_chat(req)
+    #elif req.path == "block":
+    #    handle_block(req)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
@@ -67,24 +75,42 @@ def handle_start(req):
     # TODO: Figure out the host name the console server is running on.
     host = req.hostname
 
-    # Find an available port on the server.
-    # TODO
-    port = 1025
-
     # Create magic
     # TODO
-    magic = "xyzzy"
+    magic = md5.new(uuid.uuid4().bytes).digest().encode('hex')
 
-    # Start the console server (port, magic)
-    # trampoline usage: tramp uid jail_dir working_dir script_path args
-    # console usage:    python-console port magic
-    # TODO: Cleanup (don't use os.system)
-    # TODO: Pass working_dir as argument, let console cd to it
-    # Use "&" to run as a background process
-    cmd = ' '.join([trampoline_path, str(uid), jail_path, console_dir,
-        python_path, console_path, str(port), str(magic), "&"])
-    #req.write(cmd + '\n')
-    os.system(cmd)
+    # Try to find a free port on the server.
+    # Just try some random ports in the range [3000,8000)
+    # until we either succeed, or give up. If you think this
+    # sounds risky, it isn't:
+    # For N ports (e.g. 5000) with k (e.g. 100) in use, the
+    # probability of failing to find a free port in t (e.g. 5) tries
+    # is (k / N) ** t (e.g. 3.2*10e-9).
+
+    tries = 0
+    while tries < 5:
+        port = int(random.uniform(3000, 8000))
+
+        # Start the console server (port, magic)
+        # trampoline usage: tramp uid jail_dir working_dir script_path args
+        # console usage:    python-console port magic
+        # TODO: Pass working_dir as argument, let console cd to it
+        cmd = ' '.join([trampoline_path, str(uid), jail_path,
+                            console_dir, python_path, console_path,
+                            str(port), str(magic)])
+
+        print >> sys.stderr, cmd
+        res = os.system(cmd)
+        print >> sys.stderr, res
+
+        if res == 0:
+            # success
+            break;
+
+        tries += 1
+
+    if tries == 5:
+        raise Exception, "unable to find a free port!"
 
     # Return port, magic
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
@@ -99,7 +125,7 @@ def handle_chat(req):
     fields = req.get_fieldstorage()
     try:
         host = fields.getfirst("host").value
-        port = fields.getfirst("port").value
+        port = int(fields.getfirst("port").value)
         digest = fields.getfirst("digest").value
     except AttributeError:
         # Any of the getfirsts returned None
@@ -110,23 +136,26 @@ def handle_chat(req):
     except AttributeError:
         text = ""
 
-    # Open an HTTP connection
-    url = ("http://" + urllib.quote(host) + ":" + urllib.quote(port)
-            + "/chat");
-    body = ("digest=" + urllib.quote(digest)
-            + "&text=" + urllib.quote(text))
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    try:
-        conn = httplib.HTTPConnection(host, port)
-    except:
-        req.throw_error(req.HTTP_BAD_REQUEST)
-    conn.request("POST", url, body, headers)
+    msg = {'cmd':'chat', 'text':text, 'digest':digest}
 
-    response = conn.getresponse()
+    sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sok.connect((host, port))
+    sok.send(cjson.encode(msg))
+
+    buf = cStringIO.StringIO()
+    blk = sok.recv(1024)
+    while blk:
+        buf.write(blk)
+        try:
+            blk = conn.recv(1024, socket.MSG_DONTWAIT)
+        except:
+            # Exception thrown if it WOULD block (but we
+            # told it not to wait) - ie. we are done
+            blk = None
+    inp = buf.getvalue()
     
-    req.status = response.status
-    # NOTE: Ignoring arbitrary headers returned by the server
-    # Probably not necessary to proxy them
-    req.content_type = response.getheader("Content-Type", "text/plain")
-    req.write(response.read())
-    conn.close()
+    sok.close()
+
+    req.content_type = "text/plain"
+    req.write(inp)
+

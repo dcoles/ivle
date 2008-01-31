@@ -3,15 +3,15 @@
 # usage:
 #   python-console <port> <magic>
 
-import sys
-import web
-import md5
-import codeop
 import cjson
-import cgi
+import codeop
 import cStringIO
-import signal
+import md5
+import os
 import Queue
+import signal
+import socket
+import sys
 from threading import Thread
 
 class StdinFromWeb(object):
@@ -59,7 +59,6 @@ class PythonRunner(Thread):
                         # The command was complete,
                         # so evaluate it!
                         sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-                        self.out = cStringIO.StringIO()
                         sys.stdout = self.out
                         sys.stderr = self.out
                         signal.alarm(5)
@@ -67,28 +66,32 @@ class PythonRunner(Thread):
                         signal.alarm(0)
                         self.cmdQ.put({"okay":(self.out.getvalue(),res)})
                         self.curr_cmd = ''
+                        self.out = cStringIO.StringIO()
                 except Exception, exc:
                     signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
                     self.curr_cmd = ''
+                    self.out = cStringIO.StringIO()
             if 'block' in ln:
                 # throw away a partial command.
-                self.curr_cmd = ''
                 try:
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     
                     sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
                     self.out = cStringIO.StringIO()
-                    sys.stdout = out
-                    sys.stderr = out
+                    sys.stdout = self.out
+                    sys.stderr = self.out
                     signal.alarm(5)
                     res = eval(cmd, self.globs, self.locls)
                     signal.alarm(0)
                     self.cmdQ.put({"okay":(self.out.getvalue(),res)})
                     self.curr_cmd = ''
+                    self.out = cStringIO.StringIO()
                 except Exception, exc:
                     signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+                    self.curr_cmd = ''
+                    self.out = cStringIO.StringIO()
 
     def init_state(self):
         self.globs = {}
@@ -96,61 +99,65 @@ class PythonRunner(Thread):
         self.locls = {}
         self.curr_cmd = ''
 
-urls = (
-    '/chat',        'chat',
-    '/block',       'block')
+def daemonize():
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent
+    os.setsid()
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent again.
+    os.umask(077)
 
 # The global 'magic' is the secret that the client and server share
 # which is used to create and md5 digest to authenticate requests.
 # It is assigned a real value at startup.
 magic = ''
 
-class chat:
-
-    def POST(self):
-        inp = web.input()
-
-        # Authenticate
-        digest = md5.new(inp.text + magic).digest().encode('hex')
-        if inp.digest != digest:
-            web.output("401 Unauthorized")
-            web.ctx.status = '401 Unauthorized'
-            return
-
-        # Okay, so the authentication succeeded,
-        # so now we have the trivial matter of actually
-        # executing the python....
-        lineQ.put({'chat':inp.text})
-        r = cmdQ.get()
-        sys.__stderr__.write(cjson.encode(r) + "\n")
-        web.output(cjson.encode(r))
-
-class block:
-
-    def POST(self):
-        inp = web.input()
-
-        # Authenticate
-        digest = md5.new(inp.text + magic).digest().encode('hex')
-        if inp.digest != digest:
-            web.output("401 Unauthorized")
-            web.ctx.status = '401 Unauthorized'
-            return
-
-        # Okay, so the authentication succeeded,
-        # so now we have the trivial matter of actually
-        # executing the python....
-        lineQ.put({'block':inp.text})
-        r = cmdQ.get()
-        sys.__stderr__.write(cjson.encode(r) + "\n")
-        web.output(cjson.encode(r))
-
 cmdQ = Queue.Queue()
 lineQ = Queue.Queue()
 interpThread = PythonRunner(cmdQ, lineQ)
 
 if __name__ == "__main__":
+    port = int(sys.argv[1])
     magic = sys.argv[2]
+
+    # Attempt to open the socket.
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', port))
+    s.listen(1)
+
+    # Excellent! It worked. Let's turn ourself into a daemon,
+    # then get on with the job of being a python interpreter.
+    daemonize()
+
     interpThread.setDaemon(True)
     interpThread.start()
-    web.run(urls, globals())
+
+    while True:
+        (conn, addr) = s.accept()
+        try:
+            # Grab the input
+            buf = cStringIO.StringIO()
+            blk = conn.recv(1024)
+            while blk:
+                buf.write(blk)
+                try:
+                    blk = conn.recv(1024, socket.MSG_DONTWAIT)
+                except:
+                    # Exception thrown if it WOULD block (but we
+                    # told it not to wait) - ie. we are done
+                    blk = None
+            inp = buf.getvalue()
+            msg = cjson.decode(inp)
+            
+            # Check that the message is 
+            digest = md5.new(msg['text'] + magic).digest().encode('hex')
+            if msg['digest'] != digest:
+                conn.close()
+                continue
+
+            lineQ.put({msg['cmd']:msg['text']})
+            r = cmdQ.get()
+            conn.sendall(cjson.encode(r))
+            conn.close()
+        except Exception, e:
+            conn.close()

@@ -99,12 +99,6 @@ function console_maximize()
     console_filler.setAttribute("class", "windowpane maximal");
 }
 
-/* Below here imported from trunk/console/console.js
- * (Tom Conway)
- */
-
-var magic = 'xyzzy';
-
 /* current_text is the string currently on the command line.
  * If non-empty, it will be stored at the bottom of the history.
  */
@@ -213,7 +207,7 @@ function console_enter_line(inputline)
 {
     /* Start the server if it hasn't already been started */
     start_server();
-    var digest = hex_md5(inputline + magic);
+    var digest = hex_md5(inputline + server_magic);
     var args = {"host": server_host, "port": server_port,
                     "digest":digest, "text":inputline};
     var xmlhttp = ajax_call("consoleservice", "chat", args, "POST");
