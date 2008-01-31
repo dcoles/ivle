@@ -581,8 +581,10 @@ def build(args):
         print "Dry run (no actions will be executed\n"
 
     # Compile the trampoline
-    action_runprog('gcc', ['-Wall', '-o', 'trampoline/trampoline',
-        'trampoline/trampoline.c'], dry)
+    curdir = os.getcwd()
+    os.chdir('trampoline')
+    action_runprog('make', [], dry)
+    os.chdir(curdir)
 
     # Create the jail and its subdirectories
     # Note: Other subdirs will be made by copying files
