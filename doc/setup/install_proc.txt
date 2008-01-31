@@ -112,3 +112,25 @@ sudo ln -fs /etc/apache2/sites-available/ivle.conf 000-default
 
 # Restart the server
 sudo apache2ctl -k restart
+
+#
+# Installing postgres
+# ===============================
+#
+# Some of these instructions follow
+#     https://help.ubuntu.com/community/PostgreSQL
+# 1. install the base packages
+
+sudo apt-get install postgresql
+sudo apt-get install python-pygresql
+
+# Set the postgres user's postgres password
+sudo -u postgres psql template1
+# At the prompt type (substituting <***password***> with a real one.
+ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
+\q
+
+# Create a database
+cd <<ivle source directory>>/userdb
+sudo -u postgres createdb ivle
+sudo -u postgres psql -d ivle < users.sql
