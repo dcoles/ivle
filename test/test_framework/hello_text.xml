@@ -1,5 +1,5 @@
 <problem name = "Hello Name">
-    <desc>You need to write <b>Hello</b> and then your name.</desc>
+    <desc>You need to write <b>Hello</b> and then your name, using the variable 'name'.</desc>
     <partial>
 <![CDATA[
 print "Hello &lt;need to print the variable name&gt;."
@@ -26,7 +26,7 @@ print " ".join([greeting, name])
         <!-- Specify input -->
         <var name="name" value="'Bob'" />
         <function desc="Match case insensitive" default="ignore">
-            <stdout>lambda x:x.lower()</stdout>
+            <stdout type="check">str.__eq__</stdout>
     	</function>
         <function desc="Match exactly" default="ignore">
             <stdout/>

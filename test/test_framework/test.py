@@ -1,6 +1,6 @@
 
 import sys
-sys.path.append('../../www/apps/tutorialservice/test/'))
+sys.path.append('../../www/apps/tutorialservice/test/')
 
 from parse_tute import *
 
