@@ -1,18 +1,24 @@
 #console_body {
     background-color: black;
+    position: absolute;
     color: white;
     padding: 0;
     width: 100%;
+    top: 0;
+    bottom: 0;
 }
 /* console_body when displayed as a window panel and not the whole app */
 #console_body.windowpane {
     position: fixed;
+    top: auto;      /* Do not fix to top */
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 1;     /* Go in front of console_filler */
 }
-#console_body2 {
+#console_body.windowpane #console_body2 {
+    /* Need some padding in windowpane mode */
+    /* (In full mode, things are positioned absolutely) */
     padding: 0.5em;
 }
 /* Heading bar */
@@ -38,13 +44,36 @@
     right: 0.5em;
 }
 #console_output {
-    /*border: solid black 1pt;*/
-    height: 20em;
+    /*height: 20em;*/       /* Might be needed for windowpane mode */
+    /*margin-bottom: 0.5em;*/
+    position: absolute;
+    /* 2em is to accomodate the header bar, and some padding */
+    top: 2em;
+    /* 2.5em is to accomodate the input bar, and padding either side */
+    bottom: 2.5em;
+    /* left and right 0.5em are just for horizontal padding */
+    left: 0.5em;
+    right: 0.5em;
+    /* Display scroll bars */
     overflow: scroll;
+}
+#console_body.windowpane #console_output {
+    /* Don't want this absolutely positioned in windowpane mode */
+    position: static;
+    /* Give it an explicit height instead */
+    height: 20em;
     margin-bottom: 0.5em;
 }
 #console_input {
-    /*border: solid green 1pt;*/
+    position: absolute;
+    /* Input bar goes along the bottom. Pad all sides */
+    left: 0.5em;
+    right: 0.5em;
+    bottom: 0.5em;
+}
+#console_body.windowpane #console_input {
+    /* Don't want this absolutely positioned in windowpane mode */
+    position: static;
 }
 #console_prompt {
     font-family: monospace;
