@@ -105,17 +105,25 @@ function console_maximize()
 
 var magic = 'xyzzy';
 
-function historyUp()
+/* current_text is the string currently on the command line.
+ * If non-empty, it will be stored at the bottom of the history.
+ */
+function historyUp(current_text)
 {
-    if (this.cursor >= 0)
+    /* Remember the changes made to this item */
+    this.edited[this.cursor] = current_text;
+    if (this.cursor > 0)
     {
         this.cursor--;
     }
+    this.earliestCursor = this.cursor;
 }
 
-function historyDown()
+function historyDown(current_text)
 {
-    if (this.cursor < this.items.length)
+    /* Remember the changes made to this item */
+    this.edited[this.cursor] = current_text;
+    if (this.cursor < this.items.length - 1)
     {
         this.cursor++;
     }
@@ -123,26 +131,30 @@ function historyDown()
 
 function historyCurr()
 {
-    if (this.cursor < 0 || this.cursor >= this.items.length)
-    {
-        return "";
-    }
-    return this.items[this.cursor];
+    return this.edited[this.cursor];
 }
 
-function historyAdd(text)
+function historySubmit(text)
 {
-    this.items[this.items.length] = text;
-    this.cursor = this.items.length;
+    /* Copy the selected item's "edited" version over the permanent version of
+     * the last item. */
+    this.items[this.items.length-1] = text;
+    /* Add a new blank item */
+    this.items[this.items.length] = "";
+    this.cursor = this.items.length-1;
+    /* Blow away all the edited versions, replacing them with the existing
+     * items set.
+     * Not the whole history - just start from the earliest edited one.
+     * (This avoids slowdown over extended usage time).
+     */
+    for (var i=this.earliestCursor; i<=this.cursor; i++)
+        this.edited[i] = this.items[i];
+    this.earliestCursor = this.cursor;
 }
 
 function historyShow()
 {
     var res = "";
-    if (this.cursor == -1)
-    {
-        res += "[]";
-    }
     for (var i = 0; i < this.items.length; i++)
     {
         if (i == this.cursor)
@@ -163,14 +175,31 @@ function historyShow()
     return res;
 }
 
+/* How history works
+ * This is a fairly complex mechanism due to complications when editing
+ * history items. We store two arrays. "items" is the permanent history of
+ * each item. "edited" is a "volatile" version of items - the edits made to
+ * the history between now and last time you hit "enter".
+ * This is because the user can go back and edit any of the previous items,
+ * and the edits are remembered until they hit enter.
+ *
+ * When hitting enter, the "edited" version of the currently selected item
+ * replaces the "item" version of the last item in the list.
+ * Then a new blank item is created, for the new line of input.
+ * Lastly, all the "edited" versions are replaced with their stable versions.
+ *
+ * Cursor never points to an invalid location.
+ */
 function History()
 {
-    this.items = new Array();
-    this.cursor = -1;
+    this.items = new Array("");
+    this.edited = new Array("");
+    this.cursor = 0;
+    this.earliestCursor = 0;
     this.up = historyUp;
     this.down = historyDown;
     this.curr = historyCurr;
-    this.add = historyAdd;
+    this.submit = historySubmit;
     this.show = historyShow;
 }
 
@@ -287,15 +316,15 @@ function catch_input(key)
     case 13:                /* Enter key */
         /* Send the line of text to the server */
         console_enter_line(inp.value);
-        hist.add(inp.value);
+        hist.submit(inp.value);
         inp.value = hist.curr();
         break;
     case 38:                /* Up arrow */
-        hist.up();
+        hist.up(inp.value);
         inp.value = hist.curr();
         break;
     case 40:                /* Down arrow */
-        hist.down();
+        hist.down(inp.value);
         inp.value = hist.curr();
         break;
     }
