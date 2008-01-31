@@ -133,41 +133,88 @@ JAIL_COPYTREES = {
     '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
 }
 
+class ConfigOption:
+    """A configuration option; one of the things written to conf.py."""
+    def __init__(self, option_name, default, prompt, comment):
+        """Creates a configuration option.
+        option_name: Name of the variable in conf.py. Also name of the
+            command-line argument to setup.py conf.
+        default: Default value for this variable.
+        prompt: (Short) string presented during the interactive prompt in
+            setup.py conf.
+        comment: (Long) comment string stored in conf.py. Each line of this
+            string should begin with a '#'.
+        """
+        self.option_name = option_name
+        self.default = default
+        self.prompt = prompt
+        self.comment = comment
+
+# Configuration options, defaults and descriptions
+config_options = []
+config_options.append(ConfigOption("root_dir", "/ivle",
+    """Root directory where IVLE is located (in URL space):""",
+    """
+# In URL space, where in the site is IVLE located. (All URLs will be prefixed
+# with this).
+# eg. "/" or "/ivle"."""))
+config_options.append(ConfigOption("ivle_install_dir", "/opt/ivle",
+    'Root directory where IVLE will be installed (on the local file '
+    'system):',
+    """
+# In the local file system, where IVLE is actually installed.
+# This directory should contain the "www" and "bin" directories."""))
+config_options.append(ConfigOption("jail_base", "/home/informatics/jails",
+    """Root directory where the jails (containing user files) are stored
+(on the local file system):""",
+    """
+# In the local file system, where are the student/user file spaces located.
+# The user jails are expected to be located immediately in subdirectories of
+# this location."""))
+config_options.append(ConfigOption("subjects_base",
+    "/home/informatics/subjects",
+    """Root directory where the subject directories (containing worksheets
+and other per-subject files) are stored (on the local file system):""",
+    """
+# In the local file system, where are the per-subject file spaces located.
+# The individual subject directories are expected to be located immediately
+# in subdirectories of this location."""))
+config_options.append(ConfigOption("public_host", "public.localhost",
+    """Hostname which will cause the server to go into "public mode",
+providing login-free access to student's published work:""",
+    """
+# The server goes into "public mode" if the browser sends a request with this
+# host. This is for security reasons - we only serve public student files on a
+# separate domain to the main IVLE site.
+# Public mode does not use cookies, and serves only public content.
+# Private mode (normal mode) requires login, and only serves files relevant to
+# the logged-in user."""))
+config_options.append(ConfigOption("allowed_uids", "33",
+    """UID of the web server process which will run IVLE.
+Only this user may execute the trampoline. May specify multiple users as
+a comma-separated list.
+    (eg. "1002,78")""",
+    """
+# The User-ID of the web server process which will run IVLE, and any other
+# users who are allowed to run the trampoline. This is stores as a string of
+# comma-separated integers, simply because it is not used within Python, only
+# used by the setup program to write to conf.h (see setup.py config)."""))
+
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
 # of setup besides conf, so we need to know them.
 # Also this allows you to hit Return to accept the existing value.
 try:
     confmodule = __import__("www/conf/conf")
-    try:
-        root_dir = confmodule.root_dir
-    except:
-        root_dir = "/ivle"
-    try:
-        ivle_install_dir = confmodule.ivle_install_dir
-    except:
-        ivle_install_dir = "/opt/ivle"
-    try:
-        public_host = confmodule.public_host
-    except:
-        public_host = "public.localhost"
-    try:
-        jail_base = confmodule.jail_base
-    except:
-        jail_base = "/home/informatics/jails"
-    try:
-        subjects_base = confmodule.subjects_base
-    except:
-        subjects_base = "/home/informatics/subjects"
+    for opt in config_options:
+        try:
+            globals()[opt.option_name] = confmodule.__dict__[opt.option_name]
+        except:
+            globals()[opt.option_name] = opt.default
 except ImportError:
     # Just set reasonable defaults
-    root_dir = "/ivle"
-    ivle_install_dir = "/opt/ivle"
-    public_host = "public.localhost"
-    jail_base = "/home/informatics/jails"
-    subjects_base = "/home/informatics/subjects"
-# Always defaults
-allowed_uids = "0"
+    for opt in config_options:
+        globals()[opt.option_name] = opt.default
 
 # Try importing install_list, but don't fail if we can't, because listmake can
 # function without it.
@@ -275,14 +322,10 @@ directory, and run build/install one time.
 
 Creates www/conf/conf.py and trampoline/conf.h.
 
-Args are:
-    --root_dir
-    --ivle_install_dir
-    --public_host
-    --jail_base
-    --subjects_base
-    --allowed_uids
-As explained in the interactive prompt or conf.py.
+Args are:"""
+        for opt in config_options:
+            print "    --" + opt.option_name
+        print """As explained in the interactive prompt or conf.py.
 """
     elif operation == 'build':
         print """python -O setup.py build [--dry|-n]
@@ -442,45 +485,19 @@ Please hit Ctrl+C now if you do not wish to do this.
         # If EOF is encountered at any time during the questioning, just exit
         # silently
 
-        root_dir = query_user(root_dir,
-        """Root directory where IVLE is located (in URL space):""")
-        ivle_install_dir = query_user(ivle_install_dir,
-        'Root directory where IVLE will be installed (on the local file '
-        'system):')
-        jail_base = query_user(jail_base,
-        """Root directory where the jails (containing user files) are stored
-(on the local file system):""")
-        subjects_base = query_user(subjects_base,
-        """Root directory where the subject directories (containing worksheets
-and other per-subject files) are stored (on the local file system):""")
-        public_host = query_user(public_host,
-        """Hostname which will cause the server to go into "public mode",
-providing login-free access to student's published work:""")
-        allowed_uids = query_user(allowed_uids,
-        """UID of the web server process which will run IVLE.
-Only this user may execute the trampoline. May specify multiple users as
-a comma-separated list.
-    (eg. "1002,78")""")
-
+        for opt in config_options:
+            globals()[opt.option_name] = \
+                query_user(globals()[opt.option_name], opt.prompt)
     else:
         opts = dict(opts)
         # Non-interactive mode. Parse the options.
-        if '--root_dir' in opts:
-            root_dir = opts['--root_dir']
-        if '--ivle_install_dir' in opts:
-            ivle_install_dir = opts['--ivle_install_dir']
-        if '--jail_base' in opts:
-            jail_base = opts['--jail_base']
-        if '--subjects_base' in opts:
-            jail_base = opts['--subjects_base']
-        if '--public_host' in opts:
-            public_host = opts['--public_host']
-        if '--allowed_uids' in opts:
-            allowed_uids = opts['--allowed_uids']
+        for opt in config_options:
+            if '--' + opt.option_name in opts:
+                globals()[opt.option_name] = opts['--' + opt.option_name]
 
     # Error handling on input values
     try:
-        allowed_uids = map(int, allowed_uids.split(','))
+        allowed_uids_list = map(int, allowed_uids.split(','))
     except ValueError:
         print >>sys.stderr, (
         "Invalid UID list (%s).\n"
@@ -496,34 +513,10 @@ a comma-separated list.
 # conf.py
 # Miscellaneous application settings
 
-
-# In URL space, where in the site is IVLE located. (All URLs will be prefixed
-# with this).
-# eg. "/" or "/ivle".
-root_dir = "%s"
-
-# In the local file system, where IVLE is actually installed.
-# This directory should contain the "www" and "bin" directories.
-ivle_install_dir = "%s"
-
-# The server goes into "public mode" if the browser sends a request with this
-# host. This is for security reasons - we only serve public student files on a
-# separate domain to the main IVLE site.
-# Public mode does not use cookies, and serves only public content.
-# Private mode (normal mode) requires login, and only serves files relevant to
-# the logged-in user.
-public_host = "%s"
-
-# In the local file system, where are the student/user file spaces located.
-# The user jails are expected to be located immediately in subdirectories of
-# this location.
-jail_base = "%s"
-
-# In the local file system, where are the per-subject file spaces located.
-# The individual subject directories are expected to be located immediately
-# in subdirectories of this location.
-subjects_base = "%s"
-""" % (root_dir, ivle_install_dir, public_host, jail_base, subjects_base))
+""")
+        for opt in config_options:
+            conf.write('%s\n%s = "%s"\n' % (opt.comment, opt.option_name,
+                globals()[opt.option_name]))
 
         conf.close()
     except IOError, (errno, strerror):
@@ -555,7 +548,7 @@ static const char* jail_base = "%s";
  * (Note that root is an implicit member of this list).
  */
 static const int allowed_uids[] = { %s };
-""" % (jail_base, repr(allowed_uids)[1:-1]))
+""" % (jail_base, repr(allowed_uids_list)[1:-1]))
 
         conf.close()
     except IOError, (errno, strerror):
