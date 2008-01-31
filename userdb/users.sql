@@ -1,4 +1,4 @@
-CREATE TABLE user (
+CREATE TABLE login (
     login       VARCHAR UNIQUE NOT NULL,
     loginid     SERIAL PRIMARY KEY NOT NULL,
     nick        VARCHAR,
@@ -11,25 +11,31 @@ CREATE TABLE offering (
     subj_name   VARCHAR NOT NULL,
     subj_code   VARCHAR NOT NULL,
     year        CHAR(4) NOT NULL,
-    semester    INT NOT NULL
+    semester    CHAR(1) NOT NULL,
+    url         VARCHAR
 );
 
 CREATE TABLE group (
-    groupnm       VARCHAR NOT NULL,
+    groupnm     VARCHAR NOT NULL,
     groupid     SERIAL PRIMARY KEY NOT NULL,
     offeringid  INT4 REFERENCES offering (offeringid),
     nick        VARCHAR,
+    createdby   INT4 REFERENCES login (loginid) NOT NULL,
+    epoch       TIMESTAMP NOT NULL,
     UNIQUE (offeringid, groupnm)
 );
 
 CREATE TABLE group_invitation (
-    loginid     INT4 REFERENCES user (loginid),
-    groupid     INT4 REFERENCES group (groupid),
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    groupid     INT4 REFERENCES group (groupid) NOT NULL,
+    inviter     INT4 REFERENCES login (loginid) NOT NULL,
+    invited     TIMESTAMP NOT NULL,
+    accepted    TIMESTAMP,
     UNIQUE (loginid,groupid)
 );
 
 CREATE TABLE group_member (
-    loginid     INT4 REFERENCES user (loginid),
+    loginid     INT4 REFERENCES login (loginid),
     groupid     INT4 REFERENCES group (groupid),
     projectid   INT4 REFERENCES project (projectid),
     UNIQUE (loginid,projectid),
@@ -37,16 +43,18 @@ CREATE TABLE group_member (
 );
 
 CREATE TABLE enrolment (
-    loginid     INT4 REFERENCES user (loginid),
+    loginid     INT4 REFERENCES login (loginid),
     offeringid  INT4 REFERENCES offering (offeringid),
     result      INT,
+    special_result VARCHAR,
     supp_result INT,
+    special_supp_result VARCHAR,
     notes       VARCHAR,
     PRIMARY KEY (loginid,offeringid)
 );
 
 CREATE TABLE ivle_role (
-    loginid     INT4 PRIMARY KEY REFERENCES user (loginid),
+    loginid     INT4 PRIMARY KEY REFERENCES login (loginid),
     rolenm      VARCHAR
 );
 
@@ -58,31 +66,32 @@ CREATE TABLE project (
     deadline    TIMESTAMP
 );
 
-CREATE TABLE project_extension (
-    loginid     INT4 REFERENCES user (loginid),
+CREATE TABLE assessed (
+    assessedid  SERIAL PRIMARY KEY NOT NULL,
+    loginid     INT4 REFERENCES login (loginid),
     groupid     INT4 REFERENCES group (groupid),
-    projectid   INT4 REFERENCES project (projectid) NOT NULL,
-    deadline    TIMESTAMP NOT NULL,
-    approver    INT4 REFERENCES user (loginid) NOT NULL,
-    notes       VARCHAR,
     -- exactly one of loginid and groupid must be non-null
     CHECK ((loginid IS NOT NULL AND groupid IS NULL)
         OR (loginid IS NULL AND groupid IS NOT NULL))
 );
 
+CREATE TABLE project_extension (
+    assesedid   INT4 REFERENCES assessed (assesedid) NOT NULL,
+    projectid   INT4 REFERENCES project (projectid) NOT NULL,
+    deadline    TIMESTAMP NOT NULL,
+    approver    INT4 REFERENCES login (loginid) NOT NULL,
+    notes       VARCHAR
+);
+
 CREATE TABLE project_mark (
-    loginid     INT4 REFERENCES user (loginid),
-    groupid     INT4 REFERENCES group (groupid),
+    assesedid   INT4 REFERENCES assessed (assesedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
     componentid INT4,
-    marker      INT4 REFERENCES user (loginid) NOT NULL,
+    marker      INT4 REFERENCES login (loginid) NOT NULL,
     mark        INT,
     marked      TIMESTAMP,
     feedback    VARCHAR,
-    notes       VARCHAR,
-    -- exactly one of loginid and groupid must be non-null
-    CHECK ((loginid IS NOT NULL AND groupid IS NULL)
-        OR (loginid IS NULL AND groupid IS NOT NULL))
+    notes       VARCHAR
 );
 
 CREATE TABLE problem (
@@ -93,7 +102,7 @@ CREATE TABLE problem (
 CREATE TABLE problem_tag (
     problemid   INT4 REFERENCES tutorial_problem (problemid),
     tag         VARCHAR NOT NULL,
-    added_by    INT4 REFERENCES user (loginid) NOT NULL,
+    added_by    INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (problemid,added_by,tag)
 );
@@ -110,14 +119,14 @@ CREATE TABLE problem_test_case_tag (
     testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
     tag         VARCHAR NOT NULL,
     description VARCHAR,
-    added_by    INT4 REFERENCES user (loginid) NOT NULL,
+    added_by    INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (testcaseid,added_by,tag)
 );
 
 CREATE TABLE problem_attempt (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    loginid     INT4 REFERENCES user (loginid) NOT NULL,
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
@@ -129,7 +138,7 @@ CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 CREATE TABLE problem_attempt_breakdown (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
     testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    loginid     INT4 REFERENCES user (loginid) NOT NULL,
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     result      BOOLEAN
 );
