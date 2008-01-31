@@ -15,7 +15,15 @@ CREATE TABLE offering (
     url         VARCHAR
 );
 
-CREATE TABLE group (
+CREATE TABLE project (
+    projectid   SERIAL PRIMARY KEY NOT NULL,
+    synopsis    VARCHAR,
+    url         VARCHAR,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
+    deadline    TIMESTAMP
+);
+
+CREATE TABLE project_group (
     groupnm     VARCHAR NOT NULL,
     groupid     SERIAL PRIMARY KEY NOT NULL,
     offeringid  INT4 REFERENCES offering (offeringid),
@@ -27,7 +35,7 @@ CREATE TABLE group (
 
 CREATE TABLE group_invitation (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    groupid     INT4 REFERENCES group (groupid) NOT NULL,
+    groupid     INT4 REFERENCES project_group (groupid) NOT NULL,
     inviter     INT4 REFERENCES login (loginid) NOT NULL,
     invited     TIMESTAMP NOT NULL,
     accepted    TIMESTAMP,
@@ -36,7 +44,7 @@ CREATE TABLE group_invitation (
 
 CREATE TABLE group_member (
     loginid     INT4 REFERENCES login (loginid),
-    groupid     INT4 REFERENCES group (groupid),
+    groupid     INT4 REFERENCES project_group (groupid),
     projectid   INT4 REFERENCES project (projectid),
     UNIQUE (loginid,projectid),
     PRIMARY KEY (loginid,groupid)
@@ -58,25 +66,17 @@ CREATE TABLE ivle_role (
     rolenm      VARCHAR
 );
 
-CREATE TABLE project (
-    projectid   SERIAL PRIMARY KEY NOT NULL,
-    synopsis    VARCHAR,
-    url         VARCHAR,
-    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
-    deadline    TIMESTAMP
-);
-
 CREATE TABLE assessed (
     assessedid  SERIAL PRIMARY KEY NOT NULL,
     loginid     INT4 REFERENCES login (loginid),
-    groupid     INT4 REFERENCES group (groupid),
+    groupid     INT4 REFERENCES project_group (groupid),
     -- exactly one of loginid and groupid must be non-null
     CHECK ((loginid IS NOT NULL AND groupid IS NULL)
         OR (loginid IS NULL AND groupid IS NOT NULL))
 );
 
 CREATE TABLE project_extension (
-    assesedid   INT4 REFERENCES assessed (assesedid) NOT NULL,
+    assessedid  INT4 REFERENCES assessed (assesedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE project_extension (
 );
 
 CREATE TABLE project_mark (
-    assesedid   INT4 REFERENCES assessed (assesedid) NOT NULL,
+    assessedid  INT4 REFERENCES assessed (assesedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
     componentid INT4,
     marker      INT4 REFERENCES login (loginid) NOT NULL,
