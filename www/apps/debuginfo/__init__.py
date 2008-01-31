@@ -36,6 +36,7 @@ def handle(req):
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data
+    req.write('<div id="ivle_padding">\n')
     req.write("<h2>IVLE Debug Information</h2>\n")
 
     print_table(req, "System Constants", [
@@ -92,7 +93,9 @@ def handle(req):
     To do this, comment out or remove the debuginfo line of the app_url
     dictionary in conf/apps.py.</p>
     <p>For extra security, it may be removed completely by deleting the
-    apps/debuginfo directory.</p>\n""")
+    apps/debuginfo directory.</p>
+</div>
+""")
 
 def getfieldvalues(pairs):
     """Given a list of pairs of strings and fields, returns a new list with

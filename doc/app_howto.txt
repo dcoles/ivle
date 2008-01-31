@@ -143,7 +143,9 @@ Firstly, create a directory, `apps/hello`. Create a file
     def handle(req):
         req.content_type = "text/html"
         req.write_html_head_foot = True
-        req.write("<p>Hello, IVLE!</p>\n")
+        req.write("<div id="ivle_padding">\n")
+        req.write("  <p>Hello, IVLE!</p>\n")
+        req.write("</div>\n")
 
 Now, edit the file `conf/apps.py`, and add the following lines:
 
@@ -164,6 +166,12 @@ theme (by virtue of setting `req.write_html_head_foot` to True). The data that
 the Hello World app itself outputs should be written assuming it is inside an
 XHTML body element. The final output will be valid XHTML 1.0 Strict if the
 application's output is.
+
+Note that by default, there is no padding around the application's HTML
+output. This is because more complex apps (most of ours) don't work properly
+with padding. Simpler apps (which simply write HTML paragraph content) look
+better with padding.  Apps can wrap all of their output in a
+'<div id="ivle_padding">' element (as shown above) to get padding.
 
 ### Making a file dump ###
 

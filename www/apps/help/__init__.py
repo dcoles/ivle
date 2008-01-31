@@ -55,6 +55,7 @@ def show_help_menu(req):
     req.write_html_head_foot = True
 
     # Start writing data
+    req.write('<div id="ivle_padding">\n')
     req.write("<h1>Help</h1>\n")
 
     # Write a list of links to all apps with help modules
@@ -64,6 +65,7 @@ def show_help_menu(req):
             req.write('  <li><a href="%s">%s</a></li>\n'
                 % (os.path.join(util.make_path("help"), appurl), app.name))
     req.write("</ul>\n")
+    req.write('</div>\n')
 
 def show_help_app(req, app):
     """Show help for an application."""
@@ -74,7 +76,9 @@ def show_help_app(req, app):
     req.write_html_head_foot = True
 
     # Start writing data
+    req.write('<div id="ivle_padding">\n')
     req.write("<h1>Help - %s</h1>\n" % app.name)
 
     # Print out the contents of the HTML help file
     req.sendfile(helpfile)
+    req.write('</div>\n')

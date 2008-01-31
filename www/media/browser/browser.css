@@ -26,11 +26,6 @@ h2 {
 
 /* OVERALL LAYOUT */
 
-/* Override common #ivlebody */
-#ivlebody {
-    padding: 0 ! important;
-}
-
 #middle, #middle tbody {
     width: 100%;
     vertical-align: top;

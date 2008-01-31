@@ -36,6 +36,7 @@ def handle(req):
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data
+    req.write('<div id="ivle_padding">\n')
     req.write("<p>Hello, IVLE!</p>\n")
     req.write('<p>')
     if req.app == None:
@@ -46,4 +47,4 @@ def handle(req):
             + '" /> ')
         req.write(str(req.path))
     req.write("</p>\n")
-
+    req.write("</div>\n")

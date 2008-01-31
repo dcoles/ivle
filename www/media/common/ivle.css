@@ -34,7 +34,9 @@ a:hover, a:active, a:focus {
     /* Pad left and right. */
     padding: 0 1em;
     border-bottom: 1px solid black;
-    height: 5.3em;      /* == #ivleaheader_tabs.height */
+    /* IMPORTANT: This 5.3em is hard-coded elsewhere in this file. Search for
+     * #ivleheader.height to update it. */
+    height: 5.3em;
 }
 
 /* Special "IVLE" and "Informatics Virtual Learning Environment" titles */
@@ -56,9 +58,24 @@ a:hover, a:active, a:focus {
     padding: 0;
 }
 
-/* Note: You can override this in app-specific CSS if you want to
- * push the body all the way to the edge. */
+/* Note: The body has NO PADDING by default (unlike plain HTML).
+ * This is because almost all of the apps need this behaviour.
+ * If a particular app needs padding, it should manually wrap all of its
+ * output in a <div id="ivle_padding">.
+ */
 #ivlebody {
+    /* This is positioned absolutely so that its content can be positioned
+     * absolutely as well, and so height: 100% really means it. */
+    position: absolute;
+    top: 5.3em;             /* == #ivleheader.height */
+    bottom: 0;
+    width: 100%;
+}
+
+/* Apps can optionally have a <div id="ivle_padding"> as the outermost
+ * element, if 1em of padding is desired (otherwise there will be no padding).
+ */
+#ivle_padding {
     padding: 1em;
 }
 
@@ -73,14 +90,12 @@ p.userhello .username {
     font-weight: bold;
 }
 
-/* The tabs bar is positioned absolutely, unlike all of the other
- * dispatch-level content.
+/* The tabs bar is positioned absolutely, unlike the other header content.
  * This allows it to be aligned exactly with the bottom of the header bar.
  */
 #ivleheader_tabs {
     position: absolute;
-    /* height == #ivleheader.height */
-    height: 5.3em;
+    height: 5.3em;          /* == #ivleheader.height */
     top: 0;
     left: 0;
     right: 0;
