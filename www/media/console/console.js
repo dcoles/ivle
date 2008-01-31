@@ -36,16 +36,25 @@ console_body = null;
 console_filler = null;
 
 windowpane_mode = false;
+server_started = false;
 
-/* Starts the console server.
- * Returns an object with fields "host", "port", "magic" describing the
- * server.
+/* Starts the console server, if it isn't already.
+ * This can be called any number of times - it only starts the one server.
+ * This is a separate step from console_init, as the server is only to be
+ * started once the first command is entered.
+ * Does not return a value. Writes to global variables
+ * server_host, server_port, server_magic.
  */
 function start_server()
 {
+    if (server_started) return;
     var xhr = ajax_call("consoleservice", "start", {}, "POST");
     var json_text = xhr.responseText;
-    return JSON.parse(json_text);
+    var server_info = JSON.parse(json_text);
+    server_host = server_info.host;
+    server_port = server_info.port;
+    server_magic = server_info.magic;
+    server_started = true;
 }
 
 /** Initialises the console. All apps which import console are required to
@@ -65,11 +74,11 @@ function console_init(windowpane)
         windowpane_mode = true;
         console_minimize();
     }
-    /* Start the server */
-    var server_info = start_server();
-    server_host = server_info.host;
-    server_port = server_info.port;
-    server_magic = server_info.magic;
+    /* TEMP: Start the server now.
+     * Ultimately we want the server to start only when a line is typed, but
+     * it currently does it asynchronously and doesn't start in time for the
+     * first line. */
+    start_server();
 }
 
 /** Hide the main console panel, so the console minimizes to just an input box
@@ -173,6 +182,8 @@ var hist = new History();
  */
 function console_enter_line(inputline)
 {
+    /* Start the server if it hasn't already been started */
+    start_server();
     var digest = hex_md5(inputline + magic);
     var args = {"host": server_host, "port": server_port,
                     "digest":digest, "text":inputline};
