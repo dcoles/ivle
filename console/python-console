@@ -43,7 +43,6 @@ class PythonRunner(Thread):
         while True:
             ln = self.lineQ.get()
             if 'chat' in ln:
-                mode = 
                 if self.curr_cmd == '':
                     self.curr_cmd = ln['chat']
                 else:
