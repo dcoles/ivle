@@ -1,5 +1,14 @@
 <problem name = "Hello Name">
     <desc>You need to write <b>Hello</b> and then your name, using the variable 'name'.</desc>
+    <include>
+<![CDATA[
+import re
+def alphabetic(x):
+    if re.match(r'^[A-Za-z ]+$', x):
+        return "True"
+    return "False"
+]]>
+    </include>
     <partial>
 <![CDATA[
 print "Hello &lt;need to print the variable name&gt;."
@@ -18,6 +27,9 @@ print " ".join([greeting, name])
         <var name="name" value="'Alice'" />
         <function desc="Match case insensitive" default="ignore">
             <stdout>str.lower</stdout>
+    	</function>
+        <function desc="Ensure name is alphabetic" default="ignore">
+            <stdout type="norm">alphabetic</stdout>
     	</function>
     	<!-- Ensures that all outputs match exactly -->	
     	<function desc="Match exactly" default="match"/>
