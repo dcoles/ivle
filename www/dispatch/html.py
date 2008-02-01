@@ -87,12 +87,14 @@ def write_html_head(req):
 """)
 
     if req.username:
-        req.write('  <p class="userhello">Welcome, <span '
-            'class="username">%s</span> |\n'
+        # Get the user's nickname from the request session
+        nickname = req.get_session()['nick']
+        req.write('  <p class="userhello">%s (<span '
+            'class="username">%s</span>) |\n'
             '    <a href="%s">Help</a> |\n'
             '    <a href="%s">Logout</a>\n'
             '  </p>\n' %
-            (cgi.escape(req.username),
+            (cgi.escape(nickname), cgi.escape(req.username),
              cgi.escape(get_help_url(req)),
              cgi.escape(util.make_path('logout'))))
     else:
