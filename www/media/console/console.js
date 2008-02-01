@@ -68,6 +68,9 @@ function console_init(windowpane)
 {
     /* Set up the console as a floating pane */
     console_body = document.getElementById("console_body");
+    /* If there is no console body, don't worry.
+     * (This lets us import console.js even on pages without a console box */
+    if (console_body == null) return;
     console_filler = document.getElementById("console_filler");
     if (windowpane)
     {
@@ -97,6 +100,8 @@ function console_maximize()
     if (!windowpane_mode) return;
     console_body.setAttribute("class", "windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
+    /* Focus the input box by default */
+    document.getElementById("console_inputText").focus()
 }
 
 /* current_text is the string currently on the command line.
