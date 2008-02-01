@@ -80,7 +80,8 @@ def write_html_head(req):
 
     # Open the body element and write a bunch of stuff there (the header)
     req.write("""<body>
-<div id="ivleheader">
+<div id="ivleheader"></div>
+<div id="ivleheader_text">
   <h1>IVLE</h1>
   <h2>Informatics Virtual Learning Environment</h2>
 """)

@@ -30,17 +30,29 @@ a:hover, a:active, a:focus {
 /** Special styles for header section **/
 
 #ivleheader {
+    position: absolute;
     background-color: #fea;
-    /* Pad left and right. */
-    padding: 0 1em;
+    padding: 0;
     border-bottom: 1px solid black;
     /* IMPORTANT: This 5.3em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
     height: 5.3em;
+    left: 0;
+    right: 0;
+    z-index: 1;     /* Background to all, but the body */
+}
+
+#ivleheader_text {
+    /* Pad left and right. */
+    position: absolute;
+    padding: 0 1em;
+    left: 0;
+    right: 0;
+    z-index: 3;     /* In front */
 }
 
 /* Special "IVLE" and "Informatics Virtual Learning Environment" titles */
-#ivleheader h1 {
+#ivleheader_text h1 {
     position: absolute;
     text-align: left;
     font-size: 3.8em;
@@ -49,7 +61,7 @@ a:hover, a:active, a:focus {
     margin: 0;
     padding: 0;
 }
-#ivleheader h2 {
+#ivleheader_text h2 {
     position: absolute;
     text-align: left;
     font-size: 1.3em;
@@ -70,6 +82,7 @@ a:hover, a:active, a:focus {
     top: 5.3em;             /* == #ivleheader.height */
     bottom: 0;
     width: 100%;
+    z-index: 0;     /* Behind header */
 }
 
 /* Apps can optionally have a <div id="ivle_padding"> as the outermost
@@ -102,6 +115,7 @@ p.userhello .username {
     width: 100%;
     padding: 0;
     margin: 0;
+    z-index: 2;     /* In front of background, behind text */
 }
 
 /* The apptabs ul is aligned to the bottom of #ivleheader_tabs */
