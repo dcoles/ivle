@@ -199,6 +199,26 @@ a comma-separated list.
 # users who are allowed to run the trampoline. This is stores as a string of
 # comma-separated integers, simply because it is not used within Python, only
 # used by the setup program to write to conf.h (see setup.py config)."""))
+config_options.append(ConfigOption("db_host", "localhost",
+    """PostgreSQL Database config
+==========================
+Hostname of the DB server:""",
+    """
+### PostgreSQL Database config ###
+# Database server hostname"""))
+config_options.append(ConfigOption("db_port", "5432",
+    """Port of the DB server:""",
+    """
+# Database server port"""))
+config_options.append(ConfigOption("db_user", "postgres",
+    """Username for DB server login:""",
+    """
+# Database username"""))
+config_options.append(ConfigOption("db_password", "",
+    """Password for DB server login:
+    (Caution: This password is stored in plaintext in www/conf/conf.py)""",
+    """
+# Database password"""))
 
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
