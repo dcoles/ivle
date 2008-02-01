@@ -892,10 +892,11 @@ def action_chown_setuid(file, dry):
             | stat.S_ISUID | stat.S_IRUSR | stat.S_IWUSR)
 
 def action_chmod_x(file, dry):
-    """Chmod +xs a file (sets execute permission)."""
-    print "chmod u+rwx", file
+    """Chmod 755 a file (sets permissions to rwxr-xr-x)."""
+    print "chmod 755", file
     if not dry:
-        os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+        os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
+            | stat.S_IXGRP | stat.S_IRGRP | stat.S_IXOTH | stat.S_IROTH)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
