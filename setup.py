@@ -210,6 +210,10 @@ config_options.append(ConfigOption("db_port", "5432",
     """Port of the DB server:""",
     """
 # Database server port"""))
+config_options.append(ConfigOption("db_dbname", "ivle",
+    """Database name:""",
+    """
+# Database name"""))
 config_options.append(ConfigOption("db_user", "postgres",
     """Username for DB server login:""",
     """
