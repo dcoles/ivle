@@ -60,14 +60,22 @@ def login(req):
             # From this point onwards, we will be showing an error message
             # if unsuccessful.
             # Authenticate
-            if (password is not None and
-                authenticate.authenticate(username.value, password.value)):
-                # Success - Set the session and redirect to avoid POSTDATA
-                session['login_name'] = username.value
-                session.save()
-                req.throw_redirect(req.uri)
-            else:
+            if password is None:
                 badlogin = True
+            else:
+                login_details = \
+                    authenticate.authenticate(username.value, password.value)
+                if login_details is None:
+                    badlogin = True
+                else:
+                    # Success - Set the session and redirect to avoid POSTDATA
+                    session['login_name'] = username.value
+                    session['nick'] = login_details['nick']
+                    session['fullname'] = login_details['fullname']
+                    session['rolenm'] = login_details['rolenm']
+                    session['studentid'] = login_details['studentid']
+                    session.save()
+                    req.throw_redirect(req.uri)
 
     # User is not logged in. Present the login box.
     # Give a 403 Forbidden status, but present a full HTML login page

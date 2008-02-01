@@ -17,18 +17,37 @@
 
 # Module: authenticate
 # Author: Matt Giuca
-# Date:   21/12/2007
+# Date:   1/2/2008
 
 # Provides a mechanism for authenticating a username and password, and
 # returning a yes/no response.
 
+import common.db
+
 def authenticate(username, password):
     """Determines whether a particular username/password combination is
-    valid. Returns True or False. The password is in cleartext."""
+    valid. The password is in cleartext.
+
+    Returns None if failed to authenticate.
+    Returns a dictionary containing the user's login fields (including
+    "login", "nick" and "fullname") on success.
+    """
+
+    # TODO.
+    # Just authenticate against the DB at the moment.
+    # Later we will provide other auth options such as LDAP.
 
     # WARNING: Both username and password may contain any characters, and must
     # be sanitized within this function.
-    # TEMP: Just allow any user to log in
-    return True
-    ## TEMP: Just a hardcoded login
-    #return username == 'user' and password == 'pass'
+    # (Not SQL-sanitized, just sanitized to our particular constraints).
+
+    # Spawn a DB object just for making this call.
+    # (This should not spawn a DB connection on each page reload, only when
+    # there is no session object to begin with).
+    dbconn = common.db.DB()
+    try:
+        if not dbconn.user_authenticate(username, password):
+            return None
+        return dbconn.get_user(username)
+    finally:
+        dbconn.close()
