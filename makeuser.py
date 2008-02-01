@@ -32,16 +32,23 @@ sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
 import common.makeuser
 
-if len(sys.argv) <= 1:
-    print "Usage: python makeuser.py <username>"
+if len(sys.argv) <= 6:
+    print "Usage: python makeuser.py <username> <password> <nick> " \
+        "<fullname> <rolenm> <studentid>"
     sys.exit()
 
 username = sys.argv[1]
+password = sys.argv[2]
+nick = sys.argv[3]
+fullname = sys.argv[4]
+rolenm = sys.argv[5]
+studentid = sys.argv[6]
 
 try:
-    common.makeuser.makeuser(username)
+    common.makeuser.makeuser(username, password, nick, fullname, rolenm,
+        studentid)
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
-print "Successfully created user " + username + "."
+print "Successfully created user %s (%s)." % (username, fullname)

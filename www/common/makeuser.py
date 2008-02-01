@@ -23,15 +23,33 @@
 # * User's jail and home directory within the jail.
 # * Subversion repository (TODO)
 # * Check out Subversion workspace into jail (TODO)
-# * Database details for user (TODO)
-# * Unix user account (TODO)
+# * Database details for user
+# * Unix user account
+
+# TODO: Sanitize login name and other fields.
 
 import os
 import shutil
 
 import conf
+import db
 
-def makeuser(username):
+def makeuser(username, password, nick, fullname, rolenm, studentid):
+    """Creates a new user on a pre-installed system.
+    Sets up the following:
+    * User's jail and home directory within the jail.
+    * Subversion repository
+    * Check out Subversion workspace into jail
+    * Database details for user
+    * Unix user account
+    """
+    homedir = make_jail(username)
+    make_user_db(username, password, nick, fullname, rolenm, studentid)
+    # TODO: -p password (need to use crypt)
+    if os.system("useradd -d %s '%s'" % (homedir, username)) != 0:
+        raise Exception("Failed to add Unix user account")
+
+def make_jail(username):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -39,6 +57,8 @@ def makeuser(username):
     contains all the files for a sample student jail. It creates the student's
     directory in the jail root, by making a hard-link copy of every file in the
     template directory, recursively.
+
+    Returns the path to the user's home directory.
     """
     templatedir = os.path.join(conf.jail_base, 'template')
     if not os.path.isdir(templatedir):
@@ -53,7 +73,9 @@ def makeuser(username):
     linktree(templatedir, userdir)
 
     # Set up the user's home directory
-    os.mkdir(os.path.join(userdir, 'home', username))
+    homedir = os.path.join(userdir, 'home', username)
+    os.mkdir(homedir)
+    return homedir
 
 def linktree(src, dst):
     """Recursively hard-link a directory tree using os.link().
@@ -93,3 +115,9 @@ def linktree(src, dst):
         errors.extend((src, dst, str(why)))
     if errors:
         raise Exception, errors
+
+def make_user_db(login, password, nick, fullname, rolenm, studentid):
+    """Creates a user's entry in the database, filling in all the fields."""
+    dbconn = db.DB()
+    dbconn.create_user(login, password, nick, fullname, rolenm, studentid)
+    dbconn.close()
