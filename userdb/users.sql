@@ -3,6 +3,7 @@ CREATE TABLE login (
     loginid     SERIAL PRIMARY KEY NOT NULL,
     nick        VARCHAR,
     fullname    VARCHAR,
+    rolenm      VARCHAR,
     studentid   VARCHAR -- may be null
 );
 
@@ -61,11 +62,6 @@ CREATE TABLE enrolment (
     PRIMARY KEY (loginid,offeringid)
 );
 
-CREATE TABLE ivle_role (
-    loginid     INT4 PRIMARY KEY REFERENCES login (loginid),
-    rolenm      VARCHAR
-);
-
 CREATE TABLE assessed (
     assessedid  SERIAL PRIMARY KEY NOT NULL,
     loginid     INT4 REFERENCES login (loginid),
@@ -102,6 +98,8 @@ CREATE TABLE problem (
 CREATE TABLE problem_tag (
     problemid   INT4 REFERENCES tutorial_problem (problemid),
     tag         VARCHAR NOT NULL,
+    description VARCHAR,
+    standard    BOOLEAN NOT NULL,
     added_by    INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (problemid,added_by,tag)
@@ -119,6 +117,7 @@ CREATE TABLE problem_test_case_tag (
     testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
     tag         VARCHAR NOT NULL,
     description VARCHAR,
+    standard    BOOLEAN NOT NULL,
     added_by    INT4 REFERENCES login (loginid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     PRIMARY KEY (testcaseid,added_by,tag)
