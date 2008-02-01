@@ -296,9 +296,6 @@ def present_problem(req, subject, problemsrc, problemid):
   <input type="button" value="Submit"
     onclick="submitproblem(&quot;problem%d&quot;, %s)" />
 </div>
-<p>Output:</p>
-<textarea class="runoutput" cols="80" rows="6" readonly="readonly">
-</textarea>
 <div class="testoutput">
 </div>
 """ % (problemid, filename, problemid, filename))
