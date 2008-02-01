@@ -208,14 +208,14 @@ var hist = new History();
  * to its response by writing to the output box.
  * Also maximize the console window if not already.
  */
-function console_enter_line(inputline)
+function console_enter_line(inputline, which)
 {
     /* Start the server if it hasn't already been started */
     start_server();
     var digest = hex_md5(inputline + server_magic);
     var args = {"host": server_host, "port": server_port,
                     "digest":digest, "text":inputline};
-    var xmlhttp = ajax_call("consoleservice", "chat", args, "POST");
+    var xmlhttp = ajax_call("consoleservice", which, args, "POST");
 
     var res = JSON.parse(xmlhttp.responseText);
     var output = document.getElementById("console_output");
@@ -314,7 +314,7 @@ function catch_input(key)
         break;
     case 13:                /* Enter key */
         /* Send the line of text to the server */
-        console_enter_line(inp.value);
+        console_enter_line(inp.value, "chat");
         hist.submit(inp.value);
         inp.value = hist.curr();
         break;

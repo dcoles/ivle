@@ -37,19 +37,8 @@ function runproblem(problemid, filename)
     var code = problembox.value;
 
     /* Dump the entire file to the console */
-    /* FIXME: Multiple lines aren't received properly by the server */
-    console_enter_line(code);
+    console_enter_line(code, "block");
     return;
-
-    /* TEMP: Old code here */
-    var args = {"code": code, "problem": filename, "action": "run"};
-
-    /* Send the form as multipart/form-data, since we are sending a whole lump
-     * of Python code, it should be treated like a file upload. */
-    var xhr = ajax_call("tutorialservice", "", args, "POST",
-        "multipart/form-data");
-    var testresponse = JSON.parse(xhr.responseText);
-    handle_runresponse(problemdiv, testresponse);
 }
 
 /** Given a response object (JSON-parsed object), displays the result of the

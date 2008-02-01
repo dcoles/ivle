@@ -51,8 +51,8 @@ def handle(req):
         handle_start(req)
     elif req.path == "chat":
         handle_chat(req)
-    #elif req.path == "block":
-    #    handle_block(req)
+    elif req.path == "block":
+        handle_chat(req, kind="block")
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
@@ -115,7 +115,7 @@ def handle_start(req):
     # Return port, magic
     req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
 
-def handle_chat(req):
+def handle_chat(req, kind = "chat"):
     # The request *should* have the following four fields:
     # host, port: Host and port where the console server apparently lives
     # digest, text: Fields to pass along to the console server
@@ -136,7 +136,7 @@ def handle_chat(req):
     except AttributeError:
         text = ""
 
-    msg = {'cmd':'chat', 'text':text, 'digest':digest}
+    msg = {'cmd':kind, 'text':text, 'digest':digest}
 
     sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sok.connect((host, port))

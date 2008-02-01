@@ -37,6 +37,23 @@ class PythonRunner(Thread):
         self.out = cStringIO.StringIO()
         Thread.__init__(self)
 
+    def execCmd(self, cmd):
+        try:
+            sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
+            sys.stdout = self.out
+            sys.stderr = self.out
+            signal.alarm(5)
+            res = eval(cmd, self.globs, self.locls)
+            signal.alarm(0)
+            self.cmdQ.put({"okay":(self.out.getvalue(),res)})
+            self.curr_cmd = ''
+            self.out = cStringIO.StringIO()
+        except Exception, exc:
+            signal.alarm(0)
+            self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+            self.curr_cmd = ''
+            self.out = cStringIO.StringIO()
+
     def run(self):
         self.init_state()
         compiler = codeop.CommandCompiler()
@@ -56,17 +73,7 @@ class PythonRunner(Thread):
                         # client can print a '...'
                         self.cmdQ.put({"more":None})
                     else:
-                        # The command was complete,
-                        # so evaluate it!
-                        sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-                        sys.stdout = self.out
-                        sys.stderr = self.out
-                        signal.alarm(5)
-                        res = eval(cmd, self.globs, self.locls)
-                        signal.alarm(0)
-                        self.cmdQ.put({"okay":(self.out.getvalue(),res)})
-                        self.curr_cmd = ''
-                        self.out = cStringIO.StringIO()
+                        self.execCmd(cmd)
                 except Exception, exc:
                     signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
@@ -76,17 +83,7 @@ class PythonRunner(Thread):
                 # throw away a partial command.
                 try:
                     cmd = compile(ln['block'], "<web session>", 'exec');
-                    
-                    sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-                    self.out = cStringIO.StringIO()
-                    sys.stdout = self.out
-                    sys.stderr = self.out
-                    signal.alarm(5)
-                    res = eval(cmd, self.globs, self.locls)
-                    signal.alarm(0)
-                    self.cmdQ.put({"okay":(self.out.getvalue(),res)})
-                    self.curr_cmd = ''
-                    self.out = cStringIO.StringIO()
+                    self.execCmd(cmd)
                 except Exception, exc:
                     signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
