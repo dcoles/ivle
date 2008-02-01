@@ -475,8 +475,7 @@ def writelist_pretty(file, list):
         file.write(']\n')
 
 def conf(args):
-    global root_dir, ivle_install_dir, jail_base, subjects_base
-    global public_host, allowed_uids
+    global db_port
     # Set up some variables
 
     cwd = os.getcwd()
@@ -486,8 +485,10 @@ def conf(args):
 
     # Get command-line arguments to avoid asking questions.
 
-    (opts, args) = getopt.gnu_getopt(args, "", ['root_dir=',
-                    'ivle_install_dir=', 'jail_base=', 'allowed_uids='])
+    optnames = []
+    for opt in config_options:
+        optnames.append(opt.option_name + "=")
+    (opts, args) = getopt.gnu_getopt(args, "", optnames)
 
     if args != []:
         print >>sys.stderr, "Invalid arguments:", string.join(args, ' ')
@@ -527,6 +528,14 @@ Please hit Ctrl+C now if you do not wish to do this.
         "Invalid UID list (%s).\n"
         "Must be a comma-separated list of integers." % allowed_uids)
         return 1
+    try:
+        db_port = int(db_port)
+        if db_port < 0 or db_port >= 65536: raise ValueError()
+    except ValueError:
+        print >>sys.stderr, (
+        "Invalid DB port (%s).\n"
+        "Must be an integer between 0 and 65535." % repr(db_port))
+        return 1
 
     # Write www/conf/conf.py
 
@@ -539,8 +548,8 @@ Please hit Ctrl+C now if you do not wish to do this.
 
 """)
         for opt in config_options:
-            conf.write('%s\n%s = "%s"\n' % (opt.comment, opt.option_name,
-                globals()[opt.option_name]))
+            conf.write('%s\n%s = %s\n' % (opt.comment, opt.option_name,
+                repr(globals()[opt.option_name])))
 
         conf.close()
     except IOError, (errno, strerror):

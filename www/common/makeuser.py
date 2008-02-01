@@ -17,10 +17,14 @@
 
 # Module: MakeUser
 # Author: Matt Giuca
-# Date:   9/1/2008
+# Date:   1/2/2008
 
-# Allows creation of users. This sets up the user's jail and home directory
-# within the jail.
+# Allows creation of users. This sets up the following:
+# * User's jail and home directory within the jail.
+# * Subversion repository (TODO)
+# * Check out Subversion workspace into jail (TODO)
+# * Database details for user (TODO)
+# * Unix user account (TODO)
 
 import os
 import shutil
