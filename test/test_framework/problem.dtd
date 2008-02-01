@@ -1,0 +1,25 @@
+<!ELEMENT problem (desc, include?, solution, case)>
+<!ELEMENT desc (#PCDATA)>
+<!ELEMENT include (#PCDATA)>
+<!ELEMENT solution (#PCDATA)>
+<!ELEMENT case (stdin?, file*, var*)>
+<!ATTLIST case
+	name CDATA #REQUIRED
+>
+<!ELEMENT stdin (#PCDATA)>
+<!ELEMENT stdout (#PCDATA)>
+<!ELEMENT file (#PCDATA)>
+<!ATTLIST file
+	name CDATA #REQUIRED
+	type (check|norm) #IMPLIED
+>
+<!ELEMENT var EMPTY>
+<!ATTLIST var
+	name CDATA #REQUIRED
+	value CDATA #REQUIRED
+>
+<!ELEMENT function (stdout?, file*)>
+<!ATTLIST function
+	desc CDATA #REQUIRED
+	default (ignore|match) #REQUIRED
+>
