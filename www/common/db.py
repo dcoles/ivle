@@ -39,7 +39,16 @@ def _escape(str):
     """Wrapper around pg.escape_string. Escapes the string for use in SQL, and
     also quotes it to make sure that every string used in a query is quoted.
     """
-    return "'" + pg.escape_string(str) + "'"
+    # "E'" is postgres's way of making "escape" strings.
+    # Such strings allow backslashes to escape things. Since escape_string
+    # converts a single backslash into two backslashes, it needs to be fed
+    # into E mode.
+    # Ref: http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html
+    # WARNING: PostgreSQL-specific code
+    return "E'" + pg.escape_string(str) + "'"
+
+def _passhash(password):
+    return md5.md5(password).hexdigest()
 
 class DB:
     """An IVLE database object. This object provides an interface to
@@ -55,9 +64,7 @@ class DB:
         self.db = pg.connect(dbname=conf.db_dbname, host=conf.db_host,
                 port=conf.db_port, user=conf.db_user, passwd=conf.db_password)
 
-    @staticmethod
-    def _passhash(password):
-        return md5.md5(password).hexdigest()
+    # USER MANAGEMENT FUNCTIONS #
 
     def create_user(self, login, password, nick, fullname, rolenm, studentid,
         dry=False):
@@ -66,11 +73,38 @@ class DB:
         The exception is "password", which is a cleartext password. makeuser
         will hash the password.
         """
-        passhash = DB._passhash(password)
+        passhash = _passhash(password)
         query = ("INSERT INTO login (login, passhash, nick, fullname, "
             "rolenm, studentid) VALUES (%s, %s, %s, %s, %s, %s);" %
             (_escape(login), _escape(passhash), _escape(nick),
             _escape(fullname), _escape(rolenm), _escape(studentid)))
+        if dry: return query
+        self.db.query(query)
+
+    def update_user(self, login, new_password=None, new_nick=None,
+        new_fullname=None, new_rolenm=None, dry=False):
+        """Updates fields of a particular user. login is the name of the user
+        to update. The other arguments are optional fields which may be
+        modified. If None or omitted, they do not get modified. login and
+        studentid may not be modified."""
+        # Make a list of SQL fragments of the form "field = 'new value'"
+        # These fragments are ALREADY-ESCAPED
+        setlist = []
+        if new_password is not None:
+            setlist.append("passhash = " + _escape(_passhash(new_password)))
+        if new_nick is not None:
+            setlist.append("nick = " + _escape(new_nick))
+        if new_fullname is not None:
+            setlist.append("fullname = " + _escape(new_fullname))
+        if new_rolenm is not None:
+            setlist.append("rolenm = " + _escape(new_rolenm))
+        if len(setlist) == 0:
+            return
+        # Join the fragments into a comma-separated string
+        setstring = ', '.join(setlist)
+        # Build the whole query as an UPDATE statement
+        query = ("UPDATE login SET %s WHERE login = %s;"
+            % (setstring, _escape(login)))
         if dry: return query
         self.db.query(query)
 
