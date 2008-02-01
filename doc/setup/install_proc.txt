@@ -134,3 +134,14 @@ ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
 cd <<ivle source directory>>/userdb
 sudo -u postgres createdb ivle
 sudo -u postgres psql -d ivle < users.sql
+
+#
+# Installing Pound
+sudo apt-get install pound
+
+# edit /etc/default/pound so that the line reading
+#     startup=0
+# instead reads
+#     startup=1
+#
+# copy pound.cfg to /etc/pound/pound.cfg
