@@ -50,6 +50,12 @@ def _escape(str):
 def _passhash(password):
     return md5.md5(password).hexdigest()
 
+class DBException(Exception):
+    """A DBException is for bad conditions in the database or bad input to
+    these methods. If Postgres throws an exception it does not get rebadged.
+    This is only for additional exceptions."""
+    pass
+
 class DB:
     """An IVLE database object. This object provides an interface to
     interacting with the IVLE database without using any external SQL.
@@ -57,6 +63,9 @@ class DB:
     Most methods of this class have an optional dry argument. If true, they
     will return the SQL query string and NOT actually execute it. (For
     debugging purposes).
+
+    Methods may throw db.DBException, or any of the pg exceptions as well.
+    (In general, be prepared to catch exceptions!)
     """
     def __init__(self):
         """Connects to the database and creates a DB object.
@@ -81,23 +90,30 @@ class DB:
         if dry: return query
         self.db.query(query)
 
-    def update_user(self, login, new_password=None, new_nick=None,
-        new_fullname=None, new_rolenm=None, dry=False):
+    def update_user(self, login, password=None, nick=None,
+        fullname=None, rolenm=None, dry=False):
         """Updates fields of a particular user. login is the name of the user
         to update. The other arguments are optional fields which may be
         modified. If None or omitted, they do not get modified. login and
-        studentid may not be modified."""
+        studentid may not be modified.
+
+        Note that no checking is done. It is expected this function is called
+        by a trusted source. In particular, it allows the password to be
+        changed without knowing the old password. The caller should check
+        that the user knows the existing password before calling this function
+        with a new one.
+        """
         # Make a list of SQL fragments of the form "field = 'new value'"
         # These fragments are ALREADY-ESCAPED
         setlist = []
-        if new_password is not None:
-            setlist.append("passhash = " + _escape(_passhash(new_password)))
-        if new_nick is not None:
-            setlist.append("nick = " + _escape(new_nick))
-        if new_fullname is not None:
-            setlist.append("fullname = " + _escape(new_fullname))
-        if new_rolenm is not None:
-            setlist.append("rolenm = " + _escape(new_rolenm))
+        if password is not None:
+            setlist.append("passhash = " + _escape(_passhash(password)))
+        if nick is not None:
+            setlist.append("nick = " + _escape(nick))
+        if fullname is not None:
+            setlist.append("fullname = " + _escape(fullname))
+        if rolenm is not None:
+            setlist.append("rolenm = " + _escape(rolenm))
         if len(setlist) == 0:
             return
         # Join the fragments into a comma-separated string
@@ -108,11 +124,45 @@ class DB:
         if dry: return query
         self.db.query(query)
 
-    def drop_user(self, login, dry=False):
+    def delete_user(self, login, dry=False):
         """Deletes a user login entry from the database."""
         query = "DELETE FROM login WHERE login = %s;" % _escape(login)
         if dry: return query
         self.db.query(query)
+
+    def get_user(self, login, dry=False):
+        """Given a login, returns a dictionary of the user's DB fields,
+        excluding the passhash field.
+
+        Raises a DBException if the login is not found in the DB.
+        """
+        query = ("SELECT login, nick, fullname, rolenm, studentid FROM login "
+            "WHERE login = %s;" % _escape(login))
+        if dry: return query
+        result = self.db.query(query)
+        # Expecting exactly one
+        if result.ntuples() != 1:
+            # It should not be possible for ntuples to be greater than 1
+            assert (result.ntuples() < 1)
+            raise DBException("get_user: No user with that login name")
+        # Return as a dictionary
+        return result.dictresult()[0]
+
+    def user_authenticate(self, login, password, dry=False):
+        """Performs a password authentication on a user. Returns True if
+        "password" is the correct password for the given login, False
+        otherwise. "password" is cleartext.
+        Also returns False if the login does not exist (so if you want to
+        differentiate these cases, use get_user and catch an exception).
+        """
+        query = ("SELECT login FROM login "
+            "WHERE login = '%s' AND passhash = %s;"
+            % (login, _escape(_passhash(password))))
+        if dry: return query
+        result = self.db.query(query)
+        # If one row was returned, succeed.
+        # Otherwise, fail to authenticate.
+        return result.ntuples() == 1
 
     def close(self):
         """Close the DB connection. Do not call any other functions after
