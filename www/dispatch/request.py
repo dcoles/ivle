@@ -224,7 +224,7 @@ class Request:
 
         if not self.headers_written:
             self.__writeheaders()
-        self.apache_req.write(string, flush)
+        self.apache_req.write(string.encode('utf8'), flush)
 
     def flush(self):
         """Flushes the output buffer."""
