@@ -638,6 +638,14 @@ function handle_dir_listing(path, listing)
 
     var selection_string;
 
+    /* Convert selected_files array into a dictionary which can be efficiently
+     * searched. */
+    sel_files_dict = {};
+    for (var i=0; i<selected_files.length; i++)
+    {
+        sel_files_dict[selected_files[i]] = true;
+    }
+
     /* Create all of the files */
     for (var filename in listing)
     {
@@ -656,6 +664,8 @@ function handle_dir_listing(path, listing)
         checkbox.setAttribute("type", "checkbox");
         checkbox.setAttribute("title", "Select this file");
         checkbox.setAttribute("onchange", "update_selection()");
+        /* Check the box if selected_files says it's selected */
+        checkbox.checked = filename in sel_files_dict;
         td.appendChild(checkbox);
         row.appendChild(td);
         if (file.isdir)
