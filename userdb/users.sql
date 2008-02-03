@@ -97,7 +97,7 @@ CREATE TABLE problem (
 );
 
 CREATE TABLE problem_tag (
-    problemid   INT4 REFERENCES tutorial_problem (problemid),
+    problemid   INT4 REFERENCES problem (problemid),
     tag         VARCHAR NOT NULL,
     description VARCHAR,
     standard    BOOLEAN NOT NULL,
