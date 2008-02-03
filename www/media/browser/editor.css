@@ -6,7 +6,27 @@
  * License version 2 or later.
  */
 
-#editbox {
-    width: 100%;
-    height: 100%;
+#editorhead {
+    /* Same colour scheme as browser.css:topbar */
+    background-color: #aaf;
+    padding: 0;
+    height: 2em;
+}
+
+#editorhead p {
+    margin: 0 0.5em;
+}
+
+/* The EditArea iframe
+ * Have it fill its entire containing box
+ */
+#frame_editbox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 2em;       /* == #editorhead.height */
+    bottom: 0;
+    /* Override EditArea's specified width and height */
+    width: auto ! important;
+    height: auto ! important;
 }

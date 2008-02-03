@@ -13,19 +13,15 @@ function edit_text()
     saved_status.data = "Not saved.";
 }
 
-/** Presents the text editor.
+/** Presents the "editor heading" (the part with the save box)
+ * inserting it into a given element at the front.
  */
-function handle_text(path, text, handler_type)
+function present_editorhead(elem, path, handler_type)
 {
-    /* Create a textarea with the text in it
-     * (The makings of a primitive editor).
-     */
-
-    setmode(true);
-    var files = document.getElementById("filesbody");
     var div = document.createElement("div");
-    files.appendChild(div);
-    div.setAttribute("class", "padding");
+    /* Insert as the head element */
+    elem.insertBefore(div, elem.firstChild)
+    div.setAttribute("id", "editorhead");
 
     /* Set up minimal interface */
     var p = dom_make_text_elem("p", "Path: ");
@@ -56,6 +52,23 @@ function handle_text(path, text, handler_type)
             "you save this file, you could corrupt it.");
         div.appendChild(warn);
     }
+}
+
+/** Presents the text editor.
+ */
+function handle_text(path, text, handler_type)
+{
+    /* Create a textarea with the text in it
+     * (The makings of a primitive editor).
+     */
+    setmode(true);
+
+    var files = document.getElementById("filesbody");
+    /* Put our UI at the top */
+    present_editorhead(files, path, handler_type);
+
+    var div = document.createElement("div");
+    files.appendChild(div);
     var txt_elem = dom_make_text_elem("textarea",
         text.toString())
     div.appendChild(txt_elem);
@@ -68,7 +81,10 @@ function handle_text(path, text, handler_type)
     editAreaLoader.init({
         id : "editbox",
         syntax: "python",
-        start_highlight: true
+        start_highlight: true,
+        allow_toggle: false,
+        allow_resize: false,
+        replace_tab_by_spaces: 4,
     });
 }
 
