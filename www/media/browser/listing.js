@@ -116,10 +116,15 @@ function action_commit(files)
 /* Shows or hides the "upload panel" in the side panel.
  * toshow is true for showing, false for hiding.
  */
+uploadpanel_shown = false;
 function show_uploadpanel(toshow)
 {
+    if (toshow == null)
+        uploadpanel_shown = !uploadpanel_shown;
+    else
+        uploadpanel_shown = toshow;
     document.getElementById("uploadpanel").setAttribute("style",
-        "display: " + (toshow ? "auto" : "none") + ";");
+        "display: " + (uploadpanel_shown ? "auto" : "none") + ";");
     return false;
 }
 
@@ -374,7 +379,7 @@ function update_sidepanel(total_file_size_sel)
     sidepanel.appendChild(p);
     p = dom_make_link_elem("p", "Upload",
         "Upload a file to the current directory", null,
-        "return show_uploadpanel(true)");
+        "return show_uploadpanel()");
     sidepanel.appendChild(p);
     /* The "Upload" button expands the following panel with upload tools */
     /* This panel has a form for submitting the file to, and an iframe to load
