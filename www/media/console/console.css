@@ -56,6 +56,12 @@
     right: 0.5em;
     /* Display scroll bars */
     overflow: scroll;
+    /* Some browsers support overflow-x and overflow-y. In this case, use
+     * overflow-x: auto to disable the horizontal scroll bar.
+     * (If unsupported this will simply fall back to a harmless but annoying
+     * horizontal scroll bar).
+     */
+    overflow-x: auto;
 }
 #console_body.windowpane #console_output {
     /* Don't want this absolutely positioned in windowpane mode */
