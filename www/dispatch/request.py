@@ -224,7 +224,14 @@ class Request:
 
         if not self.headers_written:
             self.__writeheaders()
-        self.apache_req.write(string.encode('utf8'), flush)
+        if isinstance(string, unicode):
+            # Encode unicode strings as UTF-8
+            # (Otherwise cannot handle being written to a bytestream)
+            self.apache_req.write(string.encode('utf8'), flush)
+        else:
+            # 8-bit clean strings just get written directly.
+            # This includes binary strings.
+            self.apache_req.write(string, flush)
 
     def flush(self):
         """Flushes the output buffer."""
