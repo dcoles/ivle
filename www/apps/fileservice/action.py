@@ -288,6 +288,7 @@ def action_putfile(req, fields):
 
     Reads fields: 'path', 'data' (file upload)
     """
+    # TODO: Read field "unpack".
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields.getfirst('data')
@@ -304,6 +305,41 @@ def action_putfile(req, fields):
             shutil.copyfileobj(data, dest)
     except OSError:
         raise ActionError("Could not write to target file")
+
+def action_putfiles(req, fields):
+    """Writes data to one or more files in a directory, overwriting them if
+    it they exist.
+
+    Reads fields: 'path', 'data' (file upload)
+    """
+    # TODO: Read field "unpack".
+    # Important: Data is "None" if the file submitted is empty.
+    path = fields.getfirst('path')
+    data = fields.getlist('data')
+    if path is None:
+        raise ActionError("Required field missing")
+    path = actionpath_to_local(req, path)
+    goterror = False
+
+    for datum in data:
+        # Each of the uploaded files
+        filepath = os.path.join(path, datum.filename)
+        filedata = datum.file
+
+        # Copy the contents of file object 'data' to the path 'path'
+        try:
+            dest = open(filepath, 'wb')
+            if data is not None:
+                shutil.copyfileobj(filedata, dest)
+        except OSError:
+            goterror = True
+
+    if goterror:
+        if len(data) == 1:
+            raise ActionError("Could not write to target file")
+        else:
+            raise ActionError(
+                "Could not write to one or more of the target files")
 
 def action_copy_or_cut(req, fields, mode):
     """Marks specified files on the clipboard, stored in the
@@ -491,6 +527,7 @@ actions_table = {
     "remove" : action_remove,
     "move" : action_move,
     "putfile" : action_putfile,
+    "putfiles" : action_putfiles,
 
     "copy" : action_copy,
     "cut" : action_cut,

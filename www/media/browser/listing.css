@@ -159,6 +159,11 @@ tr.row2sel {
     font-weight: bold;
 }
 
+/* Input boxes in the upload panel need a bit more space */
+#uploadpanel p {
+    margin: 0.5em 0;
+}
+
 /* STATUS BAR */
 
 #statusbar_outer {
