@@ -73,7 +73,7 @@ CREATE TABLE assessed (
 );
 
 CREATE TABLE project_extension (
-    assessedid  INT4 REFERENCES assessed (assesedid) NOT NULL,
+    assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE project_extension (
 );
 
 CREATE TABLE project_mark (
-    assessedid  INT4 REFERENCES assessed (assesedid) NOT NULL,
+    assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
     componentid INT4,
     marker      INT4 REFERENCES login (loginid) NOT NULL,
