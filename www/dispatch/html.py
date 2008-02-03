@@ -100,14 +100,15 @@ def write_html_head(req):
     else:
         req.write('  <p class="userhello">Not logged in.</p>')
 
+    # ivleheader_tabs is a separate div, so it can be positioned absolutely
+    req.write('</div>\n<div id="ivleheader_tabs">\n')
+
     # If the "debuginfo" app is installed, display a warning to the admin to
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:
         req.write("  <p><small>Warning: debuginfo is enabled. Remove this "
             "app from conf.apps.app_url when placed into production."
             "</small></p>\n")
-    # ivleheader_tabs is a separate div, so it can be positioned absolutely
-    req.write('</div>\n<div id="ivleheader_tabs">\n')
 
     if req.username:
         # Only print app tabs if logged in

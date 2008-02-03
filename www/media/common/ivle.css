@@ -118,6 +118,15 @@ p.userhello .username {
     z-index: 2;     /* In front of background, behind text */
 }
 
+#ivleheader_tabs p {
+    /* This allows for a single paragraph, currently used to display a warning
+     * about Debuginfo */
+    position: absolute;
+    left: 1em;
+    bottom: 0.5em;
+    margin: 0;
+}
+
 /* The apptabs ul is aligned to the bottom of #ivleheader_tabs */
 ul#apptabs {
     position: absolute;
