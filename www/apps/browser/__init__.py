@@ -32,7 +32,11 @@ def handle(req):
 
     # Set request attributes
     req.content_type = "text/html"
-    req.styles = ["media/browser/browser.css"]
+    req.styles = [
+        "media/browser/browser.css",
+        "media/browser/listing.css",
+        "media/browser/editor.css",
+    ]
     req.scripts = [
         "media/common/json2.js",
         "media/common/edit_area/edit_area_full.js",
