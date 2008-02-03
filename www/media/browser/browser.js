@@ -120,7 +120,7 @@ current_path = "";
  *      Defaults to "application/x-www-form-urlencoded".
  *      "multipart/form-data" is recommended for large uploads.
  */
-function do_action(action, path, args, content_type)
+function do_action(action, path, args, content_type, ignore_response)
 {
     args.action = action;
     /* Call the server and perform the action. This mutates the server. */
@@ -131,7 +131,8 @@ function do_action(action, path, args, content_type)
     if (error != null)
         alert("Error: " + error.toString() + ".");
     /* Now read the response and set up the page accordingly */
-    handle_response(path, response);
+    if (ignore_response != true)
+        handle_response(path, response);
 }
 
 /** Calls the server using Ajax, requesting a directory listing. This should

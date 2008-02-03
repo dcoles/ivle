@@ -4,7 +4,9 @@ function save_file()
 {
     filename = document.getElementById("save_filename").value;
     data = editAreaLoader.getValue("editbox");
-    do_action("putfile", filename, {"path":".", "data":data});
+    /* Do NOT refresh the page contents (causes problems for editarea and is
+     * unnecessary). */
+    do_action("putfile", filename, {"path":".", "data":data}, null, true);
     saved_status.data = "Saved.";
 }
 
