@@ -3,13 +3,29 @@ List of Dependencies
 
 IVLE requires the following:
 
-* Linux (similar Unices may work but not guaranteed; we pull out some
-    linux-specific libraries into our jail so may need customization,
-    particularly of setup.py).
-
+* Ubuntu Linux 7.04 or later (see note)
 * Python 2.5
 * Apache HTTP server
 * mod_python
+* PostgreSQL
+
+Note: While the developers have made every effort to ensure IVLE is compatible
+with all POSIX-compliant operating systems, our setup procedure is currently
+tailored to Ubuntu Linux. In particular, it pulls shared libraries out of
+known places.
+
+Getting IVLE running on another Unix system would require manually retrieving
+all of the packages in this document, as well as changing the setup script to
+get the shared library files from the correct places on that system.
+
+At this stage we can only officially recommend Ubuntu 7.04 or later. (Has been
+tested on 7.04 and 7.10).
+
+Ubuntu Install Procedure
+------------------------
+
+This document merely summarises the required modules. A step-by-step install
+procedure for Ubuntu is located in trunk/doc/setup/install_proc.txt.
 
 Python Libraries
 ----------------
@@ -18,8 +34,11 @@ The following python libraries are required to be installed in the main Python
 site packages directory:
 
 * [cjson](http://cheeseshop.python.org/pypi/python-cjson)
-* [web.py](http://webpy.org/)
+* [pygresql](http://www.pygresql.org/)
 * [pysvn](http://pysvn.tigris.org/)
+
+All of these can be installed by Ubuntu's package management system. See
+trunk/doc/setup/install_proc.txt for details.
 
 Additionally, these libraries are installed by the setup script for the
 purposes of student code using them:
