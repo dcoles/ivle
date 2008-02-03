@@ -134,7 +134,7 @@ import shutil
 
 import pysvn
 
-from common import (util, studpath)
+from common import (util, studpath, zip)
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
@@ -179,6 +179,19 @@ def handle_action(req, action, fields):
         raise ActionError("Unknown action")
     action(req, fields)
 
+def actionpath_to_urlpath(req, path):
+    """Determines the URL path (relative to the student home) upon which the
+    action is intended to act. See actionpath_to_local.
+    """
+    if path is None:
+        return req.path
+    elif len(path) > 0 and path[0] == os.sep:
+        # Relative to student home
+        return path[1:]
+    else:
+        # Relative to req.path
+        return os.path.join(req.path, path)
+
 def actionpath_to_local(req, path):
     """Determines the local path upon which an action is intended to act.
     Note that fileservice actions accept two paths: the request path,
@@ -195,16 +208,7 @@ def actionpath_to_local(req, path):
 
     Does not mutate req.
     """
-    if path is None:
-        path = req.path
-    elif len(path) > 0 and path[0] == os.sep:
-        # Relative to student home
-        path = path[1:]
-    else:
-        # Relative to req.path
-        path = os.path.join(req.path, path)
-
-    _, r = studpath.url_to_local(path)
+    _, r = studpath.url_to_local(actionpath_to_urlpath(req, path))
     if r is None:
         raise ActionError("Invalid path")
     return r
@@ -310,15 +314,19 @@ def action_putfiles(req, fields):
     """Writes data to one or more files in a directory, overwriting them if
     it they exist.
 
-    Reads fields: 'path', 'data' (file upload)
+    Reads fields: 'path', 'data' (file upload, multiple), 'unpack'
     """
-    # TODO: Read field "unpack".
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields.getlist('data')
+    unpack = fields.getfirst('unpack')
+    if unpack is None:
+        unpack = False
+    else:
+        unpack = True
     if path is None:
         raise ActionError("Required field missing")
-    path = actionpath_to_local(req, path)
+    path = actionpath_to_urlpath(req, path)
     goterror = False
 
     for datum in data:
@@ -326,13 +334,28 @@ def action_putfiles(req, fields):
         filepath = os.path.join(path, datum.filename)
         filedata = datum.file
 
-        # Copy the contents of file object 'data' to the path 'path'
-        try:
-            dest = open(filepath, 'wb')
-            if data is not None:
-                shutil.copyfileobj(filedata, dest)
-        except OSError:
-            goterror = True
+        if unpack and datum.filename.lower().endswith(".zip"):
+            # A zip file - unpack it instead of just copying
+            # TODO: Use the magic number instead of file extension
+            # Note: Just unzip into the current directory (ignore the
+            # filename)
+            try:
+                zip.unzip(path, filedata)
+            except (OSError, IOError):
+                goterror = True
+        else:
+            # Not a zip file
+            _, filepath_local = studpath.url_to_local(filepath)
+            if filepath_local is None:
+                raise ActionError("Invalid path")
+
+            # Copy the contents of file object 'data' to the path 'path'
+            try:
+                dest = open(filepath_local, 'wb')
+                if data is not None:
+                    shutil.copyfileobj(filedata, dest)
+            except OSError:
+                goterror = True
 
     if goterror:
         if len(data) == 1:

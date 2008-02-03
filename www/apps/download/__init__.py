@@ -99,7 +99,7 @@ def handle(req):
         req.headers_out["Content-Disposition"] = ("attachment; filename=" +
             zipfilename)
         zipfile = StringIO.StringIO()
-        zip.make_zip(zipbasepath, paths, zipfile,req)
+        zip.make_zip(zipbasepath, paths, zipfile)
         req.write(zipfile.getvalue())
     else:
         req.content_type = default_mimetype

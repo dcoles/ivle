@@ -421,6 +421,16 @@ function update_sidepanel(total_file_size_sel)
     p = document.createElement("p");
     form.appendChild(p);
     input = document.createElement("input");
+    input.setAttribute("type", "checkbox");
+    input.setAttribute("name", "unpack");
+    input.setAttribute("value", "true");
+    input.setAttribute("checked", "on");
+    p.appendChild(input);
+    p.appendChild(document.createTextNode(" Unpack zip file"));
+
+    p = document.createElement("p");
+    form.appendChild(p);
+    input = document.createElement("input");
     input.setAttribute("type", "button");
     input.setAttribute("value", "Hide");
     input.setAttribute("onclick", "show_uploadpanel(false)");

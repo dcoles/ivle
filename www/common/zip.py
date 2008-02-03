@@ -28,7 +28,7 @@ import zipfile
 
 from common import studpath
 
-def make_zip(basepath, paths, file, req):
+def make_zip(basepath, paths, file):
     """Zips up a bunch of files on the student file space and writes it as
     a zip file.
 
@@ -84,3 +84,36 @@ def make_zip(basepath, paths, file, req):
             zip.write(localpath, path)
 
     zip.close()
+
+def unzip(path, file):
+    """Unzips a zip file (or file-like object) into a path.
+    Note: All files go directly into the path. To avoid having a "zip bomb"
+    situation, the zip file should have a single directory in it with all the
+    files.
+    """
+    zip = zipfile.ZipFile(file, 'r')
+    # First test the zip file
+    if zip.testzip() is not None:
+        raise OSError("ZIP: Bad zip file")
+
+    for filename in zip.namelist():
+        # Work out the name of this file on the local file system, and make
+        # sure it is valid
+        relpath = os.path.join(path, filename)
+        _, localpath = studpath.url_to_local(relpath)
+        if localpath is None:
+            raise OSError("ZIP: Permission denied")
+        # Create directory for filename
+        (file_dir, _) = os.path.split(localpath)
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+
+        if filename.endswith(os.sep):
+            # Is a directory make the directory
+            if not os.path.exists(localpath):
+                os.mkdir(localpath)
+        else:
+            filedata = zip.read(filename)
+            f = open(localpath, 'w')
+            f.write(filedata)
+            f.close()
