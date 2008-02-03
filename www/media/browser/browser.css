@@ -26,14 +26,14 @@
 /* Note: Top-level things are layed out with position: absolute in order to
  * make sure they fill up the whole canvas. */
 
-#middle, #middle tbody {
-    width: 100%;
-    vertical-align: top;
-    border-collapse: collapse;
-}
-
-#sidepanel {
-    width: 300px;
+#middle {
+    /* Fill containing box, but reserve space for status bar */
+    position: absolute;
+    top: 0;
+    /* bottom == #statusbar_outer.height + #statusbar_outer.padding * 2 */
+    bottom: 1.4em;
+    left: 0;
+    right: 0;
 }
 
 /* TOP BAR */
@@ -69,9 +69,26 @@
 /* FILE LISTINGS TABLE */
 
 #filetable {
+    /* Position to fill its containing box, except the right 300px, for
+     * sidepanel. */
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 300px;
     border-collapse: collapse;
     border-right: 1px solid #888;
     padding: 0;
+    /* Present a vertical scroll bar in case there are too many files.
+     * This ensures the overall page will never scroll (which causes huge
+     * problems for everything being absolutely positioned). */
+    overflow: scroll;
+    /* Some browsers support overflow-x and overflow-y. In this case, use
+     * overflow-x: auto to disable the horizontal scroll bar.
+     * (If unsupported this will simply fall back to a harmless but annoying
+     * horizontal scroll bar).
+     */
+    overflow-x: auto;
 }
 
 th {
@@ -154,13 +171,25 @@ tr.row2sel {
 
 /* SIDE PANEL */
 
-#sidepanel {
+#sidepanel_outer {
+    /* Position this full canvas height, page right */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 300px;
     border-left: 1px solid #888;
     border-top: 1px solid #888;
     background-color: #ccc;
     font-size: 0.8em;
-    padding: 8px;
     text-align: center;
+    /* Cut off the bottom if it doesn't fit on the page for some reason.
+     * This ensures the overall page will never scroll (which causes huge
+     * problems for everything being absolutely positioned). */
+    overflow: hidden;
+}
+#sidepanel {
+    padding: 8px;
 }
 
 #sidepanel p, #sidepanel h2, #sidepanel h3 {
@@ -178,7 +207,7 @@ tr.row2sel {
 
 /* STATUS BAR */
 
-#statusbar {
+#statusbar_outer {
     /* Get this to the bottom of the screen */
     position: absolute;
     left: 0;
@@ -186,8 +215,12 @@ tr.row2sel {
     bottom: 0;
     background-color: #aaa;
     border-top: 1px solid #888;
+    padding: 0.2em;
+    height: 1em;        /* Mandate an exact height */
+}
+/* Nested div so the font size doesn't affect our outer calculations */
+#statusbar {
     font-size: 0.8em;
-    padding: 2px;
 }
 
 /* TEXT EDITOR */

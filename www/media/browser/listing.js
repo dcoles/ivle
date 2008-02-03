@@ -549,19 +549,16 @@ function setup_for_dir_listing()
 {
     var filesbody = document.getElementById("filesbody");
 
-    /* Using a table-based layout, for reasons of sanity */
-    /* One row, 2 columns */
-    var middle = document.createElement("table");
+    /* There are 2 divs in the filesbody: middle and statusbar
+     * middle has 2 divs: filetable, sidepanel
+     */
+    /* Middle */
+    var middle = document.createElement("div");
     filesbody.appendChild(middle);
     middle.setAttribute("id", "middle");
-    var middle_tbody = document.createElement("tbody");
-    middle.appendChild(middle_tbody);
-    var middle_tr = document.createElement("tr");
-    middle_tbody.appendChild(middle_tr);
-
-    /* Column 1: File table */
-    var filetable = document.createElement("td");
-    middle_tr.appendChild(filetable);
+    /* File table */
+    var filetable = document.createElement("div");
+    middle.appendChild(filetable);
     filetable.setAttribute("id", "filetable");
     var filetablediv = document.createElement("div");
     filetable.appendChild(filetablediv);
@@ -597,15 +594,22 @@ function setup_for_dir_listing()
     filetabletable.appendChild(filetabletbody);
     filetabletbody.setAttribute("id", "files");
 
-    /* Column 2: Side-panel */
-    var sidepanel = document.createElement("td");
-    middle_tr.appendChild(sidepanel);
+    /* Side-panel */
+    /* 2 nested divs, so we can set the width exactly and have padding inside
+     * of that */
+    var sidepanel_outer = document.createElement("div");
+    middle.appendChild(sidepanel_outer);
+    sidepanel_outer.setAttribute("id", "sidepanel_outer");
+    var sidepanel = document.createElement("div");
+    sidepanel_outer.appendChild(sidepanel);
     sidepanel.setAttribute("id", "sidepanel");
 
-
     /* Now after the table "middle", there is a status bar */
+    var statusbar_outer = document.createElement("div");
+    filesbody.appendChild(statusbar_outer);
+    statusbar_outer.setAttribute("id", "statusbar_outer");
     var statusbar = document.createElement("div");
-    filesbody.appendChild(statusbar);
+    statusbar_outer.appendChild(statusbar);
     statusbar.setAttribute("id", "statusbar");
 }
 
