@@ -16,13 +16,13 @@
  * bullets. */
 
 li.pass {
-    list-style: url(/ivle/media/images/tutorial/pass.png);
+    list-style: url(../images/tutorial/pass.png);
 }
 li.fail {
-    list-style: url(/ivle/media/images/tutorial/fail.png);
+    list-style: url(../images/tutorial/fail.png);
 }
 li.exception {
-    list-style: url(/ivle/media/images/tutorial/exception.png);
+    list-style: url(../images/tutorial/exception.png);
 }
 
 /*
