@@ -7,16 +7,14 @@
 
 /* GENERAL FORMATTING */
 
-p, h2, h3 {
+#ivlebody p, #ivlebody h2, #ivlebody h3 {
     padding: 0;
-    margin: 0;
-    margin-top: 11px;
-    margin-bottom: 11px;
+    margin: 0.7em 0;
 }
-p, h3 {
+#ivlebody p, #ivlebody h3 {
     font-size: 1em;
 }
-h2 {
+#ivlebody h2 {
     font-size: 1.1em;
 }
 
@@ -25,6 +23,8 @@ h2 {
 }
 
 /* OVERALL LAYOUT */
+/* Note: Top-level things are layed out with position: absolute in order to
+ * make sure they fill up the whole canvas. */
 
 #middle, #middle tbody {
     width: 100%;
@@ -39,11 +39,31 @@ h2 {
 /* TOP BAR */
 
 #topbar {
-    padding: 8px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    /* height == h2.margin + h2.line-height
+     *              + max(h2.margin, p.margin) + p.line-height + p.margin
+     *        == 1.1*0.7em + 1.1*1.2em + 1.1*0.7em + 1.1em + 0.7em
+     *        == 4.6em */
+    height: 4.6em;
+    padding: 0.5em;
     background-color: #aaf;
 }
 #topbar a {
     font-weight: bold;
+}
+
+/* Everything under the top bar */
+
+#filesbody {
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* top == #topbar.height + #topbar.padding * 2 */
+    top: 5.6em;
+    bottom: 0;
 }
 
 /* FILE LISTINGS TABLE */
@@ -159,6 +179,11 @@ tr.row2sel {
 /* STATUS BAR */
 
 #statusbar {
+    /* Get this to the bottom of the screen */
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: #aaa;
     border-top: 1px solid #888;
     font-size: 0.8em;
