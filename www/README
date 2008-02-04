@@ -28,6 +28,7 @@ files in the /media directory).
         PythonHandler dispatch
         #PythonDebug On
         Options FollowSymLinks
+        PythonOption mod_python.file_session.database_directory /path/to/shared/sessions
     </Directory>
     <Directory "/ivle-directory/media"> 
         SetHandler None

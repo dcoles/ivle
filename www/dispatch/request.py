@@ -277,7 +277,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the session object
         if not hasattr(self, 'session'):
-            self.session = Session.Session(self.apache_req)
+            self.session = Session.FileSession(self.apache_req)
         return self.session
 
     def get_fieldstorage(self):
