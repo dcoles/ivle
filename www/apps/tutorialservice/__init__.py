@@ -78,12 +78,11 @@ def handle_test(req, problem, code, fields):
     if problem.startswith("..") or problem.startswith(os.sep):
         problemfile = None
     else:
-        problemfile = os.path.join(conf.subjects_base, problem)
+        problemfile = os.path.join(conf.problems_base, problem)
 
     try:
         problemfile = open(problemfile)
     except (TypeError, IOError):    # TypeError if problemfile == None
-        raise Exception("cant open problem file: %s" % problemfile)
         req.throw_error(req.HTTP_NOT_FOUND)
 
     # Parse the file into a problem object using the test suite
