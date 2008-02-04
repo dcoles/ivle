@@ -168,8 +168,18 @@ def linktree(src, dst):
     if errors:
         raise Exception, errors
 
-def make_user_db(login, password, nick, fullname, rolenm, studentid):
-    """Creates a user's entry in the database, filling in all the fields."""
+def make_user_db(login, password, nick, fullname, rolenm, studentid,
+    force=True):
+    """Creates a user's entry in the database, filling in all the fields.
+    If force is False, throws an exception if the user already exists.
+    If True, overwrites the user's entry in the DB.
+    """
     dbconn = db.DB()
+    if force:
+        # Delete user if it exists
+        try:
+            dbconn.delete_user(login)
+        except:
+            pass
     dbconn.create_user(login, password, nick, fullname, rolenm, studentid)
     dbconn.close()

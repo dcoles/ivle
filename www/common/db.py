@@ -81,6 +81,7 @@ class DB:
         Arguments are the same as those in the "login" table of the schema.
         The exception is "password", which is a cleartext password. makeuser
         will hash the password.
+        Raises an exception if the user already exists.
         """
         passhash = _passhash(password)
         query = ("INSERT INTO login (login, passhash, nick, fullname, "
