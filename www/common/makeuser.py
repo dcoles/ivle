@@ -27,9 +27,13 @@
 # * Unix user account
 
 # TODO: Sanitize login name and other fields.
+# Users must not be called "temp" or "template".
+
+# TODO: When creating a new home directory, chown it to its owner
 
 import os
 import shutil
+import warnings
 
 import conf
 import db
@@ -49,7 +53,7 @@ def makeuser(username, password, nick, fullname, rolenm, studentid):
     if os.system("useradd -d %s '%s'" % (homedir, username)) != 0:
         raise Exception("Failed to add Unix user account")
 
-def make_jail(username):
+def make_jail(username, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -59,23 +63,71 @@ def make_jail(username):
     template directory, recursively.
 
     Returns the path to the user's home directory.
+
+    force: If false, exception if jail already exists for this user.
+    If true (default), overwrites it, but preserves home directory.
     """
+    # MUST run as root or some of this may fail
+    if os.getuid() != 0:
+        raise Exception("Must run make_jail as root")
+    
     templatedir = os.path.join(conf.jail_base, 'template')
     if not os.path.isdir(templatedir):
         raise Exception("Template jail directory does not exist: " +
             templatedir)
+    # tempdir is for putting backup homes in
+    tempdir = os.path.join(conf.jail_base, 'temp')
+    if not os.path.exists(tempdir):
+        os.makedirs(tempdir)
+    elif not os.path.isdir(tempdir):
+        os.unlink(tempdir)
+        os.mkdir(tempdir)
     userdir = os.path.join(conf.jail_base, username)
+    homedir = os.path.join(userdir, 'home')
+
     if os.path.exists(userdir):
-        raise Exception("User's jail directory already exists: " +
-            userdir)
+        if not force:
+            raise Exception("User's jail already exists")
+        # User jail already exists. Blow it away but preserve their home
+        # directory.
+        # Ignore warnings about the use of tmpnam
+        warnings.simplefilter('ignore')
+        homebackup = os.tempnam(tempdir)
+        warnings.resetwarnings()
+        # Note: shutil.move does not behave like "mv" - it does not put a file
+        # into a directory if it already exists, just fails. Therefore it is
+        # not susceptible to tmpnam symlink attack.
+        shutil.move(homedir, homebackup)
+        try:
+            # Any errors that occur after making the backup will be caught and
+            # the backup will be un-made.
+            # XXX This will still leave the user's jail in an unusable state,
+            # but at least they won't lose their files.
+            shutil.rmtree(userdir)
 
-    # Hard-link (copy aliasing) the entire tree over
-    linktree(templatedir, userdir)
+            # Hard-link (copy aliasing) the entire tree over
+            linktree(templatedir, userdir)
+        finally:
+            # Set up the user's home directory (restore backup)
+            # First make sure the directory is empty and its parent exists
+            try:
+                shutil.rmtree(homedir)
+            except:
+                pass
+            # XXX If this fails the user's directory will be lost (in the temp
+            # directory). But it shouldn't fail as homedir should not exist.
+            os.makedirs(homedir)
+            shutil.move(homebackup, homedir)
+        return os.path.join(homedir, username)
+    else:
+        # No user jail exists
+        # Hard-link (copy aliasing) the entire tree over
+        linktree(templatedir, userdir)
 
-    # Set up the user's home directory
-    homedir = os.path.join(userdir, 'home', username)
-    os.mkdir(homedir)
-    return homedir
+        # Set up the user's home directory
+        userhomedir = os.path.join(homedir, username)
+        os.mkdir(userhomedir)
+        return userhomedir
 
 def linktree(src, dst):
     """Recursively hard-link a directory tree using os.link().
