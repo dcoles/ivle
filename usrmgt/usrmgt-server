@@ -1,0 +1,71 @@
+#!/usr/bin/python
+
+# usage:
+#   usrmgt-server <port> <magic>
+
+import cjson
+import cStringIO
+import md5
+import os
+import Queue
+import signal
+import socket
+import sys
+
+def daemonize():
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent
+    os.setsid()
+    if os.fork():   # launch child and...
+        os._exit(0) # kill off parent again.
+    os.umask(077)
+
+# The global 'magic' is the secret that the client and server share
+# which is used to create and md5 digest to authenticate requests.
+# It is assigned a real value at startup.
+magic = ''
+
+if __name__ == "__main__":
+    port = int(sys.argv[1])
+    magic = sys.argv[2]
+
+    # Attempt to open the socket.
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', port))
+    s.listen(1)
+
+    # Excellent! It worked. Let's turn ourself into a daemon,
+    # then get on with the job of being a python interpreter.
+    daemonize()
+
+    while True:
+        (conn, addr) = s.accept()
+        try:
+            # Grab the input
+            buf = cStringIO.StringIO()
+            blk = conn.recv(1024)
+            while blk:
+                buf.write(blk)
+                try:
+                    blk = conn.recv(1024, socket.MSG_DONTWAIT)
+                except:
+                    # Exception thrown if it WOULD block (but we
+                    # told it not to wait) - ie. we are done
+                    blk = None
+            inp = buf.getvalue()
+            msg = cjson.decode(inp)
+            
+            # Check that the message is 
+            digest = md5.new(msg['login'] + magic).digest().encode('hex')
+            if msg['digest'] != digest:
+                conn.close()
+                continue
+
+            os.system("useradd '%s'" % msg['login'])
+            for node in [4,5]:
+                os.system("scp /etc/passwd informatics%s:/etc/passwd" % str(n))
+
+            conn.sendall(cjson.encode(True))
+            conn.close()
+        except Exception, e:
+            conn.close()
