@@ -4,7 +4,7 @@
 # These should not need to be modified by admins unless new applications are
 # plugged in.
 
-enable_debuginfo = True
+enable_debuginfo = False
 
 # Allow App objects
 # Note: icon is a string of a file basename. The icon files are found in

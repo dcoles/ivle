@@ -73,7 +73,7 @@ def handle_start(req):
     req.write_html_head_foot = False
 
     # TODO: Figure out the host name the console server is running on.
-    host = req.hostname
+    host = socket.gethostname()
 
     # Create magic
     # TODO
