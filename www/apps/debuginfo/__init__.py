@@ -54,6 +54,7 @@ def handle(req):
         ("euid", os.geteuid()),
         ("gid", os.getgid()),
         ("egid", os.getegid()),
+        ("uname", os.uname()),
     ])
 
     print_table(req, "Available Applications", conf.apps.app_url.items())
