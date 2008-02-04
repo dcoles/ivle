@@ -249,7 +249,7 @@ def present_problem(req, subject, problemsrc, problemid):
     if problemsrc.startswith("..") or problemsrc.startswith(os.sep):
         problemfile = None
     else:
-        problemfile = os.path.join(conf.subjects_base, problemsrc)
+        problemfile = os.path.join(conf.problems_base, problemsrc)
 
     try:
         problemfile = open(problemfile)
