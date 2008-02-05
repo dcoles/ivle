@@ -51,14 +51,21 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     req: An IVLE request object.
     owner: Username of the user who owns the file being served.
     jail_dir: Absolute path to the user's jail.
-    filename: Filename relative to the user's jail.
+    filename: Absolute filename within the user's jail.
     interpreter: A function object to call.
     """
     # Make sure the file exists (otherwise some interpreters may not actually
     # complain).
     # Don't test for execute permission, that will only be required for
     # certain interpreters.
-    if not os.access(os.path.join(jail_dir, filename), os.R_OK):
+    if filename.startswith(os.sep):
+        filename_abs = filename
+        filename_rel = filename[1:]
+    else:
+        filename_abs = os.path.join(os.sep, filename)
+        filename_rel = filename
+
+    if not os.access(os.path.join(jail_dir, filename_rel), os.R_OK):
         req.throw_error(req.HTTP_NOT_FOUND)
 
     # Get the UID of the owner of the file
@@ -73,8 +80,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
 
     # Split up req.path again, this time with respect to the jail
-    filename = os.path.join('/', filename)
-    (working_dir, _) = os.path.split(filename)
+    (working_dir, _) = os.path.split(filename_abs)
     # jail_dir is the absolute jail directory.
     # path is the filename relative to the user's jail.
     # working_dir is the directory containing the file relative to the user's
@@ -82,7 +88,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     # (Note that paths "relative" to the jail actually begin with a '/' as
     # they are absolute in the jailspace)
 
-    return interpreter(uid, jail_dir, working_dir, filename, req)
+    return interpreter(uid, jail_dir, working_dir, filename_abs, req)
 
 class CGIFlags:
     """Stores flags regarding the state of reading CGI output."""
