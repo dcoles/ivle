@@ -202,13 +202,12 @@ def handle_worksheet(req, subject, worksheet):
 
     # Write each element
     problemid = 0
-    for elem in worksheetdom.childNodes:
-        if elem.nodeType == elem.ELEMENT_NODE:
-            problemid = present_worksheet_element(req, elem, problemid)
+    for node in worksheetdom.childNodes:
+        problemid = present_worksheet_node(req, node, problemid)
     req.write("</div>\n")   # tutorialbody
 
-def present_worksheet_element(req, elem, problemid):
-    """Given an element of a worksheet XML document, writes it out to the
+def present_worksheet_node(req, node, problemid):
+    """Given a node of a worksheet XML document, writes it out to the
     request. This recursively searches for "problem" elements and handles
     those specially (presenting their XML problem spec and input box), and
     just dumps the other elements as regular HTML.
@@ -217,12 +216,25 @@ def present_worksheet_element(req, elem, problemid):
     Returns the new problemid after all the problems have been written
     (since we need unique IDs for each problem).
     """
-    if elem.tagName == "problem":
-        present_problem(req, elem.getAttribute("src"), problemid)
-        problemid += 1
+    if node.nodeType == node.ELEMENT_NODE:
+        if node.tagName == "problem":
+            present_problem(req, node.getAttribute("src"), problemid)
+            problemid += 1
+        else:
+            # Some other element. Write out its head and foot, and recurse.
+            req.write("<" + node.tagName)
+            # Attributes
+            attrs = map(lambda (k,v): '%s="%s"'
+                    % (cgi.escape(k), cgi.escape(v)), node.attributes.items())
+            if len(attrs) > 0:
+                req.write(" " + ' '.join(attrs))
+            req.write(">")
+            for childnode in node.childNodes:
+                problemid = present_worksheet_node(req, childnode, problemid)
+            req.write("</" + node.tagName + ">")
     else:
-        # Just treat this as a normal HTML element
-        req.write(elem.toxml() + '\n')
+        # No need to recurse, so just print this node's contents
+        req.write(node.toxml())
     return problemid
 
 def innerXML(elem):
@@ -296,7 +308,7 @@ def present_problem(req, problemsrc, problemid):
     # Print this problem out to HTML 
     req.write("<p><b>Problem:</b> %s</p>\n" % problemname)
     if problemdesc is not None:
-        req.write("<div>%s</div>" % problemdesc)
+        req.write("<div>%s</div>\n" % problemdesc)
     req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
             % problempartial)
     filename = cgi.escape(cjson.encode(problemsrc), quote=True)
