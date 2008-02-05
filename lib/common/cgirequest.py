@@ -119,6 +119,11 @@ class CGIRequest:
         """
         self.headers_written = False
 
+        if ('SERVER_NAME' not in os.environ or
+            'REQUEST_METHOD' not in os.environ or
+            'REQUEST_URI' not in os.environ):
+            raise Exception("No CGI environment found")
+
         # Determine if the browser used the public host name to make the
         # request (in which case we are in "public mode")
         if os.environ['SERVER_NAME'] == conf.public_host:
