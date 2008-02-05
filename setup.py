@@ -646,10 +646,23 @@ def build(args):
     action_chmod_x('jail/opt/ivle/scripts/python-console', dry)
     action_chmod_x('jail/opt/ivle/scripts/fileservice', dry)
     
+    # Also copy the IVLE lib directory into the jail
+    # This is necessary for running certain scripts
+    action_copylist(install_list.list_lib, 'jail/opt/ivle', dry)
 
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
+    compileall.compile_dir('lib', quiet=True)
     compileall.compile_dir('console', quiet=True)
+    compileall.compile_dir('jail/opt/ivle/lib', quiet=True)
+
+    # Set up ivle.pth inside the jail
+    # Need to set /opt/ivle/lib to be on the import path
+    ivle_pth = \
+        "jail/usr/lib/python%s/site-packages/ivle.pth" % PYTHON_VERSION
+    f = open(ivle_pth, 'w')
+    f.write('/opt/ivle/lib\n')
+    f.close()
 
     return 0
 
