@@ -50,8 +50,8 @@ def makeuser(username, password, nick, fullname, rolenm, studentid):
     homedir = make_jail(username)
     make_user_db(username, password, nick, fullname, rolenm, studentid)
     # TODO: -p password (need to use crypt)
-    if os.system("useradd -d %s '%s'" % (homedir, username)) != 0:
-        raise Exception("Failed to add Unix user account")
+    #if os.system("useradd -d %s '%s'" % (homedir, username)) != 0:
+    #    raise Exception("Failed to add Unix user account")
 
 def make_jail(username, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
