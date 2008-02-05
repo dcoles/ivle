@@ -75,8 +75,8 @@ class DB:
 
     # USER MANAGEMENT FUNCTIONS #
 
-    def create_user(self, login, password, nick, fullname, rolenm, studentid,
-        dry=False):
+    def create_user(self, login, unixid, password, nick, fullname, rolenm,
+        studentid, dry=False):
         """Creates a user login entry in the database.
         Arguments are the same as those in the "login" table of the schema.
         The exception is "password", which is a cleartext password. makeuser
@@ -84,9 +84,9 @@ class DB:
         Raises an exception if the user already exists.
         """
         passhash = _passhash(password)
-        query = ("INSERT INTO login (login, passhash, nick, fullname, "
-            "rolenm, studentid) VALUES (%s, %s, %s, %s, %s, %s);" %
-            (_escape(login), _escape(passhash), _escape(nick),
+        query = ("INSERT INTO login (login, unixid, passhash, nick, fullname,"
+            " rolenm, studentid) VALUES (%s, %d, %s, %s, %s, %s, %s);" %
+            (_escape(login), unixid, _escape(passhash), _escape(nick),
             _escape(fullname), _escape(rolenm), _escape(studentid)))
         if dry: return query
         self.db.query(query)
@@ -137,8 +137,8 @@ class DB:
 
         Raises a DBException if the login is not found in the DB.
         """
-        query = ("SELECT login, nick, fullname, rolenm, studentid FROM login "
-            "WHERE login = %s;" % _escape(login))
+        query = ("SELECT login, unixid, nick, fullname, rolenm, studentid "
+            "FROM login WHERE login = %s;" % _escape(login))
         if dry: return query
         result = self.db.query(query)
         # Expecting exactly one

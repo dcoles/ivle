@@ -68,8 +68,8 @@ try:
     # Make the user's jail
     common.makeuser.make_jail(username, uid)
     # Make the user's database entry
-    common.makeuser.make_user_db(username, password, nick, fullname, rolenm,
-        studentid)
+    common.makeuser.make_user_db(username, uid, password, nick, fullname,
+        rolenm, studentid)
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
