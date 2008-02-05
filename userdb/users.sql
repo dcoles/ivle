@@ -1,6 +1,7 @@
 CREATE TABLE login (
     login       VARCHAR UNIQUE NOT NULL,
     loginid     SERIAL PRIMARY KEY NOT NULL,
+    unixid      INT UNIQUE NOT NULL, -- unix user id
     passhash    VARCHAR,
     nick        VARCHAR,
     fullname    VARCHAR,
