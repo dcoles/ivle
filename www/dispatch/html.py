@@ -73,7 +73,7 @@ def write_html_head(req):
         req.write('  <link rel="stylesheet" type="text/css" href="%s" />\n'
             % cgi.escape(util.make_path(style)))
     for script in req.scripts:
-        req.write('  <script type="text/javascript" src="%s" />\n'
+        req.write('  <script type="text/javascript" src="%s"></script>\n'
             % cgi.escape(util.make_path(script)))
 
     req.write("</head>\n\n")
