@@ -42,7 +42,7 @@ import cgi
 
 CGI_BLOCK_SIZE = 65535
 
-def interpret_file(req, owner, filename, interpreter):
+def interpret_file(req, owner, jail_dir, filename, interpreter):
     """Serves a file by interpreting it using one of IVLE's builtin
     interpreters. All interpreters are intended to run in the user's jail. The
     jail location is provided as an argument to the interpreter but it is up
@@ -50,14 +50,15 @@ def interpret_file(req, owner, filename, interpreter):
 
     req: An IVLE request object.
     owner: Username of the user who owns the file being served.
-    filename: Filename in the local file system.
+    jail_dir: Absolute path to the user's jail.
+    filename: Filename relative to the user's jail.
     interpreter: A function object to call.
     """
     # Make sure the file exists (otherwise some interpreters may not actually
     # complain).
     # Don't test for execute permission, that will only be required for
     # certain interpreters.
-    if not os.access(filename, os.R_OK):
+    if not os.access(os.path.join(jail_dir, filename), os.R_OK):
         req.throw_error(req.HTTP_NOT_FOUND)
 
     # Get the UID of the owner of the file
@@ -72,9 +73,8 @@ def interpret_file(req, owner, filename, interpreter):
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
 
     # Split up req.path again, this time with respect to the jail
-    (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
-    path = os.path.join('/', path)
-    (working_dir, _) = os.path.split(path)
+    filename = os.path.join('/', filename)
+    (working_dir, _) = os.path.split(filename)
     # jail_dir is the absolute jail directory.
     # path is the filename relative to the user's jail.
     # working_dir is the directory containing the file relative to the user's
@@ -82,7 +82,7 @@ def interpret_file(req, owner, filename, interpreter):
     # (Note that paths "relative" to the jail actually begin with a '/' as
     # they are absolute in the jailspace)
 
-    return interpreter(uid, jail_dir, working_dir, path, req)
+    return interpreter(uid, jail_dir, working_dir, filename, req)
 
 class CGIFlags:
     """Stores flags regarding the state of reading CGI output."""

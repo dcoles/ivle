@@ -90,11 +90,12 @@ def serve_file(req, owner, filename):
         try:
             # Get the interpreter function object
             interp_object = interpret.interpreter_objects[interp_name]
+            (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
         except KeyError:
             # TODO: Nicer 500 message (this is due to bad configuration in
             # conf/app/server.py)
             req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
-        interpret.interpret_file(req, owner, filename, interp_object)
+        interpret.interpret_file(req, owner, jail_dir, path, interp_object)
 
     else:
         # Otherwise, use the blacklist/whitelist to see if this file should be
