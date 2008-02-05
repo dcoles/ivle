@@ -22,10 +22,15 @@
 
 # Script to create a new user. This can also be done through the
 # administration interface.
+# This script wraps common.makeuser.
+# It also creates a unix account which common.makeuser does not.
+# (This script may not be appropriate for production on a multi-node
+# environment).
 
 import sys
 import os
 import os.path
+import pwd
 # Import modules from the website is tricky since they're in the www
 # directory.
 sys.path.append(os.path.join(os.getcwd(), 'www'))
@@ -37,6 +42,10 @@ if len(sys.argv) <= 6:
         "<fullname> <rolenm> <studentid>"
     sys.exit()
 
+if os.getuid() != 0:
+    print "Must run makeuser.py as root."
+    sys.exit()
+
 username = sys.argv[1]
 password = sys.argv[2]
 nick = sys.argv[3]
@@ -45,7 +54,21 @@ rolenm = sys.argv[5]
 studentid = sys.argv[6]
 
 try:
-    common.makeuser.makeuser(username, password, nick, fullname, rolenm,
+    # Resolve the user's username into a UID
+    # Create the user if it does not exist
+    try:
+        (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+    except KeyError:
+        if os.system("useradd '%s'" % username) != 0:
+            raise Exception("Failed to add Unix user account")
+        try:
+            (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+        except KeyError:
+            raise Exception("Failed to add Unix user account")
+    # Make the user's jail
+    common.makeuser.make_jail(username, uid)
+    # Make the user's database entry
+    common.makeuser.make_user_db(username, password, nick, fullname, rolenm,
         studentid)
 except Exception, message:
     print "Error: " + str(message)

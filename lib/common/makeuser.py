@@ -32,28 +32,14 @@
 # TODO: When creating a new home directory, chown it to its owner
 
 import os
+import stat
 import shutil
 import warnings
 
 import conf
 import db
 
-def makeuser(username, password, nick, fullname, rolenm, studentid):
-    """Creates a new user on a pre-installed system.
-    Sets up the following:
-    * User's jail and home directory within the jail.
-    * Subversion repository
-    * Check out Subversion workspace into jail
-    * Database details for user
-    * Unix user account
-    """
-    homedir = make_jail(username)
-    make_user_db(username, password, nick, fullname, rolenm, studentid)
-    # TODO: -p password (need to use crypt)
-    #if os.system("useradd -d %s '%s'" % (homedir, username)) != 0:
-    #    raise Exception("Failed to add Unix user account")
-
-def make_jail(username, force=True):
+def make_jail(username, uid, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -63,6 +49,13 @@ def make_jail(username, force=True):
     template directory, recursively.
 
     Returns the path to the user's home directory.
+
+    Chowns the user's directory within the jail to the given UID.
+
+    Note: This takes separate username and uid arguments. The UID need not
+    *necessarily* correspond to a Unix username at all, if all you are
+    planning to do is setuid to it. This allows the caller the freedom of
+    deciding the binding between username and uid, if any.
 
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
@@ -127,6 +120,10 @@ def make_jail(username, force=True):
         # Set up the user's home directory
         userhomedir = os.path.join(homedir, username)
         os.mkdir(userhomedir)
+        # Chown (and set the GID to the same as the UID).
+        os.chown(userhomedir, uid, uid)
+        # Chmod to rwx------ (700)
+        os.chmod(userhomedir, stat.S_IRWXU)
         return userhomedir
 
 def linktree(src, dst):
