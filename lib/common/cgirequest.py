@@ -33,6 +33,8 @@ import os
 import cgi
 
 import conf
+import common
+import common.util
 
 # Utility functions
 
