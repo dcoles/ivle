@@ -192,10 +192,6 @@ def handle_worksheet(req, subject, worksheet):
         # TODO: Nicer error message, to help authors
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
     worksheetname = worksheetdom.getAttribute("name")
-    elements = []     # List of DOM elements
-    for elem in worksheetdom.childNodes:
-        if elem.nodeType == elem.ELEMENT_NODE:
-            elements.append(elem)
 
     # Now all the errors are out the way, we can begin writing
     req.title = "Tutorial - %s" % worksheetname
@@ -203,16 +199,31 @@ def handle_worksheet(req, subject, worksheet):
     req.write('<div id="ivle_padding">\n')
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
+
     # Write each element
     problemid = 0
-    for elem in elements:
-        if elem.tagName == "problem":
-            present_problem(req, subject, elem.getAttribute("src"), problemid)
-            problemid += 1
-        else:
-            # Just treat this as a normal HTML element
-            req.write(elem.toxml() + '\n')
+    for elem in worksheetdom.childNodes:
+        if elem.nodeType == elem.ELEMENT_NODE:
+            problemid = present_worksheet_element(req, elem, problemid)
     req.write("</div>\n")   # tutorialbody
+
+def present_worksheet_element(req, elem, problemid):
+    """Given an element of a worksheet XML document, writes it out to the
+    request. This recursively searches for "problem" elements and handles
+    those specially (presenting their XML problem spec and input box), and
+    just dumps the other elements as regular HTML.
+
+    problemid is the ID to use for the first problem.
+    Returns the new problemid after all the problems have been written
+    (since we need unique IDs for each problem).
+    """
+    if elem.tagName == "problem":
+        present_problem(req, elem.getAttribute("src"), problemid)
+        problemid += 1
+    else:
+        # Just treat this as a normal HTML element
+        req.write(elem.toxml() + '\n')
+    return problemid
 
 def innerXML(elem):
     """Given an element, returns its children as XML strings concatenated
@@ -235,11 +246,10 @@ def getTextData(element):
 
     return data.strip()
 
-def present_problem(req, subject, problemsrc, problemid):
+def present_problem(req, problemsrc, problemid):
     """Open a problem file, and write out the problem to the request in HTML.
-    subject: Subject name.
     problemsrc: "src" of the problem file. A path relative to the top-level
-        subjects base directory, as configured in conf.
+        problems base directory, as configured in conf.
     """
     req.write('<div class="tuteproblem" id="problem%d">\n'
         % problemid)
