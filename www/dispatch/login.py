@@ -70,6 +70,7 @@ def login(req):
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
                     session['login_name'] = username.value
+                    session['unixid'] = login_details['unixid']
                     session['nick'] = login_details['nick']
                     session['fullname'] = login_details['fullname']
                     session['rolenm'] = login_details['rolenm']
