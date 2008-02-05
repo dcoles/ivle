@@ -37,8 +37,8 @@ import conf
 
 trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
 python_path = "/usr/bin/python"                     # Within jail
-console_dir = "/opt/ivle/console"                   # Within jail
-console_path = "/opt/ivle/console/python-console"   # Within jail
+console_dir = "/opt/ivle/scripts"                   # Within jail
+console_path = "/opt/ivle/scripts/python-console"   # Within jail
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
