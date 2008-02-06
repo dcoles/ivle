@@ -149,6 +149,15 @@ class DB:
         # Return as a dictionary
         return result.dictresult()[0]
 
+    def get_users(self, dry=False):
+        """Returns a list of all users. The list elements are a dictionary of
+        the user's DB fields, excluding the passhash field.
+        """
+        query = ("SELECT login, unixid, nick, fullname, rolenm, studentid "
+            "FROM login")
+        if dry: return query
+        return self.db.query(query).dictresult()
+
     def user_authenticate(self, login, password, dry=False):
         """Performs a password authentication on a user. Returns True if
         "password" is the correct password for the given login, False
