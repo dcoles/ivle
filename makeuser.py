@@ -51,7 +51,7 @@ password = sys.argv[2]
 nick = sys.argv[3]
 fullname = sys.argv[4]
 rolenm = sys.argv[5]
-if sys.argv >= 6:
+if len(sys.argv) >= 6:
     studentid = sys.argv[6]
 else:
     studentid = None
