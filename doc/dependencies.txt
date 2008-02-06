@@ -9,6 +9,11 @@ IVLE requires the following:
 * mod_python
 * PostgreSQL
 
+The setup program also requires:
+
+* GCC
+* Make
+
 Note: While the developers have made every effort to ensure IVLE is compatible
 with all POSIX-compliant operating systems, our setup procedure is currently
 tailored to Ubuntu Linux. In particular, it pulls shared libraries out of

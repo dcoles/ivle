@@ -38,7 +38,7 @@ sudo apt-get update
 
 # Apt packages
 sudo apt-get install subversion
-sudo apt-get install gcc libc6 libc6-dev
+sudo apt-get install gcc libc6 libc6-dev make
 # On 6.06 (Dapper):
 sudo apt-get install python2.4-dev
 # On 7.10 (Gutsy):
