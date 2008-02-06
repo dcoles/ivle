@@ -32,7 +32,7 @@ import uuid
 
 import cjson
 
-from common import (util, studpath)
+from common import (util, studpath, chat)
 import conf
 
 trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
@@ -99,9 +99,9 @@ def handle_start(req):
                             console_dir, python_path, console_path,
                             str(port), str(magic)])
 
-        print >> sys.stderr, cmd
+        # print >> sys.stderr, cmd
         res = os.system(cmd)
-        print >> sys.stderr, res
+        # print >> sys.stderr, res
 
         if res == 0:
             # success
@@ -112,21 +112,25 @@ def handle_start(req):
     if tries == 5:
         raise Exception, "unable to find a free port!"
 
-    # Return port, magic
-    req.write(cjson.encode({"host": host, "port": port, "magic": magic}))
+    # Assemble the key and return it.
+    key = cjson.encode({"host": host, "port": port, "magic": magic})
+    req.write(cjson.encode(key.encode("hex")))
 
 def handle_chat(req, kind = "chat"):
     # The request *should* have the following four fields:
-    # host, port: Host and port where the console server apparently lives
-    # digest, text: Fields to pass along to the console server
+    # host, port, magic: Host and port where the console server lives,
+    # and the secret to use to digitally sign the communication with the
+    # console server.
+    # text: Fields to pass along to the console server
     # It simply acts as a proxy to the console server
     if req.method != "POST":
         req.throw_error(req.HTTP_BAD_REQUEST)
     fields = req.get_fieldstorage()
     try:
-        host = fields.getfirst("host").value
-        port = int(fields.getfirst("port").value)
-        digest = fields.getfirst("digest").value
+        key = cjson.decode(fields.getfirst("key").value.decode("hex"))
+        host = key['host']
+        port = key['port']
+        magic = key['magic']
     except AttributeError:
         # Any of the getfirsts returned None
         req.throw_error(req.HTTP_BAD_REQUEST)
@@ -136,26 +140,9 @@ def handle_chat(req, kind = "chat"):
     except AttributeError:
         text = ""
 
-    msg = {'cmd':kind, 'text':text, 'digest':digest}
-
-    sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sok.connect((host, port))
-    sok.send(cjson.encode(msg))
-
-    buf = cStringIO.StringIO()
-    blk = sok.recv(1024)
-    while blk:
-        buf.write(blk)
-        try:
-            blk = conn.recv(1024, socket.MSG_DONTWAIT)
-        except:
-            # Exception thrown if it WOULD block (but we
-            # told it not to wait) - ie. we are done
-            blk = None
-    inp = buf.getvalue()
-    
-    sok.close()
-
+    msg = {'cmd':kind, 'text':text}
+    response = chat.chat(host, port, msg, magic, decode = False)
+    print >> open("/tmp/wibble","w"), repr(msg), repr(response)
     req.content_type = "text/plain"
-    req.write(inp)
+    req.write(response)
 

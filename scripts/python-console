@@ -14,6 +14,8 @@ import socket
 import sys
 from threading import Thread
 
+import common.chat
+
 class StdinFromWeb(object):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
@@ -113,48 +115,16 @@ cmdQ = Queue.Queue()
 lineQ = Queue.Queue()
 interpThread = PythonRunner(cmdQ, lineQ)
 
+def initializer():
+    interpThread.setDaemon(True)
+    interpThread.start()
+
+def dispatch_msg(msg):
+    lineQ.put({msg['cmd']:msg['text']})
+    return cmdQ.get()
+
 if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
 
-    # Attempt to open the socket.
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('', port))
-    s.listen(1)
-
-    # Excellent! It worked. Let's turn ourself into a daemon,
-    # then get on with the job of being a python interpreter.
-    daemonize()
-
-    interpThread.setDaemon(True)
-    interpThread.start()
-
-    while True:
-        (conn, addr) = s.accept()
-        try:
-            # Grab the input
-            buf = cStringIO.StringIO()
-            blk = conn.recv(1024)
-            while blk:
-                buf.write(blk)
-                try:
-                    blk = conn.recv(1024, socket.MSG_DONTWAIT)
-                except:
-                    # Exception thrown if it WOULD block (but we
-                    # told it not to wait) - ie. we are done
-                    blk = None
-            inp = buf.getvalue()
-            msg = cjson.decode(inp)
-            
-            # Check that the message is 
-            digest = md5.new(msg['text'] + magic).digest().encode('hex')
-            if msg['digest'] != digest:
-                conn.close()
-                continue
-
-            lineQ.put({msg['cmd']:msg['text']})
-            r = cmdQ.get()
-            conn.sendall(cjson.encode(r))
-            conn.close()
-        except Exception, e:
-            conn.close()
+    common.chat.start_server(port, magic, True, dispatch_msg, initializer)

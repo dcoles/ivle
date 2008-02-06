@@ -20,11 +20,7 @@
  * Date: 30/1/2008
  */
 
-digest_constant = "hello";
-
-var server_host;
-var server_port;
-var server_magic;
+var server_key;
 
 /* Begin religious debate (tabs vs spaces) here: */
 /* (This string will be inserted in the console when the user presses the Tab
@@ -43,17 +39,14 @@ server_started = false;
  * This is a separate step from console_init, as the server is only to be
  * started once the first command is entered.
  * Does not return a value. Writes to global variables
- * server_host, server_port, server_magic.
+ * server_host, and server_port.
  */
 function start_server()
 {
     if (server_started) return;
     var xhr = ajax_call("consoleservice", "start", {}, "POST");
     var json_text = xhr.responseText;
-    var server_info = JSON.parse(json_text);
-    server_host = server_info.host;
-    server_port = server_info.port;
-    server_magic = server_info.magic;
+    server_key = JSON.parse(json_text);
     server_started = true;
 }
 
@@ -212,9 +205,7 @@ function console_enter_line(inputline, which)
 {
     /* Start the server if it hasn't already been started */
     start_server();
-    var digest = hex_md5(inputline + server_magic);
-    var args = {"host": server_host, "port": server_port,
-                    "digest":digest, "text":inputline};
+    var args = {"key": server_key, "text":inputline};
     var xmlhttp = ajax_call("consoleservice", which, args, "POST");
 
     var res = JSON.parse(xmlhttp.responseText);
