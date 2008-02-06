@@ -100,6 +100,45 @@ JAIL_FILES = [
     '/bin/echo',
     # Needed by python
     '/usr/bin/python%s' % PYTHON_VERSION,
+    # Needed by fileservice
+    '/lib/libcom_err.so.2',
+    '/lib/libcrypt.so.1',
+    '/lib/libkeyutils.so.1',
+    '/lib/libresolv.so.2',
+    '/lib/librt.so.1',
+    '/lib/libuuid.so.1',
+    '/usr/lib/libapr-1.so.0',
+    '/usr/lib/libaprutil-1.so.0',
+    '/usr/lib/libdb-4.4.so',
+    '/usr/lib/libexpat.so.1',
+    '/usr/lib/libgcrypt.so.11',
+    '/usr/lib/libgnutls.so.13',
+    '/usr/lib/libgpg-error.so.0',
+    '/usr/lib/libgssapi_krb5.so.2',
+    '/usr/lib/libk5crypto.so.3',
+    '/usr/lib/libkrb5.so.3',
+    '/usr/lib/libkrb5support.so.0',
+    '/usr/lib/liblber.so.2',
+    '/usr/lib/libldap_r.so.2',
+    '/usr/lib/libneon.so.26',
+    '/usr/lib/libpq.so.5',
+    '/usr/lib/libsasl2.so.2',
+    '/usr/lib/libsqlite3.so.0',
+    '/usr/lib/libsvn_client-1.so.1',
+    '/usr/lib/libsvn_delta-1.so.1',
+    '/usr/lib/libsvn_diff-1.so.1',
+    '/usr/lib/libsvn_fs-1.so.1',
+    '/usr/lib/libsvn_fs_base-1.so.1',
+    '/usr/lib/libsvn_fs_fs-1.so.1',
+    '/usr/lib/libsvn_ra-1.so.1',
+    '/usr/lib/libsvn_ra_dav-1.so.1',
+    '/usr/lib/libsvn_ra_local-1.so.1',
+    '/usr/lib/libsvn_ra_svn-1.so.1',
+    '/usr/lib/libsvn_repos-1.so.1',
+    '/usr/lib/libsvn_subr-1.so.1',
+    '/usr/lib/libsvn_wc-1.so.1',
+    '/usr/lib/libtasn1.so.3',
+    '/usr/lib/libxml2.so.2',
     # Needed by matplotlib
     '/usr/lib/i686/cmov/libssl.so.0.9.8',
     '/usr/lib/i686/cmov/libcrypto.so.0.9.8',
@@ -695,7 +734,7 @@ def build(args):
     # The "safe" version is in jailconf.py. Delete conf.py and replace it with
     # jailconf.py.
     # NOTE: The first thing action_rename does is call action_remove.
-    action_rename('jail/opt/ivle/lib/conf/jailconf.py',
+    action_copyfile('jail/opt/ivle/lib/conf/jailconf.py',
         'jail/opt/ivle/lib/conf/conf.py', dry)
 
     # Compile .py files into .pyc or .pyo files
@@ -865,10 +904,14 @@ def action_runprog(prog, args, dry):
 
 def action_remove(path, dry):
     """Calls rmtree, deleting the target file if it exists."""
-    if os.access(path, os.F_OK):
+    try:
         print "rm -r", path
         if not dry:
             shutil.rmtree(path, True)
+    except OSError, (err, msg):
+        if err != errno.EEXIST:
+            raise
+        # Otherwise, didn't exist, so we don't care
 
 def action_rename(src, dst, dry):
     """Calls rename. Deletes the target if it already exists."""
