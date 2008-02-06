@@ -38,6 +38,8 @@ import md5
 def _escape(str):
     """Wrapper around pg.escape_string. Escapes the string for use in SQL, and
     also quotes it to make sure that every string used in a query is quoted.
+    If str is None, returns "NULL", which is unescaped and thus a valid SQL
+    value.
     """
     # "E'" is postgres's way of making "escape" strings.
     # Such strings allow backslashes to escape things. Since escape_string
@@ -45,6 +47,8 @@ def _escape(str):
     # into E mode.
     # Ref: http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html
     # WARNING: PostgreSQL-specific code
+    if str is None:
+        return "NULL"
     return "E'" + pg.escape_string(str) + "'"
 
 def _passhash(password):

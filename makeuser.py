@@ -37,9 +37,9 @@ sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
 import common.makeuser
 
-if len(sys.argv) <= 6:
+if len(sys.argv) <= 5:
     print "Usage: python makeuser.py <username> <password> <nick> " \
-        "<fullname> <rolenm> <studentid>"
+        "<fullname> <rolenm> [<studentid>]"
     sys.exit()
 
 if os.getuid() != 0:
@@ -51,7 +51,10 @@ password = sys.argv[2]
 nick = sys.argv[3]
 fullname = sys.argv[4]
 rolenm = sys.argv[5]
-studentid = sys.argv[6]
+if sys.argv >= 6:
+    studentid = sys.argv[6]
+else:
+    studentid = None
 
 try:
     # Resolve the user's username into a UID
