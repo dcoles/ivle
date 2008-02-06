@@ -645,7 +645,10 @@ root_dir = %s
 # The user jails are expected to be located immediately in subdirectories of
 # this location.
 jail_base = '/'
-""" % repr(root_dir))
+
+# The hostname for serving publicly accessible pages
+public_host = %s
+""" % (repr(root_dir),repr(public_host)))
 
         conf.close()
     except IOError, (errno, strerror):
@@ -733,8 +736,7 @@ def build(args):
     # password).
     # The "safe" version is in jailconf.py. Delete conf.py and replace it with
     # jailconf.py.
-    # NOTE: The first thing action_rename does is call action_remove.
-    action_copyfile('jail/opt/ivle/lib/conf/jailconf.py',
+    action_copyfile('lib/conf/jailconf.py',
         'jail/opt/ivle/lib/conf/conf.py', dry)
 
     # Compile .py files into .pyc or .pyo files

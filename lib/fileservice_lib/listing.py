@@ -133,6 +133,7 @@ def handle_return(req):
 
     (user, path) = studpath.url_to_local(req.path)
 
+    print req.path, user, path
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
     if path is None:

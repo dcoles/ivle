@@ -46,7 +46,7 @@ import common.interpret
 # acting "as" that user and therefore we don't run into permissions problems.
 # If set to True, it will be a lot more efficient, but there will be
 # permissions issues unless all user's files are owned by the web server user.
-HANDLE_WITH_TRAMPOLINE = False
+HANDLE_WITH_TRAMPOLINE = True
 
 fileservice_path = "/opt/ivle/scripts/fileservice"   # Within jail
 
