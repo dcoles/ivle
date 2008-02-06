@@ -502,6 +502,7 @@ def conf(args):
     cwd = os.getcwd()
     # the files that will be created/overwritten
     conffile = os.path.join(cwd, "lib/conf/conf.py")
+    jailconffile = os.path.join(cwd, "lib/conf/jailconf.py")
     conf_hfile = os.path.join(cwd, "trampoline/conf.h")
 
     # Get command-line arguments to avoid asking questions.
@@ -521,11 +522,12 @@ def conf(args):
         print """This tool will create the following files:
     %s
     %s
+    %s
 prompting you for details about your configuration. The file will be
 overwritten if it already exists. It will *not* install or deploy IVLE.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, conf_hfile)
+""" % (conffile, jailconffile, conf_hfile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -579,6 +581,40 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     print "Successfully wrote lib/conf/conf.py"
 
+    # Write conf/jailconf.py
+
+    try:
+        conf = open(jailconffile, "w")
+
+        # In the "in-jail" version of conf, we don't need MOST of the details
+        # (it would be a security risk to have them here).
+        # So we just write root_dir, and jail_base is "/".
+        # (jail_base being "/" means "jail-relative" paths are relative to "/"
+        # when inside the jail.)
+        conf.write("""# IVLE Configuration File
+# conf.py
+# Miscellaneous application settings
+# (User jail version)
+
+
+# In URL space, where in the site is IVLE located. (All URLs will be prefixed
+# with this).
+# eg. "/" or "/ivle".
+root_dir = %s
+
+# In the local file system, where are the student/user file spaces located.
+# The user jails are expected to be located immediately in subdirectories of
+# this location.
+jail_base = '/'
+""" % repr(root_dir))
+
+        conf.close()
+    except IOError, (errno, strerror):
+        print "IO error(%s): %s" % (errno, strerror)
+        sys.exit(1)
+
+    print "Successfully wrote lib/conf/jailconf.py"
+
     # Write trampoline/conf.h
 
     try:
@@ -602,7 +638,10 @@ static const char* jail_base = "%s";
  * (Note that root is an implicit member of this list).
  */
 static const int allowed_uids[] = { %s };
-""" % (jail_base, repr(allowed_uids_list)[1:-1]))
+""" % (repr(jail_base)[1:-1], repr(allowed_uids_list)[1:-1]))
+    # Note: The above uses PYTHON reprs, not C reprs
+    # However they should be the same with the exception of the outer
+    # characters, which are stripped off and replaced
 
         conf.close()
     except IOError, (errno, strerror):
@@ -614,6 +653,7 @@ static const int allowed_uids[] = { %s };
     print
     print "You may modify the configuration at any time by editing"
     print conffile
+    print jailconffile
     print conf_hfile
     print
     return 0
@@ -649,11 +689,19 @@ def build(args):
     # Also copy the IVLE lib directory into the jail
     # This is necessary for running certain scripts
     action_copylist(install_list.list_lib, 'jail/opt/ivle', dry)
+    # IMPORTANT: The file jail/opt/ivle/lib/conf/conf.py contains details
+    # which could compromise security if left in the jail (such as the DB
+    # password).
+    # The "safe" version is in jailconf.py. Delete conf.py and replace it with
+    # jailconf.py.
+    # NOTE: The first thing action_rename does is call action_remove.
+    action_rename('jail/opt/ivle/lib/conf/jailconf.py',
+        'jail/opt/ivle/lib/conf/conf.py', dry)
 
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
     compileall.compile_dir('lib', quiet=True)
-    compileall.compile_dir('console', quiet=True)
+    compileall.compile_dir('scripts', quiet=True)
     compileall.compile_dir('jail/opt/ivle/lib', quiet=True)
 
     # Set up ivle.pth inside the jail
@@ -815,12 +863,16 @@ def action_runprog(prog, args, dry):
     if ret != 0:
         raise RunError(prog, ret)
 
+def action_remove(path, dry):
+    """Calls rmtree, deleting the target file if it exists."""
+    if os.access(path, os.F_OK):
+        print "rm -r", path
+        if not dry:
+            shutil.rmtree(path, True)
+
 def action_rename(src, dst, dry):
     """Calls rename. Deletes the target if it already exists."""
-    if os.access(dst, os.F_OK):
-        print "rm -r", dst
-        if not dry:
-            shutil.rmtree(dst, True)
+    action_remove(dst, dry)
     print "mv ", src, dst
     if dry: return
     try:
@@ -846,10 +898,7 @@ def action_copytree(src, dst, dry):
     directories as necessary.
 
     See shutil.copytree."""
-    if os.access(dst, os.F_OK):
-        print "rm -r", dst
-        if not dry:
-            shutil.rmtree(dst, True)
+    action_remove(dst, dry)
     print "cp -r", src, dst
     if dry: return
     shutil.copytree(src, dst, True)
@@ -858,10 +907,7 @@ def action_linktree(src, dst, dry):
     """Hard-links an entire directory tree. Same as copytree but the created
     files are hard-links not actual copies. Removes the existing destination.
     """
-    if os.access(dst, os.F_OK):
-        print "rm -r", dst
-        if not dry:
-            shutil.rmtree(dst, True)
+    action_remove(dst, dry)
     print "<cp with hardlinks> -r", src, dst
     if dry: return
     common.makeuser.linktree(src, dst)
