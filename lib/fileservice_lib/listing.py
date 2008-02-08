@@ -131,9 +131,8 @@ def handle_return(req):
     req.path. Sets the HTTP response code in req, writes additional headers,
     and writes the HTTP response, if any."""
 
-    (user, path) = studpath.url_to_local(req.path)
+    (user, jail, path) = studpath.url_to_jailpaths(req.path)
 
-    print req.path, user, path
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
     if path is None:
@@ -199,10 +198,10 @@ def get_dirlisting(req, svnclient, path):
     # The other object is the clipboard, if present in the browser session.
     # This can go straight from the session to JSON.
     session = req.get_session()
-    try:
+    if session and 'clipboard' in session:
+        # In CGI mode, we can't get our hands on the
+        # session (for the moment), so just leave it out.
         listing['clipboard'] = session['clipboard']
-    except KeyError:
-        pass
     
     return listing
 

@@ -106,7 +106,7 @@ def handle(req):
     if req.method == 'POST':
         fields = req.get_fieldstorage()
         act = fields.getfirst('action')
-
+    
     if act is not None:
         try:
             action.handle_action(req, act, fields)

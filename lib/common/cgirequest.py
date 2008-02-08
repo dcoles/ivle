@@ -229,7 +229,8 @@ class CGIRequest:
         f = open(filename)
         buf = f.read(1024)
         while len(buf) > 0:
-            sys.stdout.flush(buf)
+            sys.stdout.write(buf)
+            sys.stdout.flush()
             buf = f.read(1024)
         f.close()
 

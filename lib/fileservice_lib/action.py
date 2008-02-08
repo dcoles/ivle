@@ -130,6 +130,7 @@
 #   update if the path is not a directory).
 
 import os
+import cStringIO
 import shutil
 
 import pysvn
@@ -208,7 +209,7 @@ def actionpath_to_local(req, path):
 
     Does not mutate req.
     """
-    _, r = studpath.url_to_local(actionpath_to_urlpath(req, path))
+    (_, _, r) = studpath.url_to_jailpaths(actionpath_to_urlpath(req, path))
     if r is None:
         raise ActionError("Invalid path")
     return r
@@ -296,11 +297,12 @@ def action_putfile(req, fields):
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields.getfirst('data')
-    if path is None:
+    if path is None or data is None:
         raise ActionError("Required field missing")
     path = actionpath_to_local(req, path)
+
     if data is not None:
-        data = data.file
+        data = cStringIO.StringIO(data)
 
     # Copy the contents of file object 'data' to the path 'path'
     try:
@@ -316,9 +318,12 @@ def action_putfiles(req, fields):
 
     Reads fields: 'path', 'data' (file upload, multiple), 'unpack'
     """
+
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
-    data = fields.getlist('data')
+    data = fields['data']
+    if type(data) != type([]):
+        data = [data]
     unpack = fields.getfirst('unpack')
     if unpack is None:
         unpack = False
@@ -329,10 +334,11 @@ def action_putfiles(req, fields):
     path = actionpath_to_urlpath(req, path)
     goterror = False
 
+
     for datum in data:
         # Each of the uploaded files
         filepath = os.path.join(path, datum.filename)
-        filedata = datum.file
+        filedata = datum.value
 
         if unpack and datum.filename.lower().endswith(".zip"):
             # A zip file - unpack it instead of just copying
@@ -345,7 +351,7 @@ def action_putfiles(req, fields):
                 goterror = True
         else:
             # Not a zip file
-            _, filepath_local = studpath.url_to_local(filepath)
+            (_, _, filepath_local) = studpath.url_to_jailpaths(filepath)
             if filepath_local is None:
                 raise ActionError("Invalid path")
 
@@ -353,7 +359,7 @@ def action_putfiles(req, fields):
             try:
                 dest = open(filepath_local, 'wb')
                 if data is not None:
-                    shutil.copyfileobj(filedata, dest)
+                    shutil.copyfileobj(cStringIO.StringIO(filedata), dest)
             except OSError:
                 goterror = True
 

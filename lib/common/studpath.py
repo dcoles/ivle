@@ -97,7 +97,7 @@ def url_to_jailpaths(urlpath):
     if user is None: return (None, None, None)
 
     jail = os.path.join(conf.jail_base, user)
-    path = os.path.join('home', urlpath)
+    path = os.path.join('/home', urlpath)
 
     return (user, jail, path)
 
