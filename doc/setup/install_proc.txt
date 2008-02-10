@@ -145,3 +145,4 @@ sudo apt-get install pound
 #     startup=1
 #
 # copy pound.cfg to /etc/pound/pound.cfg
+# edit IP addresses in pound.cfg
