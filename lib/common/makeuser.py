@@ -122,8 +122,8 @@ def make_jail(username, uid, force=True):
         os.mkdir(userhomedir)
         # Chown (and set the GID to the same as the UID).
         os.chown(userhomedir, uid, uid)
-        # Chmod to rwx------ (700)
-        os.chmod(userhomedir, stat.S_IRWXU)
+        # Chmod to rwxr-xr-x (755)
+        os.chmod(userhomedir, 0755)
         return userhomedir
 
 def linktree(src, dst):

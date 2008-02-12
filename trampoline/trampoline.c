@@ -89,7 +89,7 @@ void daemonize(void)
     /* At this point we are executing as the child process */
 
     /* Change the file mode mask */
-    umask(0);
+    umask(022);
 
     /* Create a new SID for the child process */
     sid = setsid();
