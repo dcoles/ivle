@@ -99,9 +99,7 @@ def handle_start(req):
                             console_dir, python_path, console_path,
                             str(port), str(magic)])
 
-        # print >> sys.stderr, cmd
         res = os.system(cmd)
-        # print >> sys.stderr, res
 
         if res == 0:
             # success
@@ -142,7 +140,6 @@ def handle_chat(req, kind = "chat"):
 
     msg = {'cmd':kind, 'text':text}
     response = chat.chat(host, port, msg, magic, decode = False)
-    print >> open("/tmp/wibble","w"), repr(msg), repr(response)
     req.content_type = "text/plain"
     req.write(response)
 
