@@ -517,8 +517,8 @@ def action_svnpublish(req, fields):
         for path in paths:
             # Note: Property value doesn't matter
             svnclient.propset("ivle:published", "", path, recurse=False)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be updated")
+    except pysvn.ClientError, e:
+        raise ActionError("Directory could not be published")
 
 def action_svnunpublish(req, fields):
     """Deletes svn property "ivle:published" on each file specified.
@@ -532,7 +532,7 @@ def action_svnunpublish(req, fields):
         for path in paths:
             svnclient.propdel("ivle:published", path, recurse=False)
     except pysvn.ClientError:
-        raise ActionError("One or more files could not be updated")
+        raise ActionError("Directory could not be unpublished)
 
 def action_svncommit(req, fields):
     """Performs a "svn commit" to each file specified.

@@ -72,12 +72,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     # (Note: files are executed by their owners, not the logged in user.
     # This ensures users are responsible for their own programs and also
     # allows them to be executed by the public).
-    try:
-        (_,_,uid,_,_,_,_) = pwd.getpwnam(owner)
-    except KeyError:
-        # The user does not exist. This should have already failed the
-        # previous test.
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+    uid = req.get_session()['unixid']
 
     # Split up req.path again, this time with respect to the jail
     (working_dir, _) = os.path.split(filename_abs)
