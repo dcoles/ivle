@@ -278,9 +278,7 @@ function make_query_string(args)
             query_string += "&" + encodeURIComponent(arg_key) + "=" +
                 encodeURIComponent(arg_val);
     }
-    if (query_string == "")
-        query_string = null;
-    else
+    if (query_string != "")
         /* Drop the first "&" */
         query_string = query_string.substr(1);
 
@@ -321,7 +319,7 @@ function build_url(obj)
     else if (("args" in obj) && obj.args != null)
         query_string = make_query_string(obj.args);
 
-    if (query_string != null)
+    if (query_string != "")
         url += "?" + query_string;
 
     return url;
@@ -571,6 +569,7 @@ function ajax_call(app, path, args, method, content_type)
             xhr.setRequestHeader("Content-Type", content_type);
             message = make_query_string(args);
         }
+        xhr.setRequestHeader("Content-Length", message.length);
         xhr.send(message);
     }
     return xhr;
