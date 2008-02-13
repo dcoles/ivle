@@ -98,6 +98,12 @@ app_debuginfo = App(dir = "debuginfo",
                     name = "Debug Information",
                     requireauth = False,
                     hashelp = False)
+                    
+app_forum = App(dir = "forum",
+                    name = "Forum",
+                    icon = "forum.png",
+                    requireauth = True,
+                    hashelp = False)
 
 # Mapping URL names to apps
 
@@ -112,6 +118,7 @@ app_url = {
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
+    "forum" : app_forum
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
@@ -120,4 +127,4 @@ if enable_debuginfo:
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["files", "edit", "console", "tutorial", "help"]
+apps_in_tabs = ["files", "edit", "console", "tutorial", "forum", "help"]
