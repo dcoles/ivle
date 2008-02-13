@@ -83,7 +83,11 @@ def handler(req):
 
     if logged_in:
         # Keep the user's session alive by writing to the session object.
-        req.get_session().save()
+        # req.get_session().save()
+        # Well, it's a fine idea, but it creates considerable grief in the
+        # concurrent update department, so instead, we'll just make the
+        # sessions not time out.
+        
         # If user did not specify an app, HTTP redirect to default app and
         # exit.
         if req.app is None:

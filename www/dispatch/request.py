@@ -275,9 +275,10 @@ class Request:
         """Returns a mod_python Session object for this request.
         Note that this is dependent on mod_python and may need to change
         interface if porting away from mod_python."""
-        # Cache the session object
+        # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
-            self.session = Session.FileSession(self.apache_req)
+            self.session = Session.FileSession(self.apache_req,
+                                               timeout = 60 * 60 * 24)
         return self.session
 
     def get_fieldstorage(self):

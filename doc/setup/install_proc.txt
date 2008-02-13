@@ -75,10 +75,35 @@ sudo apt-get install python-svn python-webpy python-numpy python-matplotlib
 # Do Not install python-svn-dbg.
 # End 7.10 (Gutsy) specific
 
+#
+# Installing postgres
+# ===============================
+#
+# Some of these instructions follow
+#     https://help.ubuntu.com/community/PostgreSQL
+# 1. install the base packages
+
+sudo apt-get install postgresql
+sudo apt-get install python-pygresql
+
+# Set the postgres user's postgres password
+sudo -u postgres psql template1
+# At the prompt type (substituting <***password***> with a real one.
+ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
+\q
+
+#
+# Installing ivle
+# ===============================
 # Check out the IVLE trunk
 svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
 # Says the SourceForge certificate authority is not trusted.
 # I chose "Accept (p)ermanently" - Problem??
+
+# Create a postgres database
+cd <<ivle source directory>>/userdb
+sudo -u postgres createdb ivle
+sudo -u postgres psql -d ivle < users.sql
 
 # NOTE: From this point onwards it is 7.10 (Gutsy) specific. This is because I
 # never was able to get IVLE to build with all dependencies on Dapper.
@@ -110,30 +135,16 @@ sudo apt-get install apache2 libapache2-mod-python
 cd /etc/apache2/sites-enabled/
 sudo ln -fs /etc/apache2/sites-available/ivle.conf 000-default
 
+# Make the directory corresponding to the directory for saved session
+# objects in the apache config ivle.conf. Make sure it is owned by www-data,
+# or at least readable and writable by it.
+
+sudo mkdir /home/informatics/sessions
+sudo chown www-data:www-data /home/informatics/sessions
+
 # Restart the server
 sudo apache2ctl -k restart
 
-#
-# Installing postgres
-# ===============================
-#
-# Some of these instructions follow
-#     https://help.ubuntu.com/community/PostgreSQL
-# 1. install the base packages
-
-sudo apt-get install postgresql
-sudo apt-get install python-pygresql
-
-# Set the postgres user's postgres password
-sudo -u postgres psql template1
-# At the prompt type (substituting <***password***> with a real one.
-ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
-\q
-
-# Create a database
-cd <<ivle source directory>>/userdb
-sudo -u postgres createdb ivle
-sudo -u postgres psql -d ivle < users.sql
 
 #
 # Installing Pound
