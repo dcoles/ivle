@@ -319,7 +319,7 @@ function build_url(obj)
     else if (("args" in obj) && obj.args != null)
         query_string = make_query_string(obj.args);
 
-    if (query_string != "")
+    if (query_string != "" && query_string != null)
         url += "?" + query_string;
 
     return url;

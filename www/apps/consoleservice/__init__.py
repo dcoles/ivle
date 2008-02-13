@@ -61,12 +61,7 @@ def handle_start(req):
     working_dir = os.path.join("/home", req.username)   # Within jail
 
     # Get the UID of the logged-in user
-    try:
-        (_,_,uid,_,_,_,_) = pwd.getpwnam(req.username)
-    except KeyError:
-        # The user does not exist. This should have already failed the
-        # previous test.
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+    uid = req.get_session()['unixid']
 
     # Set request attributes
     req.content_type = "text/plain"
