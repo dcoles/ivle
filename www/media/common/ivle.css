@@ -156,3 +156,8 @@ ul#apptabs a {
     color: navy;    /* Text colour not to change */
     text-decoration: none;
 }
+
+/* Terms of Service accept / decline buttons */
+#tos_acceptbuttons {
+    text-align: center;
+}

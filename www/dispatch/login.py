@@ -46,11 +46,13 @@ def login(req):
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
     try:
-        return session['login_name']
+        if session['state'] == "enabled":
+            # Only allow users to authenticate if their account is ENABLED
+            return session['login_name']
     except KeyError:
         pass
 
-    badlogin = False
+    badlogin = None
     # Check if there is any postdata containing login information
     if req.method == 'POST':
         fields = req.get_fieldstorage()
@@ -61,16 +63,17 @@ def login(req):
             # if unsuccessful.
             # Authenticate
             if password is None:
-                badlogin = True
+                badlogin = "Invalid username or password."
             else:
                 login_details = \
                     authenticate.authenticate(username.value, password.value)
                 if login_details is None:
-                    badlogin = True
+                    badlogin = "Invalid username or password."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
                     session['login_name'] = username.value
                     session['unixid'] = login_details['unixid']
+                    session['state'] = login_details['state']
                     session['nick'] = login_details['nick']
                     session['fullname'] = login_details['fullname']
                     session['rolenm'] = login_details['rolenm']
@@ -78,7 +81,6 @@ def login(req):
                     session.save()
                     req.throw_redirect(req.uri)
 
-    # User is not logged in. Present the login box.
     # Give a 403 Forbidden status, but present a full HTML login page
     # instead of the usual 403 error.
     req.status = req.HTTP_FORBIDDEN
@@ -86,13 +88,35 @@ def login(req):
     req.title = "Login"
     req.write_html_head_foot = True
 
+    # User is not logged in or their account is not enabled.
+    if 'state' in session:
+        if session['state'] == "no_agreement":
+            # User has authenticated but has not accepted the TOS.
+            # Present them with the TOS page.
+            # First set their username for display at the top, but make sure
+            # the apps tabs are not displayed
+            req.username = session['login_name']
+            req.no_agreement = True
+            # IMPORTANT NOTE FOR HACKERS: You can't simply disable this check
+            # if you are not planning to display a TOS page - the TOS
+            # acceptance process actually calls usermgt to create the user
+            # jails and related stuff.
+            present_tos(req, session['fullname'])
+            return None
+        elif session['state'] == "disabled":
+            # User has authenticated but their account is disabled
+            badlogin = "Can't log in: Your account has been disabled."
+    # Else, just fall through (failed to authenticate)
+
     # Write the HTML for the login page
     # If badlogin, display an error message indicating a failed login
     req.write("""<div id="ivle_padding">
 <p>Welcome to the Informatics Virtual Learning Environment.
-   Please log in to access your files and assessment.</p>""")
-    if badlogin:
-        req.write("""<p class="error">Invalid username or password.</p>""")
+   Please log in to access your files and assessment.</p>
+""")
+    if badlogin is not None:
+        req.write("""<p class="error">%s</p>
+""" % badlogin)
     req.write("""<form action="" method="post">
   <table>
     <tr><td>Username:</td><td><input name="user" type="text" /></td></tr>
@@ -119,3 +143,36 @@ def get_username(req):
         return session['login_name']
     except KeyError:
         return None
+
+def present_tos(req, fullname):
+    """Present the Terms of Service screen to the user (who has just logged in
+    for the first time and needs to accept these before being admitted into
+    the system).
+    """
+    req.title = "Terms of Service"
+    # Include the JavaScript for the "makeuser" Ajax stuff
+    req.scripts = [
+        "media/common/json2.js",
+        "media/common/util.js",
+        "media/common/tos.js",
+    ]
+    req.write("""<div id="ivle_padding">
+<p>Welcome, <b>%s</b>.</p>
+<p>As this is the first time you have logged into IVLE, you are required to
+accept these Terms of Service before using the system.</p>
+<p>You will be allowed to re-read these terms at any time from the "Help"
+menu.</p>
+<hr />
+""" % fullname)
+    # TODO: The Terms of Service (read from a HTML file)
+    req.write("""<hr />
+<div id="tos_acceptbuttons">
+<p>Please click "I Accept" to indicate that you have read and understand these
+terms, or click "I Decline" to log out of IVLE.</p>
+<p>
+  <input type="button" value="I Accept" onclick="accept_license()" />
+  <input type="button" value="I Decline" onclick="decline_license()" />
+</p>
+</div>
+""")
+

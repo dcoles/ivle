@@ -110,7 +110,10 @@ def write_html_head(req):
             "app from conf.apps.app_url when placed into production."
             "</small></p>\n")
 
-    if req.username:
+    # If req has a "no_agreement" attribute, then it is because the user has
+    # not signed the agreement; therefore we are displaying the TOS page.
+    # Do not show apps (see dispatch.login).
+    if req.username and not hasattr(req, 'no_agreement'):
         # Only print app tabs if logged in
         print_apps_list(req, req.app)
     req.write('</div>\n<div id="ivlebody">\n')
@@ -125,12 +128,13 @@ def write_html_foot(req):
 def get_help_url(req):
     """Gets the help URL most relevant to this page, to place as the
     "help" link at the top of the page."""
-    if req.app == 'help':
+    reqapp = req.app if hasattr(req, 'app') else None
+    if reqapp == 'help':
         # We're already in help. Link to the exact current page
         # instead of the generic help page.
         return req.uri
-    if conf.apps.app_url[req.app].hashelp:
-        help_path = os.path.join('help', req.app)
+    if reqapp is not None and conf.apps.app_url[reqapp].hashelp:
+        help_path = os.path.join('help', reqapp)
     else:
         help_path = 'help'
     return util.make_path(help_path)
