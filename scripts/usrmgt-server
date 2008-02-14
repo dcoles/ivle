@@ -8,7 +8,47 @@ import common.makeuser
 # usage:
 #   usrmgt-server <port> <magic>
 
+# User management operations:
+#   - Create local user
+#   - [Re]Create jail for a user
+#       - Create a svn repository for a user
+#           - create repository
+#           - svn config
+#           - svn auth
+#       - Checkout repository as home directory
+#       - /etc/passwd entry
+#   - Disable a user's account
+#   - Enable a user's account
+#   - Remove a user
+#   - Rebuild svn config
+#   - Rebuild svn auth file
+#   - Rebuild passwd + push to nodes.
+
+
 def create_user(props):
+    """Create the database record for the given user.
+       Expected properties:
+        username    - used as a unix login name and svn repository name.
+                      STRING REQUIRED 
+        uid         - the unix uid under which execution will take place
+                      on the behalf of the user. Don't use 0!
+                      INT REQUIRED
+        password    - the clear-text password for the user. If None is used
+                      as an indication that external authentication should
+                      be used (i.e. LDAP).
+                      STRING OPTIONAL
+        nick        - the display name to use.
+                      STRING REQUIRED
+        fullname    - The name of the user for results and/or other official
+                      purposes.
+                      STRING REQUIRED
+        rolenm      - The user's role. Must be one of "anyone", "student",
+                      "tutor", "lecturer", "admin".
+                      STRING/ENUM REQUIRED
+        studentid   - If supplied (not None), the student id of the user for
+                      results and/or other official purposes.
+                      STRING OPTIONAL
+    """
 
     if 'uid' not in props:
         uid = invent-uid
@@ -27,8 +67,16 @@ def create_user(props):
 
     return props['uid']
 
+actions = {
+        'create-user':create_user
+    }
+
+def dispatch(props):
+    action = props.keys()[0]
+    return actions[action](props[action])
+
 if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
 
-    common.chat.start_server(port, magic, False, create_user)
+    common.chat.start_server(port, magic, False, dispatch)
