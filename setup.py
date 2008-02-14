@@ -270,6 +270,36 @@ config_options.append(ConfigOption("db_password", "",
     (Caution: This password is stored in plaintext in lib/conf/conf.py)""",
     """
 # Database password"""))
+config_options.append(ConfigOption("svn_conf", "/opt/ivle/svn/svn.conf",
+    """The location of the subversion configuration file used by apache
+to host the user repositories:""",
+    """
+# The location of the subversion configuration file used by
+# apache to host the user repositories."""))
+config_options.append(ConfigOption("svn_auth_ivle", "/opt/ivle/svn/ivle.auth",
+    """The location of the password file used to authenticate users
+of the subversion repository from the ivle server:""",
+    """
+# The location of the password file used to authenticate users
+# of the subversion repository from the ivle server."""))
+config_options.append(ConfigOption("svn_auth_local", "/opt/ivle/svn/local.auth",
+    """The location of the password file used to authenticate local users
+of the subversion repository:""",
+    """
+# The location of the password file used to authenticate local users
+# of the subversion repository."""))
+config_options.append(ConfigOption("usrmgt_host", "localhost",
+    """The hostname where the usrmgt-server runs:""",
+    """
+# The hostname where the usrmgt-server runs."""))
+config_options.append(ConfigOption("usrmgt_port", "2178",
+    """The port where the usrmgt-server runs:""",
+    """
+# The port where the usrmgt-server runs."""))
+config_options.append(ConfigOption("usrmgt_magic", "",
+    """The password for the usrmgt-server:""",
+    """
+# The password for the usrmgt-server."""))
 
 # Try importing existing conf, but if we can't just set up defaults
 # The reason for this is that these settings are used by other phases
