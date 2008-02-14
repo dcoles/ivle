@@ -356,6 +356,81 @@ class session
 		{
 			$this->session_gc();
 		}*/
+		
+		// Shared secret between IVLE and the Forum
+		$ivle_secret = 'VERYSECRET';
+
+		// Shared Cookie
+		$ivle_cookie = $_COOKIE['ivlecookie'];
+    
+		// Decode and unescape the Cookie contents
+		$cookie = explode(':',$ivle_cookie);
+		$ivle_uid = preg_replace('/\\\(.)/','$1',$cookie[0]);
+		$ivle_nick = preg_replace('/\\\(.)/','$1',$cookie[1]);
+		$ivle_email = preg_replace('/\\\(.)/','$1',$cookie[2]);
+		$ivle_hash = preg_replace('/\\\(.)/','$1',$cookie[3]);
+    
+		// Check if uid + nick + email + secret is the same as the hash
+		$ivle_auth = False; // Flag just incase anything else need to know
+		if (md5($ivle_uid.$ivle_nick.$ivle_email.$ivle_secret) == $ivle_hash) {
+			$ivle_auth = True;
+    
+			// Check if the user exists in the database
+			$sql = 'SELECT user_id
+					FROM ' . USERS_TABLE . '
+					WHERE username = "' . $db->sql_escape($ivle_uid) . '";';
+			$result = $db->sql_query($sql);
+ 			$row = $db->sql_fetchrow($result);
+ 			$user_id = $row['user_id'];
+ 			$db->sql_freeresult($result);
+
+			// If no user_id is found for the username, create a new user
+			if(!$user_id) {
+	            // Needed for IVLE auth overide
+	            include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+          
+				// Get the default group
+				$sql = 'SELECT group_id
+						FROM ' . GROUPS_TABLE . "
+						WHERE group_name = '" . $db->sql_escape('REGISTERED') . "'
+						AND group_type = " . GROUP_SPECIAL;
+				$result = $db->sql_query($sql);
+				$row = $db->sql_fetchrow($result);
+				$db->sql_freeresult($result);
+
+				if (!$row) {
+					trigger_error('NO_GROUP');
+				}
+
+				$group_id = $row['group_id'];
+
+				// Get the Time and Timezone
+				$timezone = date('Z') / 3600;
+				$is_dst = date('I');
+				$timezone = ($is_dst) ? $timezone - 1 : $timezone;
+
+				$user_row = array(
+					'username'				=> $ivle_uid,
+					'user_password'			=> '', # Not a valid hash
+					'user_email'			=> $ivle_email,
+					'group_id'				=> (int) $group_id,
+					'user_timezone'			=> (float) $timezone,
+					'user_dst'				=> $is_dst,
+					'user_lang'				=> 'en',
+					'user_type'				=> USER_NORMAL,
+					'user_actkey'			=> '',
+					'user_ip'				=> $this->ip,
+					'user_regdate'			=> time(),
+					'user_inactive_reason'	=> 0,
+					'user_inactive_time'	=> 0,
+				);
+         
+				// Add user
+				$user_id = user_add($user_row);
+			}
+		}
+		/* IVLE: End of IVLE Code */
+
 
 		// Do we allow autologin on this board? No? Then override anything
 		// that may be requested here
