@@ -76,11 +76,16 @@ class DB:
         Takes no parameters - gets all the DB info from the configuration."""
         self.db = pg.connect(dbname=conf.db_dbname, host=conf.db_host,
                 port=conf.db_port, user=conf.db_user, passwd=conf.db_password)
+        self.open = True
+
+    def __del__(self):
+        if self.open:
+            self.db.close()
 
     # USER MANAGEMENT FUNCTIONS #
 
     def create_user(self, login, password, unixid, email, nick, fullname,
-        rolenm, studentid, dry=False):
+        rolenm, studentid, acct_exp=None, dry=False):
         """Creates a user login entry in the database.
         Arguments are the same as those in the "login" table of the schema.
         The exception is "password", which is a cleartext password. makeuser
@@ -91,16 +96,17 @@ class DB:
         """
         passhash = _passhash(password)
         query = ("INSERT INTO login (login, passhash, state, unixid, email, "
-            "nick, fullname, rolenm, studentid) VALUES "
+            "nick, fullname, rolenm, studentid, acct_exp) VALUES "
             "(%s, %s, 'no_agreement', %d, %s, %s, %s, %s, %s);" %
             (_escape(login), _escape(passhash), unixid, _escape(email),
             _escape(nick), _escape(fullname), _escape(rolenm),
-            _escape(studentid)))
+            _escape(studentid), _escape(acct_exp))
         if dry: return query
         self.db.query(query)
 
     def update_user(self, login, password=None, state=None, email=None,
-        nick=None, fullname=None, rolenm=None, dry=False):
+        nick=None, fullname=None, rolenm=None, acct_exp=None, pass_exp=None,
+        last_login=None, dry=False):
         """Updates fields of a particular user. login is the name of the user
         to update. The other arguments are optional fields which may be
         modified. If None or omitted, they do not get modified. login and
@@ -111,11 +117,13 @@ class DB:
         changed without knowing the old password. The caller should check
         that the user knows the existing password before calling this function
         with a new one.
+
+        FIXME: this interface does not allow fields to be set to NULL (None).
         """
         # Make a list of SQL fragments of the form "field = 'new value'"
         # These fragments are ALREADY-ESCAPED
         setlist = []
-        if password is not None:
+        if passhash is not None:
             setlist.append("passhash = " + _escape(_passhash(password)))
         if state is not None:
             setlist.append("state = " + _escape(state))
@@ -127,6 +135,12 @@ class DB:
             setlist.append("fullname = " + _escape(fullname))
         if rolenm is not None:
             setlist.append("rolenm = " + _escape(rolenm))
+        if pass_exp is not None:
+            setlist.append("pass_exp = " + _escape(pass_exp))
+        if acct_exp is not None:
+            setlist.append("acct_exp = " + _escape(acct_exp))
+        if last_login is not None:
+            setlist.append("last_login = " + _escape(last_login))
         if len(setlist) == 0:
             return
         # Join the fragments into a comma-separated string
@@ -172,8 +186,8 @@ class DB:
 
     def user_authenticate(self, login, password, dry=False):
         """Performs a password authentication on a user. Returns True if
-        "password" is the correct password for the given login, False
-        otherwise. "password" is cleartext.
+        "passhash" is the correct passhash for the given login, False
+        otherwise.
         Also returns False if the login does not exist (so if you want to
         differentiate these cases, use get_user and catch an exception).
         """
@@ -191,3 +205,4 @@ class DB:
         this. (The behaviour of doing so is undefined).
         """
         self.db.close()
+        self.open = False
