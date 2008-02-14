@@ -76,6 +76,7 @@ def login(req):
                     session['login_name'] = username.value
                     session['unixid'] = login_details['unixid']
                     session['state'] = login_details['state']
+                    session['email'] = login_details['email']
                     session['nick'] = login_details['nick']
                     session['fullname'] = login_details['fullname']
                     session['rolenm'] = login_details['rolenm']
