@@ -532,7 +532,7 @@ def action_svnunpublish(req, fields):
         for path in paths:
             svnclient.propdel("ivle:published", path, recurse=False)
     except pysvn.ClientError:
-        raise ActionError("Directory could not be unpublished)
+        raise ActionError("Directory could not be unpublished")
 
 def action_svncommit(req, fields):
     """Performs a "svn commit" to each file specified.
