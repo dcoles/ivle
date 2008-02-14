@@ -31,11 +31,13 @@ def create_user(props):
         username    - used as a unix login name and svn repository name.
                       STRING REQUIRED 
         uid         - the unix uid under which execution will take place
-                      on the behalf of the user. Don't use 0!
-                      INT REQUIRED
-        password    - the clear-text password for the user. If None is used
-                      as an indication that external authentication should
-                      be used (i.e. LDAP).
+                      on the behalf of the user. Don't use 0! If not specified
+                      or None, one will be allocated from the configured
+                      numeric range.
+                      INT OPTIONAL
+        password    - the clear-text password for the user. If this property is
+                      absent or None, this is an indication that external
+                      authentication should be used (i.e. LDAP).
                       STRING OPTIONAL
         nick        - the display name to use.
                       STRING REQUIRED
@@ -45,30 +47,43 @@ def create_user(props):
         rolenm      - The user's role. Must be one of "anyone", "student",
                       "tutor", "lecturer", "admin".
                       STRING/ENUM REQUIRED
-        studentid   - If supplied (not None), the student id of the user for
+        studentid   - If supplied and not None, the student id of the user for
                       results and/or other official purposes.
                       STRING OPTIONAL
+       Return Value: the uid associated with the user. INT
     """
 
     if 'uid' not in props:
-        uid = invent-uid
-        props['uid'] = uid
+        raise Exception, "No algorithm for creating uids yet!"
+        # uid = invent-uid
+        # props['uid'] = uid
 
     common.makeuser.make_user_db(props['username'], props['uid'],
                                  props['password'], props['nick'],
                                  props['fullname'], props['rolenm'],
                                  props['studentid'])
 
-    common.makeuser.make_jail(props['username'], props['uid'])
-
-    # eventually, we're going to want to grant shell access, in which
-    # case we'll need to add the uid to the password file. Magic to do
-    # that should go here.
-
     return props['uid']
 
+def create_jail(props):
+    """Create the jail for a user.
+       Expected properties:
+        username    - the username for the jail
+                      STRING REQUIRED
+        uid         - the unix uid to make the owner of the home directory
+                      in the jail.
+                      INT REQUIRED
+        gid         - the unix group id to make the group of the home directory
+                      in the jail. If not supplied (or None), then the uid is
+                      also used.
+                      INT OPTIONAL
+    """
+    common.makeuser.make_jail(props['username'], props['uid'])
+    return None
+
 actions = {
-        'create-user':create_user
+        'create-user':create_user,
+        'create-jail':create_jail
     }
 
 def dispatch(props):
