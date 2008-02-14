@@ -276,6 +276,10 @@ to host the user repositories:""",
     """
 # The location of the subversion configuration file used by
 # apache to host the user repositories."""))
+config_options.append(ConfigOption("svn_repo_path", "/home/informatics/repositories",
+    """The root directory for the subversion repositories:""",
+    """
+# The root directory for the subversion repositories."""))
 config_options.append(ConfigOption("svn_auth_ivle", "/opt/ivle/svn/ivle.auth",
     """The location of the password file used to authenticate users
 of the subversion repository from the ivle server:""",

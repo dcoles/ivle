@@ -31,13 +31,53 @@
 
 # TODO: When creating a new home directory, chown it to its owner
 
+import md5
 import os
 import stat
 import shutil
+import uuid
 import warnings
 
 import conf
 import db
+
+def make_svn_repo(login):
+    """Create a repository for the given user.
+    """
+    path = os.path.join(conf.svn_repo_path, login)
+    res = os.system("svnadmin create '%s'" % path)
+    if res != 0:
+        raise Exception("Cannot create repository for %s" % login)
+
+def make_svn_config(login):
+    """Add an entry to the apache-svn config file for the given user.
+    """
+    f = open(conf.svn_conf, "a")
+    f.write("[%s:/]\n" % login)
+    f.write("  %s = rw\n" % login)
+    f.write("  @tutor = r\n")
+    f.write("  @lecturer = rw\n")
+    f.write("  @admin = rw\n")
+    f.write("\n")
+    f.close()
+
+def make_svn_auth(login):
+    """Setup svn authentication for the given user.
+       FIXME: create local.auth entry
+    """
+    passwd = md5.new(uuid.uuid4().bytes).digest().encode('hex')
+    if os.path.exists(conf.svn_auth_ivle):
+        create = ""
+    else:
+        create = "c"
+
+    db.DB().update_user({'svn_pass':passwd})
+
+    res = os.system("htpasswd -%smb %s %s" % (create,
+                                              conf.svn_auth_ivle,
+                                              login, passwd))
+    if res != 0:
+        raise Exception("Unable to create ivle-auth for %s" % login)
 
 def make_jail(username, uid, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
