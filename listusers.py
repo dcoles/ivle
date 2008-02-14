@@ -39,5 +39,5 @@ except Exception, message:
     sys.exit(1)
 
 for user in list:
-    print repr((user['login'], user['state'], user['unixid'], user['nick'],
-        user['fullname'], user['rolenm'], user['studentid']))
+    print repr((user['login'], user['state'], user['unixid'], user['email'],
+        user['nick'], user['fullname'], user['rolenm'], user['studentid']))

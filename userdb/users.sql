@@ -4,6 +4,7 @@ CREATE TABLE login (
     passhash    VARCHAR,
     state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'enabled', 'disabled')),
     unixid      INT UNIQUE NOT NULL, -- unix user id
+    email       VARCHAR,
     nick        VARCHAR NOT NULL,
     fullname    VARCHAR NOT NULL,
     rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student', 'tutor', 'lecturer', 'admin')),

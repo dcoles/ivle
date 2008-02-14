@@ -37,9 +37,9 @@ sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
 import common.makeuser
 
-if len(sys.argv) <= 5:
-    print "Usage: python makeuser.py <username> <password> <nick> " \
-        "<fullname> <rolenm> [<studentid>]"
+if len(sys.argv) <= 6:
+    print "Usage: python makeuser.py <username> <password> <email> " \
+        "<nick> <fullname> <rolenm> [<studentid>]"
     sys.exit()
 
 if os.getuid() != 0:
@@ -48,11 +48,12 @@ if os.getuid() != 0:
 
 username = sys.argv[1]
 password = sys.argv[2]
-nick = sys.argv[3]
-fullname = sys.argv[4]
-rolenm = sys.argv[5]
-if len(sys.argv) > 6:
-    studentid = sys.argv[6]
+email = sys.argv[3]
+nick = sys.argv[4]
+fullname = sys.argv[5]
+rolenm = sys.argv[6]
+if len(sys.argv) > 7:
+    studentid = sys.argv[7]
 else:
     studentid = None
 
@@ -71,8 +72,8 @@ try:
     # Make the user's jail
     common.makeuser.make_jail(username, uid)
     # Make the user's database entry
-    common.makeuser.make_user_db(username, uid, password, nick, fullname,
-        rolenm, studentid)
+    common.makeuser.make_user_db(username, password, uid, email, nick,
+        fullname, rolenm, studentid)
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
