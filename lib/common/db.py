@@ -85,17 +85,20 @@ class DB:
         Arguments are the same as those in the "login" table of the schema.
         The exception is "password", which is a cleartext password. makeuser
         will hash the password.
+        Also "state" is not given explicitly; it is implicitly set to
+        "no_agreement".
         Raises an exception if the user already exists.
         """
         passhash = _passhash(password)
-        query = ("INSERT INTO login (login, unixid, passhash, nick, fullname,"
-            " rolenm, studentid) VALUES (%s, %d, %s, %s, %s, %s, %s);" %
-            (_escape(login), unixid, _escape(passhash), _escape(nick),
+        query = ("INSERT INTO login (login, passhash, state, unixid, nick, "
+            "fullname, rolenm, studentid) VALUES "
+            "(%s, %s, 'no_agreement', %d, %s, %s, %s, %s);" %
+            (_escape(login), _escape(passhash), unixid, _escape(nick),
             _escape(fullname), _escape(rolenm), _escape(studentid)))
         if dry: return query
         self.db.query(query)
 
-    def update_user(self, login, password=None, nick=None,
+    def update_user(self, login, password=None, state=None, nick=None,
         fullname=None, rolenm=None, dry=False):
         """Updates fields of a particular user. login is the name of the user
         to update. The other arguments are optional fields which may be
@@ -113,6 +116,8 @@ class DB:
         setlist = []
         if password is not None:
             setlist.append("passhash = " + _escape(_passhash(password)))
+        if state is not None:
+            setlist.append("state = " + _escape(state))
         if nick is not None:
             setlist.append("nick = " + _escape(nick))
         if fullname is not None:
@@ -141,8 +146,8 @@ class DB:
 
         Raises a DBException if the login is not found in the DB.
         """
-        query = ("SELECT login, unixid, nick, fullname, rolenm, studentid "
-            "FROM login WHERE login = %s;" % _escape(login))
+        query = ("SELECT login, state, unixid, nick, fullname, rolenm, "
+            "studentid FROM login WHERE login = %s;" % _escape(login))
         if dry: return query
         result = self.db.query(query)
         # Expecting exactly one
@@ -157,8 +162,8 @@ class DB:
         """Returns a list of all users. The list elements are a dictionary of
         the user's DB fields, excluding the passhash field.
         """
-        query = ("SELECT login, unixid, nick, fullname, rolenm, studentid "
-            "FROM login")
+        query = ("SELECT login, state, unixid, nick, fullname, rolenm, "
+            "studentid FROM login")
         if dry: return query
         return self.db.query(query).dictresult()
 
