@@ -39,6 +39,8 @@ def create_user(props):
                       absent or None, this is an indication that external
                       authentication should be used (i.e. LDAP).
                       STRING OPTIONAL
+        email       - the user's email address.
+                      STRING OPTIONAL
         nick        - the display name to use.
                       STRING REQUIRED
         fullname    - The name of the user for results and/or other official
@@ -54,16 +56,31 @@ def create_user(props):
     """
 
     if 'uid' not in props or props['uid'] is None:
-        raise Exception, "No algorithm for creating uids yet!"
+        raise NotImplementedError, "No algorithm for creating uids yet!"
         # uid = invent-uid
         # props['uid'] = uid
 
-    common.makeuser.make_user_db(props['username'], props['uid'],
-                                 props['password'], props['nick'],
-                                 props['fullname'], props['rolenm'],
-                                 props['studentid'])
+    username = props['username']
+    uid = props['uid']
+    try:
+        password = props['password']
+    except KeyError:
+        password = None
+    try:
+        email = props['email']
+    except KeyError:
+        email = None
+    nick = props['nick']
+    fullname = props['fullname']
+    rolenm = props['rolenm']
+    try:
+        studentid = props['studentid']
+    except KeyError:
+        studentid = None
+    common.makeuser.make_user_db(username, uid, password, email, nick,
+                                 fullname, rolenm, studentid)
 
-    return props['uid']
+    return uid
 
 def create_jail(props):
     """Create the jail for a user.
