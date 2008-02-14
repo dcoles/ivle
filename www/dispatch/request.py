@@ -25,7 +25,7 @@
 
 import common.util
 import mod_python
-from mod_python import (util, Session)
+from mod_python import (util, Session, Cookie)
 import conf
 
 class Request:
@@ -270,6 +270,13 @@ class Request:
         Request class.
         """
         mod_python.util.redirect(self.apache_req, location)
+
+    def add_cookie(self, cookie, value=None, **attributes):
+        """Inserts a cookie into this request object's headers."""
+        if value is None:
+            Cookie.add_cookie(self.apache_req, cookie)
+        else:
+            Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
 
     def get_session(self):
         """Returns a mod_python Session object for this request.
