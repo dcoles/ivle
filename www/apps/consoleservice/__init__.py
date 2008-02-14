@@ -20,14 +20,11 @@
 # Date: 14/1/2008
 
 import cStringIO
-import httplib
 import md5
 import os
-import pwd
 import random
 import socket
 import sys
-import urllib
 import uuid
 
 import cjson

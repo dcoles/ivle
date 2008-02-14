@@ -110,6 +110,11 @@ app_tos = App(dir = "tos",
                     requireauth = False,
                     hashelp = False)
 
+app_userservice = App(dir = "userservuce",
+                    name = "User Management Service",
+                    requireauth = True,
+                    hashelp = False)
+
 # Mapping URL names to apps
 
 app_url = {
@@ -125,6 +130,7 @@ app_url = {
     "help" : app_help,
     "forum" : app_forum,
     "tos" : app_tos,
+    "userservice" : app_userservice,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
