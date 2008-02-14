@@ -98,11 +98,16 @@ app_debuginfo = App(dir = "debuginfo",
                     name = "Debug Information",
                     requireauth = False,
                     hashelp = False)
-                    
+
 app_forum = App(dir = "forum",
                     name = "Forum",
                     icon = "forum.png",
                     requireauth = True,
+                    hashelp = False)
+
+app_tos = App(dir = "tos",
+                    name = "Terms of Service",
+                    requireauth = False,
                     hashelp = False)
 
 # Mapping URL names to apps
@@ -118,7 +123,8 @@ app_url = {
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
-    "forum" : app_forum
+    "forum" : app_forum,
+    "tos" : app_tos,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo

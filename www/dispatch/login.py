@@ -20,9 +20,11 @@
 # Date: 21/12/2007
 
 # Provides services for checking logins and presenting the login page.
+import os
 
-from mod_python import (util, Session)
+from mod_python import Session
 
+from common import util
 from auth import authenticate
 
 def login(req):
@@ -164,7 +166,10 @@ accept these Terms of Service before using the system.</p>
 menu.</p>
 <hr />
 """ % fullname)
-    # TODO: The Terms of Service (read from a HTML file)
+    # Write out the text of the license
+    license_file = os.path.join(util.make_local_path("apps"),
+                        "tos", "license.html")
+    req.sendfile(license_file)
     req.write("""<hr />
 <div id="tos_acceptbuttons">
 <p>Please click "I Accept" to indicate that you have read and understand these

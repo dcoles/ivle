@@ -24,6 +24,7 @@
 
 from common import util
 import os
+import copy
 import conf
 from conf import apps
 
@@ -60,10 +61,15 @@ def show_help_menu(req):
 
     # Write a list of links to all apps with help modules
     req.write("<ul>\n")
-    for (appurl, app) in conf.apps.app_url.items():
+    # Tab apps, in order of tabs
+    for appurl in conf.apps.apps_in_tabs:
+        app = conf.apps.app_url[appurl]
         if app.hashelp:
             req.write('  <li><a href="%s">%s</a></li>\n'
                 % (os.path.join(util.make_path("help"), appurl), app.name))
+    # Terms of Service
+    req.write('  <li><a href="%s">Terms of Service</a></li>\n'
+        % (util.make_path("tos")))
     req.write("</ul>\n")
     req.write('</div>\n')
 
