@@ -1,11 +1,12 @@
 CREATE TABLE login (
-    login       VARCHAR UNIQUE NOT NULL,
     loginid     SERIAL PRIMARY KEY NOT NULL,
-    unixid      INT UNIQUE NOT NULL, -- unix user id
+    login       VARCHAR UNIQUE NOT NULL,
     passhash    VARCHAR,
-    nick        VARCHAR,
-    fullname    VARCHAR,
-    rolenm      VARCHAR,
+    state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'enabled', 'disabled')),
+    unixid      INT UNIQUE NOT NULL, -- unix user id
+    nick        VARCHAR NOT NULL,
+    fullname    VARCHAR NOT NULL,
+    rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student', 'tutor', 'lecturer', 'admin')),
     studentid   VARCHAR -- may be null
 );
 
