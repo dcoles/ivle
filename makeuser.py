@@ -83,7 +83,7 @@ login = dict['login']
 if 'nick' not in dict:
     dict['nick'] = dict['fullname']
 
-if True:
+try:
     # Resolve the user's username into a UID
     # Create the user if it does not exist
     try:
@@ -100,8 +100,8 @@ if True:
     common.makeuser.make_jail(login, uid)
     # Make the user's database entry
     common.makeuser.make_user_db(**dict)
-#except Exception, message:
-#    print "Error: " + str(message)
-#    sys.exit(1)
+except Exception, message:
+    print "Error: " + str(message)
+    sys.exit(1)
 
 print "Successfully created user %s (%s)." % (login, dict['fullname'])
