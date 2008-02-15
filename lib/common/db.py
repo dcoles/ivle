@@ -264,29 +264,29 @@ class DB:
     # Do not return passhash when reading from the DB
     login_getfields = login_fields - frozenset(["passhash"])
 
-    def create_user(self, dict, dry=False):
+    def create_user(self, dry=False, **kwargs):
         """Creates a user login entry in the database.
-        dict is a dictionary mapping string keys to values. The string keys
+        All user fields are to be passed as args. The argument names
         are the field names of the "login" table of the DB schema.
         However, instead of supplying a "passhash", you must supply a
-        "password", which will be hashed internally.
+        "password" argument, which will be hashed internally.
         Also "state" must not given explicitly; it is implicitly set to
         "no_agreement".
         Raises an exception if the user already exists, or the dict contains
         invalid keys or is missing required keys.
         """
-        if 'passhash' in dict:
-            raise DBException("Supplied dictionary contains passhash (invalid).")
+        if 'passhash' in kwargs:
+            raise DBException("Supplied arguments include passhash (invalid).")
         # Make a copy of the dict. Change password to passhash (hashing it),
         # and set 'state' to "no_agreement".
-        dict = copy.copy(dict)
-        dict['passhash'] = _passhash(dict['password'])
-        del dict['password']
-        dict['state'] = "no_agreement"
+        kwargs = copy.copy(kwargs)
+        kwargs['passhash'] = _passhash(kwargs['password'])
+        del kwargs['password']
+        kwargs['state'] = "no_agreement"
         # Execute the query.
-        return self.insert(dict, "login", self.login_fields, dry=dry)
+        return self.insert(kwargs, "login", self.login_fields, dry=dry)
 
-    def update_user(self, login, dict, dry=False):
+    def update_user(self, login, dry=False, **kwargs):
         """Updates fields of a particular user. login is the name of the user
         to update. The dict contains the fields which will be modified, and
         their new values. If any value is omitted from the dict, it does not
@@ -300,14 +300,15 @@ class DB:
         that the user knows the existing password before calling this function
         with a new one.
         """
-        if 'passhash' in dict:
-            raise DBException("Supplied dictionary contains passhash (invalid).")
-        if "password" in dict:
-            dict = copy.copy(dict)
-            dict['passhash'] = _passhash(dict['password'])
-            del dict['password']
-        return self.update({"login": login}, dict, "login", self.login_fields,
-            self.login_primary, ["login", "studentid"], dry=dry)
+        if 'passhash' in kwargs:
+            raise DBException("Supplied arguments include passhash (invalid).")
+        if "password" in kwargs:
+            kwargs = copy.copy(kwargs)
+            kwargs['passhash'] = _passhash(kwargs['password'])
+            del kwargs['password']
+        return self.update({"login": login}, kwargs, "login",
+            self.login_fields, self.login_primary, ["login", "studentid"],
+            dry=dry)
 
     def get_user(self, login, dry=False):
         """Given a login, returns a dictionary of the user's DB fields,
