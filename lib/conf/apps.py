@@ -110,9 +110,9 @@ app_tos = App(dir = "tos",
                     requireauth = False,
                     hashelp = False)
 
-app_userservice = App(dir = "userservuce",
+app_userservice = App(dir = "userservice",
                     name = "User Management Service",
-                    requireauth = True,
+                    requireauth = False,
                     hashelp = False)
 
 # Mapping URL names to apps

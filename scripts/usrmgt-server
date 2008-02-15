@@ -112,14 +112,14 @@ def activate_user(props):
 
         db.update_user(login, state='enabled')
 
-        return None
+        return {"response": "okay"}
 
     finally:
         db.close()
 
 actions = {
-        'create-user':create_user,
-        'activate-user':activate_user
+        'create_user':create_user,
+        'activate_user':activate_user
     }
 
 def dispatch(props):

@@ -19,12 +19,22 @@
 # Author: Matt Giuca
 # Date: 14/2/2008
 
+# Provides an Ajax service for handling user management requests.
+# This includes when a user logs in for the first time.
+
+# NOTE: This app does NOT require authentication. This is because otherwise it
+# would be blocked from receiving requests to activate when the user is trying
+# to accept the TOS.
+
+# It must do its own authentication and authorization.
+
 import os
 import sys
 
 import cjson
 
-from common import (util, chat)
+import common
+from common import (util, chat, caps)
 import conf
 
 # TODO: Config these in setup.py
@@ -38,17 +48,20 @@ USER_DECLARATION = "I accept the IVLE Terms of Service"
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
+    if req.username is None:
+        # Not logged in
+        req.throw_error(req.HTTP_FORBIDDEN)
     if len(req.path) > 0 and req.path[-1] == os.sep:
         path = req.path[:-1]
     else:
         path = req.path
     # The path determines which "command" we are receiving
-    if req.path == "createme":
-        handle_createme(req)
+    if req.path == "activate_me":
+        handle_activate_me(req)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def handle_createme(req):
+def handle_activate_me(req):
     """Create the jail, svn, etc, for the currently logged in user (this is
     put in the queue for usermgt to do).
     This will block until usermgt returns, which could take seconds to minutes
@@ -66,27 +79,36 @@ def handle_createme(req):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_BAD_REQUEST)
-    fields = req.get_fieldstorage()
+    db = common.db.DB()
+
     try:
-        declaration = fields.getfirst('declaration')
-    except AttributeError:
-        req.throw_error(req.HTTP_BAD_REQUEST)
-    if declaration != USER_DECLARATION:
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        if req.method != "POST":
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        fields = req.get_fieldstorage()
+        try:
+            declaration = fields.getfirst('declaration')
+        except AttributeError:
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        if declaration != USER_DECLARATION:
+            req.throw_error(req.HTTP_BAD_REQUEST)
 
-    # Get the arguments for usermgt.create_user from the session
-    # (The user must have already logged in to use this app)
-    session = req.get_session()
-    args = {
-        "username": session['login_name'],
-        "uid": session['unixid'],
-    }
-    msg = {'create_user': args}
+        # TODO: Check the DB that the user's status is "no_agreement".
+        # (Both to avoid redundant calls, and to stop disabled users from
+        # re-enabling their accounts).
 
-    response = chat.chat(USERMGT_HOST, USERMGT_PORT, msg, USERMGT_MAGIC,
-        decode = False)
-    req.content_type = "text/plain"
-    req.write(response)
+        # Get the arguments for usermgt.create_user from the session
+        # (The user must have already logged in to use this app)
+        session = req.get_session()
+        args = {
+            "login": req.username,
+        }
+        msg = {'activate_user': args}
 
+        response = chat.chat(USERMGT_HOST, USERMGT_PORT, msg, USERMGT_MAGIC,
+            decode = False)
+        # TODO: Figure out a way to let the user be "enabled" in this session.
+        # (Would require a write to the session?)
+        req.content_type = "text/plain"
+        req.write(response)
+    finally:
+        db.close()

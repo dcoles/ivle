@@ -24,6 +24,13 @@
  * activate their account).
  */
 
+/* The user must send this declaration message to ensure they acknowledge the
+ * TOS.
+ * (This is the exact same string as in userservice).
+ */
+USER_DECLARATION = {"declaration":
+                        "I accept the IVLE Terms of Service"};
+
 /** Creates a "dot dot dot" animation to indicate the client is waiting for a
  * response from the server.
  * This will keep animating forever.
@@ -56,12 +63,27 @@ function accept_license()
      * We need to wait on this page for the server's response.
      */
     /* Start by clearing away these buttons. */
-    tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
+    var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
     dom_removechildren(tos_acceptbuttons);
     /* Print a "please wait" message */
+    /* XXX: The current implementation of Ajax is SYNCHRONOUS.
+     * That means we return right away; the animation won't work properly.
+     */
     tos_acceptbuttons.appendChild(dom_make_text_elem("p",
         "IVLE is now setting up your environment. Please wait..."));
     tos_acceptbuttons.appendChild(make_dots_anim());
+    /* Make the Ajax request */
+    var xhr = ajax_call("userservice", "activate_me", USER_DECLARATION,
+        "POST")
+    handle_accept_response(xhr)
+}
+
+function handle_accept_response(xhr)
+{
+    /* TEMP */
+    var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
+    dom_removechildren(tos_acceptbuttons);
+    /* Refresh the page; as the user is now (apparently) logged in */
 }
 
 function decline_license()
