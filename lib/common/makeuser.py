@@ -35,6 +35,7 @@ import md5
 import os
 import stat
 import shutil
+import time
 import uuid
 import warnings
 
@@ -49,15 +50,46 @@ def make_svn_repo(login):
     if res != 0:
         raise Exception("Cannot create repository for %s" % login)
 
+def rebuild_svn_config():
+    """Build the complete SVN configuration file.
+    """
+    conn = db.DB()
+    res = conn.query("SELECT login, rolenm FROM login;").dictresult()
+    groups = {}
+    for r in res:
+        role = r['rolenm']
+        if role not in groups:
+            groups[role] = []
+        groups[role].append(r['login'])
+    f = open(conf.svn_conf + ".new", "w")
+    f.write("# IVLE SVN Repositories Configuration\n")
+    f.write("# Auto-generated on %s\n" % time.asctime())
+    f.write("\n")
+    f.write("[groups]\n")
+    for (g,ls) in groups.iteritems():
+        f.write("%s = %s\n" % (g, ",".join(ls)))
+    f.write("\n")
+    for r in res:
+        login = r['login']
+        f.write("[%s:/]\n" % login)
+        f.write("%s = rw\n" % login)
+        f.write("@tutor = r\n")
+        f.write("@lecturer = rw\n")
+        f.write("@admin = rw\n")
+        f.write("\n")
+    f.close()
+    os.rename(conf.svn_conf + ".new", conf.svn_conf)
+
 def make_svn_config(login):
     """Add an entry to the apache-svn config file for the given user.
+       Assumes the given user is either a guest or a student.
     """
     f = open(conf.svn_conf, "a")
     f.write("[%s:/]\n" % login)
-    f.write("  %s = rw\n" % login)
-    f.write("  @tutor = r\n")
-    f.write("  @lecturer = rw\n")
-    f.write("  @admin = rw\n")
+    f.write("%s = rw\n" % login)
+    f.write("@tutor = r\n")
+    f.write("@lecturer = rw\n")
+    f.write("@admin = rw\n")
     f.write("\n")
     f.close()
 
