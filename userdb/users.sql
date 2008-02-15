@@ -2,12 +2,18 @@ CREATE TABLE login (
     loginid     SERIAL PRIMARY KEY NOT NULL,
     login       VARCHAR UNIQUE NOT NULL,
     passhash    VARCHAR,
-    state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'enabled', 'disabled')),
+    state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'pending',
+                                              'enabled', 'disabled')),
+    rolenm      VARCHAR NOT NULL CHECK (rolenm in ('guest', 'student',
+                                                   'tutor', 'lecturer',
+                                                   'admin')),
     unixid      INT UNIQUE NOT NULL, -- unix user id
-    email       VARCHAR,
     nick        VARCHAR NOT NULL,
+    pass_exp    TIMESTAMP,
+    acct_exp    TIMESTAMP,
+    last_login  TIMESTAMP,
+    email       VARCHAR,
     fullname    VARCHAR NOT NULL,
-    rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student', 'tutor', 'lecturer', 'admin')),
     studentid   VARCHAR -- may be null
 );
 

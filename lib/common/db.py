@@ -259,7 +259,7 @@ class DB:
     login_primary = frozenset(["login"])
     login_fields_list = [
         "login", "passhash", "state", "unixid", "email", "nick", "fullname",
-        "rolenm", "studentid", "acct_exp", "pass_exp"
+        "rolenm", "studentid", "acct_exp", "pass_exp", "last_login"
     ]
     login_fields = frozenset(login_fields_list)
     # Do not return passhash when reading from the DB

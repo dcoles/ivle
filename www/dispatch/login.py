@@ -21,11 +21,21 @@
 
 # Provides services for checking logins and presenting the login page.
 import os
+import time
 
 from mod_python import Session
 
 from common import util
+from common import db
 from auth import authenticate
+
+def has_expired(details, field):
+    """Determines whether the given expiry field indicates that
+       login should be denied.
+    """
+    return field in details     \
+           and details[field]   \
+           and time.localtime() > details[field]
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -47,12 +57,9 @@ def login(req):
     # Check the session to see if someone is logged in. If so, go with it.
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
-    try:
-        if session['state'] == "enabled":
-            # Only allow users to authenticate if their account is ENABLED
-            return session['login_name']
-    except KeyError:
-        pass
+    if 'state' in session and session['state'] == "enabled":
+        # Only allow users to authenticate if their account is ENABLED
+        return session['login_name']
 
     badlogin = None
     # Check if there is any postdata containing login information
@@ -71,6 +78,10 @@ def login(req):
                     authenticate.authenticate(username.value, password.value)
                 if login_details is None:
                     badlogin = "Invalid username or password."
+                elif has_expired(login_details, 'pass_exp'):
+                    badlogin = "Your password has expired."
+                elif has_expired(login_details, 'acct_exp'):
+                    badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
                     session['login_name'] = username.value
@@ -82,6 +93,10 @@ def login(req):
                     session['rolenm'] = login_details['rolenm']
                     session['studentid'] = login_details['studentid']
                     session.save()
+                    # XXX time.localtime() (a tuple of ints) is not valid for
+                    # inserting as a TIMESTAMP in the DB.
+                    #db.DB().update_user(username.value,
+                    #                    last_login=time.localtime())
                     req.throw_redirect(req.uri)
 
     # Give a 403 Forbidden status, but present a full HTML login page
@@ -92,7 +107,7 @@ def login(req):
     req.write_html_head_foot = True
 
     # User is not logged in or their account is not enabled.
-    if 'state' in session:
+    if 'state' in session:      # Only possible if no errors occured thus far
         if session['state'] == "no_agreement":
             # User has authenticated but has not accepted the TOS.
             # Present them with the TOS page.
@@ -108,7 +123,7 @@ def login(req):
             return None
         elif session['state'] == "disabled":
             # User has authenticated but their account is disabled
-            badlogin = "Can't log in: Your account has been disabled."
+            badlogin = "Your account has been disabled."
     # Else, just fall through (failed to authenticate)
 
     # Write the HTML for the login page
