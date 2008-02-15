@@ -38,6 +38,12 @@ except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
+list.sort(key=lambda user: user['login'])
 for user in list:
-    print repr((user['login'], user['state'], user['unixid'], user['email'],
-        user['nick'], user['fullname'], user['rolenm'], user['studentid']))
+    values = []
+    for field in db.login_fields_list:
+        try:
+            values.append(user[field])
+        except:
+            pass
+    print repr(tuple(values))
