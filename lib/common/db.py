@@ -36,6 +36,8 @@ import conf
 import md5
 import copy
 
+from common import caps
+
 def _escape(val):
     """Wrapper around pg.escape_string. Prepares the Python value for use in
     SQL. Returns a string, which may be safely placed verbatim into an SQL
@@ -45,6 +47,7 @@ def _escape(val):
     * int/long/float: Just converts to an unquoted string.
     * bool: Returns as "TRUE" or "FALSE", unquoted.
     * NoneType: Returns "NULL", unquoted.
+    * common.caps.Role: Returns the role as a quoted, lowercase string.
     Raises a DBException if val has an unsupported type.
     """
     # "E'" is postgres's way of making "escape" strings.
@@ -62,6 +65,8 @@ def _escape(val):
     elif isinstance(val, int) or isinstance(val, long) \
         or isinstance(val, float):
         return str(val)
+    elif isinstance(val, caps.Role):
+        return _escape(str(val))
     else:
         raise DBException("Attempt to insert an unsupported type "
             "into the database")

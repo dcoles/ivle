@@ -25,8 +25,7 @@ import time
 
 from mod_python import Session
 
-from common import util
-from common import db
+from common import (util, db, caps)
 from auth import authenticate
 
 def has_expired(details, field):
@@ -90,7 +89,7 @@ def login(req):
                     session['email'] = login_details['email']
                     session['nick'] = login_details['nick']
                     session['fullname'] = login_details['fullname']
-                    session['rolenm'] = login_details['rolenm']
+                    session['role'] = caps.Role(login_details['rolenm'])
                     session['studentid'] = login_details['studentid']
                     session.save()
                     # XXX time.localtime() (a tuple of ints) is not valid for
