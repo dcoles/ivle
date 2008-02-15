@@ -281,8 +281,9 @@ class DB:
         # Make a copy of the dict. Change password to passhash (hashing it),
         # and set 'state' to "no_agreement".
         kwargs = copy.copy(kwargs)
-        kwargs['passhash'] = _passhash(kwargs['password'])
-        del kwargs['password']
+        if 'password' in kwargs:
+            kwargs['passhash'] = _passhash(kwargs['password'])
+            del kwargs['password']
         kwargs['state'] = "no_agreement"
         # Execute the query.
         return self.insert(kwargs, "login", self.login_fields, dry=dry)

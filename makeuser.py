@@ -31,51 +31,77 @@ import sys
 import os
 import os.path
 import pwd
+import getopt
 # Import modules from the website is tricky since they're in the www
 # directory.
 sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
-import common.makeuser
+import common.makeuser, common.db
 
-if len(sys.argv) <= 6:
-    print "Usage: python makeuser.py <username> <password> <email> " \
-        "<nick> <fullname> <rolenm> [<studentid>]"
-    sys.exit()
+# Requireds and optionals will be used to display the usage message
+# AND do argument processing
+# The names here must correspond to the fields in the database.
+requireds = ["login", "fullname", "rolenm"]
+optionals = [
+    ('p', 'password', "Cleartext password for this user"),
+    ('n', 'nick', "Display name (defaults to <fullname>)"),
+    ('e', 'email', "Email address"),
+    ('s', 'studentid', "Student ID"),
+]
+
+if len(sys.argv) <= 3:
+    # Nicely format the usage message using the optionals
+    print ("Usage: python makeuser.py [OPTIONS] %s\n    OPTIONS"
+        % ' '.join(['<%s>' % x for x in requireds]))
+    for short, long, desc in optionals:
+        t = "        -%s | --%s" % (short, long)
+        print t + (' ' * max(28 - len(t), 2)) + desc
+    sys.exit(1)
 
 if os.getuid() != 0:
     print "Must run makeuser.py as root."
-    sys.exit()
+    sys.exit(1)
 
-username = sys.argv[1]
-password = sys.argv[2]
-email = sys.argv[3]
-nick = sys.argv[4]
-fullname = sys.argv[5]
-rolenm = sys.argv[6]
-if len(sys.argv) > 7:
-    studentid = sys.argv[7]
-else:
-    studentid = None
+shorts = ''.join([o[0] + ":" for o in optionals])
+longs = [o[1] + "=" for o in optionals]
+opts, args = getopt.gnu_getopt(sys.argv[1:], shorts, longs)
+opts = dict(opts)
 
-try:
+# Get the dictionary of fields from opts and args
+dict = {}
+for i in range(0, len(requireds)):
+    dict[requireds[i]] = args[i]
+for short, long, _ in optionals:
+    try:
+        dict[long] = opts['-' + short]
+    except KeyError:
+        try:
+            dict[long] = opts['--' + long]
+        except KeyError:
+            pass
+login = dict['login']
+if 'nick' not in dict:
+    dict['nick'] = dict['fullname']
+
+if True:
     # Resolve the user's username into a UID
     # Create the user if it does not exist
     try:
-        (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+        (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
     except KeyError:
-        if os.system("useradd '%s'" % username) != 0:
+        if os.system("useradd '%s'" % login) != 0:
             raise Exception("Failed to add Unix user account")
         try:
-            (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+            (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
         except KeyError:
             raise Exception("Failed to add Unix user account")
+    dict['unixid'] = uid
     # Make the user's jail
-    common.makeuser.make_jail(username, uid)
+    common.makeuser.make_jail(login, uid)
     # Make the user's database entry
-    common.makeuser.make_user_db(username, password, uid, email, nick,
-        fullname, rolenm, studentid)
-except Exception, message:
-    print "Error: " + str(message)
-    sys.exit(1)
+    common.makeuser.make_user_db(**dict)
+#except Exception, message:
+#    print "Error: " + str(message)
+#    sys.exit(1)
 
-print "Successfully created user %s (%s)." % (username, fullname)
+print "Successfully created user %s (%s)." % (login, dict['fullname'])
