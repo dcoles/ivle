@@ -2,6 +2,7 @@
 
 import sys
 
+import common.db
 import common.chat
 import common.makeuser
 
@@ -55,6 +56,8 @@ def create_user(props):
        Return Value: the uid associated with the user. INT
     """
 
+    # FIXME: the IVLE server must check that an admin is doing this!
+
     if 'uid' not in props or props['uid'] is None:
         raise NotImplementedError, "No algorithm for creating uids yet!"
         # uid = invent-uid
@@ -82,31 +85,41 @@ def create_user(props):
 
     return uid
 
-def create_jail(props):
-    """Create the jail for a user.
+def activate_user(props):
+    """Create the on-disk stuff for the given user.
+       Sets the state of the user in the db from pending to enabled.
        Expected properties:
-        username    - the username for the jail
+        login       - the user name for the jail
                       STRING REQUIRED
-        uid         - the unix uid to make the owner of the home directory
-                      in the jail.
-                      INT REQUIRED
-        gid         - the unix group id to make the group of the home directory
-                      in the jail. If not supplied (or None), then the uid is
-                      also used.
-                      INT OPTIONAL
        Return Value: None
     """
 
-    if 'gid' not in props or props['gid'] is None:
-        gid = props['uid']
+    login = props['login']
 
-    common.makeuser.make_jail(props['username'], props['uid'], gid)
+    db = common.db.DB()
 
-    return None
+    try:
+
+        # FIXME: check we're pending
+
+        details = db.get_user(login)
+
+        # FIXME: make svn config/auth
+
+        # FIXME: etc, etc.
+
+        common.makeuser.make_jail(login, details['unixid'])
+
+        db.update_user(login, state='enabled')
+
+        return None
+
+    finally:
+        db.close()
 
 actions = {
         'create-user':create_user,
-        'init-jail':create_jail
+        'activate-user':activate_user
     }
 
 def dispatch(props):
