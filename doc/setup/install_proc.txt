@@ -39,6 +39,8 @@ sudo apt-get update
 # Apt packages
 sudo apt-get install subversion
 sudo apt-get install gcc libc6 libc6-dev make
+sudo apt-get install apache2 libapache2-mod-python
+
 # On 6.06 (Dapper):
 sudo apt-get install python2.4-dev
 # On 7.10 (Gutsy):
@@ -92,24 +94,29 @@ sudo -u postgres psql template1
 ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
 \q
 
+##########################################################################
+
 #
 # Installing ivle
 # ===============================
 # Check out the IVLE trunk
-svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
+export IVLE_SVN=ivle_svn
+svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk $IVLE_SVN
+
+cd $IVLE_SVN
+
 # Says the SourceForge certificate authority is not trusted.
 # I chose "Accept (p)ermanently" - Problem??
 
 # Create a postgres database
-cd <<ivle source directory>>/userdb
+sudo -u postgres dropdb ivle  # if it was previously created and now changed
 sudo -u postgres createdb ivle
-sudo -u postgres psql -d ivle < users.sql
+sudo -u postgres psql -d ivle < userdb/users.sql
 
 # NOTE: From this point onwards it is 7.10 (Gutsy) specific. This is because I
 # never was able to get IVLE to build with all dependencies on Dapper.
 
 # Set up IVLE
-cd ivle_svn
 ./setup.py listmake
 ./setup.py config
 
@@ -122,14 +129,13 @@ cd ivle_svn
 sudo ./setup.py install
 
 # Create a user
-sudo ./makeuser.py <username>
+sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
+# role = guest/student/tutor/lecturer/admin
 
-# Set up the Apache HTTP server
-sudo apt-get install apache2 libapache2-mod-python
-
-# DO: Copy the file "ivle.conf" from this package to
-# /etc/apache2/sites-available.
+# Configure the Apache HTTP server
+sudo cp setup/ivle.conf /etc/apache2/sites-available
 # MODIFY the first few lines so it is specific to your server.
+vim /etc/apache2/sites-available/ivle.conf
 
 # Replace the existing config link with the ivle one
 cd /etc/apache2/sites-enabled/
@@ -147,7 +153,7 @@ sudo apache2ctl -k restart
 
 
 #
-# Installing Pound
+# Installing Pound reverse proxy (optional)
 sudo apt-get install pound
 
 # edit /etc/default/pound so that the line reading

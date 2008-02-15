@@ -47,6 +47,7 @@ optionals = [
     ('n', 'nick', "Display name (defaults to <fullname>)"),
     ('e', 'email', "Email address"),
     ('s', 'studentid', "Student ID"),
+    ('x', 'state', "Account status (defaults to no_agreement)")
 ]
 
 if len(sys.argv) <= 3:
@@ -68,20 +69,20 @@ opts, args = getopt.gnu_getopt(sys.argv[1:], shorts, longs)
 opts = dict(opts)
 
 # Get the dictionary of fields from opts and args
-dict = {}
+user = {}
 for i in range(0, len(requireds)):
-    dict[requireds[i]] = args[i]
+    user[requireds[i]] = args[i]
 for short, long, _ in optionals:
     try:
-        dict[long] = opts['-' + short]
+        user[long] = opts['-' + short]
     except KeyError:
         try:
-            dict[long] = opts['--' + long]
+            user[long] = opts['--' + long]
         except KeyError:
             pass
-login = dict['login']
-if 'nick' not in dict:
-    dict['nick'] = dict['fullname']
+login = user['login']
+if 'nick' not in user:
+    user['nick'] = user['fullname']
 
 try:
     # Resolve the user's username into a UID
@@ -95,13 +96,13 @@ try:
             (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
         except KeyError:
             raise Exception("Failed to add Unix user account")
-    dict['unixid'] = uid
+    user['unixid'] = uid
     # Make the user's jail
     common.makeuser.make_jail(login, uid)
     # Make the user's database entry
-    common.makeuser.make_user_db(**dict)
+    common.makeuser.make_user_db(**user)
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
-print "Successfully created user %s (%s)." % (login, dict['fullname'])
+print "Successfully created user %s (%s)." % (login, user['fullname'])
