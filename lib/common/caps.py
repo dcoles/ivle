@@ -65,7 +65,7 @@ class Role(object):
     def __repr__(self):
         return "Role.%s" % Role._roles[self._role].upper()
     def __cmp__(self, other):
-        return self._role - other._role
+        return cmp(self._role, other._role)
     def __hash__(self):
         return hash(self._role)
 
