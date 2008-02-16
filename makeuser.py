@@ -46,8 +46,7 @@ optionals = [
     ('p', 'password', "Cleartext password for this user"),
     ('n', 'nick', "Display name (defaults to <fullname>)"),
     ('e', 'email', "Email address"),
-    ('s', 'studentid', "Student ID"),
-    ('x', 'state', "Account status (defaults to no_agreement)")
+    ('s', 'studentid', "Student ID")
 ]
 
 if len(sys.argv) <= 3:
