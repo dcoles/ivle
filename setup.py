@@ -191,7 +191,7 @@ class ConfigOption:
 
 # Configuration options, defaults and descriptions
 config_options = []
-config_options.append(ConfigOption("root_dir", "/ivle",
+config_options.append(ConfigOption("root_dir", "/",
     """Root directory where IVLE is located (in URL space):""",
     """
 # In URL space, where in the site is IVLE located. (All URLs will be prefixed
