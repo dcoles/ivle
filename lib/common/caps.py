@@ -97,3 +97,5 @@ for i in range(0, len(Role._roles)):
 # (So any role above the role specified can perform this cap).
 
 CAP_CREATEUSER = Role.ADMIN
+CAP_GETUSER = Role.LECTURER
+CAP_UPDATEUSER = Role.ADMIN
