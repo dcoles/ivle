@@ -94,6 +94,7 @@ class DB:
     def __init__(self):
         """Connects to the database and creates a DB object.
         Takes no parameters - gets all the DB info from the configuration."""
+        self.open = False
         self.db = pg.connect(dbname=conf.db_dbname, host=conf.db_host,
                 port=conf.db_port, user=conf.db_user, passwd=conf.db_password)
         self.open = True
