@@ -1,8 +1,7 @@
 # Installation Procedure for IVLE
 # ===============================
 
-# Target Machine: Ubuntu (Versions 6.06 and 7.10 - differences between
-# versions noted)
+# Target Platform: Ubuntu 7.10
 #
 # IMPORTANT: This is NOT a shell script. It has interactive sections and
 # things that need to be customized.
@@ -19,14 +18,10 @@
 
 sudo vim /etc/apt/sources.list
 
-# 7.10 (Gutsy) specific #
-
 # Gutsy by default had the CD-ROM packages selected, and the Internet packages
 # commented out. (A comment in the apt sources list said it was because it
 # failed to verify - IMPORTANT?? Probably not.)
 # Comment out line 4 (deb cdrom:...)
-
-# End 7.10 (Gutsy) specific #
 
 # Uncomment ALL the lines for main, restricted and universe
 # (deb http:...gutsy main restricted, deb-src ... main restricted
@@ -34,22 +29,30 @@ sudo vim /etc/apt/sources.list
 # Universe is important for pysvn (python-svn) later on
 # :wq
 
-sudo apt-get update
-
+##########################################################################
 # Apt packages
+##########################################################################
+
+sudo apt-get update
 sudo apt-get install subversion
 sudo apt-get install gcc libc6 libc6-dev make
 sudo apt-get install apache2 libapache2-mod-python
+sudo apt-get install python2.5-dev python-svn python-webpy python-numpy python-matplotlib
+sudo apt-get install postgresql python-pygresql
 
-# On 6.06 (Dapper):
-sudo apt-get install python2.4-dev
-# On 7.10 (Gutsy):
-sudo apt-get install python2.5-dev
+# Note: I had a lot of trouble with the python-svn package.
+# After playing around a bit it started working.
+# python -c 'import pysvn'
+# to test if it worked.
+# Do Not install python-svn-dbg.
 
+##########################################################################
 # Python packages needed by IVLE or student code
+##########################################################################
+#
 # See trunk/doc/dependencies.txt
-wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
 
+wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
 tar -zxvf python-cjson-1.0.5.tar.gz
 
 cd python-cjson-1.0.5
@@ -57,36 +60,13 @@ cd python-cjson-1.0.5
 sudo ./setup.py install
 cd ..
 
-# 6.06 (Dapper) specific
-wget 'http://webpy.org/static/web.py-0.22.tar.gz'
-tar -zxvf web.py-0.22.tar.gz
-cd webpy
-python ./setup.py build
-sudo python ./setup.py install
-cd ..
-
-sudo apt-get install python-svn python-webpy python2.4-gtk2 python-matplotlib
-# End 6.06 (Dapper) specific
-
-# 7.10 (Gutsy) specific
-sudo apt-get install python-svn python-webpy python-numpy python-matplotlib
-# Note: I had a lot of trouble with the python-svn package.
-# After playing around a bit it started working.
-# python -c 'import pysvn'
-# to test if it worked.
-# Do Not install python-svn-dbg.
-# End 7.10 (Gutsy) specific
-
-#
-# Installing postgres
-# ===============================
+##########################################################################
+# Configure postgres
+##########################################################################
 #
 # Some of these instructions follow
 #     https://help.ubuntu.com/community/PostgreSQL
 # 1. install the base packages
-
-sudo apt-get install postgresql
-sudo apt-get install python-pygresql
 
 # Set the postgres user's postgres password
 sudo -u postgres psql template1
@@ -95,32 +75,25 @@ ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
 \q
 
 ##########################################################################
-
-#
 # Installing ivle
-# ===============================
+##########################################################################
+#
 # Check out the IVLE trunk
+
 export IVLE_SVN=ivle_svn
 svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk $IVLE_SVN
-
 cd $IVLE_SVN
-
-# Says the SourceForge certificate authority is not trusted.
-# I chose "Accept (p)ermanently" - Problem??
 
 # Create a postgres database
 sudo -u postgres dropdb ivle  # if it was previously created and now changed
 sudo -u postgres createdb ivle
 sudo -u postgres psql -d ivle < userdb/users.sql
 
-# NOTE: From this point onwards it is 7.10 (Gutsy) specific. This is because I
-# never was able to get IVLE to build with all dependencies on Dapper.
-
 # Set up IVLE
 ./setup.py listmake
 ./setup.py config
 
-# "Root directory" - type "/"
+# "Root directory" - type "/" or "/ivle"
 # "UID of web server process" - 1000 at this stage (informatics)
 # Leave others default.
 # Note: This will cause IVLE to get installed to /opt/ivle
@@ -152,8 +125,10 @@ sudo chown www-data:www-data /home/informatics/sessions
 sudo apache2ctl -k restart
 
 
-#
+##########################################################################
 # Installing Pound reverse proxy (optional)
+##########################################################################
+
 sudo apt-get install pound
 
 # edit /etc/default/pound so that the line reading
