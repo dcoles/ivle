@@ -37,9 +37,9 @@ def handle(req):
     """
     
     # Settings
-    #forum_base = "/var/www/default/smf"
+
     forum_base = "php/phpBB3"
-    #default_page = "index.php"
+    #forum_base = "/phpBB3"
 
     # Set request attributes
 

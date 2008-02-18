@@ -25,7 +25,7 @@ import time
 
 from mod_python import Session
 
-from common import (util, db, caps)
+from common import (util, db, caps, forumutil)
 from auth import authenticate
 
 def has_expired(details, field):
@@ -96,6 +96,7 @@ def login(req):
                     # inserting as a TIMESTAMP in the DB.
                     #db.DB().update_user(username.value,
                     #                    last_login=time.localtime())
+                    req.add_cookie(forumutil.make_forum_cookie(login_details))
                     req.throw_redirect(req.uri)
 
     # Give a 403 Forbidden status, but present a full HTML login page

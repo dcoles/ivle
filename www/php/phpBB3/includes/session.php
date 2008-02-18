@@ -183,27 +183,32 @@ class session
 		// Add forum to the page for tracking online users - also adding a "x" to the end to properly identify the number
 		$this->page['page'] .= (isset($_REQUEST['f'])) ? ((strpos($this->page['page'], '?') !== false) ? '&' : '?') . '_f_=' . (int) $_REQUEST['f'] . 'x' : '';
 
-		if (isset($_COOKIE[$config['cookie_name'] . '_sid']) || isset($_COOKIE[$config['cookie_name'] . '_u']))
-		{
-			$this->cookie_data['u'] = request_var($config['cookie_name'] . '_u', 0, false, true);
-			$this->cookie_data['k'] = request_var($config['cookie_name'] . '_k', '', false, true);
-			$this->session_id 		= request_var($config['cookie_name'] . '_sid', '', false, true);
+	
+	if (isset($_COOKIE[$config['cookie_name'] . '_sid']) || 
+	isset($_COOKIE[$config['cookie_name'] . '_u']))
+	{
+	  $this->cookie_data['u'] = request_var($config['cookie_name'] . '_u', 0, 
+	  false, true);
+	  $this->cookie_data['k'] = request_var($config['cookie_name'] . '_k', '', 
+	  false, true);
+	  $this->session_id 		= request_var($config['cookie_name'] . '_sid', '', 
+	  false, true);
 
-			$SID = (defined('NEED_SID')) ? '?sid=' . $this->session_id : '?sid=';
-			$_SID = (defined('NEED_SID')) ? $this->session_id : '';
+	  $SID = (defined('NEED_SID')) ? '?sid=' . $this->session_id : '?sid=';
+	  $_SID = (defined('NEED_SID')) ? $this->session_id : '';
 
-			if (empty($this->session_id))
-			{
-				$this->session_id = $_SID = request_var('sid', '');
-				$SID = '?sid=' . $this->session_id;
-				$this->cookie_data = array('u' => 0, 'k' => '');
-			}
-		}
-		else
-		{
-			$this->session_id = $_SID = request_var('sid', '');
-			$SID = '?sid=' . $this->session_id;
-		}
+	  if (empty($this->session_id))
+	  {
+		$this->session_id = $_SID = request_var('sid', '');
+		$SID = '?sid=' . $this->session_id;
+		$this->cookie_data = array('u' => 0, 'k' => '');
+	  }
+	}
+	else
+	{
+	  $this->session_id = $_SID = request_var('sid', '');
+	  $SID = '?sid=' . $this->session_id;
+	}
 
 		$_EXTRA_URL = array();
 
@@ -234,16 +239,24 @@ class session
 				FROM ' . SESSIONS_TABLE . ' s, ' . USERS_TABLE . " u
 				WHERE s.session_id = '" . $db->sql_escape($this->session_id) . "'
 					AND u.user_id = s.session_user_id";
-			$result = $db->sql_query($sql);
+	  $result = $db->sql_query($sql);
 			$this->data = $db->sql_fetchrow($result);
 			$db->sql_freeresult($result);
+
+	  // IVLE
+	  $ivle_userid = $this->ivle_auth();
+	  if ($ivle_userid and $ivle_userid != $this->data['user_id']) {
+		#$this->session_kill();
+		#trigger_error($ivle_userid);
+		return $this->session_create($ivle_userid);
+	  }
 
 			// Did the session exist in the DB?
 			if (isset($this->data['user_id']))
 			{
 				// Validate IP length according to admin ... enforces an IP
 				// check on bots if admin requires this
-//				$quadcheck = ($config['ip_check_bot'] && $this->data['user_type'] & USER_BOT) ? 4 : $config['ip_check'];
+				// $quadcheck = ($config['ip_check_bot'] && $this->data['user_type'] & USER_BOT) ? 4 : $config['ip_check'];
 
 				if (strpos($this->ip, ':') !== false && strpos($this->data['session_ip'], ':') !== false)
 				{
@@ -357,81 +370,6 @@ class session
 			$this->session_gc();
 		}*/
 		
-		// Shared secret between IVLE and the Forum
-		$ivle_secret = 'VERYSECRET';
-
-		// Shared Cookie
-		$ivle_cookie = $_COOKIE['ivlecookie'];
-    
-		// Decode and unescape the Cookie contents
-		$cookie = explode(':',$ivle_cookie);
-		$ivle_uid = preg_replace('/\\\(.)/','$1',$cookie[0]);
-		$ivle_nick = preg_replace('/\\\(.)/','$1',$cookie[1]);
-		$ivle_email = preg_replace('/\\\(.)/','$1',$cookie[2]);
-		$ivle_hash = preg_replace('/\\\(.)/','$1',$cookie[3]);
-    
-		// Check if uid + nick + email + secret is the same as the hash
-		$ivle_auth = False; // Flag just incase anything else need to know
-		if (md5($ivle_uid.$ivle_nick.$ivle_email.$ivle_secret) == $ivle_hash) {
-			$ivle_auth = True;
-    
-			// Check if the user exists in the database
-			$sql = 'SELECT user_id
-					FROM ' . USERS_TABLE . '
-					WHERE username = "' . $db->sql_escape($ivle_uid) . '";';
-			$result = $db->sql_query($sql);
- 			$row = $db->sql_fetchrow($result);
- 			$user_id = $row['user_id'];
- 			$db->sql_freeresult($result);
-
-			// If no user_id is found for the username, create a new user
-			if(!$user_id) {
-	            // Needed for IVLE auth overide
-	            include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
-          
-				// Get the default group
-				$sql = 'SELECT group_id
-						FROM ' . GROUPS_TABLE . "
-						WHERE group_name = '" . $db->sql_escape('REGISTERED') . "'
-						AND group_type = " . GROUP_SPECIAL;
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
-
-				if (!$row) {
-					trigger_error('NO_GROUP');
-				}
-
-				$group_id = $row['group_id'];
-
-				// Get the Time and Timezone
-				$timezone = date('Z') / 3600;
-				$is_dst = date('I');
-				$timezone = ($is_dst) ? $timezone - 1 : $timezone;
-
-				$user_row = array(
-					'username'				=> $ivle_uid,
-					'user_password'			=> '', # Not a valid hash
-					'user_email'			=> $ivle_email,
-					'group_id'				=> (int) $group_id,
-					'user_timezone'			=> (float) $timezone,
-					'user_dst'				=> $is_dst,
-					'user_lang'				=> 'en',
-					'user_type'				=> USER_NORMAL,
-					'user_actkey'			=> '',
-					'user_ip'				=> $this->ip,
-					'user_regdate'			=> time(),
-					'user_inactive_reason'	=> 0,
-					'user_inactive_time'	=> 0,
-				);
-         
-				// Add user
-				$user_id = user_add($user_row);
-			}
-		}
-		/* IVLE: End of IVLE Code */
-
-
 		// Do we allow autologin on this board? No? Then override anything
 		// that may be requested here
 		if (!$config['allow_autologin'])
@@ -456,7 +394,7 @@ class session
 			}
 
 			// If ip is supplied, we will make sure the ip is matching too...
-			if ($row['bot_ip'] && ($bot || !$row['bot_agent']))
+	  		if ($row['bot_ip'] && ($bot || !$row['bot_agent']))
 			{
 				// Set bot to false, then we only have to set it to true if it is matching
 				$bot = false;
@@ -1094,7 +1032,7 @@ class session
 			if (empty($this->session_id))
 			{
 				// This seems to be no longer needed? - #14971
-//				$this->session_create(ANONYMOUS);
+				//$this->session_create(ANONYMOUS);
 			}
 
 			// Initiate environment ... since it won't be set at this stage
@@ -2010,7 +1948,130 @@ class user extends session
 		{
 			return $var;
 		}
-	}
-}
+  }
 
+  /** IVLE AUTH
+   * This function attempts to authenticate from a signed cookie provided by 
+   * IVLE. If it does it will return either the forum user_id for the logged in 
+   * IVLE user or will create a new one on-the-fly.
+   * 
+   * If a bad authentication is given then the ANONAMOUS user will be returned
+   */
+  function ivle_auth()
+  {
+	global $db, $phpEx;
+
+		// Shared secret between IVLE and the Forum
+		$ivle_secret = 'VERYSECRET';
+
+		// Shared Cookie
+	$ivle_cookie = explode(':',$_COOKIE['ivleforumcookie']);
+   
+	if ($ivle_cookie == "NONE") {
+		return ANONYMOUS;
+	}
+
+	// Decode and unescape the Cookie contents
+	$ivle_uid = urldecode($ivle_cookie[0]);
+	$ivle_nick = urldecode($ivle_cookie[1]);
+	$ivle_email = urldecode($ivle_cookie[2]);
+	$ivle_role = urldecode($ivle_cookie[3]);
+	$ivle_hash = $ivle_cookie[4];
+
+	// Check if uid + nick + email + secret is the same as the hash
+	//$ivle_auth = False; // Flag just incase anything else need to know
+	if(md5($ivle_cookie[0].$ivle_cookie[1].$ivle_cookie[2].$ivle_cookie[3].$ivle_secret) 
+	== $ivle_hash) {
+	  //$ivle_auth = True;
+	
+			// Check if the user exists in the database
+			$sql = 'SELECT user_id
+					FROM ' . USERS_TABLE . '
+					WHERE username = "' . $db->sql_escape($ivle_uid) . '";';
+			$result = $db->sql_query($sql);
+			$row = $db->sql_fetchrow($result);
+			$user_id = $row['user_id'];
+			$db->sql_freeresult($result);
+
+			// If no user_id is found for the username, create a new user
+			if(!$user_id) {
+				// Needed for IVLE auth overide
+				include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+	   
+		// Add all users to the Registered Group
+				$sql = 'SELECT group_id
+						FROM ' . GROUPS_TABLE . "
+			WHERE group_name = '" . $db->sql_escape('REGISTERED') . "'
+						AND group_type = " . GROUP_SPECIAL;
+				$result = $db->sql_query($sql);
+				$row = $db->sql_fetchrow($result);
+				$db->sql_freeresult($result);
+
+				if (!$row) {
+					trigger_error('NO_GROUP');
+				}
+
+				$group_id = $row['group_id'];
+
+		// Get the Time and Timezone
+				$timezone = date('Z') / 3600;
+				$is_dst = date('I');
+				$timezone = ($is_dst) ? $timezone - 1 : $timezone;
+				
+		// Fill into array
+		$user_row = array(
+					'username'				=> $ivle_uid,
+					'user_password'			=> '', # Not a valid hash
+					'user_email'			=> $ivle_email,
+					'group_id'				=> (int) $group_id,
+					'user_timezone'			=> (float) $timezone,
+					'user_dst'				=> $is_dst,
+					'user_lang'				=> 'en',
+		  'user_type'				=> USER_NORMAL,
+					'user_actkey'			=> '',
+					'user_ip'				=> $this->ip,
+					'user_regdate'			=> time(),
+					'user_inactive_reason'	=> 0,
+					'user_inactive_time'	=> 0,
+				);
+		 
+				// Add user
+				$user_id = user_add($user_row);
+
+		// Add any aditional groups
+		// Select the equvialent group
+		$group = False;
+		switch($ivle_role) {
+			case('admin'):
+				$group = 'ADMINISTRATORS';
+				break;
+			case('lecturer'):
+				$group = 'GLOBAL_MODERATORS';
+				break;
+		}
+		if ($group) {
+			// Find the group_id
+			$sql = 'SELECT group_id
+					FROM ' . GROUPS_TABLE . "
+					WHERE group_name = '" . $db->sql_escape($group) . "'
+					AND group_type = " . GROUP_SPECIAL;
+			$result = $db->sql_query($sql);
+			$row = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+
+			if (!$row) {
+				trigger_error('NO_GROUP');
+			}
+
+			$group_id = $row['group_id'];
+
+			group_user_add($group_id,Array($user_id));
+		}
+	  }
+	  return $user_id;
+	} else {
+	  return False;
+	}
+  }
+}
 ?>

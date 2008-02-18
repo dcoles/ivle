@@ -38,7 +38,7 @@ import apps
 from request import Request
 import html
 import login
-from common import util
+from common import (util, forumutil)
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -124,4 +124,5 @@ def logout(req):
     session = req.get_session()
     session.invalidate()
     session.delete()
+    req.add_cookie(forumutil.invalidated_forum_cookie())
     req.throw_redirect(util.make_path(''))
