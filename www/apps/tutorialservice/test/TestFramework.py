@@ -106,36 +106,33 @@ class TestCasePart:
     This can be done either with a comparision function, or by comparing directly, after
     applying normalisations.
     """
-    # how to make this work? atm they seem to get passed the class as a first arg
-    ident =lambda x: x
-    ignore = lambda x: None
-    match = lambda x,y: x==y
-    always_match = lambda x,y: True
-    true = lambda *x: True
-    false = lambda *x: False
 
-    def __init__(self, desc, default='match'):
-        """Initialise with a description and a default behavior for output
+    ident = classmethod(lambda x: x)
+    ignore = classmethod(lambda x: None)
+    match = classmethod(lambda x,y: x==y)
+    always_match = classmethod(lambda x,y: True)
+    true = classmethod(lambda *x: True)
+    false = classmethod(lambda *x: False)
+
+    def __init__(self, succeed, fail, default='match'):
+        """Initialise with descriptions (succeed,fail) and a default behavior for output
         If default is match, unspecified files are matched exactly
         If default is ignore, unspecified files are ignored
         The default default is match.
         """
-        self._desc = desc
+        self._succeed = succeed
+        self._fail = fail
         self._default = default
         if default == 'ignore':
-            self._default_func = lambda *x: True
+            self._default_func = self.true
         else:
-            self._default_func = lambda x,y: x==y
+            self._default_func = self.match
 
         self._file_tests = {}
         self._stdout_test = ('check', self._default_func)
         self._stderr_test = ('check', self._default_func)
         self._exception_test = ('check', self._default_func)
         self._result_test = ('check', self._default_func)
-
-    def get_description(self):
-        "Getter for description"
-        return self._desc
 
     def _set_default_function(self, function, test_type):
         """"Ensure test type is valid and set function to a default
@@ -145,8 +142,8 @@ class TestCasePart:
             raise TestCreationError("Invalid test type in %s" %self._desc)
         
         if function == '':
-            if test_type == 'norm': function = lambda x: x
-            else: function = lambda x,y: x==y
+            if test_type == 'norm': function = self.ident
+            else: function = self.match
 
         return function
 
@@ -271,7 +268,7 @@ class TestCasePart:
         for filename in [f for f in solution_files if f not in self._file_tests]:
             if filename not in attempt_files:
                 return filename + ' not found'
-            elif not self._check_output(solution_files[filename], attempt_files[filename], 'match', lambda x,y: x==y):
+            elif not self._check_output(solution_files[filename], attempt_files[filename], 'match', self.match):
                 return filename + ' does not match'
 
         # check if attempt has any extra files
@@ -407,10 +404,11 @@ class TestCase:
                 raise TestError(sys.exc_info())
             
             result_dict = {}
-            result_dict['description'] = test_part.get_description()
-            result_dict['passed']  = (result == '')
+            result_dict['description'] = test_part._succeed
+            result_dict['passed'] = (result == '')
             if result_dict['passed'] == False:
                 result_dict['error_message'] = result
+                result_dict['description'] = test_part._fail
                 passed = False
                 
             results.append(result_dict)

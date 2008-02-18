@@ -58,10 +58,16 @@ def getCasePartData(partNode):
     """
     
     func_desc = partNode.getAttribute('desc')
+    func_succeed = partNode.getAttribute('succeed')
+    func_fail = partNode.getAttribute('fail')
+    if not func_succeed:
+        func_succeed = func_desc
+    if not func_fail:
+        func_fail = func_desc
     default = partNode.getAttribute('default')
     if default == '': default = DEFAULT_CASE_TYPE
     
-    part = TestCasePart(func_desc, default)
+    part = TestCasePart(func_succeed, func_fail, default)
 
     for child in partNode.childNodes:
         if child.nodeType != child.ELEMENT_NODE:
