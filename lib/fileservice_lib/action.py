@@ -382,7 +382,6 @@ def action_copy_or_cut(req, fields, mode):
     # Note that we do not check for the existence of files here. That is done
     # in the paste operation.
     files = fields.getlist('path')
-    files = map(lambda field: field.value, files)
     clipboard = { "mode" : mode, "base" : req.path, "files" : files }
     session = req.get_session()
     session['clipboard'] = clipboard
