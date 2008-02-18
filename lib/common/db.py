@@ -260,6 +260,30 @@ class DB:
         if dry: return query
         return self.db.query(query).dictresult()
 
+    def start_transaction(self, dry=False):
+        """Starts a DB transaction.
+        Will not commit any changes until self.commit() is called.
+        """
+        query = "START TRANSACTION;"
+        if dry: return query
+        self.db.query(query)
+
+    def commit(self, dry=False):
+        """Commits (ends) a DB transaction.
+        Commits all changes since the call to start_transaction.
+        """
+        query = "COMMIT;"
+        if dry: return query
+        self.db.query(query)
+
+    def rollback(self, dry=False):
+        """Rolls back (ends) a DB transaction, undoing all changes since the
+        call to start_transaction.
+        """
+        query = "ROLLBACK;"
+        if dry: return query
+        self.db.query(query)
+
     # USER MANAGEMENT FUNCTIONS #
 
     login_primary = frozenset(["login"])
