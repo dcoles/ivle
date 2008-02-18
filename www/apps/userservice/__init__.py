@@ -91,10 +91,7 @@ import common
 from common import (util, chat, caps)
 import conf
 
-# TODO: Config these in setup.py
-USERMGT_HOST = "localhost"
-USERMGT_PORT = 3000
-USERMGT_MAGIC = "magicuser"
+from conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
@@ -157,7 +154,7 @@ def handle_activate_me(req, fields):
     }
     msg = {'activate_user': args}
 
-    response = chat.chat(USERMGT_HOST, USERMGT_PORT, msg, USERMGT_MAGIC,
+    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)
     # TODO: Figure out a way to let the user be "enabled" in this session.
     # (Would require a write to the session?)
@@ -203,7 +200,7 @@ def handle_create_user(req, fields):
     return
     # END TEMP
 
-    response = chat.chat(USERMGT_HOST, USERMGT_PORT, msg, USERMGT_MAGIC,
+    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)
     req.content_type = "text/plain"
     req.write(response)
@@ -259,7 +256,7 @@ def handle_update_user(req, fields):
     return
     # END TEMP
 
-    response = chat.chat(USERMGT_HOST, USERMGT_PORT, msg, USERMGT_MAGIC,
+    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)
     req.content_type = "text/plain"
     req.write(response)

@@ -568,7 +568,7 @@ def writelist_pretty(file, list):
         file.write(']\n')
 
 def conf(args):
-    global db_port
+    global db_port, usrmgt_port
     # Set up some variables
 
     cwd = os.getcwd()
@@ -630,6 +630,14 @@ Please hit Ctrl+C now if you do not wish to do this.
         print >>sys.stderr, (
         "Invalid DB port (%s).\n"
         "Must be an integer between 0 and 65535." % repr(db_port))
+        return 1
+    try:
+        usrmgt_port = int(usrmgt_port)
+        if usrmgt_port < 0 or usrmgt_port >= 65536: raise ValueError()
+    except ValueError:
+        print >>sys.stderr, (
+        "Invalid user management port (%s).\n"
+        "Must be an integer between 0 and 65535." % repr(usrmgt_port))
         return 1
 
     # Write lib/conf/conf.py
