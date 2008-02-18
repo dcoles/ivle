@@ -171,6 +171,9 @@ def handle_activate_me(req, fields):
         response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
             decode = False)
         # Write to the user's session to allow them to be activated
+        session = req.get_session()
+        session['state'] = "enabled"
+        session.save()
         # Write the response
         req.content_type = "text/plain"
         req.write(response)

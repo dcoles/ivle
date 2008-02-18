@@ -84,6 +84,7 @@ function handle_accept_response(xhr)
     var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
     dom_removechildren(tos_acceptbuttons);
     /* Refresh the page; as the user is now (apparently) logged in */
+    window.location.reload()
 }
 
 function decline_license()
