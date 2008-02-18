@@ -1,11 +1,16 @@
 .tuteproblem {
-    border-top: black 1px solid;
-    border-bottom: black 1px solid;
-    padding-bottom: 1.2em;
+    background: #eeeeff url(../images/tutorial/signature.png) no-repeat top left;
+    color: navy;
+    margin: 0 5% 0 0;
+    padding: 0 .5em .5em 25px;
+    border-left: 1px solid gray;
+    border-right: 2px solid gray;
+    border-top: 1px solid gray;
+    border-bottom: 1px solid gray;
 }
 
 .problembox, .runoutput {
-    width: 100%;
+    width: 80%;
 }
 
 .problembuttons {
