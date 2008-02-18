@@ -131,35 +131,51 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_BAD_REQUEST)
+    db = common.db.DB()
     try:
-        declaration = fields.getfirst('declaration')
-    except AttributeError:
-        req.throw_error(req.HTTP_BAD_REQUEST)
-    if declaration != USER_DECLARATION:
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        if req.method != "POST":
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        try:
+            declaration = fields.getfirst('declaration')
+        except AttributeError:
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        if declaration != USER_DECLARATION:
+            req.throw_error(req.HTTP_BAD_REQUEST)
 
-    session = req.get_session()
-    # Check that the user's status is "no_agreement".
-    # (Both to avoid redundant calls, and to stop disabled users from
-    # re-enabling their accounts).
-    if session['state'] != "no_agreement":
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        # Make sure the user's status is "no_agreement", and set status to
+        # pending, within the one transaction. This ensures we only do this
+        # one time.
+        db.start_transaction()
+        try:
 
-    # Get the arguments for usermgt.activate_user from the session
-    # (The user must have already logged in to use this app)
-    args = {
-        "login": req.username,
-    }
-    msg = {'activate_user': args}
+            user_details = db.get_user(req.username)
+            # Check that the user's status is "no_agreement".
+            # (Both to avoid redundant calls, and to stop disabled users from
+            # re-enabling their accounts).
+            if user_details['state'] != "no_agreement":
+                req.throw_error(req.HTTP_BAD_REQUEST)
+            # Write state "pending" to ensure we don't try this again
+            db.update_user(req.username, state="pending")
+        except:
+            db.rollback()
+            raise
+        db.commit()
 
-    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
-        decode = False)
-    # TODO: Figure out a way to let the user be "enabled" in this session.
-    # (Would require a write to the session?)
-    req.content_type = "text/plain"
-    req.write(response)
+        # Get the arguments for usermgt.activate_user from the session
+        # (The user must have already logged in to use this app)
+        args = {
+            "login": req.username,
+        }
+        msg = {'activate_user': args}
+
+        response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
+            decode = False)
+        # Write to the user's session to allow them to be activated
+        # Write the response
+        req.content_type = "text/plain"
+        req.write(response)
+    finally:
+        db.close()
 
 create_user_fields_required = [
     'login', 'fullname', 'rolenm'
