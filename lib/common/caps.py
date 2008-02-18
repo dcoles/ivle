@@ -91,11 +91,43 @@ for i in range(0, len(Role._roles)):
     type.__setattr__(Role, Role._roles[i].upper(), Role(i))
     Role._roles_to_int[Role._roles[i]] = i
 
+### CAPABILITIES LISTING ###
+
 # Set of capabilities, which maps global variables onto Roles.
 # This provides the minimum role level required in order to perform the given
 # capability.
 # (So any role above the role specified can perform this cap).
 
+# Create users (the users are able to log in and accept)
 CAP_CREATEUSER = Role.ADMIN
+# Get details about users
 CAP_GETUSER = Role.LECTURER
+# Change all details of a user
 CAP_UPDATEUSER = Role.ADMIN
+
+# Posting to subject blog for subjects you are teaching
+CAP_BLOGPOST = Role.TUTOR
+
+# Reading submissions (both tutorial and assignment) of student for whom you
+# are a marker
+CAP_READ_MY_STUDENTS_SUBMISSION = Role.TUTOR
+# Reading all students' submissions (in subjects you have this cap for)
+CAP_READ_SUBMISSION = Role.LECTURER
+
+# Reading marks for your own students
+CAP_READ_MY_STUDENTS_MARKS = Role.TUTOR
+# Adding marks info for your own students (can't delete or edit, only add)
+# (You can overwrite marks but old ones will be logged).
+CAP_WRITE_MY_STUDENTS_MARKS = Role.TUTOR
+# Reading marks for all students
+CAP_READ_MARKS = Role.LECTURER
+# Adding marks info for all students
+CAP_WRITE_MARKS = Role.LECTURER
+
+# Reading any student's svn (in subjects you have this cap for)
+CAP_READ_SVN = Role.LECTURER
+# Writing to any student's svn
+CAP_WRITE_SVN = Role.LECTURER
+
+# "SuperUser" role - certain users are granted "sudo" powers on the Unix
+# system, giving them abilities beyond what is granted here in IVLE.
