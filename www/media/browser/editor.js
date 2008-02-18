@@ -86,7 +86,7 @@ function handle_text(path, text, handler_type)
         start_highlight: true,
         allow_toggle: false,
         allow_resize: false,
-        replace_tab_by_spaces: 4,
+        replace_tab_by_spaces: 4
     });
 }
 

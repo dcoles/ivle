@@ -43,13 +43,13 @@ type_handlers = {
     "application/x-javascript" : "text",
     "application/javascript" : "text",
     "application/json" : "text",
-    "application/xml" : "text",
+    "application/xml" : "text"
 };
 
 /* Mapping MIME types to icons, just the file's basename */
 type_icons = {
     "text/directory": "dir.png",
-    "text/x-python": "py.png",
+    "text/x-python": "py.png"
 };
 
 default_type_icon = "txt.png";
@@ -65,7 +65,7 @@ svn_icons = {
     "added": "added.png",
     "missing": "missing.png",
     "deleted": "deleted.png",
-    "modified": "modified.png",
+    "modified": "modified.png"
 };
 
 /* Mapping SVN status to "nice" strings */
@@ -78,7 +78,7 @@ svn_nice = {
     "replaced": "Permanent file (replaced)",
     "modified": "Permanent file (modified)",
     "merged": "Permanent file (merged)",
-    "conflicted": "Permanent file (conflicted)",
+    "conflicted": "Permanent file (conflicted)"
 };
 
 default_svn_icon = null;
@@ -93,7 +93,7 @@ published_icon = "media/images/interface/published.png";
  * application can interpret them.
  */
 types_exec = [
-    "text/x-python",
+    "text/x-python"
 ];
 
 
