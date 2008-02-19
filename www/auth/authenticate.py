@@ -40,8 +40,10 @@
 # Raising an AuthError implies a hard failure, with an appropriate error
 # message. No more auth will be done.
 
+import conf
 import common.db
 import common.user
+import ldap
 
 class AuthError(Exception):
     def __init__(self, message="Invalid username or password."):
@@ -115,7 +117,26 @@ def simple_db_auth(dbconn, login, password, user):
     else:
         raise AuthError()
 
+def ldap_auth(dbconn, login, password, user):
+    """
+    A plugin auth function, as described above.
+    This one authenticates against an LDAP server.
+    Returns user if successful. Raises AuthError if unsuccessful.
+    Also raises AuthError if the LDAP server had an unexpected error.
+    """
+    try:
+        l = ldap.initialize(conf.ldap_url)
+        # ldap_format_string contains a "%s" to put the login name
+        l.simple_bind_s(conf.ldap_format_string % login, password)
+    except ldap.INVALID_CREDENTIALS:
+        raise AuthError()
+    except Exception, msg:
+        raise AuthError("Internal error (LDAP auth): %s" % repr(msg))
+    # Got here - Must have successfully authenticated with LDAP
+    return user
+
 # List of auth plugin modules, in the order to try them
 auth_modules = [
     simple_db_auth,
+    ldap_auth,
 ]
