@@ -17,12 +17,14 @@
 
 # Module: TestFramework
 # Author: Dilshan Angampitiya
+#         Steven Bird (revisions)
 # Date:   24/1/2008
 
 # Brief description of the Module# define custom exceptions
 # use exceptions for all errors found in testing
 
 import sys, StringIO, copy
+import types
 
 # student error or author error
 # errors in student code get handled internally
@@ -156,12 +158,12 @@ class TestCasePart:
             try:
                 exec "__f__ = %s" %function in included_code
             except:
-                raise TestCreationError("Invalid function %s" %function)
+                raise TestCreationError("Invalid function %s" % function)
 
             f = included_code['__f__']
 
             if not callable(f):
-                raise TestCreationError("Invalid function %s" %function)    
+                raise TestCreationError("Invalid function %s" % function)
         else:
             f = function
 
@@ -169,7 +171,7 @@ class TestCasePart:
 
     def validate_functions(self, included_code):
         """Ensure all functions used by the test cases exist and are callable.
-        Also covert their string representations to function objects.
+        Also convert their string representations to function objects.
         This can only be done once all the include code has been specified.
         """
         (test_type, function) = self._stdout_test
@@ -215,12 +217,8 @@ class TestCasePart:
         """Compare solution output and attempt output using the
         specified comparison function.
         """
-        # converts unicode to string
-        if type(solution_output) == unicode:    
-            solution_output = str(solution_output)
-            
-        if type(attempt_output) == unicode:
-            attempt_output = str(attempt_output)
+        solution_output = str(solution_output)
+        attempt_output = str(attempt_output)
             
         if test_type == 'norm':
             return f(solution_output) == f(attempt_output)
@@ -231,8 +229,8 @@ class TestCasePart:
         """Compare solution code and attempt code using the
         specified comparison function.
         """
-        if not callable(f):
-            raise TestCreationError("Invalid function %s" %f)
+        if type(f) in types.StringTypes:  # kludge
+            f = eval(str(f))
         if test_type == 'norm':
             return f(solution) == f(attempt)
         else:
@@ -250,22 +248,22 @@ class TestCasePart:
 
         # check function return value (None for scripts)
         (test_type, f) = self._result_test
-        if not self._check_output(solution_data['result'], attempt_data['result'], test_type, f):       
+        if not self._check_output(solution_data['result'], attempt_data['result'], test_type, f):
             return 'Unexpected function return value'
 
         # check stdout
         (test_type, f) = self._stdout_test
-        if not self._check_output(solution_data['stdout'], attempt_data['stdout'], test_type, f):       
+        if not self._check_output(solution_data['stdout'], attempt_data['stdout'], test_type, f):
             return 'Unexpected output'
 
         #check stderr
         (test_type, f) = self._stderr_test
-        if not self._check_output(solution_data['stderr'], attempt_data['stderr'], test_type, f):        
+        if not self._check_output(solution_data['stderr'], attempt_data['stderr'], test_type, f):
             return 'Unexpected error output'
 
         #check exception
         (test_type, f) = self._exception_test
-        if not self._check_output(solution_data['exception'], attempt_data['exception'], test_type, f):        
+        if not self._check_output(solution_data['exception'], attempt_data['exception'], test_type, f):
             return 'Unexpected exception'
 
         solution_files = solution_data['modified_files']
@@ -338,7 +336,7 @@ class TestCase:
     def add_variable(self, variable, value):
         """ Add the given varibale-value pair to the initial global environment
         for this test case.
-        Throw and exception if thevalue cannot be paresed.
+        Throw and exception if the value cannot be paresed.
         """
         
         try:
