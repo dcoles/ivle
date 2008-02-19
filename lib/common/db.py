@@ -36,7 +36,7 @@ import conf
 import md5
 import copy
 
-from common import caps
+from common import (caps, user)
 
 def _escape(val):
     """Wrapper around pg.escape_string. Prepares the Python value for use in
@@ -343,20 +343,27 @@ class DB:
             dry=dry)
 
     def get_user(self, login, dry=False):
-        """Given a login, returns a dictionary of the user's DB fields,
-        excluding the passhash field.
+        """Given a login, returns a User object containing details looked up
+        in the DB.
 
         Raises a DBException if the login is not found in the DB.
         """
-        return self.get_single({"login": login}, "login",
+        userdict = self.get_single({"login": login}, "login",
             self.login_getfields, self.login_primary,
             error_notfound="get_user: No user with that login name", dry=dry)
+        if dry:
+            return userdict     # Query string
+        # Package into a User object
+        return user.User(**userdict)
 
     def get_users(self, dry=False):
-        """Returns a list of all users. The list elements are a dictionary of
-        the user's DB fields, excluding the passhash field.
+        """Returns a list of all users in the DB, as User objects.
         """
-        return self.get_all("login", self.login_getfields, dry=dry)
+        userdicts = self.get_all("login", self.login_getfields, dry=dry)
+        if dry:
+            return userdicts    # Query string
+        # Package into User objects
+        return [user.User(**userdict) for userdict in userdicts]
 
     def user_authenticate(self, login, password, dry=False):
         """Performs a password authentication on a user. Returns True if

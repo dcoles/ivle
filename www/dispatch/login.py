@@ -32,9 +32,9 @@ def has_expired(details, field):
     """Determines whether the given expiry field indicates that
        login should be denied.
     """
-    return field in details     \
-           and details[field]   \
-           and time.localtime() > details[field]
+    return hasattr(details, field)     \
+           and details.__getattribute__(field)   \
+           and time.localtime() > details.__getattribute__(field)
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -83,14 +83,16 @@ def login(req):
                     badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
+                    # TODO: Store the User object in session instead of
+                    # individual fields
                     session['login_name'] = username.value
-                    session['unixid'] = login_details['unixid']
-                    session['state'] = login_details['state']
-                    session['email'] = login_details['email']
-                    session['nick'] = login_details['nick']
-                    session['fullname'] = login_details['fullname']
-                    session['role'] = caps.Role(login_details['rolenm'])
-                    session['studentid'] = login_details['studentid']
+                    session['unixid'] = login_details.unixid
+                    session['state'] = login_details.state
+                    session['email'] = login_details.email
+                    session['nick'] = login_details.nick
+                    session['fullname'] = login_details.fullname
+                    session['role'] = login_details.role
+                    session['studentid'] = login_details.studentid
                     session.save()
                     # XXX time.localtime() (a tuple of ints) is not valid for
                     # inserting as a TIMESTAMP in the DB.

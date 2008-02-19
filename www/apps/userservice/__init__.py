@@ -152,7 +152,7 @@ def handle_activate_me(req, fields):
             # Check that the user's status is "no_agreement".
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
-            if user_details['state'] != "no_agreement":
+            if user_details.state != "no_agreement":
                 req.throw_error(req.HTTP_BAD_REQUEST)
             # Write state "pending" to ensure we don't try this again
             db.update_user(req.username, state="pending")

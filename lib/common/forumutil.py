@@ -31,14 +31,14 @@ cookie_name = 'ivleforumcookie'
 def make_forum_cookie(login_details):
     secret = "VERYSECRET"
 
-    login = quote(login_details['login'])
-    nick = quote(login_details['nick'])
+    login = quote(login_details.login)
+    nick = quote(login_details.nick)
     email = ''
-    if login_details['email'] != None:
-        email = quote(login_details['email'])
+    if login_details.email != None:
+        email = quote(login_details.email)
 
 
-    role = quote(login_details['rolenm'])
+    role = quote(login_details.rolenm)
     
     hashtext = login + nick + email + role + secret
     hash = hashlib.md5(hashtext).hexdigest()

@@ -29,8 +29,7 @@ def authenticate(username, password):
     valid. The password is in cleartext.
 
     Returns None if failed to authenticate.
-    Returns a dictionary containing the user's login fields (including
-    "login", "nick" and "fullname") on success.
+    Returns a User object containing the user's details on success.
     """
 
     # TODO.
