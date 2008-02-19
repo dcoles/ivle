@@ -58,7 +58,7 @@ def handle_start(req):
     working_dir = os.path.join("/home", req.username)   # Within jail
 
     # Get the UID of the logged-in user
-    uid = req.get_session()['unixid']
+    uid = req.user.unixid
 
     # Set request attributes
     req.content_type = "text/plain"

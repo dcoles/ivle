@@ -164,15 +164,16 @@ def handle_activate_me(req, fields):
         # Get the arguments for usermgt.activate_user from the session
         # (The user must have already logged in to use this app)
         args = {
-            "login": req.username,
+            "login": req.user.login,
         }
         msg = {'activate_user': args}
 
         response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
             decode = False)
         # Write to the user's session to allow them to be activated
+        req.user.state = "enabled"
         session = req.get_session()
-        session['state'] = "enabled"
+        session['user'] = req.user
         session.save()
         # Write the response
         req.content_type = "text/plain"
@@ -191,11 +192,10 @@ def handle_create_user(req, fields):
     This does not create the user's jail, just an entry in the database which
     allows the user to accept an agreement.
     """
-    session = req.get_session()
     if req.method != "POST":
         req.throw_error(req.HTTP_BAD_REQUEST)
-    # Check if this user has CAP_CREATEUSER
-    if not session['role'].hasCap(caps.CAP_UPDATEUSER):
+    # Check if this user has CAP_UPDATEUSER
+    if not req.user.hasCap(caps.CAP_UPDATEUSER):
         req.throw_error(req.HTTP_FORBIDDEN)
 
     # Make a dict of fields to create
@@ -236,12 +236,11 @@ def handle_update_user(req, fields):
     This can be done in a limited form by any user, on their own account,
     or with full powers by a user with CAP_UPDATEUSER on any account.
     """
-    session = req.get_session()
     if req.method != "POST":
         req.throw_error(req.HTTP_BAD_REQUEST)
 
     # Only give full powers if this user has CAP_UPDATEUSER
-    fullpowers = session['role'].hasCap(caps.CAP_UPDATEUSER)
+    fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
     # List of fields that may be changed
     fieldlist = (update_user_fields_admin if fullpowers
         else update_user_fields_anyone)
@@ -266,7 +265,7 @@ def handle_update_user(req, fields):
     # Get the arguments for usermgt.create_user from the session
     # (The user must have already logged in to use this app)
     args = {
-        "login": req.username,
+        "login": req.user.login,
         "update": update,
     }
     msg = {'update_user': args}

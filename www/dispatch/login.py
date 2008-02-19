@@ -34,7 +34,7 @@ def login(req):
     if not logged in.
 
     If the user was already logged in, nothing is written to req. Returns
-    a string of the username.
+    the User object for the logged in user.
 
     If the user was not logged in, but manages to authenticate due to
     included postdata with a valid username/password, throws a redirect

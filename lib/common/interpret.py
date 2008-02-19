@@ -72,7 +72,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     # (Note: files are executed by their owners, not the logged in user.
     # This ensures users are responsible for their own programs and also
     # allows them to be executed by the public).
-    uid = req.get_session()['unixid']
+    uid = req.user.unixid
 
     # Split up req.path again, this time with respect to the jail
     (working_dir, _) = os.path.split(filename_abs)
