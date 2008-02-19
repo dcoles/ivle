@@ -497,10 +497,10 @@ class TestCase:
 
 class TestSuite:
     """
-    The complete collection of test cases for a given problem
+    The complete collection of test cases for a given exercise
     """
     def __init__(self, name, solution=None):
-        """Initialise with the name of the test suite (the problem name) and the solution.
+        """Initialise with the name of the test suite (the exercise name) and the solution.
         The solution may be specified later.
         """
         self._solution = solution
@@ -509,7 +509,7 @@ class TestSuite:
         self.add_include_code("")
 
     def add_solution(self, solution):
-        " Specifiy the solution script for this problem "
+        " Specify the solution script for this exercise "
         self._solution = solution
 
     def has_solution(self):
@@ -544,8 +544,8 @@ class TestSuite:
     def run_tests(self, attempt_code, stop_on_fail=False):
         " Run all test cases and collate the results "
         
-        problem_dict = {}
-        problem_dict['name'] = self._name
+        exercise_dict = {}
+        exercise_dict['name'] = self._name
         
         test_case_results = []
         passed = True
@@ -554,9 +554,9 @@ class TestSuite:
             if 'exception' in result_dict and result_dict['exception']['critical']:
                 # critical error occured, running more cases is useless
                 # FunctionNotFound, Syntax, Indentation
-                problem_dict['critical_error'] = result_dict['exception']
-                problem_dict['passed'] = False
-                return problem_dict
+                exercise_dict['critical_error'] = result_dict['exception']
+                exercise_dict['passed'] = False
+                return exercise_dict
             
             test_case_results.append(result_dict)
             
@@ -565,9 +565,9 @@ class TestSuite:
                 if stop_on_fail:
                     break
 
-        problem_dict['cases'] = test_case_results
-        problem_dict['passed'] = passed
-        return problem_dict
+        exercise_dict['cases'] = test_case_results
+        exercise_dict['passed'] = passed
+        return exercise_dict
 
     def get_name(self):
         return self._name

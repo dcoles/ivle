@@ -10,7 +10,7 @@ for i in range(1, len(sys.argv)):
     pyfile = basename + '.py'
     jobj = {"problem": basename}
 
-    problem_suite = parse_tutorial_file(xmlfile)
+    problem_suite = parse_exercise_file(xmlfile)
     jobj['name'], results = problem_suite.run_tests(pyfile)
     jobj['cases'] = results
 

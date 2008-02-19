@@ -86,7 +86,7 @@ def handle_test(req, problem, code, fields):
         req.throw_error(req.HTTP_NOT_FOUND)
 
     # Parse the file into a problem object using the test suite
-    problem_obj = test.parse_tutorial_file(problemfile)
+    problem_obj = test.parse_exercise_file(problemfile)
     problemfile.close()
     # Run the test cases. Get the result back as a JSONable object.
     # Return it.

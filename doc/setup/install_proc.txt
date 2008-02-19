@@ -38,7 +38,7 @@ sudo apt-get install subversion
 sudo apt-get install gcc libc6 libc6-dev make
 sudo apt-get install apache2 libapache2-mod-python
 sudo apt-get install python2.5-dev python-svn python-webpy python-numpy python-matplotlib
-sudo apt-get install postgresql python-pygresql
+sudo apt-get install postgresql python-pygresql python-ldap
 
 # Note: I had a lot of trouble with the python-svn package.
 # After playing around a bit it started working.

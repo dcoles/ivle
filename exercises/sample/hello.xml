@@ -1,4 +1,4 @@
-<problem name = "Hello Name">
+<exercise name = "Hello Name">
     <desc>You need to write <b>Hello</b> and then your name.</desc>
     <partial>
 <![CDATA[
@@ -16,20 +16,14 @@ print " ".join([greeting, name])
     <case name="&quot;Hello Alice&quot;">
         <!-- Specify input -->
         <var name="name" value="'Alice'" />
-        <function desc="Match case insensitive" default="ignore">
+        <function pass="All letters are correct, ignoring case" fail="Output contains incorrect characters" default="ignore">
             <stdout>str.lower</stdout>
     	</function>
+        <function pass="Program contains a print statement" fail="You need to use a print statement" default="ignore">
+            <code type="check">lambda x,y: 'print' in y</code>
+    	</function>
     	<!-- Ensures that all outputs match exactly -->	
-    	<function desc="Match exactly" default="match"/>
+    	<function pass="Exact match" fail="Incorrect characters still" default="match"/>
     </case>
-    <case name="&quot;Hello Bob&quot;">
-        <!-- Specify input -->
-        <var name="name" value="'Bob'" />
-        <function desc="Match case insensitive" default="ignore">
-            <stdout>lambda x:x.lower()</stdout>
-    	</function>
-        <function desc="Match exactly" default="ignore">
-            <stdout/>
-    	</function>
-    </case>
-</problem>
+</exercise>
+

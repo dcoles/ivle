@@ -1,4 +1,4 @@
-<problem name = "Hello Name">
+<exercise name = "Hello Name">
     <desc>You need to write <b>Hello</b> and then your name, using the variable 'name'.</desc>
     <include>
 <![CDATA[
@@ -44,4 +44,4 @@ print " ".join([greeting, name])
             <stdout/>
     	</function>
     </case>
-</problem>
+</exercise>

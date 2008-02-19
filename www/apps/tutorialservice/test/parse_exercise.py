@@ -15,15 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: parse_tute
+# Module: parse_exercise
 # Author: Dilshan Angampitiya
+#         Steven Bird (revisions)
 # Date:   24/1/2008
 
 """
-This file provides the function parse_tutorial_file which takes an
-xml specification of a tutorial problem file and returns a test suite object
-for that problem. It throws a ParseException if there was a problem parsing
-the file.
+This file provides the function parse_exercise_file which takes an xml
+specification of an exercise file and returns a test suite object for
+that exercise. It throws a ParseException if there was a problem
+parsing the file.
 """
 
 from xml.dom.minidom import *
@@ -33,7 +34,7 @@ DEFAULT_TEST_TYPE = 'norm'
 DEFAULT_CASE_TYPE = 'match'
 
 class ParseException(Exception):
-    " Error when parsing the xml problem file "
+    " Error when parsing the xml exercise file "
     def __init___(self, reason):
         self._reason = reason
 
@@ -148,41 +149,41 @@ def getCaseData(caseNode):
 
     return case
                 
-def parse_tutorial_file(filename, prob_num=1):
-    """ Parse an xml problem file and return a testsuite for that problem """
+def parse_exercise_file(filename, exercise_num=1):
+    """ Parse an xml exercise file and return a testsuite for that exercise """
     dom = parse(filename)
 
-    # get problem
+    # get exercise
     count = 0
-    problem = None
+    exercise = None
     for child in dom.childNodes:
-        if child.nodeType == child.ELEMENT_NODE and child.tagName == 'problem':
+        if child.nodeType == child.ELEMENT_NODE and child.tagName == 'exercise':
             count += 1
-            if count == prob_num:
-                problem = child
+            if count == exercise_num:
+                exercise = child
                 break
 
-    if problem == None:
-        raise ParseException("Not enough problems")
+    if exercise == None:
+        raise ParseException("Not enough exercises")
 
     # get name
-    problem_name = problem.getAttribute('name')
+    exercise_name = exercise.getAttribute('name')
 
-    if not problem_name:
-        raise ParseException('Problem name not supplied')
+    if not exercise_name:
+        raise ParseException('Exercise name not supplied')
 
-    problem_suite = TestSuite(problem_name)
+    exercise_suite = TestSuite(exercise_name)
 
     # get solution and include info
-    for child in problem.childNodes:
+    for child in exercise.childNodes:
         if child.nodeType != child.ELEMENT_NODE:
             continue
         if child.tagName == 'solution':
-            problem_suite.add_solution(getTextData(child))
+            exercise_suite.add_solution(getTextData(child))
         elif child.tagName == 'include':
-            problem_suite.add_include_code(getTextData(child))
+            exercise_suite.add_include_code(getTextData(child))
         elif child.tagName == 'case':
-            problem_suite.add_case(getCaseData(child))
+            exercise_suite.add_case(getCaseData(child))
 
-    return problem_suite
+    return exercise_suite
 

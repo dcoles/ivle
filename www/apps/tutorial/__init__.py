@@ -112,7 +112,7 @@ def handle_toplevel_menu(req):
     req.write('<div id="ivle_padding">\n')
     req.write("<h1>IVLE Tutorials</h1>\n")
     req.write("""<p>Welcome to the IVLE tutorial system.
-  Please select a subject from the list below to take a tutorial problem sheet
+  Please select a subject from the list below to select a worksheet
   for that subject.</p>\n""")
     # Get list of subjects
     # TODO: Fetch from DB. For now, just get directory listing

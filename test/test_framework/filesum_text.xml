@@ -1,4 +1,4 @@
-<problem name = "Sum numbers in a file">
+<exercise name = "Sum numbers in a file">
     <solution>
 <![CDATA[
 print sum(map(int,file(raw_input()).readlines()))
@@ -46,4 +46,4 @@ print sum(map(int,file(raw_input()).readlines()))
 		<exception/>
 	</function>
     </case>
-</problem>
+</exercise>

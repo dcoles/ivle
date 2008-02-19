@@ -2,7 +2,7 @@
 import sys
 sys.path.append('../../www/apps/tutorialservice/test/')
 
-from parse_tute import *
+from parse_exercise import *
 
 def print_results(problem):
     print "Problem: %s" %problem['name']
@@ -23,14 +23,14 @@ def print_results(problem):
                         print "  Failed: %s -- %s" %(part['description'],part['error_message'])
     print
     
-problem_suite = parse_tutorial_file('filesum_text.xml')
+problem_suite = parse_exercise_file('filesum_text.xml')
 print_results(problem_suite.run_tests(file("filesum.py").read()))
 
-problem_suite = parse_tutorial_file('hello_text.xml')
+problem_suite = parse_exercise_file('hello_text.xml')
 print_results(problem_suite.run_tests(file("hello.py").read()))
 
-problem_suite = parse_tutorial_file('all_input_text.xml')
+problem_suite = parse_exercise_file('all_input_text.xml')
 print_results(problem_suite.run_tests(file("all_input.py").read()))
 
-problem_suite = parse_tutorial_file('fib_text.xml')
+problem_suite = parse_exercise_file('fib_text.xml')
 print_results(problem_suite.run_tests(file("fib.py").read()))

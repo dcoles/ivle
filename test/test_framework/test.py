@@ -2,7 +2,7 @@
 import sys
 sys.path.append('../../www/apps/tutorialservice/test/')
 
-from parse_tute import *
+from parse_exercise import *
 
 def print_results(problem):
     print "Problem: %s" %problem['name']
@@ -29,5 +29,5 @@ for i in range(1, len(sys.argv)):
     pyfile = basename + '.py'
 
     print "Testing:", basename
-    problem_suite = parse_tutorial_file(xmlfile)
+    problem_suite = parse_exercise_file(xmlfile)
     print_results(problem_suite.run_tests(file(pyfile).read()))

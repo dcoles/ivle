@@ -1,4 +1,4 @@
-<problem name = "Test all IO">
+<exercise name = "Test all IO">
     <desc>Write a program which does the following:
       <ol>
         <li>Gets the value of a variable "foo" and prints it to stdout.</li>
@@ -64,4 +64,5 @@ f.close()
         <!-- Match all files exactly, even those not listed. -->
         <function desc="Match output, no unexpected files allowed" />
     </case>
-</problem>
+</exercise>
+

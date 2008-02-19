@@ -1,4 +1,4 @@
-<problem name = "Fibonacci numbers">
+<exercise name = "Fibonacci numbers">
     <desc>Write a function <code>fib(n)</code> which returns the nth fibonacci
         number.</desc>
     <partial>
@@ -39,4 +39,5 @@ fib_zero = 0
         <arg value="1000" />
 	<function desc="Match">int</function>
     </case>
-</problem>
+</exercise>
+
