@@ -374,7 +374,7 @@ class TestCase:
         """ Get the name of the test case """
         return self._name
 
-    def run(self, solution, attempt_code):
+    def run(self, solution, attempt_code, stop_on_fail=True):
         """ Run the solution and the attempt with the inputs specified for this test case.
         Then pass the outputs to each test part and collate the results.
         """
@@ -429,6 +429,10 @@ class TestCase:
                 passed = False
                 
             results.append(result_dict)
+
+            # Do we continue the test_parts after one of them has failed?
+            if not passed and stop_on_fail:
+                break;
 
         case_dict['parts'] = results
         case_dict['passed'] = passed
