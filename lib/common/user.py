@@ -32,9 +32,9 @@ user_fields_required = frozenset((
 ))
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
-    "role", "studentid"
+    "role", "studentid", "acct_exp", "pass_exp"
 )
-# Fields not included: passhash, acct_exp, pass_exp, last_login
+# Fields not included: passhash, last_login
 
 class UserException(Exception):
     pass
@@ -72,8 +72,22 @@ class User(object):
         items = ["%s=%s" % (r, repr(self.__getattribute__(r)))
             for r in user_fields_list]
         return "User(" + ', '.join(items) + ")"
+
     def hasCap(self, capability):
         """Given a capability (which is a Role object), returns True if this
         User has that capability, False otherwise.
         """
         return self.role.hasCap(capability)
+
+    def pass_expired(self):
+        """Determines whether the pass_exp field indicates that
+           login should be denied.
+        """
+        fieldval = self.pass_exp
+        return fieldval is not None and time.localtime() > fieldval
+    def acct_expired(self):
+        """Determines whether the acct_exp field indicates that
+           login should be denied.
+        """
+        fieldval = self.acct_exp
+        return fieldval is not None and time.localtime() > fieldval

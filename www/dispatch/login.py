@@ -28,14 +28,6 @@ from mod_python import Session
 from common import (util, db, caps, forumutil)
 from auth import authenticate
 
-def has_expired(details, field):
-    """Determines whether the given expiry field indicates that
-       login should be denied.
-    """
-    return hasattr(details, field)     \
-           and details.__getattribute__(field)   \
-           and time.localtime() > details.__getattribute__(field)
-
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
     and if not, presents the login page. Returns a String username, or None
@@ -77,9 +69,9 @@ def login(req):
                     authenticate.authenticate(username.value, password.value)
                 if login_details is None:
                     badlogin = "Invalid username or password."
-                elif has_expired(login_details, 'pass_exp'):
+                elif login_details.pass_expired():
                     badlogin = "Your password has expired."
-                elif has_expired(login_details, 'acct_exp'):
+                elif login_details.acct_expired():
                     badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
