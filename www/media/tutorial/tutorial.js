@@ -29,12 +29,12 @@ function onload()
 
 /** User clicks "Run" button. Do an Ajax call and print the test output.
  */
-function runproblem(problemid, filename)
+function runexercise(exerciseid, filename)
 {
     /* Get the source code the student is submitting */
-    var problemdiv = document.getElementById(problemid);
-    var problembox = problemdiv.getElementsByTagName("textarea")[0];
-    var code = problembox.value;
+    var exercisediv = document.getElementById(problemid);
+    var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
+    var code = exercisebox.value;
 
     /* Dump the entire file to the console */
     console_enter_line(code, "block");
@@ -42,58 +42,58 @@ function runproblem(problemid, filename)
 }
 
 /** Given a response object (JSON-parsed object), displays the result of the
- * test to the user. This modifies the given problemdiv's children.
+ * test to the user. This modifies the given exercisediv's children.
  */
-function handle_runresponse(problemdiv, runresponse)
+function handle_runresponse(exercisediv, runresponse)
 {
-    var runoutput = problemdiv.getElementsByTagName("textarea")[1];
+    var runoutput = exercisediv.getElementsByTagName("textarea")[1];
     dom_removechildren(runoutput);
     runoutput.appendChild(document.createTextNode(runresponse.stdout));
 }
 
 /** User clicks "Submit" button. Do an Ajax call and run the test.
- * problemid: "id" of the problem's div element.
- * filename: Filename of the problem's XML file (used to identify the problem
+ * exerciseid: "id" of the exercise's div element.
+ * filename: Filename of the exercise's XML file (used to identify the exercise
  *     when interacting with the server).
  */
-function submitproblem(problemid, filename)
+function submitexercise(exerciseid, filename)
 {
     /* Get the source code the student is submitting */
-    var problemdiv = document.getElementById(problemid);
-    var problembox = problemdiv.getElementsByTagName("textarea")[0];
-    var code = problembox.value;
+    var exercisediv = document.getElementById(exerciseid);
+    var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
+    var code = exercisebox.value;
 
-    var args = {"code": code, "problem": filename, "action": "test"};
+    var args = {"code": code, "exercise": filename, "action": "test"};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
     var xhr = ajax_call("tutorialservice", "", args, "POST",
         "multipart/form-data");
     var testresponse = JSON.parse(xhr.responseText);
-    handle_testresponse(problemdiv, testresponse);
+    handle_testresponse(exercisediv, testresponse);
 }
 
-/** Given a problem div, return the testoutput div which is its child.
+/** Given a exercise div, return the testoutput div which is its child.
  * (The div which is its child whose class is "testoutput".
  */
-function get_testoutput(problemdiv)
+function get_testoutput(exercisediv)
 {
-    var childs = problemdiv.childNodes;
+    var childs = exercisediv.childNodes;
     var i;
     var testoutput;
     for (i=0; i<childs.length; i++)
-        if (childs[i].nodeType == problemdiv.ELEMENT_NODE &&
+        if (childs[i].nodeType == exercisediv.ELEMENT_NODE &&
             childs[i].getAttribute("class") == "testoutput")
             return childs[i];
     return null;
 }
 
 /** Given a response object (JSON-parsed object), displays the result of the
- * test to the user. This modifies the given problemdiv's children.
+ * test to the user. This modifies the given exercisediv's children.
  */
-function handle_testresponse(problemdiv, testresponse)
+function handle_testresponse(exercisediv, testresponse)
 {
-    var testoutput = get_testoutput(problemdiv);
+    var testoutput = get_testoutput(exercisediv);
     var i, j;
     var ul;
     var case_ul;

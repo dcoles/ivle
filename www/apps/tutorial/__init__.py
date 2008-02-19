@@ -20,8 +20,8 @@
 # Date: 25/1/2008
 
 # Tutorial application.
-# Displays tutorial content with editable problems, allowing students to test
-# and submit their solutions to problems and have them auto-tested.
+# Displays tutorial content with editable exercises, allowing students to test
+# and submit their solutions to exercises and have them auto-tested.
 
 # URL syntax
 # All path segments are optional (omitted path segments will show menus).
@@ -201,25 +201,25 @@ def handle_worksheet(req, subject, worksheet):
         % (cgi.escape(subject), cgi.escape(worksheetname)))
 
     # Write each element
-    problemid = 0
+    exerciseid = 0
     for node in worksheetdom.childNodes:
-        problemid = present_worksheet_node(req, node, problemid)
+        exerciseid = present_worksheet_node(req, node, exerciseid)
     req.write("</div>\n")   # tutorialbody
 
-def present_worksheet_node(req, node, problemid):
+def present_worksheet_node(req, node, exerciseid):
     """Given a node of a worksheet XML document, writes it out to the
-    request. This recursively searches for "problem" elements and handles
-    those specially (presenting their XML problem spec and input box), and
+    request. This recursively searches for "exercise" elements and handles
+    those specially (presenting their XML exercise spec and input box), and
     just dumps the other elements as regular HTML.
 
-    problemid is the ID to use for the first problem.
-    Returns the new problemid after all the problems have been written
-    (since we need unique IDs for each problem).
+    exerciseid is the ID to use for the first exercise.
+    Returns the new exerciseid after all the exercises have been written
+    (since we need unique IDs for each exercise).
     """
     if node.nodeType == node.ELEMENT_NODE:
-        if node.tagName == "problem":
-            present_problem(req, node.getAttribute("src"), problemid)
-            problemid += 1
+        if node.tagName == "exercise":
+            present_exercise(req, node.getAttribute("src"), exerciseid)
+            exerciseid += 1
         else:
             # Some other element. Write out its head and foot, and recurse.
             req.write("<" + node.tagName)
@@ -230,12 +230,12 @@ def present_worksheet_node(req, node, problemid):
                 req.write(" " + ' '.join(attrs))
             req.write(">")
             for childnode in node.childNodes:
-                problemid = present_worksheet_node(req, childnode, problemid)
+                exerciseid = present_worksheet_node(req, childnode, exerciseid)
             req.write("</" + node.tagName + ">")
     else:
         # No need to recurse, so just print this node's contents
         req.write(node.toxml())
-    return problemid
+    return exerciseid
 
 def innerXML(elem):
     """Given an element, returns its children as XML strings concatenated
@@ -258,70 +258,70 @@ def getTextData(element):
 
     return data.strip()
 
-def present_problem(req, problemsrc, problemid):
-    """Open a problem file, and write out the problem to the request in HTML.
-    problemsrc: "src" of the problem file. A path relative to the top-level
-        problems base directory, as configured in conf.
+def present_exercise(req, exercisesrc, exerciseid):
+    """Open a exercise file, and write out the exercise to the request in HTML.
+    exercisesrc: "src" of the exercise file. A path relative to the top-level
+        exercises base directory, as configured in conf.
     """
-    req.write('<div class="tuteproblem" id="problem%d">\n'
-        % problemid)
+    req.write('<div class="exercise" id="exercise%d">\n'
+        % exerciseid)
     # First normalise the path
-    problemsrc = os.path.normpath(problemsrc)
+    exercisesrc = os.path.normpath(exercisesrc)
     # Now if it begins with ".." or separator, then it's illegal
-    if problemsrc.startswith("..") or problemsrc.startswith(os.sep):
-        problemfile = None
+    if exercisesrc.startswith("..") or exercisesrc.startswith(os.sep):
+        exercisefile = None
     else:
-        problemfile = os.path.join(conf.problems_base, problemsrc)
+        exercisefile = os.path.join(conf.exercises_base, exercisesrc)
 
     try:
-        problemfile = open(problemfile)
-    except (TypeError, IOError):    # TypeError if problemfile == None
+        exercisefile = open(exercisefile)
+    except (TypeError, IOError):    # TypeError if exercisefile == None
         req.write("<p><b>Server Error</b>: "
-            + "Problem file could not be opened.</p>\n")
+            + "Exercise file could not be opened.</p>\n")
         req.write("</div>\n")
         return
     
-    # Read problem file and present the problem
+    # Read exercise file and present the exercise
     # Note: We do not use the testing framework because it does a lot more
-    # work than we need. We just need to get the problem name and a few other
+    # work than we need. We just need to get the exercise name and a few other
     # fields from the XML.
 
-    problemdom = minidom.parse(problemfile)
-    problemfile.close()
-    problemdom = problemdom.documentElement
-    if problemdom.tagName != "problem":
+    exercisedom = minidom.parse(exercisefile)
+    exercisefile.close()
+    exercisedom = exercisedom.documentElement
+    if exercisedom.tagName != "exercise":
         # TODO: Nicer error message, to help authors
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
-    problemname = problemdom.getAttribute("name")
-    rows = problemdom.getAttribute("rows")
+    exercisename = exercisedom.getAttribute("name")
+    rows = exercisedom.getAttribute("rows")
     if not rows:
         rows = "12"
     # Look for some other fields we need, which are elements:
     # - desc
     # - partial
-    problemdesc = None
-    problempartial= ""
-    for elem in problemdom.childNodes:
+    exercisedesc = None
+    exercisepartial= ""
+    for elem in exercisedom.childNodes:
         if elem.nodeType == elem.ELEMENT_NODE:
             if elem.tagName == "desc":
-                problemdesc = innerXML(elem).strip()
+                exercisedesc = innerXML(elem).strip()
             if elem.tagName == "partial":
-                problempartial= getTextData(elem) + '\n'
+                exercisepartial= getTextData(elem) + '\n'
 
-    # Print this problem out to HTML 
-    req.write("<p><b>Exercise:</b> %s</p>\n" % problemname)
-    if problemdesc is not None:
-        req.write("<div>%s</div>\n" % problemdesc)
-    req.write('<textarea class="problembox" cols="80" rows="%s">%s</textarea>'
-            % (rows, problempartial))
-    filename = cgi.escape(cjson.encode(problemsrc), quote=True)
-    req.write("""\n<div class="problembuttons">
+    # Print this exercise out to HTML 
+    req.write("<p><b>Exercise:</b> %s</p>\n" % exercisename)
+    if exercisedesc is not None:
+        req.write("<div>%s</div>\n" % exercisedesc)
+    req.write('<textarea class="exercisebox" cols="80" rows="%s">%s</textarea>'
+            % (rows, exercisepartial))
+    filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
+    req.write("""\n<div class="exercisebuttons">
   <input type="button" value="Run"
-    onclick="runproblem(&quot;problem%d&quot;, %s)" />
+    onclick="runexercise(&quot;exercise%d&quot;, %s)" />
   <input type="button" value="Submit"
-    onclick="submitproblem(&quot;problem%d&quot;, %s)" />
+    onclick="submitexercise(&quot;exercise%d&quot;, %s)" />
 </div>
 <div class="testoutput">
 </div>
-""" % (problemid, filename, problemid, filename))
+""" % (exerciseid, filename, exerciseid, filename))
     req.write("</div>\n")

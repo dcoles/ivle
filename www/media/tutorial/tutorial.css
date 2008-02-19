@@ -1,4 +1,4 @@
-.tuteproblem {
+.exercise {
     background: #eeeeff url(../images/tutorial/signature.png) no-repeat top left;
     color: navy;
     margin: 0 5% 0 1em;
@@ -9,11 +9,11 @@
     border-bottom: 1px solid gray;
 }
 
-.problembox, .runoutput {
+.exercisebox, .runoutput {
     width: 80%;
 }
 
-.problembuttons {
+.exercisebuttons {
     text-align: right;
 }
 

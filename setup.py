@@ -218,13 +218,13 @@ and other per-subject files) are stored (on the local file system):""",
 # In the local file system, where are the per-subject file spaces located.
 # The individual subject directories are expected to be located immediately
 # in subdirectories of this location."""))
-config_options.append(ConfigOption("problems_base",
-    "/home/informatics/problems",
-    """Root directory where the problem directories (containing
-subject-independent problem sheets) are stored (on the local file
+config_options.append(ConfigOption("exercises_base",
+    "/home/informatics/exercises",
+    """Root directory where the exercise directories (containing
+subject-independent exercise sheets) are stored (on the local file
 system):""",
     """
-# In the local file system, where are the subject-independent problem sheet
+# In the local file system, where are the subject-independent exercise sheet
 # file spaces located."""))
 config_options.append(ConfigOption("public_host", "public.localhost",
     """Hostname which will cause the server to go into "public mode",
@@ -471,7 +471,7 @@ Copy jail/ to jails template directory (unless --nojail specified).
 Copy subjects/ to subjects directory (unless --nosubjects specified).
 
 --nojail        Do not copy the jail.
---nosubjects    Do not copy the subjects and problems directories.
+--nosubjects    Do not copy the subjects and exercises directories.
 --dry | -n  Print out the actions but don't do anything."""
     elif operation == 'updatejails':
         print """sudo python setup.py updatejails [--dry|-n]
@@ -490,7 +490,7 @@ def listmake(args):
     list_www = build_list_py_files('www')
     list_lib = build_list_py_files('lib')
     list_subjects = build_list_py_files('subjects', no_top_level=True)
-    list_problems = build_list_py_files('problems', no_top_level=True)
+    list_exercises = build_list_py_files('exercises', no_top_level=True)
     list_scripts = [
         "scripts/python-console",
         "scripts/fileservice",
@@ -532,10 +532,10 @@ list_scripts = """)
 list_subjects = """)
         writelist_pretty(file, list_subjects)
         file.write("""
-# List of all installable files in problems directory.
+# List of all installable files in exercises directory.
 # This is to install sample exercise material.
-list_problems = """)
-        writelist_pretty(file, list_problems)
+list_exercises = """)
+        writelist_pretty(file, list_exercises)
 
         file.close()
     except IOError, (errno, strerror):
@@ -863,11 +863,11 @@ def install(args):
         # for all the students' jails).
         action_copytree('jail', os.path.join(jail_base, 'template'), dry)
     if not nosubjects:
-        # Copy the subjects and problems directories across
+        # Copy the subjects and exercises directories across
         action_copylist(install_list.list_subjects, subjects_base, dry,
             srcdir="./subjects")
-        action_copylist(install_list.list_problems, problems_base, dry,
-            srcdir="./problems")
+        action_copylist(install_list.list_exercises, exercises_base, dry,
+            srcdir="./exercises")
 
     # Append IVLE path to ivle.pth in python site packages
     # (Unless it's already there)

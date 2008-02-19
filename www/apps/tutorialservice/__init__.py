@@ -21,13 +21,13 @@
 
 # Provides the AJAX backend for the tutorial application.
 # This allows several actions to be performed on the code the student has
-# typed into one of the problem boxes.
+# typed into one of the exercise boxes.
 
 # Calling syntax
 # Path must be empty.
 # The arguments determine what is to be done on this file.
 
-# "problem" - The path to a problem file (including the .xml extension),
+# "exercise" - The path to a exercise file (including the .xml extension),
 #    relative to the subjects base directory.
 # "code" - Full text of the student's code being submitted.
 # "action". May be "test". (More to come).
@@ -53,47 +53,47 @@ def handle(req):
     # side-effects on the server.
     fields = req.get_fieldstorage()
     act = fields.getfirst('action')
-    problem = fields.getfirst('problem')
+    exercise = fields.getfirst('exercise')
     code = fields.getfirst('code')
 
-    if problem == None or code == None or act == None:
+    if exercise == None or code == None or act == None:
         req.throw_error(req.HTTP_BAD_REQUEST)
     act = act.value
-    problem = problem.value
+    exercise = exercise.value
     code = code.value
 
     if act == "test":
-        handle_test(req, problem, code, fields)
+        handle_test(req, exercise, code, fields)
     elif act == "run":
-        handle_run(req, problem, code, fields)
+        handle_run(req, exercise, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def handle_test(req, problem, code, fields):
+def handle_test(req, exercise, code, fields):
     """Handles a test action."""
 
     # First normalise the path
-    problem = os.path.normpath(problem)
+    exercise = os.path.normpath(exercise)
     # Now if it begins with ".." or separator, then it's illegal
-    if problem.startswith("..") or problem.startswith(os.sep):
-        problemfile = None
+    if exercise.startswith("..") or exercise.startswith(os.sep):
+        exercisefile = None
     else:
-        problemfile = os.path.join(conf.problems_base, problem)
+        exercisefile = os.path.join(conf.exercises_base, exercise)
 
     try:
-        problemfile = open(problemfile)
-    except (TypeError, IOError):    # TypeError if problemfile == None
+        exercisefile = open(exercisefile)
+    except (TypeError, IOError):    # TypeError if exercisefile == None
         req.throw_error(req.HTTP_NOT_FOUND)
 
-    # Parse the file into a problem object using the test suite
-    problem_obj = test.parse_exercise_file(problemfile)
-    problemfile.close()
+    # Parse the file into a exercise object using the test suite
+    exercise_obj = test.parse_exercise_file(exercisefile)
+    exercisefile.close()
     # Run the test cases. Get the result back as a JSONable object.
     # Return it.
-    test_results = problem_obj.run_tests(code)
+    test_results = exercise_obj.run_tests(code)
     req.write(cjson.encode(test_results))
 
-def handle_run(req, problem, code, fields):
+def handle_run(req, exercise, code, fields):
     """Handles a run action."""
     # Extremely makeshift.
     # For now, just echo the code back
