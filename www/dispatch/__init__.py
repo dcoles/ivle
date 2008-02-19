@@ -82,11 +82,6 @@ def handler(req):
     else:
         req.user = login.get_user_details(req)
         logged_in = True
-    # XXX username is deprecated
-    try:
-        req.username = req.user.login
-    except AttributeError:
-        req.username = None
 
     if logged_in:
         # Keep the user's session alive by writing to the session object.

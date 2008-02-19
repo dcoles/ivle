@@ -99,7 +99,7 @@ USER_DECLARATION = "I accept the IVLE Terms of Service"
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
-    if req.username is None:
+    if req.user is None:
         # Not logged in
         req.throw_error(req.HTTP_FORBIDDEN)
     if len(req.path) > 0 and req.path[-1] == os.sep:
@@ -148,14 +148,14 @@ def handle_activate_me(req, fields):
         db.start_transaction()
         try:
 
-            user_details = db.get_user(req.username)
+            user_details = db.get_user(req.user.login)
             # Check that the user's status is "no_agreement".
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
             if user_details.state != "no_agreement":
                 req.throw_error(req.HTTP_BAD_REQUEST)
             # Write state "pending" to ensure we don't try this again
-            db.update_user(req.username, state="pending")
+            db.update_user(req.user.login, state="pending")
         except:
             db.rollback()
             raise
@@ -247,12 +247,12 @@ def handle_update_user(req, fields):
 
     try:
         login = fields.getfirst('login')
-        if not fullpowers and login != req.username:
+        if not fullpowers and login != req.user.login:
             # Not allowed to edit other users
             req.throw_error(req.HTTP_FORBIDDEN)
     except AttributeError:
         # If login not specified, update yourself
-        login = req.username
+        login = req.user.login
 
     # Make a dict of fields to update
     update = {}

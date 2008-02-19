@@ -54,8 +54,8 @@ def handle(req):
         req.throw_error(req.HTTP_BAD_REQUEST)
 
 def handle_start(req):
-    jail_path = os.path.join(conf.jail_base, req.username)
-    working_dir = os.path.join("/home", req.username)   # Within jail
+    jail_path = os.path.join(conf.jail_base, req.user.login)
+    working_dir = os.path.join("/home", req.user.login)   # Within jail
 
     # Get the UID of the logged-in user
     uid = req.user.unixid

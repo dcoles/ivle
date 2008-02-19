@@ -64,9 +64,11 @@ def handle(req):
         ("uri", req.uri),
         ("app", req.app),
         ("path", req.path),
-        ("username", req.username),
+        ("user", req.user),
         ("hostname", req.hostname),
     ])
+    if req.user is not None:
+        print_table(req, "req.user", dict(req.user).items(), "h4")
 
     # Violate encapsulation here to print out the hidden properties
     print_table(req, "Apache (Hidden) Request Properties", [
@@ -84,7 +86,7 @@ def handle(req):
     session = req.get_session()
     print_table(req, "Session Variables", session.items())
     if 'user' in session:
-        print_table(req, "User Fields", dict(session['user']).items(),
+        print_table(req, "session['user']", dict(session['user']).items(),
             "h4")
 
     print_table(req, "HTTP Request Headers",

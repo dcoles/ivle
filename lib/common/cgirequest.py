@@ -145,7 +145,6 @@ class CGIRequest:
         else:
             (self.app, self.path) = (common.util.split_path(path))
         self.user = None
-        self.username = None
         self.hostname = os.environ['SERVER_NAME']
         self.headers_in = _http_headers_in_from_cgi()
         self.headers_out = {}

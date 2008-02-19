@@ -114,7 +114,7 @@ def published(path):
     return len(props) > 0
 
 def authorize(req):
-    """Given a request, checks whether req.username is allowed to
+    """Given a request, checks whether req.user is allowed to
     access req.path. Returns None on authorization success. Raises
     HTTP_FORBIDDEN on failure.
 
@@ -129,7 +129,7 @@ def authorize(req):
         req.throw_error(req.HTTP_FORBIDDEN)
 
     (owner, _) = util.split_path(urlpath)
-    if req.username != owner:
+    if req.user.login != owner:
         req.throw_error(req.HTTP_FORBIDDEN)
 
 def authorize_public(req):
