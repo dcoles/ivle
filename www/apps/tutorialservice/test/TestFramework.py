@@ -103,7 +103,7 @@ class FunctionNotFoundError(Exception):
 class TestCasePart:
     """
     A part of a test case which compares a subset of the input files or file streams.
-    This can be done either with a comparision function, or by comparing directly, after
+    This can be done either with a comparison function, or by comparing directly, after
     applying normalisations.
     """
 
@@ -114,14 +114,14 @@ class TestCasePart:
     true = classmethod(lambda *x: True)
     false = classmethod(lambda *x: False)
 
-    def __init__(self, succeed, fail, default='match'):
-        """Initialise with descriptions (succeed,fail) and a default behavior for output
+    def __init__(self, pass_msg, fail_msg, default='match'):
+        """Initialise with descriptions (pass,fail) and a default behavior for output
         If default is match, unspecified files are matched exactly
         If default is ignore, unspecified files are ignored
         The default default is match.
         """
-        self._succeed = succeed
-        self._fail = fail
+        self._pass_msg = pass_msg
+        self._fail_msg = fail_msg
         self._default = default
         if default == 'ignore':
             self._default_func = self.true
@@ -133,6 +133,7 @@ class TestCasePart:
         self._stderr_test = ('check', self._default_func)
         self._exception_test = ('check', self._default_func)
         self._result_test = ('check', self._default_func)
+        self._code_test = ('check', self._default_func)
 
     def _set_default_function(self, function, test_type):
         """"Ensure test type is valid and set function to a default
@@ -149,7 +150,7 @@ class TestCasePart:
 
     def _validate_function(self, function, included_code):
         """Create a function object from the given string.
-        If a valid function object cannot be created, raise and error.
+        If a valid function object cannot be created, raise an error.
         """
         if not callable(function):
             try:
@@ -184,13 +185,11 @@ class TestCasePart:
         "Test part that compares function return values"
         function = self._set_default_function(function, test_type)
         self._result_test = (test_type, function)
-
             
     def add_stdout_test(self, function, test_type='norm'):
         "Test part that compares stdout"
         function = self._set_default_function(function, test_type)
         self._stdout_test = (test_type, function)
-        
 
     def add_stderr_test(self, function, test_type='norm'):
         "Test part that compares stderr"
@@ -207,9 +206,14 @@ class TestCasePart:
         function = self._set_default_function(function, test_type)
         self._file_tests[filename] = (test_type, function)
 
+    def add_code_test(self, function, test_type='norm'):
+        "Test part that examines the supplied code"
+        function = self._set_default_function(function, test_type)
+        self._code_test = (test_type, function)
+
     def _check_output(self, solution_output, attempt_output, test_type, f):
         """Compare solution output and attempt output using the
-        specified comparision function.
+        specified comparison function.
         """
         # converts unicode to string
         if type(solution_output) == unicode:    
@@ -223,31 +227,46 @@ class TestCasePart:
         else:
             return f(solution_output, attempt_output)
 
+    def _check_code(self, solution, attempt, test_type, f):
+        """Compare solution code and attempt code using the
+        specified comparison function.
+        """
+        if not callable(f):
+            raise TestCreationError("Invalid function %s" %f)
+        if test_type == 'norm':
+            return f(solution) == f(attempt)
+        else:
+            return f(solution, attempt)
+
     def run(self, solution_data, attempt_data):
         """Run the tests to compare the solution and attempt data
         Returns the empty string if the test passes, or else an error message.
         """
 
+        # check source code itself
+        (test_type, f) = self._code_test
+        if not self._check_code(solution_data['code'], attempt_data['code'], test_type, f):       
+            return 'Unexpected code'
+
         # check function return value (None for scripts)
         (test_type, f) = self._result_test
         if not self._check_output(solution_data['result'], attempt_data['result'], test_type, f):       
-            return 'function return value does not match'
+            return 'Unexpected function return value'
 
         # check stdout
         (test_type, f) = self._stdout_test
         if not self._check_output(solution_data['stdout'], attempt_data['stdout'], test_type, f):       
-            return 'stdout does not match'
+            return 'Unexpected output'
 
         #check stderr
         (test_type, f) = self._stderr_test
         if not self._check_output(solution_data['stderr'], attempt_data['stderr'], test_type, f):        
-            return 'stderr does not match'
+            return 'Unexpected error output'
 
         #check exception
         (test_type, f) = self._exception_test
         if not self._check_output(solution_data['exception'], attempt_data['exception'], test_type, f):        
-            return 'exception does not match'
-
+            return 'Unexpected exception'
 
         solution_files = solution_data['modified_files']
         attempt_files = attempt_data['modified_files']
@@ -404,11 +423,11 @@ class TestCase:
                 raise TestError(sys.exc_info())
             
             result_dict = {}
-            result_dict['description'] = test_part._succeed
+            result_dict['description'] = test_part._pass_msg
             result_dict['passed'] = (result == '')
             if result_dict['passed'] == False:
                 result_dict['error_message'] = result
-                result_dict['description'] = test_part._fail
+                result_dict['description'] = test_part._fail_msg
                 passed = False
                 
             results.append(result_dict)
@@ -422,6 +441,7 @@ class TestCase:
         """ Execute the file given by 'filename' in global_space, and return the outputs. """
         self._initialise_global_space(global_space)
         data = self._run_function(lambda: execfile(filename, global_space))
+        data['code'] = open(filename).read()
         return data
 
     def _execstring(self, string, global_space):
@@ -432,6 +452,7 @@ class TestCase:
             exec string in global_space
             
         data = self._run_function(f)
+        data['code'] = string
         return data
 
     def _initialise_global_space(self, global_space):
@@ -522,7 +543,7 @@ class TestSuite:
         self._tests.append(test_case)
         test_case.validate_functions(self._include_space)
 
-    def run_tests(self, attempt_code, stop_on_fail=True):
+    def run_tests(self, attempt_code, stop_on_fail=False):
         " Run all test cases and collate the results "
         
         problem_dict = {}

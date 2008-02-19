@@ -54,20 +54,20 @@ def getTextData(element):
     return data.strip()
 
 def getCasePartData(partNode):
-    """ Create an TestCasePaart instance from test part xml data
+    """ Create an TestCasePart instance from test part xml data
     """
     
     func_desc = partNode.getAttribute('desc')
-    func_succeed = partNode.getAttribute('succeed')
+    func_pass = partNode.getAttribute('pass')
     func_fail = partNode.getAttribute('fail')
-    if not func_succeed:
-        func_succeed = func_desc
+    if not func_pass:
+        func_pass = func_desc
     if not func_fail:
         func_fail = func_desc
     default = partNode.getAttribute('default')
     if default == '': default = DEFAULT_CASE_TYPE
     
-    part = TestCasePart(func_succeed, func_fail, default)
+    part = TestCasePart(func_pass, func_fail, default)
 
     for child in partNode.childNodes:
         if child.nodeType != child.ELEMENT_NODE:
@@ -92,6 +92,10 @@ def getCasePartData(partNode):
             if filename == '':
                 raise ParseException("File without name in case %s" %case_name)
             part.add_file_test(filename, getTextData(child), test_type)
+        elif child.tagName == 'code':
+            test_type = child.getAttribute('type')
+            if test_type == '': test_type = DEFAULT_TEST_TYPE
+            part.add_code_test(getTextData(child), test_type)
 
     return part
 

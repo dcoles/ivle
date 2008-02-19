@@ -306,7 +306,7 @@ def present_problem(req, problemsrc, problemid):
                 problempartial= getTextData(elem) + '\n'
 
     # Print this problem out to HTML 
-    req.write("<p><b>Problem:</b> %s</p>\n" % problemname)
+    req.write("<p><b>Exercise:</b> %s</p>\n" % problemname)
     if problemdesc is not None:
         req.write("<div>%s</div>\n" % problemdesc)
     req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
