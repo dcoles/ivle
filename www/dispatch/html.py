@@ -52,8 +52,8 @@ def write_html_head(req):
 """ % (cgi.escape(titlepart), cgi.escape(req.content_type)))
     # Write inline JavaScript which gives the client code access to certain
     # server-side variables.
-    if req.username:
-        username = repr(req.username)
+    if req.user:
+        username = repr(req.user.login)
     else:
         username = "null"
     req.write("""  <script type="text/javascript">
@@ -86,9 +86,9 @@ def write_html_head(req):
   <h2>Informatics Virtual Learning Environment</h2>
 """)
 
-    if req.username:
+    if req.user:
         # Get the user's nickname from the request session
-        nickname = req.get_session()['nick']
+        nickname = req.user.nick
         req.write('  <p class="userhello">%s (<span '
             'class="username">%s</span>) |\n'
             '    <a href="%s">Help</a> |\n'
@@ -113,7 +113,7 @@ def write_html_head(req):
     # If req has a "no_agreement" attribute, then it is because the user has
     # not signed the agreement; therefore we are displaying the TOS page.
     # Do not show apps (see dispatch.login).
-    if req.username and not hasattr(req, 'no_agreement'):
+    if req.user and not req.user.state == 'no_agreement':
         # Only print app tabs if logged in
         print_apps_list(req, req.app)
     req.write('</div>\n<div id="ivlebody">\n')

@@ -30,7 +30,7 @@ from auth import authenticate
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
-    and if not, presents the login page. Returns a String username, or None
+    and if not, presents the login page. Returns a User object, or None
     if not logged in.
 
     If the user was already logged in, nothing is written to req. Returns
@@ -43,16 +43,19 @@ def login(req):
     If the user is not logged in, or fails to authenticate, a full page is
     written to req. Returns None. The caller should immediately terminate.
     """
-    session = req.get_session()
+    # Get the user details from the session, if already logged in
+    # (None means not logged in yet)
+    login_details = get_user_details(req)
 
     # Check the session to see if someone is logged in. If so, go with it.
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
-    if 'state' in session and session['state'] == "enabled":
+    if login_details is not None and login_details.state == "enabled":
         # Only allow users to authenticate if their account is ENABLED
-        return session['login_name']
+        return login_details
 
     badlogin = None
+    login_details = None    # We'll re-auth you
     # Check if there is any postdata containing login information
     if req.method == 'POST':
         fields = req.get_fieldstorage()
@@ -77,14 +80,8 @@ def login(req):
                     # Success - Set the session and redirect to avoid POSTDATA
                     # TODO: Store the User object in session instead of
                     # individual fields
-                    session['login_name'] = username.value
-                    session['unixid'] = login_details.unixid
-                    session['state'] = login_details.state
-                    session['email'] = login_details.email
-                    session['nick'] = login_details.nick
-                    session['fullname'] = login_details.fullname
-                    session['role'] = login_details.role
-                    session['studentid'] = login_details.studentid
+                    session = req.get_session()
+                    session['user'] = login_details
                     session.save()
                     # XXX time.localtime() (a tuple of ints) is not valid for
                     # inserting as a TIMESTAMP in the DB.
@@ -101,21 +98,21 @@ def login(req):
     req.write_html_head_foot = True
 
     # User is not logged in or their account is not enabled.
-    if 'state' in session:      # Only possible if no errors occured thus far
-        if session['state'] == "no_agreement":
+    if login_details is not None:
+        # Only possible if no errors occured thus far
+        if login_details.state == "no_agreement":
             # User has authenticated but has not accepted the TOS.
             # Present them with the TOS page.
             # First set their username for display at the top, but make sure
             # the apps tabs are not displayed
-            req.username = session['login_name']
-            req.no_agreement = True
+            req.user = login_details
             # IMPORTANT NOTE FOR HACKERS: You can't simply disable this check
             # if you are not planning to display a TOS page - the TOS
             # acceptance process actually calls usermgt to create the user
             # jails and related stuff.
-            present_tos(req, session['fullname'])
+            present_tos(req, login_details.fullname)
             return None
-        elif session['state'] == "disabled":
+        elif login_details.state == "disabled":
             # User has authenticated but their account is disabled
             badlogin = "Your account has been disabled."
     # Else, just fall through (failed to authenticate)
@@ -141,7 +138,7 @@ def login(req):
 
     return None
 
-def get_username(req):
+def get_user_details(req):
     """Gets the name of the logged in user, without presenting a login box
     or attempting to authenticate.
     Returns None if there is no user logged in.
@@ -152,7 +149,7 @@ def get_username(req):
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
     try:
-        return session['login_name']
+        return session['user']
     except KeyError:
         return None
 

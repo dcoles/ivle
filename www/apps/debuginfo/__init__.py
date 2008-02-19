@@ -81,7 +81,11 @@ def handle(req):
 
     print_table(req, "Field Storage",
         getfieldvalues(req.get_fieldstorage().items()))
-    print_table(req, "Session Variables", req.get_session().items())
+    session = req.get_session()
+    print_table(req, "Session Variables", session.items())
+    if 'user' in session:
+        print_table(req, "User Fields", dict(session['user']).items(),
+            "h4")
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())
@@ -107,12 +111,12 @@ def getfieldvalues(pairs):
         newlist.append((k,v.value))
     return newlist
 
-def print_table(req, tablename, mapping):
+def print_table(req, tablename, mapping, head_elem="h3"):
     """Prints an HTML table with a heading.
 
     mapping: An associative list (a list of pairs). The pairs are printed
     using (str, repr) respectively into the two-column table."""
-    req.write("<h3>%s</h3>\n" % tablename)
+    req.write("<%s>%s</%s>\n" % (head_elem, tablename, head_elem))
     req.write('<table border="1">\n')
     for (k,v) in mapping:
         req.write("<tr><th>%s</th><td>%s</td></tr>\n" % (str(k), repr(v)))

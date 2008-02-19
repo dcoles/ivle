@@ -72,6 +72,12 @@ class User(object):
         items = ["%s=%s" % (r, repr(self.__getattribute__(r)))
             for r in user_fields_list]
         return "User(" + ', '.join(items) + ")"
+    def __iter__(self):
+        """Iteration yielding field:value pairs.
+        (Allows the "dict" function to work on Users)
+        """
+        for r in user_fields_list:
+            yield (r, self.__getattribute__(r))
 
     def hasCap(self, capability):
         """Given a capability (which is a Role object), returns True if this

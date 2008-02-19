@@ -43,9 +43,13 @@ class Request:
             String. The path specified in the URL *not including* the
             application or the IVLE location prefix. eg. a URL of
             "/ivle/files/joe/myfiles" has a path of "joe/myfiles".
-        username (read)
+        user (read)
+            User object. Details of the user who is currently logged in, or
+            None.
+        username (read, deprecated)
             String. Login name of the user who is currently logged in, or
             None.
+            Deprecated in favour of user.login.
         hostname (read)
             String. Hostname the server is running on.
         headers_in (read)
@@ -183,6 +187,7 @@ class Request:
             self.path = path
         else:
             (self.app, self.path) = (common.util.split_path(path))
+        self.user = None
         self.username = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in

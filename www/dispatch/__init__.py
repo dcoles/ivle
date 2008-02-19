@@ -74,12 +74,19 @@ def handler(req):
         app = conf.apps.app_url[req.app]
 
     # Check if app requires auth. If so, perform authentication and login.
+    # This will either return a User object, None, or perform a redirect
+    # which we will not catch here.
     if app.requireauth:
-        req.username = login.login(req)
-        logged_in = req.username is not None
+        req.user = login.login(req)
+        logged_in = req.user is not None
     else:
-        req.username = login.get_username(req)
+        req.user = login.get_user_details(req)
         logged_in = True
+    # XXX username is deprecated
+    try:
+        req.username = req.user.login
+    except AttributeError:
+        req.username = None
 
     if logged_in:
         # Keep the user's session alive by writing to the session object.
