@@ -1986,8 +1986,8 @@ class user extends session
 	
 			// Check if the user exists in the database
 			$sql = 'SELECT user_id
-					FROM ' . USERS_TABLE . '
-					WHERE username = "' . $db->sql_escape($ivle_uid) . '";';
+                    FROM ' . USERS_TABLE . "
+                    WHERE username = '" . $db->sql_escape($ivle_uid) . "';";
 			$result = $db->sql_query($sql);
 			$row = $db->sql_fetchrow($result);
 			$user_id = $row['user_id'];
@@ -2052,8 +2052,8 @@ class user extends session
 		if ($group) {
 			// Find the group_id
 			$sql = 'SELECT group_id
-					FROM ' . GROUPS_TABLE . "
-					WHERE group_name = '" . $db->sql_escape($group) . "'
+                    FROM ' . GROUPS_TABLE . "
+                    WHERE group_name = '" . $db->sql_escape($group) . "'
 					AND group_type = " . GROUP_SPECIAL;
 			$result = $db->sql_query($sql);
 			$row = $db->sql_fetchrow($result);
