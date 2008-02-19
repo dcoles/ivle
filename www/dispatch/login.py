@@ -66,12 +66,16 @@ def login(req):
             # if unsuccessful.
             # Authenticate
             if password is None:
-                badlogin = "Invalid username or password."
+                badlogin = "No password supplied."
             else:
-                login_details = \
-                    authenticate.authenticate(username.value, password.value)
+                try:
+                    login_details = \
+                        authenticate.authenticate(username.value, password.value)
+                except authenticate.AuthError, msg:
+                    badlogin = msg
                 if login_details is None:
-                    badlogin = "Invalid username or password."
+                    # Must have got an error. Do not authenticate.
+                    pass
                 elif login_details.pass_expired():
                     badlogin = "Your password has expired."
                 elif login_details.acct_expired():

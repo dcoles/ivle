@@ -368,18 +368,22 @@ class DB:
     def user_authenticate(self, login, password, dry=False):
         """Performs a password authentication on a user. Returns True if
         "passhash" is the correct passhash for the given login, False
-        otherwise.
+        if the passhash does not match the password in the DB,
+        and None if the passhash in the DB is NULL.
         Also returns False if the login does not exist (so if you want to
         differentiate these cases, use get_user and catch an exception).
         """
-        query = ("SELECT login FROM login "
-            "WHERE login = '%s' AND passhash = %s;"
-            % (login, _escape(_passhash(password))))
+        query = "SELECT passhash FROM login WHERE login = '%s';" % login
         if dry: return query
         result = self.db.query(query)
-        # If one row was returned, succeed.
-        # Otherwise, fail to authenticate.
-        return result.ntuples() == 1
+        if result.ntuples() == 1:
+            # Valid username. Check password.
+            passhash = result.getresult()[0][0]
+            if passhash is None:
+                return None
+            return _passhash(password) == passhash
+        else:
+            return False
 
     def close(self):
         """Close the DB connection. Do not call any other functions after
