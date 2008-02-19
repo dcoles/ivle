@@ -39,6 +39,7 @@ sudo apt-get install gcc libc6 libc6-dev make
 sudo apt-get install apache2 libapache2-mod-python
 sudo apt-get install python2.5-dev python-svn python-webpy python-numpy python-matplotlib
 sudo apt-get install postgresql python-pygresql python-ldap
+sudo apt-get install php5 php5-pgsql
 
 # Note: I had a lot of trouble with the python-svn package.
 # After playing around a bit it started working.
@@ -125,6 +126,32 @@ sudo chown www-data:www-data /home/informatics/sessions
 # Restart the server
 sudo apache2ctl -k restart
 
+##########################################################################
+# Setting up phpBB Forum in IVLE
+##########################################################################
+#
+# Fix permissions for install
+cd www/php/phpBB3
+chmod 777 cache/ files/ store/ images/avatars/upload config.php
+
+# Add database to Postgres server
+sudo -u postgres createdb forum
+
+# Log on to IVLE and open the Forum Application (/forum)
+# Click 'INSTALL' tab, 'Proceed to next step'
+# Check that requirements are OK
+# Click 'Start install'
+# Fill in Database configuration
+#   Database type: PostgreSQL 7.x/8.x
+#   # localhost doesn't work, but localhost.csse.unimelb.edu.au does?
+#   Database server hostname: 127.0.0.1
+#   Database name: forum
+#   Database username: postgres
+#   Database password: ##Same as password for ivle db##
+# Complete the rest of the wizard with site settings
+
+# Remove the Install directory to enable access
+rm -rf install/
 
 ##########################################################################
 # Installing Pound reverse proxy (optional)
