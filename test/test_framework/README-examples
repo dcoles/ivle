@@ -20,7 +20,7 @@ A python script which runs the all_input and fib examples through the test frame
 ---------
 hack_1.py
 ---------
-An example script that can be used to pass any test case which tests the output of a script (not functoins).
+An example script that can be used to pass any test case which tests the output of a script (not functions).
 
 -----------------
 filespace_test.py
@@ -34,3 +34,12 @@ Currently, the output is verified by inspection. I found the idle implementation
 tute_doc.tex
 ------------
 Some notes on requirements of the tutorial system and test framework and how it should operate. Last revised 9th Jan.
+
+
+New functionality not covered in these examples:
+
+* problem element has a rows attribute for specifying the number of rows in the
+  text area
+* function element has pass and fail attributes containing strings to report
+  test outcome to user
+* new code element permits tests on the code string, not just the program output

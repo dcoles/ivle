@@ -293,6 +293,9 @@ def present_problem(req, problemsrc, problemid):
         # TODO: Nicer error message, to help authors
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
     problemname = problemdom.getAttribute("name")
+    rows = problemdom.getAttribute("rows")
+    if not rows:
+        rows = "12"
     # Look for some other fields we need, which are elements:
     # - desc
     # - partial
@@ -309,8 +312,8 @@ def present_problem(req, problemsrc, problemid):
     req.write("<p><b>Exercise:</b> %s</p>\n" % problemname)
     if problemdesc is not None:
         req.write("<div>%s</div>\n" % problemdesc)
-    req.write('<textarea class="problembox" cols="80" rows="12">%s</textarea>'
-            % problempartial)
+    req.write('<textarea class="problembox" cols="80" rows="%s">%s</textarea>'
+            % (rows, problempartial))
     filename = cgi.escape(cjson.encode(problemsrc), quote=True)
     req.write("""\n<div class="problembuttons">
   <input type="button" value="Run"
