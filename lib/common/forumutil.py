@@ -38,7 +38,7 @@ def make_forum_cookie(login_details):
         email = quote(login_details.email)
 
 
-    role = quote(login_details.rolenm)
+    role = quote(str(login_details.role))
     
     hashtext = login + nick + email + role + secret
     hash = hashlib.md5(hashtext).hexdigest()
