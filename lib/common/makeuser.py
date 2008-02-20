@@ -42,13 +42,18 @@ import warnings
 import conf
 import db
 
-def make_svn_repo(login):
+def make_svn_repo(login, throw_on_error=True):
     """Create a repository for the given user.
     """
     path = os.path.join(conf.svn_repo_path, login)
-    res = os.system("svnadmin create '%s'" % path)
-    if res != 0:
-        raise Exception("Cannot create repository for %s" % login)
+    try:
+        res = os.system("svnadmin create '%s'" % path)
+        if res != 0 and throw_on_error:
+            raise Exception("Cannot create repository for %s" % login)
+    except Exception, exc:
+        print repr(exc)
+        if throw_on_error:
+            raise
 
 def rebuild_svn_config():
     """Build the complete SVN configuration file.
@@ -73,27 +78,27 @@ def rebuild_svn_config():
         login = r['login']
         f.write("[%s:/]\n" % login)
         f.write("%s = rw\n" % login)
-        f.write("@tutor = r\n")
-        f.write("@lecturer = rw\n")
-        f.write("@admin = rw\n")
+        #f.write("@tutor = r\n")
+        #f.write("@lecturer = rw\n")
+        #f.write("@admin = rw\n")
         f.write("\n")
     f.close()
     os.rename(conf.svn_conf + ".new", conf.svn_conf)
 
-def make_svn_config(login):
+def make_svn_config(login, throw_on_error=True):
     """Add an entry to the apache-svn config file for the given user.
        Assumes the given user is either a guest or a student.
     """
     f = open(conf.svn_conf, "a")
     f.write("[%s:/]\n" % login)
     f.write("%s = rw\n" % login)
-    f.write("@tutor = r\n")
-    f.write("@lecturer = rw\n")
-    f.write("@admin = rw\n")
+    #f.write("@tutor = r\n")
+    #f.write("@lecturer = rw\n")
+    #f.write("@admin = rw\n")
     f.write("\n")
     f.close()
 
-def make_svn_auth(login):
+def make_svn_auth(login, throw_on_error=True):
     """Setup svn authentication for the given user.
        FIXME: create local.auth entry
     """
@@ -103,13 +108,15 @@ def make_svn_auth(login):
     else:
         create = "c"
 
-    db.DB().update_user({'svn_pass':passwd})
+    db.DB().update_user(login, svn_pass=passwd)
 
-    res = os.system("htpasswd -%smb %s %s" % (create,
+    res = os.system("htpasswd -%smb %s %s %s" % (create,
                                               conf.svn_auth_ivle,
                                               login, passwd))
-    if res != 0:
+    if res != 0 and throw_on_error:
         raise Exception("Unable to create ivle-auth for %s" % login)
+
+    return passwd
 
 def make_jail(username, uid, force=True):
     """Creates a new user's jail space, in the jail directory as configured in

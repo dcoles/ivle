@@ -32,7 +32,7 @@ user_fields_required = frozenset((
 ))
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
-    "role", "studentid", "acct_exp", "pass_exp"
+    "role", "studentid", "acct_exp", "pass_exp", "svn_pass"
 )
 # Fields not included: passhash, last_login
 

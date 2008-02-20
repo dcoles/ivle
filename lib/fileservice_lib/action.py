@@ -119,6 +119,9 @@
 #               recursively.
 #       logmsg: Text of the log message. Optional. There is a default log
 #               message if unspecified.
+# action=svncheckout: Checkout a file/directory from the repository.
+#       path:   The [repository] path to the file or directory to be
+#               checked out.
 # 
 # TODO: Implement the following actions:
 #   putfiles, svnrevert, svnupdate, svncommit
@@ -136,9 +139,15 @@ import shutil
 import pysvn
 
 from common import (util, studpath, zip)
+import conf
+
+def get_login(_realm, _username, _may_save):
+    """Return the subversion credentials for the user."""
+    return (True, conf.login, conf.passwd, True)
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
+svnclient.callback_get_login = get_login
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -548,6 +557,22 @@ def action_svncommit(req, fields):
     except pysvn.ClientError:
         raise ActionError("One or more files could not be committed")
 
+def action_svncheckout(req, fields):
+    """Performs a "svn checkout" of each path specified.
+
+    Reads fields: 'path'    (multiple)
+    """
+    paths = fields.getlist('path')
+    if len(paths) != 2:
+        raise ActionError("usage: svncheckout url local-path")
+    url = conf.svn_addr + "/" + login + "/" + paths[0]
+    local_path = actionpath_to_local(req, str(paths[1]))
+    try:
+        svnclient.callback_get_login = get_login
+        svnclient.checkout(url, local_path, recurse=True)
+    except pysvn.ClientError:
+        raise ActionError("One or more files could not be checked out")
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -567,4 +592,5 @@ actions_table = {
     "svnpublish" : action_svnpublish,
     "svnunpublish" : action_svnunpublish,
     "svncommit" : action_svncommit,
+    "svncheckout" : action_svncheckout,
 }

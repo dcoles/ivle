@@ -71,8 +71,9 @@ def authenticate(login, password):
     # (This should not spawn a DB connection on each page reload, only when
     # there is no session object to begin with).
     dbconn = common.db.DB()
-    user = dbconn.get_user(login)
+
     try:
+        user = dbconn.get_user(login)
         for m in auth_modules:
             # May raise an AuthError - allow to propagate
             auth_result = m(dbconn, login, password, user)
@@ -86,7 +87,7 @@ def authenticate(login, password):
                     # If user is not None, then it must return the same user
                     raise AuthError("Internal error: "
                         "Bad authentication module (changed user)")
-                if user is None:
+                elif user is None:
                     # We just got ourselves some user details from an external
                     # source. Put them in the DB.
                     # TODO: Write user to DB
@@ -96,6 +97,10 @@ def authenticate(login, password):
                 raise AuthError("Internal error: "
                     "Bad authentication module (bad return type)")
         # No auths checked out; fail.
+        raise AuthError()
+    except common.db.DBException:
+        # If our attempt to get the named user from the db fails,
+        # then the login name is unknown.
         raise AuthError()
     finally:
         dbconn.close()

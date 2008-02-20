@@ -16,6 +16,23 @@ from threading import Thread
 
 import common.chat
 
+class ExpiryTimer(object):
+    def __init__(self, idle):
+        self.idle = idle
+        signal.signal(signal.SIGALRM, partial(self.timeout,self))
+
+    def ping(self):
+        signal.alarm(self.idle)
+
+    def start(self, time):
+        signal.alarm(time)
+
+    def stop(self):
+        self.ping()
+
+    def timeout(self, signum, frame):
+        sys.exit(1)
+        
 class StdinFromWeb(object):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
@@ -23,13 +40,10 @@ class StdinFromWeb(object):
 
     def readline(self):
         # stop the clock!
-        signal.alarm(0)
         self.cmdQ.put({"input":None})
+        expiry.ping()
         ln = self.lineQ.get()
         if 'chat' in ln:
-            # restart the clock:
-            # Some of our 5 seconds may have elapsed, but never mind.
-            signal.alarm(5)
             return ln['chat']
 
 class PythonRunner(Thread):
@@ -44,14 +58,11 @@ class PythonRunner(Thread):
             sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
             sys.stdout = self.out
             sys.stderr = self.out
-            signal.alarm(5)
             res = eval(cmd, self.globs, self.locls)
-            signal.alarm(0)
             self.cmdQ.put({"okay":(self.out.getvalue(),res)})
             self.curr_cmd = ''
             self.out = cStringIO.StringIO()
         except Exception, exc:
-            signal.alarm(0)
             self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
             self.curr_cmd = ''
             self.out = cStringIO.StringIO()
@@ -77,7 +88,6 @@ class PythonRunner(Thread):
                     else:
                         self.execCmd(cmd)
                 except Exception, exc:
-                    signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
                     self.curr_cmd = ''
                     self.out = cStringIO.StringIO()
@@ -87,7 +97,6 @@ class PythonRunner(Thread):
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
                 except Exception, exc:
-                    signal.alarm(0)
                     self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
                     self.curr_cmd = ''
                     self.out = cStringIO.StringIO()
@@ -115,11 +124,16 @@ cmdQ = Queue.Queue()
 lineQ = Queue.Queue()
 interpThread = PythonRunner(cmdQ, lineQ)
 
+# Default expiry time of 15 minutes
+expiry = ExpiryTimer(15 * 60)
+
 def initializer():
     interpThread.setDaemon(True)
     interpThread.start()
+    expiry.ping()
 
 def dispatch_msg(msg):
+    expiry.ping()
     lineQ.put({msg['cmd']:msg['text']})
     return cmdQ.get()
 

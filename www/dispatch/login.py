@@ -119,7 +119,14 @@ def login(req):
         elif login_details.state == "disabled":
             # User has authenticated but their account is disabled
             badlogin = "Your account has been disabled."
-    # Else, just fall through (failed to authenticate)
+        elif login_details.state == "pending":
+            # FIXME: this isn't quite the right answer, but it
+            # should be more robust in the short term.
+            session = req.get_session()
+            session.invalidate()
+            session.delete()
+            db.DB().update_user(login_details.login, state='no_agreement')
+            req.throw_redirect(req.uri)
 
     # Write the HTML for the login page
     # If badlogin, display an error message indicating a failed login

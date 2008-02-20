@@ -172,8 +172,7 @@ class DB:
         """
         if (not (DB.check_dict(primarydict, primary_keys, must=True)
             and DB.check_dict(updatedict, tablefields, disallowed_update))):
-            raise DBException("Supplied dictionary contains invalid or "
-                " missing fields.")
+            raise DBException("Supplied dictionary contains invalid or missing fields (1).")
         # Make a list of SQL fragments of the form "field = 'new value'"
         # These fragments are ALREADY-ESCAPED
         setlist = []
@@ -199,8 +198,7 @@ class DB:
         primarydict, tablename, primary_keys: See update.
         """
         if not DB.check_dict(primarydict, primary_keys, must=True):
-            raise DBException("Supplied dictionary contains invalid or "
-                " missing fields.")
+            raise DBException("Supplied dictionary contains invalid or missing fields (2).")
         wherelist = []
         for k,v in primarydict.items():
             wherelist.append("%s = %s" % (k, _escape(v)))
@@ -225,8 +223,7 @@ class DB:
             primary_keys is indeed the primary key).
         """
         if not DB.check_dict(primarydict, primary_keys, must=True):
-            raise DBException("Supplied dictionary contains invalid or "
-                " missing fields.")
+            raise DBException("Supplied dictionary contains invalid or missing fields (3).")
         wherelist = []
         for k,v in primarydict.items():
             wherelist.append("%s = %s" % (k, _escape(v)))
@@ -289,7 +286,7 @@ class DB:
     login_primary = frozenset(["login"])
     login_fields_list = [
         "login", "passhash", "state", "unixid", "email", "nick", "fullname",
-        "rolenm", "studentid", "acct_exp", "pass_exp", "last_login"
+        "rolenm", "studentid", "acct_exp", "pass_exp", "last_login", "svn_pass"
     ]
     login_fields = frozenset(login_fields_list)
     # Do not return passhash when reading from the DB
@@ -307,7 +304,7 @@ class DB:
         invalid keys or is missing required keys.
         """
         if 'passhash' in kwargs:
-            raise DBException("Supplied arguments include passhash (invalid).")
+            raise DBException("Supplied arguments include passhash (invalid) (1).")
         # Make a copy of the dict. Change password to passhash (hashing it),
         # and set 'state' to "no_agreement".
         kwargs = copy.copy(kwargs)
@@ -333,7 +330,7 @@ class DB:
         with a new one.
         """
         if 'passhash' in kwargs:
-            raise DBException("Supplied arguments include passhash (invalid).")
+            raise DBException("Supplied arguments include passhash (invalid) (2).")
         if "password" in kwargs:
             kwargs = copy.copy(kwargs)
             kwargs['passhash'] = _passhash(kwargs['password'])

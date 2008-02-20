@@ -270,7 +270,6 @@ config_options.append(ConfigOption("db_password", "",
     (Caution: This password is stored in plaintext in lib/conf/conf.py)""",
     """
 # Database password"""))
-
 config_options.append(ConfigOption("ldap_url", "ldaps://www.example.com",
     """URL for LDAP authentication server:""",
     """
@@ -282,7 +281,10 @@ config_options.append(ConfigOption("ldap_format_string",
     """
 # Format string for LDAP auth request
 # (Must contain a single "%s" for the user's login name)"""))
-
+config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
+    """The base url for accessing subversion repositories:""",
+    """
+# The base url for accessing subversion repositories."""))
 config_options.append(ConfigOption("svn_conf", "/opt/ivle/svn/svn.conf",
     """The location of the subversion configuration file used by apache
 to host the user repositories:""",

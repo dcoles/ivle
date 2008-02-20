@@ -42,9 +42,9 @@ def url_to_local(urlpath):
             found within the student directories.
 
     urlpath: Part of the URL, but only the part *after* the application. For
-    instance, given the URL "/ivle/browse/joe/home/mydir/myfile", urlpath will
-    be just "joe/home/mydir/myfile". The expected result is something like
-    ("joe", "/home/informatics/jails/joe/home/joe/home/mydir/myfile").
+    instance, given the URL "/ivle/browse/joe/mydir/myfile", urlpath will
+    be just "joe/mydir/myfile". The expected result is something like
+    ("joe", "/home/informatics/jails/joe/home/joe/mydir/myfile").
     Note that the actual location is not guaranteed by this interface (this
     function serves as a single point of control as to how URLs map onto
     student directories).
@@ -80,8 +80,8 @@ def url_to_jailpaths(urlpath):
 
     urlpath: See urlpath in url_to_local.
 
-    >>> url_to_jailpaths("joe/home/mydir/myfile")
-    ("joe", "/home/informatics/jails/joe", "home/joe/home/mydir/myfile")
+    >>> url_to_jailpaths("joe/mydir/myfile")
+    ("joe", "/home/informatics/jails/joe", "home/joe/mydir/myfile")
 
     >>> url_to_jailpaths("")
     (None, None, None)

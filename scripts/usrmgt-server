@@ -1,10 +1,17 @@
 #!/usr/bin/python
 
+import os
+import pysvn
+import subprocess
 import sys
+import urllib
+from functools import partial
 
+import conf
 import common.db
 import common.chat
 import common.makeuser
+import common.studpath
 
 # usage:
 #   usrmgt-server <port> <magic>
@@ -85,6 +92,12 @@ def create_user(props):
 
     return uid
 
+def get_login(login, passwd, _realm, _login, _may_save):
+    """Callback function used by pysvn for authentication.
+    """
+    # print >> sys.stderr, "Getting password for %s (realm %s)" % (login, _realm)
+    return (True, login, passwd, False)
+
 def activate_user(props):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
@@ -104,15 +117,94 @@ def activate_user(props):
 
         details = db.get_user(login)
 
-        # FIXME: make svn config/auth
+        # make svn config/auth
 
-        # FIXME: etc, etc.
+        # print >> sys.stderr, "Creating repo"
+        common.makeuser.make_svn_repo(login, throw_on_error=False)
+        # print >> sys.stderr, "Creating svn config"
+        common.makeuser.make_svn_config(login, throw_on_error=False)
+        # print >> sys.stderr, "Creating svn auth"
+        passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
+        # print >> sys.stderr, "passwd: %s" % passwd
 
-        common.makeuser.make_jail(login, details['unixid'])
+        svn = pysvn.Client()
+        svn.callback_get_login = partial(get_login, login, passwd)
+    
+        # FIXME: This should be a loop over enrolements.
+        #        We're not going to fix this now because it requires
+        #        a large amount of admin console work to manage subject
+        #        offerings.
+        #        Instead, we're just going to use a single offering with
+        #        a "short" name of "info1".
+        # print >> sys.stderr, "Creating /info1"
+        try:
+            svn.mkdir(conf.svn_addr + login + "/info1",
+                      "Initial creation of work directory for Informatics 1")
+        except Exception, exc:
+            pass
+        # print >> sys.stderr, "Creating /submissions"
+        try:
+            svn.mkdir(conf.svn_addr + login + "/submissions",
+                      "Initial creation of submissions directory")
+        except Exception, exc:
+            pass
+        # print >> sys.stderr, "Creating /stuff"
+        try:
+            svn.mkdir(conf.svn_addr + login + "/stuff",
+                      "Initial creation of directory for miscellania")
+        except Exception, exc:
+            pass
 
+        # print >> sys.stderr, "Creating jail"
+        common.makeuser.make_jail(login, details.unixid)
+
+        # FIXME: <hack>
+
+        tcf_path = os.path.join(conf.jail_base, 'template/opt/ivle/lib/conf/conf.py')
+        cf_path = os.path.join(conf.jail_base, login, 'opt/ivle/lib/conf/conf.py')
+
+        os.remove(cf_path)
+        cf = open(cf_path, "w")
+        cf.write(open(tcf_path, "r").read())
+        cf.write("# The login name for the owner of the jail\n")
+        cf.write("login = %s\n" % repr(login))
+        cf.write("\n")
+        cf.write("# The subversion-only password for the owner of the jail\n")
+        cf.write("svn_pass = %s\n" % repr(passwd))
+        cf.close()
+
+        # FIXME: </hack>
+
+        # print >> sys.stderr, "Checking out directories in the jail"
+        try:
+            svn.checkout(conf.svn_addr + "/" + login + "/stuff",
+                         common.studpath.url_to_local(login + "/stuff")[1])
+        except Exception, exc:
+            pass
+        try:
+            svn.checkout(conf.svn_addr + "/" + login + "/submissions",
+                         common.studpath.url_to_local(login + "/submissions")[1])
+        except Exception, exc:
+            pass
+        try:
+            svn.checkout(conf.svn_addr + "/" + login + "/info1",
+                         common.studpath.url_to_local(login + "/info1")[1])
+        except Exception, exc:
+            pass
+
+        # FIXME: should this be nicer?
+        os.system("chown -R %d:%d %s" \
+                % (details.unixid, details.unixid,
+                   common.studpath.url_to_local(login)[1]))
+
+
+        # print >> sys.stderr, "Enabling user"
         db.update_user(login, state='enabled')
 
         return {"response": "okay"}
+    
+    except Exception, exc:
+        print >> sys.stderr, exc
 
     finally:
         db.close()
@@ -123,6 +215,7 @@ actions = {
     }
 
 def dispatch(props):
+    # print >> sys.stderr, repr(props)
     action = props.keys()[0]
     return actions[action](props[action])
 

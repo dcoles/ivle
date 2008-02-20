@@ -12,6 +12,7 @@ CREATE TABLE login (
     pass_exp    TIMESTAMP,
     acct_exp    TIMESTAMP,
     last_login  TIMESTAMP,
+    svn_pass    VARCHAR,
     email       VARCHAR,
     fullname    VARCHAR NOT NULL,
     studentid   VARCHAR -- may be null
