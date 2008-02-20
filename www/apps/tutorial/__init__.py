@@ -40,6 +40,8 @@ from common import util
 import conf
 import plugins.console
 
+from rst import rst
+
 THIS_APP = "tutorial"
 
 # Regex for valid identifiers (subject/worksheet names)
@@ -304,7 +306,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     for elem in exercisedom.childNodes:
         if elem.nodeType == elem.ELEMENT_NODE:
             if elem.tagName == "desc":
-                exercisedesc = innerXML(elem).strip()
+                exercisedesc = rst(innerXML(elem).strip())
             if elem.tagName == "partial":
                 exercisepartial= getTextData(elem) + '\n'
 

@@ -58,13 +58,8 @@ def getCasePartData(partNode):
     """ Create an TestCasePart instance from test part xml data
     """
     
-    func_desc = partNode.getAttribute('desc')
     func_pass = partNode.getAttribute('pass')
     func_fail = partNode.getAttribute('fail')
-    if not func_pass:
-        func_pass = func_desc
-    if not func_fail:
-        func_fail = func_desc
     default = partNode.getAttribute('default')
     if default == '': default = DEFAULT_CASE_TYPE
     
@@ -101,7 +96,7 @@ def getCasePartData(partNode):
     return part
 
 def getCaseData(caseNode):
-    """ Creare a TestCase instance from test case xml data
+    """ Create a TestCase instance from test case xml data
     """
     
     case_name = caseNode.getAttribute('name')
@@ -168,7 +163,6 @@ def parse_exercise_file(filename, exercise_num=1):
 
     # get name
     exercise_name = exercise.getAttribute('name')
-
     if not exercise_name:
         raise ParseException('Exercise name not supplied')
 

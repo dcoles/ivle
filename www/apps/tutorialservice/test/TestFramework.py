@@ -517,7 +517,7 @@ class TestSuite:
         self._solution = solution
 
     def has_solution(self):
-        " Returns true if a soltion has been provided "
+        " Returns true if a solution has been provided "
         return self._solution != None
 
     def add_include_code(self, include_code = ''):
