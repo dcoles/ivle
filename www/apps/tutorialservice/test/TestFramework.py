@@ -225,25 +225,25 @@ class TestCasePart:
         else:
             return f(solution_output, attempt_output)
 
-    def _check_code(self, solution, attempt, test_type, f):
+    def _check_code(self, solution, attempt, test_type, f, include_space):
         """Compare solution code and attempt code using the
         specified comparison function.
         """
         if type(f) in types.StringTypes:  # kludge
-            f = eval(str(f))
+            f = eval(str(f), include_space)
         if test_type == 'norm':
             return f(solution) == f(attempt)
         else:
             return f(solution, attempt)
 
-    def run(self, solution_data, attempt_data):
+    def run(self, solution_data, attempt_data, include_space):
         """Run the tests to compare the solution and attempt data
         Returns the empty string if the test passes, or else an error message.
         """
 
         # check source code itself
         (test_type, f) = self._code_test
-        if not self._check_code(solution_data['code'], attempt_data['code'], test_type, f):       
+        if not self._check_code(solution_data['code'], attempt_data['code'], test_type, f, include_space):       
             return 'Unexpected code'
 
         # check function return value (None for scripts)
@@ -374,7 +374,7 @@ class TestCase:
         """ Get the name of the test case """
         return self._name
 
-    def run(self, solution, attempt_code, stop_on_fail=True):
+    def run(self, solution, attempt_code, include_space, stop_on_fail=True):
         """ Run the solution and the attempt with the inputs specified for this test case.
         Then pass the outputs to each test part and collate the results.
         """
@@ -416,7 +416,7 @@ class TestCase:
         # generate results
         for test_part in self._parts:
             try:
-                result = test_part.run(solution_data, attempt_data)
+                result = test_part.run(solution_data, attempt_data, include_space)
             except:
                 raise TestError(sys.exc_info())
             
@@ -554,7 +554,7 @@ class TestSuite:
         test_case_results = []
         passed = True
         for test in self._tests:
-            result_dict = test.run(self._solution, attempt_code)
+            result_dict = test.run(self._solution, attempt_code, self._include_space)
             if 'exception' in result_dict and result_dict['exception']['critical']:
                 # critical error occured, running more cases is useless
                 # FunctionNotFound, Syntax, Indentation
