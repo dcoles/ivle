@@ -347,7 +347,8 @@ except:
 # as necessary, and include it in the distribution.
 listmake_mimetypes = ['text/x-python', 'text/html',
     'application/x-javascript', 'application/javascript',
-    'text/css', 'image/png', 'application/xml']
+    'text/css', 'image/png', 'image/gif', 'image/jpeg', 'application/xml', 
+    'application/x-httpd-php']
 
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829

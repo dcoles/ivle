@@ -130,8 +130,11 @@ sudo apache2ctl -k restart
 # Setting up phpBB Forum in IVLE
 ##########################################################################
 #
+# Change to the installed IVLE directory
+cd /opt/ivle
 # Fix permissions for install
 cd www/php/phpBB3
+mkdir store
 chmod 777 cache/ files/ store/ images/avatars/upload config.php
 
 # Add database to Postgres server
@@ -152,6 +155,8 @@ sudo -u postgres createdb forum
 
 # Remove the Install directory to enable access
 rm -rf install/
+
+# Disable Registration...
 
 ##########################################################################
 # Installing Pound reverse proxy (optional)
