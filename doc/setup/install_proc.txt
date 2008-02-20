@@ -61,6 +61,12 @@ cd python-cjson-1.0.5
 sudo ./setup.py install
 cd ..
 
+# Documentation packages needed for tutorial system: Docutils, Epydoc
+# wget each of these, untar them, and then do: sudo python ./setup.py install
+
+http://docutils.sourceforge.net/docutils-snapshot.tgz
+http://downloads.sourceforge.net/epydoc/epydoc-3.0.1.tar.gz?use_mirror=optusnet
+
 ##########################################################################
 # Configure postgres
 ##########################################################################
