@@ -349,8 +349,7 @@ except:
 # as necessary, and include it in the distribution.
 listmake_mimetypes = ['text/x-python', 'text/html',
     'application/x-javascript', 'application/javascript',
-    'text/css', 'image/png', 'image/gif', 'image/jpeg', 'application/xml', 
-    'application/x-httpd-php']
+    'text/css', 'image/png', 'application/xml']
 
 # Main function skeleton from Guido van Rossum
 # http://www.artima.com/weblogs/viewpost.jsp?thread=4829
@@ -859,6 +858,10 @@ def install(args):
     # Copy the www and lib directories using the list
     action_copylist(install_list.list_www, ivle_install_dir, dry)
     action_copylist(install_list.list_lib, ivle_install_dir, dry)
+    
+    # Copy the php directory
+    action_copytree('www/php/phpBB3',os.path.join(ivle_install_dir,'www/php/phpBB3'), 
+    dry)
 
     if not nojail:
         # Copy the local jail directory built by the build action

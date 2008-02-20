@@ -79,8 +79,8 @@ def handle(req):
     req.content_type = "text/html"
     req.write_html_head_foot = True
     req.write('<object' +
-              ' id="ivlebody"' +
-              ' style="top:0"' +
+              ' id="forumwindow"' +
+              ' style="top:0;width:100%;height:100%;position:absolute"' +
               ' type="text/html"' +
               ' data="' + frameurl + framequery + '"' +
               '/>\n'
