@@ -20,6 +20,12 @@
 /* Test case outputs are shown as a bulleted list, with these icons as the
  * bullets. */
 
+li.check {
+    list-style: url(../images/tutorial/check.png);
+}
+li.cross {
+    list-style: url(../images/tutorial/cross.png);
+}
 li.pass {
     list-style: url(../images/tutorial/pass.png);
 }

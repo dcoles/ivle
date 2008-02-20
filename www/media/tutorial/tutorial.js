@@ -107,7 +107,7 @@ function handle_testresponse(exercisediv, testresponse)
     {
         /* Only one error - and it's bad.
          * Just print and stop */
-        ul.appendChild(create_response_item("critical",
+        ul.appendChild(create_response_item("critical", 0,
             testresponse.critical_error.name,
             testresponse.critical_error.detail));
         return;
@@ -119,23 +119,23 @@ function handle_testresponse(exercisediv, testresponse)
         if ("exception" in testcase)
         {
             /* User's code threw an exception */
-            fail_li = create_response_item("fail", testcase.name);
+            fail_li = create_response_item("fail", 0, testcase.name);
             ul.appendChild(fail_li);
             /* Create a sub-ul to display the failing cases. */
             case_ul = document.createElement("ul");
             fail_li.appendChild(case_ul);
-            case_ul.appendChild(create_response_item("exception",
+            case_ul.appendChild(create_response_item("exception", 0,
                 testcase.exception.name, testcase.exception.detail));
         }
         else if (testcase.passed)
         {
             /* All parts of the test case passed. Just report the overall case
              * passing. */
-            ul.appendChild(create_response_item("pass", testcase.name));
+	    ul.appendChild(create_response_item("pass", 0, testcase.name));
         }
         else
         {
-            var fail_li = create_response_item("fail", testcase.name);
+            var fail_li = create_response_item("fail", 0, testcase.name);
             ul.appendChild(fail_li);
             /* Create a sub-ul to display the failing cases. */
             case_ul = document.createElement("ul");
@@ -146,13 +146,13 @@ function handle_testresponse(exercisediv, testresponse)
                 var part = testcase.parts[j];
                 if (part.passed)
                 {
-                    case_ul.appendChild(create_response_item("pass",
+                    case_ul.appendChild(create_response_item("pass", 1,
                         part.description));
                 }
                 else
                 {
-                    case_ul.appendChild(create_response_item("fail",
-                        part.description, part.error_message));
+                    case_ul.appendChild(create_response_item("fail", 1,
+                        part.description /*, part.error_message */));
                 }
             }
         }
@@ -163,11 +163,11 @@ function handle_testresponse(exercisediv, testresponse)
 
 /** Create a <li> element for the result of a test case.
  * type: "pass", "fail", "exception" or "critical"
- * detail should be null for passing cases.
+ * level is 0 for outer, and 1 for inner
  * For exceptions and crits, "desc" is the exception name,
- * detail is the message.
+ * detail is the message; detail should be null for passing cases.
  */
-function create_response_item(type, desc, detail)
+function create_response_item(type, level, desc, detail)
 {
     var crit = false;
     if (type == "critical")
@@ -177,11 +177,24 @@ function create_response_item(type, desc, detail)
         type = "exception";
     }
     var li = document.createElement("li");
-    li.setAttribute("class", type);
-    var b = document.createElement("b");
-    var text = type[0].toUpperCase() + type.substr(1) + ":";
-    b.appendChild(document.createTextNode(text));
-    li.appendChild(b);
+    if (level == 0)
+    {
+        li.setAttribute("class", type);
+    }
+    else
+    {
+        if (type == "pass") { li.setAttribute("class", "check") }
+        else { li.setAttribute("class", "cross") }
+    }
+
+    if (level == 0) /* print Pass/Fail tag at outer level only */
+    {
+        var b = document.createElement("b");
+        var text = type[0].toUpperCase() + type.substr(1) + ":";
+        b.appendChild(document.createTextNode(text));
+        li.appendChild(b);
+    }
+
     if (type == "pass")
         text = desc;
     else if (type == "fail")
