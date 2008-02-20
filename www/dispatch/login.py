@@ -55,9 +55,9 @@ def login(req):
         return login_details
 
     badlogin = None
-    login_details = None    # We'll re-auth you
+
     # Check if there is any postdata containing login information
-    if req.method == 'POST':
+    if login_details is None and req.method == 'POST':
         fields = req.get_fieldstorage()
         username = fields.getfirst('user')
         password = fields.getfirst('pass')
