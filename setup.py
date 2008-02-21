@@ -204,7 +204,9 @@ config_options.append(ConfigOption("ivle_install_dir", "/opt/ivle",
 # In the local file system, where IVLE is actually installed.
 # This directory should contain the "www" and "bin" directories."""))
 config_options.append(ConfigOption("jail_base", "/home/informatics/jails",
-    """Root directory where the jails (containing user files) are stored
+    """Location of Directories
+=======================
+Root directory where the jails (containing user files) are stored
 (on the local file system):""",
     """
 # In the local file system, where are the student/user file spaces located.
@@ -270,8 +272,21 @@ config_options.append(ConfigOption("db_password", "",
     (Caution: This password is stored in plaintext in lib/conf/conf.py)""",
     """
 # Database password"""))
+config_options.append(ConfigOption("auth_modules", "ldap",
+    """Authentication config
+=====================
+Comma-separated list of authentication modules. Only "ldap" is available
+by default.""",
+    """
+# Comma-separated list of authentication modules.
+# These refer to importable Python modules in the www/auth directory.
+# Modules "ldap" and "guest" are available in the source tree, but
+# other modules may be plugged in to auth against organisation-specific
+# auth backends."""))
 config_options.append(ConfigOption("ldap_url", "ldaps://www.example.com",
-    """URL for LDAP authentication server:""",
+    """(LDAP options are only relevant if "ldap" is included in the list of
+auth modules).
+URL for LDAP authentication server:""",
     """
 # URL for LDAP authentication server"""))
 config_options.append(ConfigOption("ldap_format_string",
@@ -282,7 +297,9 @@ config_options.append(ConfigOption("ldap_format_string",
 # Format string for LDAP auth request
 # (Must contain a single "%s" for the user's login name)"""))
 config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
-    """The base url for accessing subversion repositories:""",
+    """Subversion config
+=================
+The base url for accessing subversion repositories:""",
     """
 # The base url for accessing subversion repositories."""))
 config_options.append(ConfigOption("svn_conf", "/opt/ivle/svn/svn.conf",
@@ -308,7 +325,9 @@ of the subversion repository:""",
 # The location of the password file used to authenticate local users
 # of the subversion repository."""))
 config_options.append(ConfigOption("usrmgt_host", "localhost",
-    """The hostname where the usrmgt-server runs:""",
+    """User Management Server config
+============================
+The hostname where the usrmgt-server runs:""",
     """
 # The hostname where the usrmgt-server runs."""))
 config_options.append(ConfigOption("usrmgt_port", "2178",
