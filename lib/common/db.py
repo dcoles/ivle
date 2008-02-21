@@ -292,8 +292,14 @@ class DB:
     # Do not return passhash when reading from the DB
     login_getfields = login_fields - frozenset(["passhash"])
 
-    def create_user(self, dry=False, **kwargs):
+    def create_user(self, user_obj=None, dry=False, **kwargs):
         """Creates a user login entry in the database.
+        Two ways to call this - passing a user object, or passing
+        all fields as separate arguments.
+
+        Either pass a "user_obj" as the first argument (in which case other
+        fields will be ignored), or pass all fields as arguments.
+
         All user fields are to be passed as args. The argument names
         are the field names of the "login" table of the DB schema.
         However, instead of supplying a "passhash", you must supply a
@@ -307,13 +313,26 @@ class DB:
             raise DBException("Supplied arguments include passhash (invalid) (1).")
         # Make a copy of the dict. Change password to passhash (hashing it),
         # and set 'state' to "no_agreement".
-        kwargs = copy.copy(kwargs)
-        if 'password' in kwargs:
-            kwargs['passhash'] = _passhash(kwargs['password'])
-            del kwargs['password']
-        kwargs['state'] = "no_agreement"
+        if user_obj is None:
+            # Use the kwargs
+            fields = copy.copy(kwargs)
+        else:
+            # Use the user object
+            fields = dict(user_obj)
+        if 'password' in fields:
+            fields['passhash'] = _passhash(fields['password'])
+            del fields['password']
+        if 'role' in fields:
+            # Convert role to rolenm
+            fields['rolenm'] = str(user_obj.role)
+            del fields['role']
+        if user_obj is None:
+            fields['state'] = "no_agreement"
+            # else, we'll trust the user, but it SHOULD be "no_agreement"
+            # (We can't change it because then the user object would not
+            # reflect the DB).
         # Execute the query.
-        return self.insert(kwargs, "login", self.login_fields, dry=dry)
+        return self.insert(fields, "login", self.login_fields, dry=dry)
 
     def update_user(self, login, dry=False, **kwargs):
         """Updates fields of a particular user. login is the name of the user
