@@ -1009,6 +1009,10 @@ def action_copytree(src, dst, dry):
     directories as necessary.
 
     See shutil.copytree."""
+    # Allow copying over itself
+    if (os.path.normpath(os.path.join(os.getcwd(),src)) ==
+        os.path.normpath(os.path.join(os.getcwd(),dst))):
+        return
     action_remove(dst, dry)
     print "cp -r", src, dst
     if dry: return

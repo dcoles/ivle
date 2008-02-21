@@ -96,8 +96,6 @@ try:
         except KeyError:
             raise Exception("Failed to add Unix user account")
     user['unixid'] = uid
-    # Make the user's jail
-    common.makeuser.make_jail(login, uid)
     # Make the user's database entry
     common.makeuser.make_user_db(**user)
 except Exception, message:
