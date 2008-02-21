@@ -272,7 +272,7 @@ config_options.append(ConfigOption("db_password", "",
     (Caution: This password is stored in plaintext in lib/conf/conf.py)""",
     """
 # Database password"""))
-config_options.append(ConfigOption("auth_modules", "ldap",
+config_options.append(ConfigOption("auth_modules", "ldap_auth",
     """Authentication config
 =====================
 Comma-separated list of authentication modules. Only "ldap" is available

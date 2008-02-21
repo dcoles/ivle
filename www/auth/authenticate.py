@@ -23,9 +23,9 @@
 # returning a yes/no response.
 
 # Has a plugin interface for authentication modules.
-# An authentication module is a callable object which accepts 3 positional
-# arguments.
-# plugin_auth_func(dbconn, login, password, user)
+# An authentication module is a Python module with an "auth" function,
+# which accepts 3 positional arguments.
+# plugin_module.auth(dbconn, login, password, user)
 # dbconn is an open connection to the IVLE database.
 # login and password are required strings, password is cleartext.
 # user is a User object or None.
@@ -40,15 +40,10 @@
 # Raising an AuthError implies a hard failure, with an appropriate error
 # message. No more auth will be done.
 
+from autherror import AuthError
 import conf
 import common.db
 import common.user
-import ldap
-
-class AuthError(Exception):
-    def __init__(self, message="Invalid username or password."):
-        self.message = message
-        self.args = (message,)
 
 def authenticate(login, password):
     """Determines whether a particular login/password combination is
@@ -74,7 +69,7 @@ def authenticate(login, password):
 
     try:
         user = dbconn.get_user(login)
-        for m in auth_modules:
+        for modname, m in auth_modules:
             # May raise an AuthError - allow to propagate
             auth_result = m(dbconn, login, password, user)
             if auth_result is None:
@@ -86,7 +81,8 @@ def authenticate(login, password):
                 if user is not None and auth_result is not user:
                     # If user is not None, then it must return the same user
                     raise AuthError("Internal error: "
-                        "Bad authentication module (changed user)")
+                        "Bad authentication module %s (changed user)"
+                        % repr(modname))
                 elif user is None:
                     # We just got ourselves some user details from an external
                     # source. Put them in the DB.
@@ -95,7 +91,8 @@ def authenticate(login, password):
                 return auth_result
             else:
                 raise AuthError("Internal error: "
-                    "Bad authentication module (bad return type)")
+                    "Bad authentication module %s (bad return type)"
+                    % repr(modname))
         # No auths checked out; fail.
         raise AuthError()
     except common.db.DBException:
@@ -122,26 +119,20 @@ def simple_db_auth(dbconn, login, password, user):
     else:
         raise AuthError()
 
-def ldap_auth(dbconn, login, password, user):
-    """
-    A plugin auth function, as described above.
-    This one authenticates against an LDAP server.
-    Returns user if successful. Raises AuthError if unsuccessful.
-    Also raises AuthError if the LDAP server had an unexpected error.
-    """
-    try:
-        l = ldap.initialize(conf.ldap_url)
-        # ldap_format_string contains a "%s" to put the login name
-        l.simple_bind_s(conf.ldap_format_string % login, password)
-    except ldap.INVALID_CREDENTIALS:
-        raise AuthError()
-    except Exception, msg:
-        raise AuthError("Internal error (LDAP auth): %s" % repr(msg))
-    # Got here - Must have successfully authenticated with LDAP
-    return user
+# Create a global variable "auth_modules", a list of (name, function object)s.
+# This list consists of simple_db_auth, plus the "auth" functions of all the
+# plugin auth modules.
 
-# List of auth plugin modules, in the order to try them
-auth_modules = [
-    simple_db_auth,
-    ldap_auth,
-]
+auth_modules = [("simple_db_auth", simple_db_auth)]
+for modname in conf.auth_modules.split(','):
+    try:
+        mod = __import__(modname)
+    except ImportError:
+        raise AuthError("Internal error: Can't import auth module %s"
+            % repr(modname))
+    try:
+        authfunc = mod.auth
+    except AttributeError:
+        raise AuthError("Internal error: Auth module %s has no 'auth' "
+            "function" % repr(modname))
+    auth_modules.append((modname, authfunc))
