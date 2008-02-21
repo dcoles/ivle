@@ -15,35 +15,41 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: LDAP Authenticate
+# Module: Guest Authenticate
 # Author: Matt Giuca
 # Date:   21/2/2008
 
 # Pluggable authentication module for LDAP servers.
-# This will read the ldap_url and ldap_format_string config variables.
+# This module is part-test part-something-you-may-want.
+# If enabled, it allows "external auth" against an account "guest" with
+# password "guest".
+# It may be called with a None user, and will return a guest User object,
+# which will mean it gets put in the database.
+# Thus it behaves similarly to a module which retrieves user details from an
+# external source like LDAP.
 # This module is NOT active implicitly - it must be specified in the
 # "auth_modules" config string.
-# However, setup.py should configure it in auth_modules by default.
 
 from autherror import AuthError
-import conf
-import ldap
+from common.user import User
+from common.caps import Role
+
+# XXX: What to put here
+GUEST_UID = 4000
 
 def auth(dbconn, login, password, user):
     """
     A plugin auth function, as described above.
-    This one authenticates against an LDAP server.
+    This one authenticates against a "guest"/"guest" account.
     Returns user if successful. Raises AuthError if unsuccessful.
-    Also raises AuthError if the LDAP server had an unexpected error.
+    Returns a new User object if user is None.
     """
-    try:
-        l = ldap.initialize(conf.ldap_url)
-        # ldap_format_string contains a "%s" to put the login name
-        l.simple_bind_s(conf.ldap_format_string % login, password)
-    except ldap.INVALID_CREDENTIALS:
+    if login != "guest" or password != "guest":
         raise AuthError()
-    except Exception, msg:
-        raise AuthError("Internal error (LDAP auth): %s" % repr(msg))
-    # Got here - Must have successfully authenticated with LDAP
-    return user
 
+    if user is not None:
+        return user
+
+    # Create a guest user
+    return User(login="guest", fullname="Guest Account", nick="Guest",
+        role=Role.ANYONE, state="no_agreement", unixid=GUEST_UID)

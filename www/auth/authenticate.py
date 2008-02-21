@@ -45,6 +45,9 @@ import conf
 import common.db
 import common.user
 
+import sys
+import os
+
 def authenticate(login, password):
     """Determines whether a particular login/password combination is
     valid. The password is in cleartext.
@@ -69,6 +72,13 @@ def authenticate(login, password):
 
     try:
         user = dbconn.get_user(login)
+    except common.db.DBException:
+        # If our attempt to get the named user from the db fails,
+        # then set user to None.
+        # We may still auth (eg. by pulling details from elsewhere and writing
+        # to DB).
+        user = None
+    try:
         for modname, m in auth_modules:
             # May raise an AuthError - allow to propagate
             auth_result = m(dbconn, login, password, user)
@@ -86,7 +96,7 @@ def authenticate(login, password):
                 elif user is None:
                     # We just got ourselves some user details from an external
                     # source. Put them in the DB.
-                    # TODO: Write user to DB
+                    dbconn.create_user(auth_result)
                     pass
                 return auth_result
             else:
@@ -94,10 +104,6 @@ def authenticate(login, password):
                     "Bad authentication module %s (bad return type)"
                     % repr(modname))
         # No auths checked out; fail.
-        raise AuthError()
-    except common.db.DBException:
-        # If our attempt to get the named user from the db fails,
-        # then the login name is unknown.
         raise AuthError()
     finally:
         dbconn.close()
@@ -110,6 +116,10 @@ def simple_db_auth(dbconn, login, password, user):
     auth method should be used.
     Raises an AuthError if mismatched, indicating failure to auth.
     """
+    if user is None:
+        # The login doesn't exist. Therefore return None so we can try other
+        # means of authentication.
+        return None
     auth_result = dbconn.user_authenticate(login, password)
     # auth_result is either True, False (fail) or None (try another)
     if auth_result is None:
@@ -118,6 +128,12 @@ def simple_db_auth(dbconn, login, password, user):
         return user
     else:
         raise AuthError()
+
+# Allow imports to get files from this directory.
+# Get the directory that this module (authenticate) is in
+authpath = os.path.split(sys.modules[__name__].__file__)[0]
+# Add it to sys.path
+sys.path.append(authpath)
 
 # Create a global variable "auth_modules", a list of (name, function object)s.
 # This list consists of simple_db_auth, plus the "auth" functions of all the
