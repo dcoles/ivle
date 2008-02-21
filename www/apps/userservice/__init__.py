@@ -108,10 +108,11 @@ def handle(req):
         path = req.path
     # The path determines which "command" we are receiving
     fields = req.get_fieldstorage()
-    if req.path == "activate_me":
-        handle_activate_me(req, fields)
-    else:
+    try:
+        func = actions_map[req.path]
+    except KeyError:
         req.throw_error(req.HTTP_BAD_REQUEST)
+    func(req, fields)
 
 def handle_activate_me(req, fields):
     """Create the jail, svn, etc, for the currently logged in user (this is
@@ -201,21 +202,23 @@ def handle_create_user(req, fields):
     # Make a dict of fields to create
     create = {}
     for f in create_user_fields_required:
-        try:
-            create[f] = fields.getfirst(f)
-        except AttributeError:
+        val = fields.getfirst(f)
+        if val is not None:
+            create[f] = val
+        else:
             req.throw_error(req.HTTP_BAD_REQUEST)
     for f in create_user_fields_optional:
-        try:
-            create[f] = fields.getfirst(f)
-        except AttributeError:
+        val = fields.getfirst(f)
+        if val is not None:
+            create[f] = val
+        else:
             pass
 
     # Get the arguments for usermgt.create_user from the session
     # (The user must have already logged in to use this app)
     msg = {'create_user': create}
     # TEMP
-    req.write(msg)
+    req.write(repr(msg))
     return
     # END TEMP
 
@@ -257,9 +260,10 @@ def handle_update_user(req, fields):
     # Make a dict of fields to update
     update = {}
     for f in fieldlist:
-        try:
-            update[f] = fields.getfirst(f)
-        except AttributeError:
+        val = fields.getfirst(f)
+        if val is not None:
+            update[f] = val
+        else:
             pass
 
     # Get the arguments for usermgt.create_user from the session
@@ -270,7 +274,7 @@ def handle_update_user(req, fields):
     }
     msg = {'update_user': args}
     # TEMP
-    req.write(msg)
+    req.write(repr(msg))
     return
     # END TEMP
 
@@ -278,3 +282,11 @@ def handle_update_user(req, fields):
         decode = False)
     req.content_type = "text/plain"
     req.write(response)
+
+# Map action names (from the path)
+# to actual function objects
+actions_map = {
+    "activate_me": handle_activate_me,
+    "create_user": handle_create_user,
+    "update_user": handle_update_user,
+}
