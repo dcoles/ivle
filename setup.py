@@ -855,6 +855,12 @@ def install(args):
     # chown trampoline to root and set setuid bit
     action_chown_setuid(tramppath, dry)
 
+    # Create a scripts directory to put the usrmgt-server in.
+    action_mkdir(os.path.join(ivle_install_dir, 'scripts'), dry)
+    usrmgtpath = os.path.join(ivle_install_dir, 'scripts/usrmgt-server')
+    action_copyfile('scripts/usrmgt-server', usrmgtpath, dry)
+    action_chmod_x(usrmgtpath, dry)
+
     # Copy the www and lib directories using the list
     action_copylist(install_list.list_www, ivle_install_dir, dry)
     action_copylist(install_list.list_lib, ivle_install_dir, dry)

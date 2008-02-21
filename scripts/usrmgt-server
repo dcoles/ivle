@@ -129,6 +129,9 @@ def activate_user(props):
 
         svn = pysvn.Client()
         svn.callback_get_login = partial(get_login, login, passwd)
+
+        if conf.svn_addr[-1] != '/':
+            conf.svn_addr = conf.svn_addr + "/"
     
         # FIXME: This should be a loop over enrolements.
         #        We're not going to fix this now because it requires
@@ -141,18 +144,21 @@ def activate_user(props):
             svn.mkdir(conf.svn_addr + login + "/info1",
                       "Initial creation of work directory for Informatics 1")
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring info1: %s" % str(exc)
             pass
         # print >> sys.stderr, "Creating /submissions"
         try:
             svn.mkdir(conf.svn_addr + login + "/submissions",
                       "Initial creation of submissions directory")
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring submissions: %s" % str(exc)
             pass
         # print >> sys.stderr, "Creating /stuff"
         try:
             svn.mkdir(conf.svn_addr + login + "/stuff",
                       "Initial creation of directory for miscellania")
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring stuff: %s" % str(exc)
             pass
 
         # print >> sys.stderr, "Creating jail"
@@ -177,19 +183,22 @@ def activate_user(props):
 
         # print >> sys.stderr, "Checking out directories in the jail"
         try:
-            svn.checkout(conf.svn_addr + "/" + login + "/stuff",
+            svn.checkout(conf.svn_addr + login + "/stuff",
                          common.studpath.url_to_local(login + "/stuff")[1])
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring stuff: %s" % str(exc)
             pass
         try:
-            svn.checkout(conf.svn_addr + "/" + login + "/submissions",
+            svn.checkout(conf.svn_addr + login + "/submissions",
                          common.studpath.url_to_local(login + "/submissions")[1])
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring submissions: %s" % str(exc)
             pass
         try:
-            svn.checkout(conf.svn_addr + "/" + login + "/info1",
+            svn.checkout(conf.svn_addr + login + "/info1",
                          common.studpath.url_to_local(login + "/info1")[1])
         except Exception, exc:
+            # print >> sys.stderr, "While mkdiring info1: %s" % str(exc)
             pass
 
         # FIXME: should this be nicer?
@@ -215,7 +224,7 @@ actions = {
     }
 
 def dispatch(props):
-    # print >> sys.stderr, repr(props)
+    print >> sys.stderr, repr(props)
     action = props.keys()[0]
     return actions[action](props[action])
 

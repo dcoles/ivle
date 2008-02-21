@@ -54,6 +54,10 @@ def make_svn_repo(login, throw_on_error=True):
         print repr(exc)
         if throw_on_error:
             raise
+    try:
+        os.system("chown -R www-data:www-data %s" % path)
+    except Exception:
+        pass
 
 def rebuild_svn_config():
     """Build the complete SVN configuration file.
