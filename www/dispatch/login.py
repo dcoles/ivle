@@ -26,7 +26,7 @@ import time
 from mod_python import Session
 
 from common import (util, db, caps, forumutil)
-from auth import authenticate
+from auth import authenticate, autherror
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -71,7 +71,9 @@ def login(req):
                 try:
                     login_details = \
                         authenticate.authenticate(username.value, password.value)
-                except authenticate.AuthError, msg:
+                # NOTE: Can't catch AuthError, since each module throws a
+                # different identity of AuthError.
+                except Exception, msg:
                     badlogin = msg
                 if login_details is None:
                     # Must have got an error. Do not authenticate.
