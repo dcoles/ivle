@@ -697,16 +697,17 @@ function setup_for_dir_listing()
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-check");
     filetablethead_th = dom_make_link_elem("th", "Filename",
-        "Sort by filename", null, "return sort_listing(\"filename\")");
+        "Sort by filename", null,
+	"return sort_listing(\"filename\", !sort_ascending)");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-filename");
     filetablethead_th.setAttribute("colspan", 3);
     filetablethead_th = dom_make_link_elem("th", "Size",
-        "Sort by file size", null, "return sort_listing(\"size\")");
+        "Sort by file size", null, "return sort_listing(\"size\",!sort_ascending)");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-size");
     filetablethead_th = dom_make_link_elem("th", "Modified",
-        "Sort by date modified", null, "return sort_listing(\"mtime\")");
+        "Sort by date modified", null, "return sort_listing(\"mtime\",!sort_ascending)");
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-date");
     /* Empty body */
