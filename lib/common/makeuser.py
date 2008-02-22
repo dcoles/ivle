@@ -260,3 +260,16 @@ def make_user_db(**kwargs):
     dbconn = db.DB()
     dbconn.create_user(**kwargs)
     dbconn.close()
+
+    if kwargs['password']:
+        if os.path.exists(conf.svn_auth_local):
+            create = ""
+        else:
+            create = "c"
+        res = os.system("htpasswd -%smb %s %s %s" % (create,
+                                                     conf.svn_auth_local,
+                                                     kwargs['login'],
+                                                     kwargs['password']))
+        if res != 0 and throw_on_error:
+            raise Exception("Unable to create local-auth for %s" % kwargs['login'])
+
