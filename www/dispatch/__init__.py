@@ -29,6 +29,7 @@
 import mod_python
 from mod_python import apache
 
+import sys
 import os
 import os.path
 import conf
@@ -39,6 +40,8 @@ from request import Request
 import html
 import login
 from common import (util, forumutil)
+import traceback
+import cStringIO
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -48,8 +51,33 @@ def handler(req):
     """
     # Make the request object into an IVLE request which can be passed to apps
     apachereq = req
-    req = Request(req, html.write_html_head)
+    try:
+        req = Request(req, html.write_html_head)
+    except Exception:
+        # Pass the apachereq to error reporter, since ivle req isn't created
+        # yet.
+        handle_unknown_exception(apachereq, *sys.exc_info())
+        # Tell Apache not to generate its own errors as well
+        return apache.OK
 
+    # Run the main handler, and catch all exceptions
+    try:
+        return handler_(req, apachereq)
+    except mod_python.apache.SERVER_RETURN:
+        # An apache error. We discourage these, but they might still happen.
+        # Just raise up.
+        raise
+    except Exception:
+        handle_unknown_exception(req, *sys.exc_info())
+        # Tell Apache not to generate its own errors as well
+        return apache.OK
+
+def handler_(req, apachereq):
+    """
+    Nested handler function. May raise exceptions. The top-level handler is
+    just used to catch exceptions.
+    Takes both an IVLE request and an Apache req.
+    """
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in conf.apps.app_url:
         # Maybe it is a special app!
@@ -104,6 +132,7 @@ def handler(req):
 
         # Call the specified app with the request object
         apps.call_app(app.dir, req)
+
     # if not logged in, login.login will have written the login box.
     # Just clean up and exit.
 
@@ -128,3 +157,99 @@ def logout(req):
     session.delete()
     req.add_cookie(forumutil.invalidated_forum_cookie())
     req.throw_redirect(util.make_path(''))
+
+def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
+    """
+    Given an exception that has just been thrown from IVLE, print its details
+    to the request.
+    This is a full handler. It assumes nothing has been written, and writes a
+    complete HTML page.
+    req: May be EITHER an IVLE req or an Apache req.
+    IVLE reqs may have the HTML head/foot written (on a 400 error), but
+    the handler code may pass an apache req if an exception occurs before
+    the IVLE request is created.
+    """
+    req.content_type = "text/html"
+    admin_email = apache._server.server_admin
+    try:
+        httpcode = exc_value.httpcode
+        req.status = httpcode
+    except AttributeError:
+        httpcode = None
+        req.status = apache.HTTP_INTERNAL_SERVER_ERROR
+    # We handle 3 types of error.
+    # IVLEErrors with 4xx response codes (client error).
+    # IVLEErrors with 5xx response codes (handled server error).
+    # Other exceptions (unhandled server error).
+    # IVLEErrors should not have other response codes than 4xx or 5xx
+    # (eg. throw_redirect should have been used for 3xx codes).
+    # Therefore, that is treated as an unhandled error.
+
+    if (exc_type == util.IVLEError and httpcode >= 400
+        and httpcode <= 499):
+        # IVLEErrors with 4xx response codes are client errors.
+        # Therefore, these have a "nice" response (we even coat it in the IVLE
+        # HTML wrappers).
+        req.write_html_head_foot = True
+        req.write('<div id="ivle_padding">\n')
+        try:
+            codename, msg = req.get_http_codename(httpcode)
+        except AttributeError:
+            codename, msg = None, None
+        # Override the default message with the supplied one,
+        # if available.
+        if exc_value.message is not None:
+            msg = exc_value.message
+        if codename is not None:
+            req.write("<h1>Error: %s</h1>\n" % codename)
+        else:
+            req.write("<h1>Error</h1>\n")
+        if msg is not None:
+            req.write("<p>%s</p>\n" % msg)
+        else:
+            req.write("<p>An unknown error occured.</p>\n")
+        req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
+        req.write('</div>\n')
+    else:
+        # A "bad" error message. We shouldn't get here unless IVLE
+        # misbehaves (which is currently very easy, if things aren't set up
+        # correctly).
+        # Write the traceback.
+        # If this is a non-4xx IVLEError, get the message and httpcode and
+        # make the error message a bit nicer (but still include the
+        # traceback).
+        try:
+            codename, msg = req.get_http_codename(httpcode)
+        except AttributeError:
+            codename, msg = None, None
+        # Override the default message with the supplied one,
+        # if available.
+        if hasattr(exc_value, 'message') and exc_value.message is not None:
+            msg = exc_value.message
+
+        req.write("""<html>
+<head><title>IVLE Internal Server Error</title></head>
+<body>
+<h1>IVLE Internal Server Error""")
+        if (codename is not None
+            and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
+            req.write(": %s" % codename)
+        req.write("""</h1>
+<p>An error has occured which is the fault of the IVLE developers or
+administration.</p>
+""")
+        if msg is not None:
+            req.write("<p>%s</p>\n" % msg)
+        if httpcode is not None:
+            req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
+        req.write("""
+<p>Please report this to <a href="mailto:%s">%s</a> (the system
+administrator). Include the following information:</p>
+""" % (admin_email, admin_email))
+
+        tb_print = cStringIO.StringIO()
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+            file=tb_print)
+        req.write("<pre>\n")
+        req.write(tb_print.getvalue())
+        req.write("</pre>\n</body>\n")

@@ -251,7 +251,7 @@ class Request:
         else:
             return self.apache_req.read(len)
 
-    def throw_error(self, httpcode):
+    def throw_error(self, httpcode, message=None):
         """Writes out an HTTP error of the specified code. Raises an exception
         which is caught by the dispatch or web server, so any code following
         this call will not be executed.
@@ -259,7 +259,7 @@ class Request:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
-        raise mod_python.apache.SERVER_RETURN, httpcode
+        raise common.util.IVLEError(httpcode, message)
 
     def throw_redirect(self, location):
         """Writes out an HTTP redirect to the specified URL. Raises an
@@ -305,3 +305,48 @@ class Request:
             self.apache_req.add_common_vars()
             self.got_common_vars = True
         return self.apache_req.subprocess_env
+
+    @staticmethod
+    def get_http_codename(code):
+        """Given a HTTP error code int, returns a (name, description)
+        pair, suitable for displaying to the user.
+        May return (None,None) if code is unknown.
+        Only lists common 4xx and 5xx codes (since this is just used
+        to display throw_error error messages).
+        """
+        try:
+            return http_codenames[code]
+        except KeyError:
+            return None, None
+
+# Human strings for HTTP response codes
+http_codenames = {
+    Request.HTTP_BAD_REQUEST:
+        ("Bad Request",
+        "Your browser sent a request IVLE did not understand."),
+    Request.HTTP_UNAUTHORIZED:
+        ("Unauthorized",
+        "You are not allowed to view this part of IVLE."),
+    Request.HTTP_FORBIDDEN:
+        ("Forbidden",
+        "You are not allowed to view this part of IVLE."),
+    Request.HTTP_NOT_FOUND:
+        ("Not Found",
+        "The application or file you requested does not exist."),
+    Request.HTTP_METHOD_NOT_ALLOWED:
+        ("Method Not Allowed",
+        "Your browser is interacting with IVLE in the wrong way."
+        "This is probably a bug in IVLE. "
+        "Please report it to the administrators."),
+    Request.HTTP_INTERNAL_SERVER_ERROR:
+        ("Internal Server Error",
+        "An unknown error occured in IVLE."),
+    Request.HTTP_NOT_IMPLEMENTED:
+        ("Not Implemented",
+        "The application or file you requested has not been implemented "
+        "in IVLE."),
+    Request.HTTP_SERVICE_UNAVAILABLE:
+        ("Service Unavailable",
+        "IVLE is currently experiencing technical difficulties. "
+        "Please try again later."),
+}

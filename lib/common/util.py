@@ -31,6 +31,22 @@ import conf.mimetypes
 
 root_dir = conf.root_dir
 
+class IVLEError(Exception):
+    """
+    This is the "standard" exception class for IVLE errors.
+    It is the ONLY exception which should propagate to the top - it will then
+    be displayed to the user as an HTTP error with the given code.
+
+    All other exceptions are considered IVLE bugs and should not occur
+    (they will display a traceback).
+
+    This error should not be raised directly. Call req.throw_error.
+    """
+    def __init__(self, httpcode, message=None):
+        self.httpcode = httpcode
+        self.message = message
+        self.args = (httpcode, message)
+
 def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
     site root using conf.root_dir. This path can be used in URLs sent to the
