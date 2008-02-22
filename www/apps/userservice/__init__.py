@@ -272,6 +272,9 @@ def handle_update_user(req, fields):
             update[f] = val
         else:
             pass
+    if 'login' not in update:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+        "Required field 'login' missing.")
 
     # Get the arguments for usermgt.create_user from the session
     # (The user must have already logged in to use this app)
@@ -280,10 +283,6 @@ def handle_update_user(req, fields):
         "update": update,
     }
     msg = {'update_user': args}
-    # TEMP
-    req.write(repr(msg))
-    return
-    # END TEMP
 
     response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)

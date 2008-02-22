@@ -79,6 +79,25 @@ def create_user(props):
 
     return int(props['unixid'])
 
+def update_user(props):
+    """Create the database record for the given user.
+       Expected properties:
+        login       - user who is making the change (not necessarily the one
+                      being updated).
+        update      - dict of fields to be updated. The fields are all those
+                      in the login table of the db.
+                      'login' required.
+                      Omitted fields will not be set.
+    """
+    update = props['update']
+    # Note: "login" is special - it is not part of the kwargs to
+    # db.update_user, but the first arg - used to find the user to update.
+    # However it doesn't need any special treatment here.
+
+    db = common.db.DB()
+    db.update_user(**update)
+    db.close()
+
 def get_login(login, passwd, _realm, _login, _may_save):
     """Callback function used by pysvn for authentication.
     """
@@ -204,7 +223,8 @@ def activate_user(props):
 
 actions = {
         'create_user':create_user,
-        'activate_user':activate_user
+        'update_user':update_user,
+        'activate_user':activate_user,
     }
 
 def log(msg):
