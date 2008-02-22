@@ -22,8 +22,10 @@
 import cjson
 import cStringIO
 import md5
+import sys
 import os
 import socket
+import traceback
 
 def start_server(port, magic, daemon_mode, handler, initializer = None):
     # Attempt to open the socket.
@@ -74,8 +76,17 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             conn.sendall(cjson.encode(response))
 
             conn.close()
-        except Exception, e:
-            conn.sendall(cjson.encode(repr(e)))
+        except Exception:
+            # Make a JSON object full of exceptional goodness
+            tb_dump = cStringIO.StringIO()
+            e_type, e_val, e_tb = sys.exc_info()
+            traceback.print_tb(e_tb, file=tb_dump)
+            json_exc = {
+                "type": e_type.__name__,
+                "value": str(e_val),
+                "traceback": tb_dump.getvalue()
+            }
+            conn.sendall(cjson.encode(json_exc))
             conn.close()
 
 
