@@ -22,8 +22,6 @@
 # Loads IVLE applications.
 # All sub-packages in this package are apps.
 
-from mod_python import apache
-
 def call_app(appname, req):
     """Calls an application with the given name. Passes req to the app's
     handler."""
@@ -34,4 +32,4 @@ def call_app(appname, req):
     except ImportError:
         # Any problems meant it's a server error, because conf/apps.py said
         # this app would be here.
-        raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
