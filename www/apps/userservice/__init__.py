@@ -186,7 +186,7 @@ create_user_fields_required = [
     'login', 'fullname', 'rolenm'
 ]
 create_user_fields_optional = [
-    'password', 'nick', 'email', 'studentid'
+    'password', 'nick', 'email', 'studentid', 'unixid'
 ]
 def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
@@ -217,10 +217,6 @@ def handle_create_user(req, fields):
     # Get the arguments for usermgt.create_user from the session
     # (The user must have already logged in to use this app)
     msg = {'create_user': create}
-    # TEMP
-    req.write(repr(msg))
-    return
-    # END TEMP
 
     response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)

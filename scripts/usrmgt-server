@@ -6,6 +6,7 @@ import subprocess
 import sys
 import urllib
 from functools import partial
+import traceback
 
 import conf
 import common.db
@@ -37,9 +38,9 @@ DEBUG_PRINT = True
 def create_user(props):
     """Create the database record for the given user.
        Expected properties:
-        username    - used as a unix login name and svn repository name.
+        login       - used as a unix login name and svn repository name.
                       STRING REQUIRED 
-        uid         - the unix uid under which execution will take place
+        unixid      - the unix uid under which execution will take place
                       on the behalf of the user. Don't use 0! If not specified
                       or None, one will be allocated from the configured
                       numeric range.
@@ -64,39 +65,19 @@ def create_user(props):
        Return Value: the uid associated with the user. INT
     """
 
-    # FIXME: the IVLE server must check that an admin is doing this!
-
-    if 'uid' not in props or props['uid'] is None:
+    if 'unixid' not in props or props['unixid'] is None:
         # For the time being, just choose a random unixid.
         # This may result in duplicates, but the unixid is essentially
         # a monitoring/logging convenience only. Oh, and dups could kill
         # each other. <sigh>
-        props['uid'] = random.randrange(5000,10000)
+        props['unixid'] = random.randrange(5000,10000)
         # raise NotImplementedError, "No algorithm for creating uids yet!"
-        # uid = invent-uid
-        # props['uid'] = uid
+        # unixid = invent-uid
+        # props['unixid'] = unixid
 
-    username = props['username']
-    uid = props['uid']
-    try:
-        password = props['password']
-    except KeyError:
-        password = None
-    try:
-        email = props['email']
-    except KeyError:
-        email = None
-    nick = props['nick']
-    fullname = props['fullname']
-    rolenm = props['rolenm']
-    try:
-        studentid = props['studentid']
-    except KeyError:
-        studentid = None
-    common.makeuser.make_user_db(username, uid, password, email, nick,
-                                 fullname, rolenm, studentid)
+    common.makeuser.make_user_db(**props)
 
-    return uid
+    return int(props['unixid'])
 
 def get_login(login, passwd, _realm, _login, _may_save):
     """Callback function used by pysvn for authentication.
@@ -217,9 +198,6 @@ def activate_user(props):
         db.update_user(login, state='enabled')
 
         return {"response": "okay"}
-    
-    except Exception, exc:
-        print >> sys.stderr, exc
 
     finally:
         db.close()
@@ -237,7 +215,7 @@ def log(msg):
         print >>sys.stderr, msg
 
 def dispatch(props):
-    print >> sys.stderr, repr(props)
+    log(repr(props))
     action = props.keys()[0]
     return actions[action](props[action])
 
