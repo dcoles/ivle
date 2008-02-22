@@ -135,7 +135,7 @@ def handle_activate_me(req, fields):
     db = common.db.DB()
     try:
         if req.method != "POST":
-            req.throw_error(req.HTTP_BAD_REQUEST)
+            req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
         try:
             declaration = fields.getfirst('declaration')
         except AttributeError:
@@ -194,7 +194,7 @@ def handle_create_user(req, fields):
     allows the user to accept an agreement.
     """
     if req.method != "POST":
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
     # Check if this user has CAP_UPDATEUSER
     if not req.user.hasCap(caps.CAP_UPDATEUSER):
         req.throw_error(req.HTTP_FORBIDDEN)
@@ -240,7 +240,7 @@ def handle_update_user(req, fields):
     or with full powers by a user with CAP_UPDATEUSER on any account.
     """
     if req.method != "POST":
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
 
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
