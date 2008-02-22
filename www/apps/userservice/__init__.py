@@ -49,7 +49,6 @@
 # Optional:
 #   password, nick, email, studentid
 
-# TODO
 # userservice/get_user
 # method: May be GET
 # Required cap: None to see yourself.
@@ -88,6 +87,7 @@ import sys
 import cjson
 
 import common
+import common.db
 from common import (util, chat, caps)
 import conf
 
@@ -236,7 +236,7 @@ update_user_fields_anyone = [
     'password', 'nick', 'email'
 ]
 update_user_fields_admin = [
-    'password', 'nick', 'email', 'login', 'rolenm', 'unixid', 'fullname',
+    'password', 'nick', 'email', 'rolenm', 'unixid', 'fullname',
     'studentid'
 ]
 def handle_update_user(req, fields):
@@ -256,6 +256,8 @@ def handle_update_user(req, fields):
 
     try:
         login = fields.getfirst('login')
+        if login is None:
+            raise AttributeError()
         if not fullpowers and login != req.user.login:
             # Not allowed to edit other users
             req.throw_error(req.HTTP_FORBIDDEN,
@@ -272,9 +274,7 @@ def handle_update_user(req, fields):
             update[f] = val
         else:
             pass
-    if 'login' not in update:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-        "Required field 'login' missing.")
+    update['login'] = login
 
     # Get the arguments for usermgt.create_user from the session
     # (The user must have already logged in to use this app)
@@ -289,10 +289,43 @@ def handle_update_user(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+def handle_get_user(req, fields):
+    """
+    Retrieve a user's account details. This returns all details which the db
+    module is willing to give up.
+    """
+    # Only give full powers if this user has CAP_GETUSER
+    fullpowers = req.user.hasCap(caps.CAP_GETUSER)
+
+    try:
+        login = fields.getfirst('login')
+        if login is None:
+            raise AttributeError()
+        if not fullpowers and login != req.user.login:
+            # Not allowed to edit other users
+            req.throw_error(req.HTTP_FORBIDDEN,
+            "You do not have permission to see another user.")
+    except AttributeError:
+        # If login not specified, update yourself
+        login = req.user.login
+
+    # Just talk direct to the DB
+    db = common.db.DB()
+    user = db.get_user(login)
+    db.close()
+    user = dict(user)
+    if 'role' in user:
+        user['rolenm'] = str(user['role'])
+        del user['role']
+    response = cjson.encode(dict(user))
+    req.content_type = "text/plain"
+    req.write(response)
+
 # Map action names (from the path)
 # to actual function objects
 actions_map = {
     "activate_me": handle_activate_me,
     "create_user": handle_create_user,
     "update_user": handle_update_user,
+    "get_user": handle_get_user,
 }
