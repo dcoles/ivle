@@ -101,7 +101,8 @@ def handle(req):
     """Handler for the Console Service AJAX backend application."""
     if req.user is None:
         # Not logged in
-        req.throw_error(req.HTTP_FORBIDDEN)
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You are not logged in to IVLE.")
     if len(req.path) > 0 and req.path[-1] == os.sep:
         path = req.path[:-1]
     else:
@@ -111,7 +112,8 @@ def handle(req):
     try:
         func = actions_map[req.path]
     except KeyError:
-        req.throw_error(req.HTTP_BAD_REQUEST)
+        req.throw_error(req.HTTP_BAD_REQUEST,
+        "%s is not a valid userservice action." % repr(req.path))
     func(req, fields)
 
 def handle_activate_me(req, fields):
@@ -135,13 +137,16 @@ def handle_activate_me(req, fields):
     db = common.db.DB()
     try:
         if req.method != "POST":
-            req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
+            req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to activate_me.")
         try:
             declaration = fields.getfirst('declaration')
         except AttributeError:
-            req.throw_error(req.HTTP_BAD_REQUEST)
+            declaration = None      # Will fail next test
         if declaration != USER_DECLARATION:
-            req.throw_error(req.HTTP_BAD_REQUEST)
+            req.throw_error(req.HTTP_BAD_REQUEST,
+            "Please use the Terms of Service form instead of talking to "
+            "this service directly.")
 
         # Make sure the user's status is "no_agreement", and set status to
         # pending, within the one transaction. This ensures we only do this
@@ -154,7 +159,8 @@ def handle_activate_me(req, fields):
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
             if user_details.state != "no_agreement":
-                req.throw_error(req.HTTP_BAD_REQUEST)
+                req.throw_error(req.HTTP_BAD_REQUEST,
+                "You have already agreed to the terms.")
             # Write state "pending" to ensure we don't try this again
             db.update_user(req.user.login, state="pending")
         except:
@@ -194,10 +200,12 @@ def handle_create_user(req, fields):
     allows the user to accept an agreement.
     """
     if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to create_user.")
     # Check if this user has CAP_UPDATEUSER
     if not req.user.hasCap(caps.CAP_UPDATEUSER):
-        req.throw_error(req.HTTP_FORBIDDEN)
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You do not have permission to create users.")
 
     # Make a dict of fields to create
     create = {}
@@ -206,7 +214,8 @@ def handle_create_user(req, fields):
         if val is not None:
             create[f] = val
         else:
-            req.throw_error(req.HTTP_BAD_REQUEST)
+            req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required field %s missing." % repr(f))
     for f in create_user_fields_optional:
         val = fields.getfirst(f)
         if val is not None:
@@ -236,7 +245,8 @@ def handle_update_user(req, fields):
     or with full powers by a user with CAP_UPDATEUSER on any account.
     """
     if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED)
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+        "Only POST requests are valid methods to create_user.")
 
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
@@ -248,7 +258,8 @@ def handle_update_user(req, fields):
         login = fields.getfirst('login')
         if not fullpowers and login != req.user.login:
             # Not allowed to edit other users
-            req.throw_error(req.HTTP_FORBIDDEN)
+            req.throw_error(req.HTTP_FORBIDDEN,
+            "You do not have permission to update another user.")
     except AttributeError:
         # If login not specified, update yourself
         login = req.user.login
