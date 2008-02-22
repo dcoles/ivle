@@ -32,7 +32,7 @@ function onload()
 function runexercise(exerciseid, filename)
 {
     /* Get the source code the student is submitting */
-    var exercisediv = document.getElementById(problemid);
+    var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
