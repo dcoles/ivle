@@ -159,6 +159,15 @@ JAIL_FILES = [
     '/usr/lib/libXdmcp.so.6',
     '/lib/libgcc_s.so.1',
     '/etc/matplotlibrc',
+    # Needed for resolv
+    '/lib/libnss_dns.so.2',
+    #'/lib/libnss_mdns4.so',
+    '/etc/hosts',
+    '/etc/resolv.conf',
+    #'/etc/hosts.conf',
+    #'/etc/hostname',
+    '/etc/nsswitch.conf',
+    '/lib/libnss_files.so.2',
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
@@ -796,6 +805,9 @@ def build(args):
     action_mkdir('jail/home', dry)
     action_mkdir('jail/tmp', dry)
 
+    # Chmod the tmp directory to world writable
+    action_chmod_w('jail/tmp', dry)
+
     # Copy all console and operating system files into the jail
     action_copylist(install_list.list_scripts, 'jail/opt/ivle', dry)
     copy_os_files_jail(dry)
@@ -1121,6 +1133,15 @@ def action_chmod_x(file, dry):
     if not dry:
         os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
             | stat.S_IXGRP | stat.S_IRGRP | stat.S_IXOTH | stat.S_IROTH)
+
+
+def action_chmod_w(file, dry):
+    """Chmod 777 a file (sets permissions to rwxrwxrwx)."""
+    print "chmod 777", file
+    if not dry:
+        os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
+            | stat.S_IXGRP | stat.S_IWGRP | stat.S_IRGRP | stat.S_IXOTH
+            | stat.S_IWOTH | stat.S_IROTH)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
