@@ -67,7 +67,12 @@ def create_user(props):
     # FIXME: the IVLE server must check that an admin is doing this!
 
     if 'uid' not in props or props['uid'] is None:
-        raise NotImplementedError, "No algorithm for creating uids yet!"
+        # For the time being, just choose a random unixid.
+        # This may result in duplicates, but the unixid is essentially
+        # a monitoring/logging convenience only. Oh, and dups could kill
+        # each other. <sigh>
+        props['uid'] = random.randrange(5000,10000)
+        # raise NotImplementedError, "No algorithm for creating uids yet!"
         # uid = invent-uid
         # props['uid'] = uid
 
