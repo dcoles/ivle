@@ -15,22 +15,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: apps
+# App: settings
 # Author: Matt Giuca
-# Date: 12/12/2007
+# Date: 25/2/2008
 
-# Loads IVLE applications.
-# All sub-packages in this package are apps.
+# User settings UI
+# (Also provides UI for administering users, given sufficient privileges).
 
-def call_app(appname, req):
-    """Calls an application with the given name. Passes req to the app's
-    handler."""
-    try:
-        # level=-1 to make it look in the right directory
-        app_module = __import__(appname, globals(), locals(), [], -1)
-        app_module.handle(req)
-    except ImportError:
-        # Any problems meant it's a server error, because conf/apps.py said
-        # this app would be here.
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Could not load the %s application." % repr(appname))
+from common import util
+
+def handle(req):
+    """Handler for the Settings application."""
+
+    # Set request attributes
+    req.content_type = "text/html"
+    # These files don't really exist - just a test of our linking
+    # capabilities
+    req.styles = []
+    req.scripts = ["media/settings/settings.js"]
+    req.write_html_head_foot = True     # Have dispatch print head and foot
+
+    # Start writing data
+    req.write('<div id="ivle_padding">\n')
+    req.write("<p>Settings</p>\n")
+    req.write("</div>\n")

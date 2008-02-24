@@ -84,8 +84,8 @@ def handler_(req, apachereq):
         if req.app == 'logout':
             logout(req)
         else:
-            # TODO: Nicer 404 message?
-            req.throw_error(Request.HTTP_NOT_FOUND)
+            req.throw_error(Request.HTTP_NOT_FOUND,
+                "There is no application called %s." % repr(req.app))
 
     # Special handling for public mode - just call public app and get out
     # NOTE: This will not behave correctly if the public app uses

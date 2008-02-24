@@ -61,7 +61,7 @@ def write_html_head(req):
     username = %s;
   </script>
 """ % (repr(conf.root_dir), username))
-    iconurl = get_icon_url(req.app)
+    iconurl = get_icon_url(req.app, small=True)
     if iconurl:
         req.write("""  <link rel="shortcut icon" href="%s" />
 """ % cgi.escape(iconurl))
@@ -91,10 +91,12 @@ def write_html_head(req):
         nickname = req.user.nick
         req.write('  <p class="userhello">%s (<span '
             'class="username">%s</span>) |\n'
+            '    <a href="%s">Settings</a> |\n'
             '    <a href="%s">Help</a> |\n'
-            '    <a href="%s">Logout</a>\n'
+            '    <a href="%s">Sign out</a>\n'
             '  </p>\n' %
             (cgi.escape(nickname), cgi.escape(req.user.login),
+             cgi.escape(util.make_path('settings')),
              cgi.escape(get_help_url(req)),
              cgi.escape(util.make_path('logout'))))
     else:
@@ -143,7 +145,11 @@ def get_icon_url(appurl, small=False):
     """Given an app's url name, gets the URL of the icon image for this app,
     relative to the site root. Returns None if the app has no icon."""
     if appurl is None: return None
-    app = conf.apps.app_url[appurl]
+    try:
+        app = conf.apps.app_url[appurl]
+    except KeyError:
+        # Due to navigating to a bad app
+        return None
     if small:
         icon_dir = conf.apps.app_icon_dir_small
     else:

@@ -110,6 +110,12 @@ app_tos = App(dir = "tos",
                     requireauth = False,
                     hashelp = False)
 
+app_settings = App(dir = "settings",
+                    name = "Account Settings",
+                    icon = "settings.png",
+                    requireauth = True,
+                    hashelp = True)
+
 app_userservice = App(dir = "userservice",
                     name = "User Management Service",
                     requireauth = False,
@@ -130,6 +136,7 @@ app_url = {
     "help" : app_help,
     "forum" : app_forum,
     "tos" : app_tos,
+    "settings" : app_settings,
     "userservice" : app_userservice,
 }
 if enable_debuginfo:
