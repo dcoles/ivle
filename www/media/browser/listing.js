@@ -631,7 +631,12 @@ function compare_files(a, b)
         {
             /* null > anything else (so it appears at the bottom) */
             if (!(field in a.fileinfo))
-                if (field in b.fileinfo) return GREATER; else break;
+            {
+                if (field in b.fileinfo)
+                    return GREATER;
+                else
+                    break;
+            }
             if (!(field in b.fileinfo)) return LESS;
             if (a.fileinfo[field] < b.fileinfo[field]) return LESS;
             else if (a.fileinfo[field] > b.fileinfo[field]) return GREATER;
