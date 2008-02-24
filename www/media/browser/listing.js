@@ -575,9 +575,16 @@ function sort_listing(sort_field, ascending)
     var files_children = files.childNodes;
     var files_array = new Array(files_children.length);
     /* Update sort_order, bringing sort_field to the top. */
-    sort_order.removeall(sort_field);
-    sort_order.push(sort_field);
-    sort_ascending = ascending != false ? true : false;
+    if(sort_order[sort_order.length-1] == sort_field)
+    {
+        sort_ascending = ascending != false ? true : false;
+    }
+    else
+    {
+        sort_ascending = true;
+        sort_order.removeall(sort_field);
+        sort_order.push(sort_field);
+    }
 
     /* Build an array of DOM tr elements (with the additional 'filename' and
      * 'fileinfo' attributes as written when the listing is created). */
