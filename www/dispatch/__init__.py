@@ -170,7 +170,15 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     the IVLE request is created.
     """
     req.content_type = "text/html"
-    admin_email = apache._server.server_admin
+    # For some reason, some versions of mod_python have "_server" instead of
+    # "main_server". So we check for both.
+    try:
+        admin_email = apache.main_server.server_admin
+    except AttributeError:
+        try:
+            admin_email = apache._server.server_admin
+        except AttributeError:
+            admin_email = ""
     try:
         httpcode = exc_value.httpcode
         req.status = httpcode
