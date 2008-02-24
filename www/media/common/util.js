@@ -519,6 +519,38 @@ Array.prototype.removeall = function(val)
     arr.splice(j, i-j);
 }
 
+/** Returns a new XMLHttpRequest object, in a somewhat browser-agnostic
+ * fashion.
+ */
+function new_xmlhttprequest()
+{
+    try
+    {
+        /* Real Browsers */
+        return new XMLHttpRequest();
+    }
+    catch (e)
+    {
+        /* Internet Explorer */
+        try
+        {
+            return new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch (e)
+        {
+            try
+            {
+                return new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            catch (e)
+            {
+                throw("Your browser does not support AJAX. "
+                    + "IVLE requires a modern browser.");
+            }
+        }
+    }
+}
+
 /** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
  * response, and returns an XMLHttpRequest object containing the completed
  * response.
@@ -542,7 +574,7 @@ function ajax_call(app, path, args, method, content_type)
      * (This is not checked against anywhere else, it is solely defined and
      * used within this function) */
     var boundary = "48234n334nu7n4n2ynonjn234t683jyh80j";
-    var xhr = new XMLHttpRequest();
+    var xhr = new_xmlhttprequest();
     if (method == "GET")
     {
         /* GET sends the args in the URL */
