@@ -292,7 +292,8 @@ def handle_update_user(req, fields):
 def handle_get_user(req, fields):
     """
     Retrieve a user's account details. This returns all details which the db
-    module is willing to give up.
+    module is willing to give up, EXCEPT the following fields:
+        svn_pass
     """
     # Only give full powers if this user has CAP_GETUSER
     fullpowers = req.user.hasCap(caps.CAP_GETUSER)
@@ -317,7 +318,12 @@ def handle_get_user(req, fields):
     if 'role' in user:
         user['rolenm'] = str(user['role'])
         del user['role']
-    response = cjson.encode(dict(user))
+    user = dict(user)
+    try:
+        del user['svn_pass']
+    except KeyError:
+        pass
+    response = cjson.encode(user)
     req.content_type = "text/plain"
     req.write(response)
 
