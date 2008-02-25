@@ -67,6 +67,11 @@ cd ..
 http://docutils.sourceforge.net/docutils-snapshot.tgz
 http://downloads.sourceforge.net/epydoc/epydoc-3.0.1.tar.gz?use_mirror=optusnet
 
+# Or using apt-get
+# (Note: epydoc doesn't work on Fiesty using apt-get)
+
+sudo apt-get install python-docutils python-epydoc
+
 ##########################################################################
 # Configure postgres
 ##########################################################################
