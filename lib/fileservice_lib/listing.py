@@ -102,6 +102,8 @@ import os
 import stat
 import time
 import mimetypes
+import urlparse
+from cgi import parse_qs
 
 import cjson
 import pysvn
@@ -135,6 +137,8 @@ def handle_return(req):
 
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
+    urlpath = urlparse.urlparse(path)
+    path = urlpath[2]
     if path is None:
         req.status = req.HTTP_FORBIDDEN
         req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
@@ -169,15 +173,46 @@ def get_dirlisting(req, svnclient, path):
     path: String. Absolute path on the local file system. Not checked,
         must already be guaranteed safe.
     """
+    # Are we in 'revision mode' - has someone sent the 'r' query
+    # Work out the revisions from query
+    revision = None
+
+    url = urlparse.urlparse(req.path)
+    querystr = url[4] # Query component
+    query = parse_qs(querystr)
+    r_str = None
+    if 'r' in query:
+        r_str = query['r'][0]
+
+    if r_str == "HEAD":
+        revision = pysvn.Revision( pysvn.opt_revision_kind.head )
+    elif r_str == "WORKING":
+        revision = pysvn.Revision( pysvn.opt_revision_kind.working )
+    elif r_str == "BASE":
+        revision = pysvn.Revision( pysvn.opt_revision_kind.base )
+    else:
+        # Is it a number?
+        try:
+            r = int(r_str)
+            revision = pysvn.Revision( pysvn.opt_revision_kind.number, r)
+        except:
+            pass
+
     # Start by trying to do an SVN status, so we can report file version
     # status
     listing = {}
     try:
-        status_list = svnclient.status(path, recurse=False, get_all=True,
+        if revision:
+            ls_list = svnclient.list(path, revision=revision, recurse=False)
+            for ls in ls_list:
+                filename, attrs = PysvnList_tofileinfo(path, ls)
+                listing[filename] = attrs
+        else:
+            status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
-        for status in status_list:
-            filename, attrs = PysvnStatus_to_fileinfo(path, status)
-            listing[filename] = attrs
+            for status in status_list:
+                filename, attrs = PysvnStatus_to_fileinfo(path, status)
+                listing[filename] = attrs
     except pysvn.ClientError:
         # Presumably the directory is not under version control.
         # Fallback to just an OS file listing.
@@ -271,6 +306,47 @@ def PysvnStatus_to_fileinfo(path, status):
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d
         pass
+    return filename, d
+
+def PysvnList_tofileinfo(path, list):
+    """Given a List object from pysvn.Client.list, gets all the info "ls"
+    needs to display about the filename. Returns a pair mapping filename to
+    a dict containing a number of other fields."""
+    path = os.path.normcase(path)
+    pysvnlist = list[0]
+    fullpath = pysvnlist.path
+    # If this is "." (the directory itself)
+    if path == os.path.normcase(fullpath):
+        # If this directory is unversioned, then we aren't
+        # looking at any interesting files, so throw
+        # an exception and default to normal OS-based listing. 
+        #if status.text_status == pysvn.wc_status_kind.unversioned:
+        #    raise pysvn.ClientError
+        # We actually want to return "." because we want its
+        # subversion status.
+        filename = "."
+    else:
+        filename = os.path.basename(fullpath)
+    d = {}
+    d["svnstatus"] = "revision" # A special status
+
+    if pysvnlist.kind == pysvn.node_kind.dir:
+        d["isdir"] = True
+        d["type_nice"] = util.nice_filetype("/")
+        # Only directories can be published
+        #d["published"] = studpath.published(fullpath)
+    else:
+        d["isdir"] = False
+        d["size"] = pysvnlist.size
+        (type, _) = mimetypes.guess_type(fullpath)
+        if type is None:
+            type = conf.mimetypes.default_mimetype
+        d["type"] = type
+        d["type_nice"] = util.nice_filetype(filename)
+        d["mtime"] = pysvnlist.time
+        d["mtime_nice"] = make_date_nice(pysvnlist.time)
+        d["mtime_short"] = make_date_nice_short(pysvnlist.time)
+
     return filename, d
 
 def make_date_nice(seconds_since_epoch):

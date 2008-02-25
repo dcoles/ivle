@@ -65,7 +65,8 @@ svn_icons = {
     "added": "added.png",
     "missing": "missing.png",
     "deleted": "deleted.png",
-    "modified": "modified.png"
+    "modified": "modified.png",
+    "revision": "revision.png"
 };
 
 /* Mapping SVN status to "nice" strings */
@@ -78,7 +79,8 @@ svn_nice = {
     "replaced": "Permanent file (replaced)",
     "modified": "Permanent file (modified)",
     "merged": "Permanent file (merged)",
-    "conflicted": "Permanent file (conflicted)"
+    "conflicted": "Permanent file (conflicted)",
+    "revision": "Past Permanent file (revision)"
 };
 
 default_svn_icon = null;
@@ -156,8 +158,11 @@ function navigate(path, editmode)
             /* Read the response and set up the page accordingly */
             handle_response(path, response, editmode);
         }
+    /* Get any query strings */
+    url = parse_url(window.location.href);
+    
     /* Call the server and request the listing. This mutates the server. */
-    ajax_call(callback, service_app, path, null, "GET");
+    ajax_call(callback, service_app, path, url.args, "GET");
 }
 
 /** Determines the "handler type" from a MIME type.
