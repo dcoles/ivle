@@ -27,6 +27,6 @@
     top: 2em;       /* == #editorhead.height */
     bottom: 0;
     /* Override EditArea's specified width and height */
-    width: auto ! important;
+    width: 100% ! important;
     height: auto ! important;
 }
