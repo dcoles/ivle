@@ -83,7 +83,7 @@ function handle_text(path, text, handler_type)
     editAreaLoader.init({
         id : "editbox",
         syntax: "python",
-	toolbar: "search, go_to_line, |, undo, redo, |, select_font, |, syntax_selection, |, highlight, |, help",
+        toolbar: "search, go_to_line, |, undo, redo, |, select_font, |, syntax_selection, |, highlight, |, help",
         start_highlight: true,
         allow_toggle: false,
         allow_resize: false,
