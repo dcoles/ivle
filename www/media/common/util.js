@@ -551,10 +551,13 @@ function new_xmlhttprequest()
     }
 }
 
-/** Makes an XMLHttpRequest call to the server. Waits (synchronously) for a
- * response, and returns an XMLHttpRequest object containing the completed
- * response.
+/** Makes an asynchronous XMLHttpRequest call to the server.
+ * Sends the XMLHttpRequest object containing the completed response to a
+ * specified callback function.
  *
+ * \param callback A callback function. Will be called when the response is
+ *      complete. Passed 1 parameter, an XMLHttpRequest object containing the
+ *      completed response.
  * \param app IVLE app to call (such as "fileservice").
  * \param path URL path to make the request to, within the application.
  * \param args Argument object, as described in parse_url and friends.
@@ -562,9 +565,8 @@ function new_xmlhttprequest()
  * \param content_type String, optional. Only applies if method is "POST".
  *      May be "application/x-www-form-urlencoded" or "multipart/form-data".
  *      Defaults to "application/x-www-form-urlencoded".
- * \return An XMLHttpRequest object containing the completed response.
  */
-function ajax_call(app, path, args, method, content_type)
+function ajax_call(callback, app, path, args, method, content_type)
 {
     if (content_type != "multipart/form-data")
         content_type = "application/x-www-form-urlencoded";
@@ -575,20 +577,26 @@ function ajax_call(app, path, args, method, content_type)
      * used within this function) */
     var boundary = "48234n334nu7n4n2ynonjn234t683jyh80j";
     var xhr = new_xmlhttprequest();
+    xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == 4)
+            {
+                callback(xhr);
+            }
+        }
     if (method == "GET")
     {
         /* GET sends the args in the URL */
         url = build_url({"path": path, "args": args});
-        /* open's 3rd argument = false -> SYNCHRONOUS (wait for response)
-         * (No need for a callback function) */
-        xhr.open(method, url, false);
+        /* open's 3rd argument = true -> asynchronous */
+        xhr.open(method, url, true);
         xhr.send(null);
     }
     else
     {
         /* POST sends the args in application/x-www-form-urlencoded */
         url = encodeURI(path);
-        xhr.open(method, url, false);
+        xhr.open(method, url, true);
         var message;
         if (content_type == "multipart/form-data")
         {
@@ -604,6 +612,5 @@ function ajax_call(app, path, args, method, content_type)
         xhr.setRequestHeader("Content-Length", message.length);
         xhr.send(message);
     }
-    return xhr;
 }
 

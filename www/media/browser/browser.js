@@ -123,16 +123,20 @@ current_path = "";
 function do_action(action, path, args, content_type, ignore_response)
 {
     args.action = action;
+    /* Callback action, when the server returns */
+    var callback = function(response)
+        {
+            /* Check for action errors reported by the server, and report them
+             * to the user */
+            var error = response.getResponseHeader("X-IVLE-Action-Error");
+            if (error != null)
+                alert("Error: " + error.toString() + ".");
+            /* Now read the response and set up the page accordingly */
+            if (ignore_response != true)
+                handle_response(path, response);
+        }
     /* Call the server and perform the action. This mutates the server. */
-    response = ajax_call(service_app, path, args, "POST", content_type);
-    /* Check for action errors reported by the server, and report them to the
-     * user */
-    error = response.getResponseHeader("X-IVLE-Action-Error");
-    if (error != null)
-        alert("Error: " + error.toString() + ".");
-    /* Now read the response and set up the page accordingly */
-    if (ignore_response != true)
-        handle_response(path, response);
+    ajax_call(callback, service_app, path, args, "POST", content_type);
 }
 
 /** Calls the server using Ajax, requesting a directory listing. This should
@@ -147,10 +151,13 @@ function do_action(action, path, args, content_type, ignore_response)
  */
 function navigate(path, editmode)
 {
+    callback = function(response)
+        {
+            /* Read the response and set up the page accordingly */
+            handle_response(path, response, editmode);
+        }
     /* Call the server and request the listing. This mutates the server. */
-    response = ajax_call(service_app, path, null, "GET");
-    /* Now read the response and set up the page accordingly */
-    handle_response(path, response, editmode);
+    ajax_call(callback, service_app, path, null, "GET");
 }
 
 /** Determines the "handler type" from a MIME type.

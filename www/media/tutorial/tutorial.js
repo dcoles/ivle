@@ -67,10 +67,14 @@ function submitexercise(exerciseid, filename)
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
-    var xhr = ajax_call("tutorialservice", "", args, "POST",
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            var testresponse = JSON.parse(xhr.responseText);
+            handle_testresponse(exercisediv, testresponse);
+        }
+    ajax_call(callback, "tutorialservice", "", args, "POST",
         "multipart/form-data");
-    var testresponse = JSON.parse(xhr.responseText);
-    handle_testresponse(exercisediv, testresponse);
 }
 
 /** Given a exercise div, return the testoutput div which is its child.

@@ -73,9 +73,8 @@ function accept_license()
         "IVLE is now setting up your environment. Please wait..."));
     tos_acceptbuttons.appendChild(make_dots_anim());
     /* Make the Ajax request */
-    var xhr = ajax_call("userservice", "activate_me", USER_DECLARATION,
-        "POST")
-    handle_accept_response(xhr)
+    ajax_call(handle_accept_response, "userservice", "activate_me",
+        USER_DECLARATION, "POST")
 }
 
 function handle_accept_response(xhr)

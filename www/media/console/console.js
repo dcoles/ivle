@@ -36,18 +36,32 @@ server_started = false;
 
 /* Starts the console server, if it isn't already.
  * This can be called any number of times - it only starts the one server.
+ * Note that this is asynchronous. It will return after signalling to start
+ * the server, but there is no guarantee that it has been started yet.
  * This is a separate step from console_init, as the server is only to be
  * started once the first command is entered.
  * Does not return a value. Writes to global variables
  * server_host, and server_port.
+ *
+ * \param callback Function which will be called after the server has been
+ * started. No parameters are passed. May be null.
  */
-function start_server()
+function start_server(callback)
 {
-    if (server_started) return;
-    var xhr = ajax_call("consoleservice", "start", {}, "POST");
-    var json_text = xhr.responseText;
-    server_key = JSON.parse(json_text);
-    server_started = true;
+    if (server_started)
+    {
+        callback();
+        return;
+    }
+    var callback1 = function(xhr)
+        {
+            var json_text = xhr.responseText;
+            server_key = JSON.parse(json_text);
+            server_started = true;
+            if (callback != null)
+                callback();
+        }
+    ajax_call(callback1, "consoleservice", "start", {}, "POST");
 }
 
 /** Initialises the console. All apps which import console are required to
@@ -203,12 +217,17 @@ var hist = new History();
  */
 function console_enter_line(inputline, which)
 {
-    /* Start the server if it hasn't already been started */
-    start_server();
     var args = {"key": server_key, "text":inputline};
-    var xmlhttp = ajax_call("consoleservice", which, args, "POST");
+    var callback = function(xhr)
+        {
+            console_response(inputline, xhr.responseText);
+        }
+    ajax_call(callback, "consoleservice", which, args, "POST");
+}
 
-    var res = JSON.parse(xmlhttp.responseText);
+function console_response(inputline, responseText)
+{
+    var res = JSON.parse(responseText);
     var output = document.getElementById("console_output");
     {
         var pre = document.createElement("pre");
@@ -304,10 +323,15 @@ function catch_input(key)
          */
         break;
     case 13:                /* Enter key */
-        /* Send the line of text to the server */
-        console_enter_line(inp.value, "chat");
-        hist.submit(inp.value);
-        inp.value = hist.curr();
+        var callback = function()
+        {
+            /* Send the line of text to the server */
+            console_enter_line(inp.value, "chat");
+            hist.submit(inp.value);
+            inp.value = hist.curr();
+        }
+        /* Start the server if it hasn't already been started */
+        start_server(callback);
         break;
     case 38:                /* Up arrow */
         hist.up(inp.value);
