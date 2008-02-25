@@ -94,6 +94,9 @@
     color: black;
     width: 90%;
 }
+#console_inputText.disabled {
+    background-color: #aaa;
+}
 /* console filler takes up the same space as console_body.windowpane
  * but its position is relative, not fixed.
  * This avoids having the console overlap with the bottom 28em of page

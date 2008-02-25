@@ -215,13 +215,23 @@ var hist = new History();
  * to its response by writing to the output box.
  * Also maximize the console window if not already.
  */
-function console_enter_line(inputline, which)
+function console_enter_line(inputbox, which)
 {
+    GLOBAL_inputbox = inputbox;     /* For timer */
+    var inputline = inputbox.value;
     var args = {"key": server_key, "text":inputline};
+    var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
+        + "\"disabled\");", 100);
     var callback = function(xhr)
         {
             console_response(inputline, xhr.responseText);
+            /* Re-enable the text box */
+            clearTimeout(graytimer);
+            inputbox.removeAttribute("disabled");
+            inputbox.removeAttribute("class");
         }
+    /* Disable the text box */
+    inputbox.setAttribute("disabled", "disabled");
     ajax_call(callback, "consoleservice", which, args, "POST");
 }
 
@@ -326,7 +336,7 @@ function catch_input(key)
         var callback = function()
         {
             /* Send the line of text to the server */
-            console_enter_line(inp.value, "chat");
+            console_enter_line(inp, "chat");
             hist.submit(inp.value);
             inp.value = hist.curr();
         }
