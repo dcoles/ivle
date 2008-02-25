@@ -38,6 +38,7 @@ import apps
 
 from request import Request
 import html
+import cgi
 import login
 from common import (util, forumutil)
 import traceback
@@ -209,11 +210,11 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         if exc_value.message is not None:
             msg = exc_value.message
         if codename is not None:
-            req.write("<h1>Error: %s</h1>\n" % codename)
+            req.write("<h1>Error: %s</h1>\n" % cgi.escape(codename))
         else:
             req.write("<h1>Error</h1>\n")
         if msg is not None:
-            req.write("<p>%s</p>\n" % msg)
+            req.write("<p>%s</p>\n" % cgi.escape(msg))
         else:
             req.write("<p>An unknown error occured.</p>\n")
         req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
@@ -234,6 +235,9 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         # if available.
         if hasattr(exc_value, 'message') and exc_value.message is not None:
             msg = exc_value.message
+            # Prepend the exception type
+            if exc_type != util.IVLEError:
+                msg = exc_type.__name__ + ": " + msg
 
         req.write("""<html>
 <head><title>IVLE Internal Server Error</title></head>
@@ -241,23 +245,23 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 <h1>IVLE Internal Server Error""")
         if (codename is not None
             and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
-            req.write(": %s" % codename)
+            req.write(": %s" % cgi.escape(codename))
         req.write("""</h1>
 <p>An error has occured which is the fault of the IVLE developers or
 administration.</p>
 """)
         if msg is not None:
-            req.write("<p>%s</p>\n" % msg)
+            req.write("<p>%s</p>\n" % cgi.escape(msg))
         if httpcode is not None:
             req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
         req.write("""
 <p>Please report this to <a href="mailto:%s">%s</a> (the system
 administrator). Include the following information:</p>
-""" % (admin_email, admin_email))
+""" % (cgi.escape(admin_email), cgi.escape(admin_email)))
 
         tb_print = cStringIO.StringIO()
         traceback.print_exception(exc_type, exc_value, exc_traceback,
             file=tb_print)
         req.write("<pre>\n")
-        req.write(tb_print.getvalue())
+        req.write(cgi.escape(tb_print.getvalue()))
         req.write("</pre>\n</body>\n")
