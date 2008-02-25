@@ -30,3 +30,11 @@ IVLE displays a generic Terms of Service notice
 ===============================================
 
 You should customize the TOS notice at trunk/www/apps/tos/license.html.
+
+Apache Server isn't Restarting
+==============================
+
+Make sure no console processes are lying around (e.g. sudo killall
+python), then restart with "sudo apache2ctl restart".  If the issue
+persists, try stopping the server and starting it in two separate
+steps, so you see the errors reported by the start script.
