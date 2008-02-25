@@ -48,17 +48,22 @@ def handle(req):
   <p><span id="login"></span></p>
   <p id="role"></p>
   <h3>Change settings</h3>
-  <table>
-    <tr><td>Display name:</td><td><input type="text" name="nick" id="nick"
-        size="40" /></td></tr>
-    <tr><td>Email address:</td><td><input type="text" name="email" id="email"
-        size="40" /></td></tr>
-  </table>
-  <div id="changepassword"></div>
-  <p>
-    <input value="Save" onclick="save_settings()" type="button" />
-    <input value="Revert" onclick="revert_settings()" type="button" />
-  </p>
+  <form action="">
+    <table>
+      <tr><td>Display name:</td><td><input type="text"
+            name="nick" id="nick" size="40" /></td></tr>
+      <tr><td>Email address:</td><td><input type="text"
+            name="email" id="email" size="40" /></td></tr>
+    </table>
+    <div id="changepassword"></div>
+    <p id="result"></p>
+    <p>
+      <input value="Save" onclick="return save_settings()" id="save"
+          type="submit" />
+      <input value="Revert" onclick="return revert_settings()" id="revert"
+          type="reset" />
+    </p>
+  </form>
 
   <div id="notices"></div>
 </div>

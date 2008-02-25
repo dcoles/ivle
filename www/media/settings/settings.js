@@ -20,12 +20,15 @@
  * Date: 25/2/2008
  */
 
+var user_data;
+
 function onload()
 {
     revert_settings();
 }
 
-/* Fetch the user's details from the server, and populate the page */
+/* Fetch the user's details from the server, and populate the page.
+ * Returns false. */
 function revert_settings()
 {
     var callback = function(xhr)
@@ -35,11 +38,13 @@ function revert_settings()
         }
     /* Just get details for the logged in user */
     ajax_call(callback, "userservice", "get_user", {}, "GET");
+    return false;
 }
 
 /* Populate the page with the given user's account details */
 function populate(user)
 {
+    user_data = user;
     /* Plain text elements (non-editable) */
     var login = document.getElementById("login");
     var role = document.getElementById("role");
@@ -171,4 +176,96 @@ function populate(user)
             notices.appendChild(p);
         }
     }
+}
+
+/* Sets the "result" text.
+ * iserror (bool) determines the styling.
+ */
+function set_result(text, iserror)
+{
+    var p = document.getElementById("result");
+    dom_removechildren(p);
+    p.appendChild(document.createTextNode(text));
+    if (iserror)
+        p.setAttribute("class", "error");
+    else
+        p.removeAttribute("class");
+}
+
+/* Writes the settings to the server.
+ * Returns false. */
+function save_settings()
+{
+    /* Button (input) elements */
+    var save = document.getElementById("save");
+    /* Textbox (input) elements */
+    try
+    {
+        var newpass = document.getElementById("newpass");
+        var repeatpass = document.getElementById("repeatpass");
+    }
+    catch (e)
+    {
+        var newpass = null;
+        var repeatpass = null;
+    }
+    var nick = document.getElementById("nick");
+    var email = document.getElementById("email");
+
+    /* Check */
+    newpassval = newpass == null ? null : newpass.value;
+    repeatpassval = repeatpass == null ? null : repeatpass.value;
+    nickval = nick.value;
+    emailval = email.value;
+
+    /* Clear the password boxes, even if there are errors later */
+    try
+    {
+        newpass.value = "";
+        repeatpass.value = "";
+    }
+    catch (e)
+    {
+    }
+
+    if (nickval == "")
+    {
+        set_result("Display name is empty.", true);
+        return false;
+    }
+    if (newpassval != repeatpassval)
+    {
+        set_result("Passwords do not match.", true);
+        return false;
+    }
+
+    /* Disable the heavy-duty supercolliding super button */
+    save.setAttribute("disabled", "disabled");
+    save.setAttribute("value", "Saving...");
+    var callback = function(xhr)
+    {
+        save.removeAttribute("disabled");
+        save.setAttribute("value", "Save");
+
+        if (xhr.status == 200)
+        {
+            set_result("Successfully updated details.");
+            user_data.nick = nickval;
+            user_data.email = emailval;
+        }
+        else
+        {
+            set_result("There was a problem updating the details."
+                + " Your changes have not been saved.");
+        }
+    }
+    data = {
+        "login": user_data.login,
+        "nick": nickval,
+        "email": emailval,
+    }
+    if (newpassval != null && newpassval != "")
+        data['password'] = newpassval;
+    ajax_call(callback, "userservice", "update_user", data, "POST");
+    return false;
 }
