@@ -18,14 +18,11 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 # Script: diffservice
-# Author: Matt Giuca
-# Date:   25/2/2008
+# Author: David Coles
+# Date:   26/2/2008
 
-# A CGI script for handling file requests. This is a wrapper around the
-# FileService library module. It is intended to be run from the trampoline by
-# the FileService application.
-# (The purpose of all of this is to let FileService read and write the user's
-# file system as them).
+# A CGI script for generating a diff report page in HTML. It is intended to be 
+# run from the trampoline by the Diff application.
 
 from common import cgirequest
 from cgi import parse_qs
@@ -65,7 +62,7 @@ def get_revision(r_str):
     else:
         try:
             r = int(r_str)
-            return pysvn.Revision( pysvn.opt_revision_kind.number, r))
+            return pysvn.Revision( pysvn.opt_revision_kind.number, r)
         except:
             return None
         
