@@ -70,17 +70,17 @@ def get_revision(r_str):
         return None
         
 # Use a CGIRequest object to make the CGI environment look like the normal
-# IVLE handler environment. This lets us call FileService as if it were an
-# IVLE app.
+# IVLE handler environment.
 
 req = cgirequest.CGIRequest()
-#fileservice_lib.handle(req)
 
 # CGI Headers
 print("Content-Type: text/html\n")
 print("\n")
 
-print("<h1>Diff</h1>")
+# Beginning of the page
+print('<div id="ivle_padding">')
+print('<h1>Diff</h1>')
 
 # Work out the revisions from query
 url = urlparse.urlparse(req.path)
@@ -95,10 +95,9 @@ if 'r' in query:
         r2 = get_revision(query['r'][1])
         if r2 != None:
             rev2 = r2
-    else:
-        r1 = get_revision(query['r'][0])
-        if r1 != None:
-            rev1=r1
+    r1 = get_revision(query['r'][0])
+    if r1 != None:
+        rev1=r1
 
 # Attempt to get the diff for these revisons
 try:
@@ -139,3 +138,4 @@ except pysvn._pysvn_2_5.ClientError, e:
     print(e)
     print("</dd></dl>")
 
+print('</div>')

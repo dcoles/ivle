@@ -1,12 +1,15 @@
 .diff_add {
-    background-color:#aaffaa;
+    /*background-color:#aaffaa;*/
+    color: green;
 }
 .diff_chg {
-    background-color:#ffff77;
+    /*background-color:#ffff77;*/
+    color: olive;
 }
 
 .diff_sub {
-    background-color:#ffaaaa;
+    /*background-color:#ffaaaa;*/
+    color: maroon;
 }
 
 .diff_range {
@@ -20,4 +23,5 @@
 .diff_special {
     /*font-style: italic;*/
     font-variant: small-caps;
+    color: gray;
 }
