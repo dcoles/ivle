@@ -62,12 +62,12 @@ def get_revision(r_str):
         return pysvn.Revision( pysvn.opt_revision_kind.working )
     elif r_str == "BASE":
         return pysvn.Revision( pysvn.opt_revision_kind.base )
-
-    try:
-        r = int(r_str)
-        return pysvn.Revision( pysvn.opt_revision_kind.number, int(r_str))
-    except:
-        return None
+    else:
+        try:
+            r = int(r_str)
+            return pysvn.Revision( pysvn.opt_revision_kind.number, r))
+        except:
+            return None
         
 # Use a CGIRequest object to make the CGI environment look like the normal
 # IVLE handler environment.
