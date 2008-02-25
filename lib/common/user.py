@@ -32,7 +32,8 @@ user_fields_required = frozenset((
 ))
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
-    "role", "studentid", "acct_exp", "pass_exp", "svn_pass"
+    "role", "studentid", "acct_exp", "pass_exp", "svn_pass",
+    "local_password"
 )
 # Fields not included: passhash, last_login
 
@@ -51,7 +52,8 @@ class User(object):
         # XXX Will ignore unknown fields instead of erroring
         if "rolenm" in kwargs and "role" not in kwargs:
             kwargs['role'] = common.caps.Role(kwargs['rolenm'])
-            del kwargs['rolenm']
+        if "passhash" in kwargs and "local_password" not in kwargs:
+            kwargs['local_password'] = kwargs['passhash'] is not None
         for r in user_fields_list:
             if r in kwargs:
                 self.__setattr__(r, kwargs[r])

@@ -289,8 +289,6 @@ class DB:
         "rolenm", "studentid", "acct_exp", "pass_exp", "last_login", "svn_pass"
     ]
     login_fields = frozenset(login_fields_list)
-    # Do not return passhash when reading from the DB
-    login_getfields = login_fields - frozenset(["passhash"])
 
     def create_user(self, user_obj=None, dry=False, **kwargs):
         """Creates a user login entry in the database.
@@ -365,7 +363,7 @@ class DB:
         Raises a DBException if the login is not found in the DB.
         """
         userdict = self.get_single({"login": login}, "login",
-            self.login_getfields, self.login_primary,
+            self.login_fields, self.login_primary,
             error_notfound="get_user: No user with that login name", dry=dry)
         if dry:
             return userdict     # Query string
@@ -375,7 +373,7 @@ class DB:
     def get_users(self, dry=False):
         """Returns a list of all users in the DB, as User objects.
         """
-        userdicts = self.get_all("login", self.login_getfields, dry=dry)
+        userdicts = self.get_all("login", self.login_fields, dry=dry)
         if dry:
             return userdicts    # Query string
         # Package into User objects
