@@ -1,0 +1,32 @@
+Install Procedure - Frequently Asked Questions
+==============================================
+
+This is a guide for administrators trying to configure IVLE. It answers
+questions about common installation mistakes.
+
+Two IVLE headings, and 404 error message "There is no application called 'php'.
+===============================================================================
+
+This is an Apache conf problem - you are missing the following section:
+
+    <Directory "/opt/ivle/www/php">
+        SetHandler None
+    </Directory>
+
+The easiest way is to ensure you copied ivle.conf.
+
+All the CSS and images are missing
+==================================
+
+There are a couple of causes of this problem.
+
+1. You could be missing the part of Apache conf which configures the
+    "/opt/ivle/www/media" directory. In this case, hyperlinks will be correct.
+2. You may have set your "root_dir" setting incorrectly. Make sure it
+    corresponds to the URL space where IVLE lives on the web server, or all
+    the URLs will be wrong. In this case, hyperlinks will be wrong as well.
+
+IVLE displays a generic Terms of Service notice
+===============================================
+
+You should customize the TOS notice at trunk/www/apps/tos/license.html.
