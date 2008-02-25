@@ -62,6 +62,14 @@ function action_remove(files)
     return false;
 }
 
+function action_mkdir()
+{
+    var path = prompt("New directory name?");
+    if (path == null) return;
+    do_action("mkdir", current_path, {"path":path});
+    return false;
+}
+
 function action_copy(files)
 {
     do_action("copy", current_path, {"path":files});
@@ -376,6 +384,10 @@ function update_sidepanel(total_file_size_sel)
     p = dom_make_link_elem("p", "Paste",
         "Paste the copied or cut files to the current directory", null,
         "return action_paste()");
+    sidepanel.appendChild(p);
+    p = dom_make_link_elem("p", "Make Directory",
+        "Make a new subdirectory in the current directory", null,
+        "return action_mkdir()");
     sidepanel.appendChild(p);
     p = dom_make_link_elem("p", "Upload",
         "Upload a file to the current directory", null,

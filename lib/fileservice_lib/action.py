@@ -62,6 +62,10 @@
 #               will create a directory instead and unpack the ZIP file
 #               into it.
 #
+# action=mkdir: Create a directory. The parent dir must exist.
+#       path:   The path to a file which does not exist, but whose parent
+#               does. The dir will be made with this name.
+#
 # The differences between putfile and putfiles are:
 # * putfile can only accept a single file.
 # * putfile can accept string data, doesn't have to be a file upload.
@@ -295,6 +299,21 @@ def action_move(req, fields):
     frompath = fields.getfirst('from')
     topath = fields.getfirst('to')
     movefile(req, frompath, topath)
+
+def action_mkdir(req, fields):
+    """Creates a directory with the given path.
+    Reads fields: 'path'
+    """
+    path = fields.getfirst('path')
+    if path is None:
+        raise ActionError("Required field missing")
+    path = actionpath_to_local(req, path)
+
+    # Create the directory
+    try:
+        os.mkdir(path)
+    except OSError:
+        raise ActionError("Could not create directory")
 
 def action_putfile(req, fields):
     """Writes data to a file, overwriting it if it exists and creating it if
@@ -579,6 +598,7 @@ def action_svncheckout(req, fields):
 actions_table = {
     "remove" : action_remove,
     "move" : action_move,
+    "mkdir" : action_mkdir,
     "putfile" : action_putfile,
     "putfiles" : action_putfiles,
 
