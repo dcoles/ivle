@@ -286,6 +286,17 @@ def handle_update_user(req, fields):
 
     response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
         decode = False)
+
+    # Re-read the user's details from the DB so we can update their session
+    # XXX potentially-unsafe session write
+    if login == req.user.login:
+        db = common.db.DB()
+        user = db.get_user(login)
+        session = req.get_session()
+        session['user'] = user
+        session.save()
+        db.close()
+
     req.content_type = "text/plain"
     req.write(response)
 
