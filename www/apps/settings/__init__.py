@@ -31,11 +31,40 @@ def handle(req):
     req.content_type = "text/html"
     # These files don't really exist - just a test of our linking
     # capabilities
-    req.styles = []
-    req.scripts = ["media/settings/settings.js"]
+    req.styles = [
+        "media/settings/settings.css",
+    ]
+    req.scripts = [
+        "media/settings/settings.js",
+        "media/common/json2.js",
+        "media/common/util.js",
+    ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data
-    req.write('<div id="ivle_padding">\n')
-    req.write("<p>Settings</p>\n")
-    req.write("</div>\n")
+    req.write("""<div id="ivle_padding">
+
+  <h2>User Profile</h2>
+  <p><span id="fullname"></span> (<b><span id="login"></span></b>)</p>
+  <div id="role"></div>
+  <h3>Change settings</h3>
+  <table>
+    <tr><td>Display name:</td><td><input type="text" name="nick" id="nick"
+        size="40" /></td></tr>
+    <tr><td>Email address:</td><td><input type="text" name="email" id="email"
+        size="40" /></td></tr>
+  </table>
+  <h3>Change password</h3>
+  <table>
+    <tr><td>New password:</td><td><input type="password"
+        name="newpass" id="newpass" size="40" /></td></tr>
+    <tr><td>Retype password:</td><td><input type="password"
+        name="repeatpass" id="repeatpass" size="40" /></td></tr>
+  </table>
+  <p>Please type your new password twice, to make sure you remember it.</p>
+  <input value="Save" onclick="save_settings()" type="button" />
+  <input value="Revert" onclick="populate()" type="button" />
+
+  <div id="notices"></div>
+</div>
+""")

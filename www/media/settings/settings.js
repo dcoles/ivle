@@ -20,3 +20,18 @@
  * Date: 25/2/2008
  */
 
+function onload()
+{
+    populate();
+}
+
+/* Populate the page with this user's account details */
+function populate()
+{
+    var callback = function(xhr)
+        {
+            user = JSON.parse(xhr.responseText);
+        }
+    /* Just get details for the logged in user */
+    ajax_call(callback, "userservice", "get_user", {}, "GET");
+}
