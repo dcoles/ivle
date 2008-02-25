@@ -20,7 +20,7 @@ import common.chat
 class ExpiryTimer(object):
     def __init__(self, idle):
         self.idle = idle
-        signal.signal(signal.SIGALRM, partial(self.timeout,self))
+        signal.signal(signal.SIGALRM, partial(self.timeout))
 
     def ping(self):
         signal.alarm(self.idle)
