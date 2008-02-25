@@ -66,6 +66,7 @@ function populate(user)
     /* Clear things */
     dom_removechildren(login);
     dom_removechildren(role);
+    dom_removechildren(changepassword);
     dom_removechildren(notices);
 
     /* Construct the page */
@@ -109,6 +110,11 @@ function populate(user)
         p = document.createElement("h3");
         p.appendChild(document.createTextNode("Change password"))
         changepassword.appendChild(p);
+        p = document.createElement("p");
+        p.appendChild(document.createTextNode("Please type your new password "
+            + "twice, to make sure you remember it."))
+        changepassword.appendChild(p);
+
         table = document.createElement("table");
         tbody = document.createElement("tbody");
 
@@ -142,11 +148,6 @@ function populate(user)
 
         table.appendChild(tbody);
         changepassword.appendChild(table);
-
-        p = document.createElement("p");
-        p.appendChild(document.createTextNode("Please type your new password "
-            + "twice, to make sure you remember it."))
-        changepassword.appendChild(p);
     }
 
     if (user.pass_exp != null || user.acct_exp != null)
