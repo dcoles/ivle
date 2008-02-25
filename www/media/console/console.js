@@ -217,21 +217,34 @@ var hist = new History();
  */
 function console_enter_line(inputbox, which)
 {
-    GLOBAL_inputbox = inputbox;     /* For timer */
-    var inputline = inputbox.value;
+    if (typeof(inputbox) == "string")
+    {
+        var inputline = inputbox;
+        inputbox = null;
+        var graytimer = null;
+    }
+    else
+    {
+        GLOBAL_inputbox = inputbox;     /* For timer */
+        var inputline = inputbox.value;
+        var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
+            + "\"disabled\");", 100);
+    }
     var args = {"key": server_key, "text":inputline};
-    var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
-        + "\"disabled\");", 100);
     var callback = function(xhr)
         {
             console_response(inputline, xhr.responseText);
-            /* Re-enable the text box */
-            clearTimeout(graytimer);
-            inputbox.removeAttribute("disabled");
-            inputbox.removeAttribute("class");
+            if (inputbox != null)
+            {
+                /* Re-enable the text box */
+                clearTimeout(graytimer);
+                inputbox.removeAttribute("disabled");
+                inputbox.removeAttribute("class");
+            }
         }
     /* Disable the text box */
-    inputbox.setAttribute("disabled", "disabled");
+    if (inputbox != null)
+        inputbox.setAttribute("disabled", "disabled");
     ajax_call(callback, "consoleservice", which, args, "POST");
 }
 
