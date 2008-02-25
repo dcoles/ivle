@@ -108,9 +108,9 @@ def write_html_head(req):
     # If the "debuginfo" app is installed, display a warning to the admin to
     # make sure it is removed in production.
     if "debuginfo" in conf.apps.app_url:
-        req.write("  <p><small>Warning: debuginfo is enabled. Remove this "
-            "app from conf.apps.app_url when placed into production."
-            "</small></p>\n")
+        req.write("  <p><small>Warning: debuginfo is enabled. Set "
+            "enable_debuginfo = False in lib/conf/apps.py, when placing IVLE "
+            "into production.</small></p>\n")
 
     # If req has a "no_agreement" attribute, then it is because the user has
     # not signed the agreement; therefore we are displaying the TOS page.
