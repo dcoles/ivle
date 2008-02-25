@@ -1,0 +1,141 @@
+#!/usr/bin/python
+
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2008 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Script: diffservice
+# Author: Matt Giuca
+# Date:   25/2/2008
+
+# A CGI script for handling file requests. This is a wrapper around the
+# FileService library module. It is intended to be run from the trampoline by
+# the FileService application.
+# (The purpose of all of this is to let FileService read and write the user's
+# file system as them).
+
+from common import cgirequest
+from cgi import parse_qs
+from os import path
+import pysvn
+import re
+import urlparse
+
+def htmlfy_diff(difftext):
+    """Adds HTML markup to a udiff string"""
+    output = difftext
+    match_file = re.compile(r'^([\+\-]{3})\s(\S+)\s\((.+)\)$',re.MULTILINE)
+    match_range = re.compile(r'^\@\@ (.*) \@\@$',re.MULTILINE)
+    match_add = re.compile(r'^\+(.*)$',re.MULTILINE)
+    match_sub = re.compile(r'^\-(.*)$',re.MULTILINE)
+    match_special = re.compile(r'^\\(.*)$',re.MULTILINE)
+    output = match_file.sub(
+        r'<span class="diff_files">\1 \2 <em>(\3)</em></span>', output)
+    output = match_range.sub(
+        r'<span class="diff_range">@@ \1 @@</span>', output)
+    output = match_add.sub(
+        r'<span class="diff_add">+\1</span>', output)
+    output = match_sub.sub(
+        r'<span class="diff_sub">-\1</span>', output)
+    output = match_special.sub(
+        r'<span class="diff_special">\\\1</span>', output)
+    return output
+
+def get_revision(r_str):
+    """ Returns a Revison object for pysvn from a r query string """
+    if r_str == "HEAD":
+        return pysvn.Revision( pysvn.opt_revision_kind.head )
+    elif r_str == "WORKING":
+        return pysvn.Revision( pysvn.opt_revision_kind.working )
+    elif r_str == "BASE":
+        return pysvn.Revision( pysvn.opt_revision_kind.base )
+
+    try:
+        r = int(r_str)
+        return pysvn.Revision( pysvn.opt_revision_kind.number, int(r_str))
+    except:
+        return None
+        
+# Use a CGIRequest object to make the CGI environment look like the normal
+# IVLE handler environment. This lets us call FileService as if it were an
+# IVLE app.
+
+req = cgirequest.CGIRequest()
+#fileservice_lib.handle(req)
+
+# CGI Headers
+print("Content-Type: text/html\n")
+print("\n")
+
+print("<h1>Diff</h1>")
+
+# Work out the revisions from query
+url = urlparse.urlparse(req.path)
+querystr = url[4]
+urlpath = url[2]
+query = parse_qs(querystr)
+# Default revisions
+rev1=pysvn.Revision( pysvn.opt_revision_kind.base )
+rev2=pysvn.Revision( pysvn.opt_revision_kind.working )
+if 'r' in query:
+    if len(query['r']) == 2:
+        r2 = get_revision(query['r'][1])
+        if r2 != None:
+            rev2 = r2
+    else:
+        r1 = get_revision(query['r'][0])
+        if r1 != None:
+            rev1=r1
+
+# Attempt to get the diff for these revisons
+try:
+    svnclient = pysvn.Client()
+    diff = svnclient.diff
+    diff_text = diff( '/tmp/svndiff',
+        path.join('/home/', urlpath),
+        revision1=rev1,
+        #revision1=pysvn.Revision( pysvn.opt_revision_kind.base ),
+        #url_or_path2=url_or_path,
+        revision2=rev2,
+        #revision2=pysvn.Revision( opt_revision_kind.working ),
+        #recurse=True,
+        #ignore_ancestry=False,
+        #diff_deleted=True,
+        #ignore_content_type=False,
+        #header_encoding="",
+        #diff_options=[]
+    )
+
+    # Split up the udiff into individual files
+    diff_matcher = re.compile(
+        r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
+    )
+    split_diff = diff_matcher.findall(diff_text)
+
+    # Prints output
+    print("<dl>")
+    for filediff in split_diff:
+        filename = filediff[0]
+        diffbody = htmlfy_diff(filediff[1])
+        print("<dt><strong>File:</strong> " + filename + "</dt>")
+        print("<dd><code><pre>" + diffbody + "</pre></code></dd>")
+    print("</dl>")
+
+except pysvn._pysvn_2_5.ClientError, e:
+    print("<dl><dt><strong>Error:</strong></dt><dd>")
+    print(e)
+    print("</dd></dl>")
+

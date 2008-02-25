@@ -1,0 +1,23 @@
+.diff_add {
+    background-color:#aaffaa;
+}
+.diff_chg {
+    background-color:#ffff77;
+}
+
+.diff_sub {
+    background-color:#ffaaaa;
+}
+
+.diff_range {
+    text-decoration: underline;
+}
+
+.diff_files {
+    font-weight: bold;
+}
+
+.diff_special {
+    /*font-style: italic;*/
+    font-variant: small-caps;
+}

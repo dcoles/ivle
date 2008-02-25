@@ -121,6 +121,12 @@ app_userservice = App(dir = "userservice",
                     requireauth = False,
                     hashelp = False)
 
+app_diff = App(dir = "diff",
+                    name = "Diff",
+                    #icon = "forum.png",
+                    requireauth = True,
+                    hashelp = False)
+
 # Mapping URL names to apps
 
 app_url = {
@@ -138,6 +144,7 @@ app_url = {
     "tos" : app_tos,
     "settings" : app_settings,
     "userservice" : app_userservice,
+    "diff" : app_diff,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
