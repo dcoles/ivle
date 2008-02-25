@@ -28,9 +28,9 @@ def call_app(appname, req):
     try:
         # level=-1 to make it look in the right directory
         app_module = __import__(appname, globals(), locals(), [], -1)
-        app_module.handle(req)
-    except ImportError:
+    except ImportError, msg:
         # Any problems meant it's a server error, because conf/apps.py said
         # this app would be here.
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Could not load the %s application." % repr(appname))
+            "Could not load the %s application: %s" % (repr(appname), str(msg)))
+    app_module.handle(req)
