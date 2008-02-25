@@ -45,8 +45,8 @@ def handle(req):
     req.write("""<div id="ivle_padding">
 
   <h2>User Profile</h2>
-  <p><span id="fullname"></span> (<b><span id="login"></span></b>)</p>
-  <div id="role"></div>
+  <p><span id="login"></span></p>
+  <p id="role"></p>
   <h3>Change settings</h3>
   <table>
     <tr><td>Display name:</td><td><input type="text" name="nick" id="nick"
@@ -54,16 +54,11 @@ def handle(req):
     <tr><td>Email address:</td><td><input type="text" name="email" id="email"
         size="40" /></td></tr>
   </table>
-  <h3>Change password</h3>
-  <table>
-    <tr><td>New password:</td><td><input type="password"
-        name="newpass" id="newpass" size="40" /></td></tr>
-    <tr><td>Retype password:</td><td><input type="password"
-        name="repeatpass" id="repeatpass" size="40" /></td></tr>
-  </table>
-  <p>Please type your new password twice, to make sure you remember it.</p>
-  <input value="Save" onclick="save_settings()" type="button" />
-  <input value="Revert" onclick="populate()" type="button" />
+  <div id="changepassword"></div>
+  <p>
+    <input value="Save" onclick="save_settings()" type="button" />
+    <input value="Revert" onclick="revert_settings()" type="button" />
+  </p>
 
   <div id="notices"></div>
 </div>
