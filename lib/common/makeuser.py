@@ -248,7 +248,7 @@ def linktree(src, dst):
     if errors:
         raise Exception, errors
 
-def make_user_db(**kwargs):
+def make_user_db(throw_on_error = True, **kwargs):
     """Creates a user's entry in the database, filling in all the fields.
     All arguments must be keyword args. They are the fields in the table.
     However, instead of supplying a "passhash", you must supply a
