@@ -33,6 +33,7 @@ import cgi
 import urllib
 import re
 from xml.dom import minidom
+import mimetypes
 
 import cjson
 
@@ -90,10 +91,15 @@ def handle(req):
     path_segs = req.path.split(os.sep)
     subject = None
     worksheet = None
-    if len(path_segs) > 2:
-        req.throw_error(req.HTTP_NOT_FOUND)
-    elif len(req.path) > 0:
+    if len(req.path) > 0:
         subject = path_segs[0]
+        if subject == "media":
+            # Special case: "tutorial/media" will plainly serve any path
+            # relative to "subjects/media".
+            handle_media_path(req)
+            return
+        if len(path_segs) > 2:
+            req.throw_error(req.HTTP_NOT_FOUND)
         if len(path_segs) == 2:
             worksheet = path_segs[1]
 
@@ -104,6 +110,30 @@ def handle(req):
     else:
         handle_worksheet(req, subject, worksheet)
         plugins.console.present(req, windowpane=True)
+
+def handle_media_path(req):
+    """
+    Urls in "tutorial/media" will just be served directly, relative to
+    subjects. So if we came here, we just want to serve a file relative to the
+    subjects directory on the local file system.
+    """
+    # First normalise the path
+    urlpath = os.path.normpath(req.path)
+    # Now if it begins with ".." or separator, then it's illegal
+    if urlpath.startswith("..") or urlpath.startswith(os.sep):
+        req.throw_error(req.HTTP_FORBIDDEN)
+    filename = os.path.join(conf.subjects_base, urlpath)
+    (type, _) = mimetypes.guess_type(filename)
+    if type is None:
+        type = conf.mimetypes.default_mimetype
+    ## THIS CODE taken from apps/server/__init__.py
+    if not os.access(filename, os.R_OK):
+        req.throw_error(req.HTTP_NOT_FOUND)
+    if os.path.isdir(filename):
+        req.throw_error(req.HTTP_FORBIDDEN,
+            "The requested file is a directory.")
+    req.content_type = type
+    req.sendfile(filename)
 
 def handle_toplevel_menu(req):
     # This is represented as a directory. Redirect and add a slash if it is
