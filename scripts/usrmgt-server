@@ -7,6 +7,7 @@ import sys
 import urllib
 from functools import partial
 import traceback
+import logging
 
 import conf
 import common.db
@@ -33,7 +34,7 @@ import common.studpath
 #   - Rebuild svn auth file
 #   - Rebuild passwd + push to nodes.
 
-DEBUG_PRINT = True
+log = logging.FileHandler("/var/log/usrmgt.log")
 
 def create_user(props):
     """Create the database record for the given user.
@@ -101,7 +102,7 @@ def update_user(props):
 def get_login(login, passwd, _realm, _login, _may_save):
     """Callback function used by pysvn for authentication.
     """
-    log("Getting password for %s (realm %s)" % (login, _realm))
+    log.debug("Getting password for %s (realm %s)" % (login, _realm))
     return (True, login, passwd, False)
 
 def activate_user(props):
@@ -125,13 +126,13 @@ def activate_user(props):
 
         # make svn config/auth
 
-        log("Creating repo")
+        log.debug("Creating repo")
         common.makeuser.make_svn_repo(login, throw_on_error=False)
-        log("Creating svn config")
+        log.debug("Creating svn config")
         common.makeuser.make_svn_config(login, throw_on_error=False)
-        log("Creating svn auth")
+        log.debug("Creating svn auth")
         passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
-        log("passwd: %s" % passwd)
+        log.debug("passwd: %s" % passwd)
 
         svn = pysvn.Client()
         svn.callback_get_login = partial(get_login, login, passwd)
@@ -145,29 +146,29 @@ def activate_user(props):
         #        offerings.
         #        Instead, we're just going to use a single offering with
         #        a "short" name of "info1".
-        log("Creating /info1")
+        log.debug("Creating /info1")
         try:
             svn.mkdir(conf.svn_addr + login + "/info1",
                       "Initial creation of work directory for Informatics 1")
         except Exception, exc:
-            log("While mkdiring info1: %s" % str(exc))
+            log.warning("While mkdiring info1: %s" % str(exc))
             pass
-        log("Creating /submissions")
+        log.debug("Creating /submissions")
         try:
             svn.mkdir(conf.svn_addr + login + "/submissions",
                       "Initial creation of submissions directory")
         except Exception, exc:
-            log("While mkdiring submissions: %s" % str(exc))
+            log.warning("While mkdiring submissions: %s" % str(exc))
             pass
-        log("Creating /stuff")
+        log.debug("Creating /stuff")
         try:
             svn.mkdir(conf.svn_addr + login + "/stuff",
                       "Initial creation of directory for miscellania")
         except Exception, exc:
-            log("While mkdiring stuff: %s" % str(exc))
+            log.warning("While mkdiring stuff: %s" % str(exc))
             pass
 
-        log("Creating jail")
+        log.debug("Creating jail")
         common.makeuser.make_jail(login, details.unixid)
 
         # FIXME: <hack>
@@ -187,24 +188,24 @@ def activate_user(props):
 
         # FIXME: </hack>
 
-        log("Checking out directories in the jail")
+        log.debug("Checking out directories in the jail")
         try:
             svn.checkout(conf.svn_addr + login + "/stuff",
                          common.studpath.url_to_local(login + "/stuff")[1])
         except Exception, exc:
-            log("While mkdiring stuff: %s" % str(exc))
+            log.warning("While mkdiring stuff: %s" % str(exc))
             pass
         try:
             svn.checkout(conf.svn_addr + login + "/submissions",
                          common.studpath.url_to_local(login + "/submissions")[1])
         except Exception, exc:
-            log("While mkdiring submissions: %s" % str(exc))
+            log.warning("While mkdiring submissions: %s" % str(exc))
             pass
         try:
             svn.checkout(conf.svn_addr + login + "/info1",
                          common.studpath.url_to_local(login + "/info1")[1])
         except Exception, exc:
-            log("While mkdiring info1: %s" % str(exc))
+            log.warning("While mkdiring info1: %s" % str(exc))
             pass
 
         # FIXME: should this be nicer?
@@ -213,7 +214,7 @@ def activate_user(props):
                    common.studpath.url_to_local(login)[1]))
 
 
-        log("Enabling user")
+        log.info("Enabling user")
         db.update_user(login, state='enabled')
 
         return {"response": "okay"}
@@ -227,15 +228,8 @@ actions = {
         'activate_user':activate_user,
     }
 
-def log(msg):
-    """Writes a message to stderr, but only if DEBUG_PRINT is True.
-    """
-    global DEBUG_PRINT
-    if DEBUG_PRINT:
-        print >>sys.stderr, msg
-
 def dispatch(props):
-    log(repr(props))
+    log.debug(repr(props))
     action = props.keys()[0]
     return actions[action](props[action])
 
@@ -243,4 +237,8 @@ if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
 
-    common.chat.start_server(port, magic, False, dispatch)
+    pid = os.getpid()
+
+    log.info("Starting usrmgt server on port %d (pid = %d)" % (port, pid))
+
+    common.chat.start_server(port, magic, True, dispatch)
