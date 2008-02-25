@@ -140,7 +140,8 @@ class DB:
         Raises a DBException if the dictionary contains invalid fields.
         """
         if not DB.check_dict(dict, tablefields, disallowed):
-            raise DBException("Supplied dictionary contains invalid fields.")
+            extras = set(dict.keys()) - tablefields
+            raise DBException("Supplied dictionary contains invalid fields. (%s)" % (repr(extras)))
         # Build two lists concurrently: field names and values, as SQL strings
         fieldnames = []
         values = []
@@ -329,6 +330,8 @@ class DB:
             # else, we'll trust the user, but it SHOULD be "no_agreement"
             # (We can't change it because then the user object would not
             # reflect the DB).
+        if 'local_password' in fields:
+            del fields['local_password']
         # Execute the query.
         return self.insert(fields, "login", self.login_fields, dry=dry)
 
