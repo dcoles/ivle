@@ -103,6 +103,12 @@ types_exec = [
 
 current_path = "";
 
+/** Filenames of all files selected
+ * (Only used by dir listings, but still needs to be [] for files, so that
+ * update_actions knows that nothing is selected).
+ */
+selected_files = [];
+
 /** Calls the server using Ajax, performing an action on the server side.
  * Receives the response from the server and performs a refresh of the page
  * contents, updating it to display the returned data (such as a directory
@@ -163,6 +169,14 @@ function navigate(path, editmode)
     
     /* Call the server and request the listing. This mutates the server. */
     ajax_call(callback, service_app, path, url.args, "GET");
+}
+
+/* Refreshes the current view.
+ * Calls navigate on the current path.
+ */
+function refresh()
+{
+    navigate(current_path, false);
 }
 
 /** Determines the "handler type" from a MIME type.
@@ -270,6 +284,7 @@ function handle_response(path, response, editmode)
             break;
         }
     }
+    update_actions(isdir);
 }
 
 /** Deletes all "dynamic" content on the page.
@@ -407,6 +422,465 @@ function handle_binary(path)
         "Download " + path, "Download " + path, download_link);
     div.appendChild(par1);
     div.appendChild(par2);
+}
+
+function update_actions()
+{
+    var file;
+    var numsel = selected_files.length;
+    if (numsel <= 1)
+    {
+        if (numsel == 0)
+        {
+            /* Display information about the current directory instead */
+            filename = path_basename(current_path);
+            file = thisdir;
+        }
+        else if (numsel == 1)
+        {
+            filename = selected_files[0];
+            file = file_listing[filename];
+        }
+
+        /* Update each action node in the topbar.
+         * This includes enabling/disabling actions as appropriate, and
+         * setting href/onclick attributes. */
+    }
+
+    /* Open */
+    /* Available if exactly one file is selected */
+    var open = document.getElementById("act_open");
+    if (numsel == 1)
+    {
+        open.setAttribute("class", "choice");
+        if (file.isdir)
+            open.setAttribute("title",
+                "Navigate to this directory in the file browser");
+        else
+            open.setAttribute("title",
+                "Edit or view this file");
+        open.setAttribute("href", app_path(this_app, current_path, filename));
+    }
+    else
+    {
+        open.setAttribute("class", "disabled");
+        open.removeAttribute("title");
+        open.removeAttribute("href");
+    }
+
+    /* Serve */
+    /* Available if exactly one file is selected,
+     * and only if this is a file, not a directory */
+    var serve = document.getElementById("act_serve");
+    if (numsel == 1 && !file.isdir)
+    {
+        serve.setAttribute("class", "choice");
+        serve.setAttribute("href",
+            app_path(serve_app, current_path, filename));
+    }
+    else
+    {
+        serve.setAttribute("class", "disabled");
+        serve.removeAttribute("href");
+    }
+
+    /* Run */
+    /* Available if exactly one file is selected,
+     * and it is a Python file.
+     */
+    /* TODO */
+
+    /* Download */
+    /* Always available.
+     * If 0 files selected, download the current file or directory as a ZIP.
+     * If 1 directory selected, download it as a ZIP.
+     * If 1 non-directory selected, download it.
+     * If >1 files selected, download them all as a ZIP.
+     */
+    var download = document.getElementById("act_download");
+    if (numsel <= 1)
+    {
+        if (numsel == 0)
+        {
+            download.setAttribute("href",
+                app_path(download_app, current_path));
+            if (file.isdir)
+                download.setAttribute("title",
+                    "Download the current directory as a ZIP file");
+            else
+                download.setAttribute("title",
+                    "Download the current file");
+        }
+        else
+        {
+            download.setAttribute("href",
+                app_path(download_app, current_path, filename));
+            if (file.isdir)
+                download.setAttribute("title",
+                    "Download the selected directory as a ZIP file");
+            else
+                download.setAttribute("title",
+                    "Download the selected file");
+        }
+    }
+    else
+    {
+        /* Make a query string with all the files to download */
+        var dlpath = urlencode_path(app_path(download_app, current_path)) + "?";
+        for (var i=0; i<numsel; i++)
+            dlpath += "path=" + encodeURIComponent(selected_files[i]) + "&";
+        dlpath = dlpath.substr(0, dlpath.length-1);
+        download.setAttribute("href", dlpath);
+        download.setAttribute("title",
+            "Download the selected files as a ZIP file");
+    }
+
+    /* Refresh - No changes required */
+
+    /* Publish and Submit */
+    /* If this directory is under subversion and selected/unselected file is a
+     * directory. */
+    var publish = document.getElementById("act_publish");
+    var submit = document.getElementById("act_submit");
+    if (numsel <= 1 && file.isdir)
+    {
+        /* TODO: Work out of file is svn'd */
+        /* TODO: If this dir is already published, call it "Unpublish" */
+        publish.setAttribute("class", "choice");
+        publish.removeAttribute("disabled");
+        submit.setAttribute("class", "choice");
+        submit.removeAttribute("disabled");
+    }
+    else
+    {
+        publish.setAttribute("class", "disabled");
+        publish.setAttribute("disabled", "disabled");
+        submit.setAttribute("class", "disabled");
+        submit.setAttribute("disabled", "disabled");
+    }
+
+    /* Share */
+    /* If exactly 1 non-directory file is selected/opened, and its parent
+     * directory is published.
+     */
+    var share = document.getElementById("act_share");
+    if (numsel <= 1 && !file.isdir)
+    {
+        /* TODO: Work out if parent dir is published */
+        share.setAttribute("class", "choice");
+        share.removeAttribute("disabled");
+    }
+    else
+    {
+        share.setAttribute("class", "disabled");
+        share.setAttribute("disabled", "disabled");
+    }
+
+    /* Rename */
+    /* If exactly 1 file is selected */
+    var rename = document.getElementById("act_rename");
+    if (numsel == 1)
+    {
+        rename.setAttribute("class", "choice");
+        rename.removeAttribute("disabled");
+    }
+    else
+    {
+        rename.setAttribute("class", "disabled");
+        rename.setAttribute("disabled", "disabled");
+    }
+
+    /* Delete, cut, copy */
+    /* If >= 1 file is selected */
+    var act_delete = document.getElementById("act_delete");
+    var cut = document.getElementById("act_cut");
+    var copy = document.getElementById("act_copy");
+    if (numsel >= 1)
+    {
+        act_delete.setAttribute("class", "choice");
+        act_delete.removeAttribute("disabled");
+        cut.setAttribute("class", "choice");
+        cut.removeAttribute("disabled");
+        copy.setAttribute("class", "choice");
+        copy.removeAttribute("disabled");
+    }
+    else
+    {
+        act_delete.setAttribute("class", "disabled");
+        act_delete.setAttribute("disabled", "disabled");
+        cut.setAttribute("class", "disabled");
+        cut.setAttribute("disabled", "disabled");
+        copy.setAttribute("class", "disabled");
+        copy.setAttribute("disabled", "disabled");
+    }
+
+    /* Paste, new file, new directory, upload */
+    /* Always enabled (assuming this is a directory) */
+
+    /* Subversion actions */
+    /* TODO: Work out when these are appropriate */
+    var svnadd = document.getElementById("act_svnadd");
+    var svnrevert = document.getElementById("act_svnrevert");
+    var svncommit = document.getElementById("act_svncommit");
+    if (true)
+    {
+        svnadd.setAttribute("class", "choice");
+        svnadd.removeAttribute("disabled");
+        svnrevert.setAttribute("class", "choice");
+        svnrevert.removeAttribute("disabled");
+        svncommit.setAttribute("class", "choice");
+        svncommit.removeAttribute("disabled");
+    }
+
+    return;
+
+
+    /* Unrefactored Code */
+
+
+
+    if (1)
+    {
+        if (file.isdir)
+        {
+            /* Publish/unpublish */
+            if (selected_files.length == 0)
+                path = ".";
+            else
+                path = filename;
+            if ("published" in file && file.published)
+            {
+                p = dom_make_link_elem("p", "Unpublish",
+                    "Make it so this directory cannot be seen by anyone but you",
+                    null,
+                    "return action_unpublish(" + repr(path) + ")");
+                sidepanel.appendChild(p);
+            }
+            else
+            {
+                p = dom_make_link_elem("p", "Publish",
+                    "Make it so this directory can be seen by anyone on the web",
+                    null,
+                    "return action_publish(" + repr(path) + ")");
+                sidepanel.appendChild(p);
+            }
+        }
+
+        var handler_type = null;
+        if ("type" in file)
+            handler_type = get_handler_type(file.type);
+        /* Action: Use the "files" / "edit" app */
+        var path;
+        if (selected_files.length == 1)
+        {
+            /* Don't have "Browse" if this is the current dir */
+            if (file.isdir)
+                p = dom_make_link_elem("p", "Browse",
+                    "Navigate to this directory in the file browser",
+                    app_path(this_app, current_path, filename));
+            else if (handler_type == "text")
+                p = dom_make_link_elem("p", "Edit", "Edit this file",
+                    app_path(edit_app, current_path, filename));
+            else
+                p = dom_make_link_elem("p", "Browse",
+                    "View this file in the file browser",
+                    app_path(this_app, current_path, filename));
+            sidepanel.appendChild(p);
+        }
+
+        /* Action: Use the "serve" app */
+        /* TODO: Figure out if this file is executable,
+         * and change the link to "Run" */
+        p = null;
+        if (file.isdir || handler_type == "binary") {}
+        else
+            p = dom_make_link_elem("p", "View",
+                "View this file",
+                app_path(serve_app, current_path, filename));
+        if (p)
+            sidepanel.appendChild(p);
+
+        /* Action: Use the "download" app */
+        p = null;
+        if (selected_files.length == 0)
+            path = app_path(download_app, current_path);
+        else
+            path = app_path(download_app, current_path, filename);
+        if (file.isdir)
+            p = dom_make_link_elem("p", "Download as zip",
+                "Download this directory as a ZIP file", path);
+        else
+            p = dom_make_link_elem("p", "Download",
+                "Download this file to your computer", path);
+        if (p)
+            sidepanel.appendChild(p);
+
+        if (selected_files.length > 0)
+        {   /* Can't rename if we're in it */
+            p = dom_make_link_elem("p", "Rename",
+                "Change the name of this file", null,
+                "return action_rename(" + repr(filename) + ")");
+            sidepanel.appendChild(p);
+        }
+    }
+    else
+    {
+        path = urlencode_path(app_path(download_app, current_path)) + "?";
+        for (var i=0; i<selected_files.length; i++)
+            path += "path=" + encodeURIComponent(selected_files[i]) + "&";
+        path = path.substr(0, path.length-1);
+        /* Multiple files selected */
+        p = dom_make_link_elem("p", "Download as zip",
+            "Download the selected files as a ZIP file", path, null, true);
+        sidepanel.appendChild(p);
+    }
+
+    /* Common actions */
+    if (selected_files.length > 0)
+    {
+        p = dom_make_link_elem("p", "Delete",
+            "Delete the selected files", null,
+            "return action_remove(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Cut",
+            "Prepare to move the selected files to another directory", null,
+            "return action_cut(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Copy",
+            "Prepare to copy the selected files to another directory", null,
+            "return action_copy(selected_files)");
+        sidepanel.appendChild(p);
+    }
+    p = dom_make_link_elem("p", "Paste",
+        "Paste the copied or cut files to the current directory", null,
+        "return action_paste()");
+    sidepanel.appendChild(p);
+    p = dom_make_link_elem("p", "Make Directory",
+        "Make a new subdirectory in the current directory", null,
+        "return action_mkdir()");
+    sidepanel.appendChild(p);
+    p = dom_make_link_elem("p", "Upload",
+        "Upload a file to the current directory", null,
+        "return show_uploadpanel()");
+    sidepanel.appendChild(p);
+    /* The "Upload" button expands the following panel with upload tools */
+    /* This panel has a form for submitting the file to, and an iframe to load
+     * the target page in (this avoids the entire page being refreshed) */
+    div = document.createElement("div");
+    div.setAttribute("id", "uploadpanel");
+    /* This deliberately hides the upload panel whenever the selection
+     * changes. It can be re-shown by clicking "upload". */
+    div.setAttribute("style", "display: none;");
+    sidepanel.appendChild(div);
+    p = dom_make_text_elem("h3", "Upload File");
+    div.appendChild(p);
+    var form = document.createElement("form");
+    form.setAttribute("method", "POST");
+    form.setAttribute("enctype", "multipart/form-data");
+    form.setAttribute("action", app_path("fileservice", current_path));
+    form.setAttribute("target", "upload_iframe");
+    div.appendChild(form);
+    var input;
+    input = document.createElement("input");
+    input.setAttribute("type", "hidden");
+    input.setAttribute("name", "action");
+    input.setAttribute("value", "putfiles");
+    form.appendChild(input);
+
+    input = document.createElement("input");
+    input.setAttribute("type", "hidden");
+    input.setAttribute("name", "path");
+    input.setAttribute("value", "");
+    form.appendChild(input);
+
+    p = document.createElement("p");
+    form.appendChild(p);
+    input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("name", "data");
+    p.appendChild(input);
+
+    p = document.createElement("p");
+    form.appendChild(p);
+    input = document.createElement("input");
+    input.setAttribute("type", "checkbox");
+    input.setAttribute("name", "unpack");
+    input.setAttribute("value", "true");
+    input.setAttribute("checked", "on");
+    p.appendChild(input);
+    p.appendChild(document.createTextNode(" Unpack zip file"));
+
+    p = document.createElement("p");
+    form.appendChild(p);
+    input = document.createElement("input");
+    input.setAttribute("type", "button");
+    input.setAttribute("value", "Hide");
+    input.setAttribute("onclick", "show_uploadpanel(false)");
+    p.appendChild(input);
+    p.appendChild(document.createTextNode(" "));
+    input = document.createElement("input");
+    input.setAttribute("type", "submit");
+    input.setAttribute("value", "Send");
+    p.appendChild(input);
+
+    /* Now we create an invisible iframe which will receive the upload.
+     * The form submits to fileservice, loading the result into this iframe
+     * instead of the whole browser window (this is an alternative to Ajax,
+     * since Ajax doesn't allow reading the file from the user's disk).
+     * Note this iframe's id is the same as the form's target.
+     */
+    var upload_iframe = document.createElement("iframe");
+    upload_iframe.setAttribute("id", "upload_iframe");
+    upload_iframe.setAttribute("name", "upload_iframe");
+    upload_iframe.setAttribute("style", "display: none;");
+    /* When we get a callback, simply cause a nav to the current path, so we
+     * update the directory listing. */
+    upload_callback_count = 0;      /* See upload_callback */
+    upload_iframe.setAttribute("onload", "upload_callback()");
+    div.appendChild(upload_iframe);
+    /* END Upload panel */
+
+    if (under_subversion)
+    {
+        /* TODO: Only show relevant links */
+        p = dom_make_text_elem("h3", "Subversion");
+        sidepanel.appendChild(p);
+
+        /* TODO: if any selected files are unversioned */
+        p = dom_make_link_elem("p", "Add",
+            "Schedule the selected temporary files to be added permanently",
+            null,
+            "return action_add(selected_files)");
+        sidepanel.appendChild(p);
+        p = dom_make_link_elem("p", "Revert",
+            "Restore the selected files back to their last committed state",
+            null,
+            "return action_revert(selected_files)");
+        sidepanel.appendChild(p);
+        /* TODO: Update */
+        p = dom_make_link_elem("p", "Commit",
+            "Commit any changes to the permanent repository",
+            null,
+            "return action_commit(selected_files)");
+        sidepanel.appendChild(p);
+    }
+
+}
+
+/** Event handler for when an item of the "More actions..." dropdown box is
+ * selected. Performs the selected action. */
+function handle_moreactions()
+{
+    var moreactions = document.getElementById("moreactions");
+    if (moreactions.value == "top")
+        return;
+    var selectedaction = moreactions.value;
+    /* Reset to "More actions..." */
+    moreactions.selectedIndex = 0;
+
+    /* Now handle the selected action */
+    alert("Action: " + selectedaction);
+    /* TODO */
 }
 
 /** Called when the page loads initially.

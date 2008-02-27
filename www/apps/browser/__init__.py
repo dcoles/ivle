@@ -126,14 +126,18 @@ def present_actions1(req):
     This is always exactly the same - the JavaScript will customize it later.
     """
     req.write("""    <a id="act_open" class="disabled">Open</a> :
-    <a id="act_serve" class="disabled">Serve</a> :
+    <a id="act_serve"
+        title="View this file on the web, running your code if this is a CGI file"
+        class="disabled">Serve</a> :
     <a id="act_run" title="Run the selected Python file in the console"
         class="disabled">Run</a> :
     <a id="act_download" class="choice">Download</a> :
     <a title="Refresh the current page" onclick="refresh()"
         class="choice">Refresh</a> :
-    <select id="moreactions">
-      <option class="moreactions">More actions...</option>
+    <select id="moreactions" onchange="handle_moreactions()"
+        onblur="handle_moreactions()">
+      <option class="moreactions" value="top"
+        selected="selected">More actions...</option>
 
       <option class="heading" disabled="disabled">Publishing</option>
       <option id="act_publish" class="disabled" disabled="disabled"
@@ -159,16 +163,16 @@ def present_actions1(req):
         value="cut">Cut</option>
 
       <option class="heading" disabled="disabled">Directory actions</option>
-      <option id="act_paste" class="disabled" disabled="disabled"
+      <option id="act_paste" class="choice"
         title="Paste the copied or cut files to the current directory"
         value="paste">Paste</option>
-      <option id="act_newfile" class="disabled" disabled="disabled"
+      <option id="act_newfile" class="choice"
         title="Open a new file for editing in the current directory"
         value="newfile">New File</option>
-      <option id="act_mkdir" class="disabled" disabled="disabled"
+      <option id="act_mkdir" class="choice"
         title="Make a new subdirectory in the current directory"
         value="mkdir">New Directory</option>
-      <option id="act_upload" class="disabled" disabled="disabled"
+      <option id="act_upload" class="choice"
         title="Upload a file to the current directory"
         value="upload">Upload File</option>
 
@@ -181,7 +185,7 @@ def present_actions1(req):
         value="svnrevert">Revert</option>
       <option id="act_svncommit" class="disabled" disabled="disabled"
         title="Commit any changes to the permanent repository"
-        value="publish">Commit</option>
+        value="svncommit">Commit</option>
     </select>
 """)
 

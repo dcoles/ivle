@@ -31,9 +31,6 @@
 /* DOM nodeType constants */
 ELEMENT_NODE = 1;
 
-/** Filenames of all files selected */
-selected_files = [];
-
 /** The listing object returned by the server as JSON */
 file_listing = null;
 thisdir = null;
@@ -162,8 +159,8 @@ function upload_callback()
 
 /** END ACTIONS **/
 
-/** Updates the side-panel. Expects selected_files reflects the current
- * selected files.
+/** Updates the side-panel AND the actions in the top-bar. Expects selected_files
+ * reflects the current selected files.
  */
 function update_sidepanel(total_file_size_sel)
 {
@@ -543,7 +540,8 @@ function update_selection()
         }
     }
 
-    /* Write to the side-panel */
+    /* Write to the side-panel and actions bar */
+    update_actions();
     update_sidepanel(total_file_size_sel);
 
     /* Write to the status bar */
