@@ -38,3 +38,16 @@ Make sure no console processes are lying around (e.g. sudo killall
 python), then restart with "sudo apache2ctl restart".  If the issue
 persists, try stopping the server and starting it in two separate
 steps, so you see the errors reported by the start script.
+
+Try to log in, and I'm just dumped back to the login screen with no error
+=========================================================================
+
+This is usually because IVLE can't save your session information. IVLE saves
+sessions to a sessions directory on disk. Unfortunately, this is not currently
+configurable in ./setup.py config. You need to edit the Apache config file.
+
+Look for PythonOption mod_python.file_session.database_directory. Make sure it
+is set to the place you want. Then, you need to manually make sure that
+directory exists.
+
+The default is /home/informatics/sessions.
