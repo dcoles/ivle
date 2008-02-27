@@ -69,11 +69,18 @@ def handle(req):
   <div id="path">
     """)
     # TODO: Work out if this is a directory or not
-    presentpath(req, browsepath, True)
+    isdir = True
+    presentpath(req, browsepath, isdir)
     req.write("""
   </div>
-  <div id="actions1"></div>
-  <div id="actions2"></div>
+  <div id="actions1">
+""")
+    present_actions1(req)
+    req.write("""  </div>
+  <div id="actions2">
+""")
+    present_actions2(req, isdir)
+    req.write("""  </div>
 </div>
 <!-- End topbar -->
 
@@ -81,9 +88,6 @@ def handle(req):
 <div id="filesbody">
 </div>
 <!-- End body -->
-
-</body>
-</html>
 """)
 
 def presentpath(req, path, isdir):
@@ -115,3 +119,83 @@ def presentpath(req, path, isdir):
         req.write(link)
         if add_slash:
             req.write('/')
+
+def present_actions1(req):
+    """
+    Presents a set of links/buttons for the "actions1" row of the top bar.
+    This is always exactly the same - the JavaScript will customize it later.
+    """
+    req.write("""    <a id="act_open" class="disabled">Open</a> :
+    <a id="act_serve" class="disabled">Serve</a> :
+    <a id="act_run" title="Run the selected Python file in the console"
+        class="disabled">Run</a> :
+    <a id="act_download" class="choice">Download</a> :
+    <a title="Refresh the current page" onclick="refresh()"
+        class="choice">Refresh</a> :
+    <select id="moreactions">
+      <option class="moreactions">More actions...</option>
+
+      <option class="heading" disabled="disabled">Publishing</option>
+      <option id="act_publish" class="disabled" disabled="disabled"
+        title="Make it so this directory can be seen by anyone on the web"
+        value="publish">Publish</option>
+      <option id="act_share" class="disabled" disabled="disabled"
+        title="Get a link to this published file, to give to friends"
+        value="share">Share this file</option>
+      <option id="act_submit" class="disabled" disabled="disabled"
+        title="Submit the selected files for an assignment"
+        value="submit">Submit</option>
+
+      <option class="heading" disabled="disabled">File actions</option>
+      <option id="act_rename" class="disabled" disabled="disabled"
+        title="Change the name of this file" value="rename">Rename</option>
+      <option id="act_delete" class="disabled" disabled="disabled"
+        title="Delete the selected files" value="delete">Delete</option>
+      <option id="act_copy" class="disabled" disabled="disabled"
+        title="Prepare to copy the selected files to another directory"
+        value="copy">Copy</option>
+      <option id="act_cut" class="disabled" disabled="disabled"
+        title="Prepare to move the selected files to another directory"
+        value="cut">Cut</option>
+
+      <option class="heading" disabled="disabled">Directory actions</option>
+      <option id="act_paste" class="disabled" disabled="disabled"
+        title="Paste the copied or cut files to the current directory"
+        value="paste">Paste</option>
+      <option id="act_newfile" class="disabled" disabled="disabled"
+        title="Open a new file for editing in the current directory"
+        value="newfile">New File</option>
+      <option id="act_mkdir" class="disabled" disabled="disabled"
+        title="Make a new subdirectory in the current directory"
+        value="mkdir">New Directory</option>
+      <option id="act_upload" class="disabled" disabled="disabled"
+        title="Upload a file to the current directory"
+        value="upload">Upload File</option>
+
+      <option class="heading" disabled="disabled">Subversion</option>
+      <option id="act_svnadd" class="disabled" disabled="disabled"
+        title="Schedule the selected temporary files to be added permanently"
+        value="svnadd">Add</option>
+      <option id="act_svnrevert" class="disabled" disabled="disabled"
+        title="Restore the selected files back to their last committed state"
+        value="svnrevert">Revert</option>
+      <option id="act_svncommit" class="disabled" disabled="disabled"
+        title="Commit any changes to the permanent repository"
+        value="publish">Commit</option>
+    </select>
+""")
+
+def present_actions2(req, isdir):
+    """
+    Presents a set of links/buttons for the "actions2" row of the top bar.
+    This depends on whether it is a directory (listing) or normal file
+    (editor).
+    """
+    if isdir:
+        req.write("""Select:
+    <a onclick="selectall()">All</a> :
+    <a onclick="selectnone()">None</a>
+""")
+    else:
+        # TODO
+        pass

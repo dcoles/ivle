@@ -37,8 +37,50 @@
     padding: 0.5em;
     background-color: #aaf;
 }
-#topbar a {
+
+#topbar #path a {
     font-weight: bold;
+}
+/* class "choice" is for all choices, enabled and disabled. This is for both
+ * the <a> actions and <option> actions.
+ * class "disabled" is for disabled choices.
+ */
+#actions1 a.choice, #actions2 a {
+    color: navy;
+    text-decoration: underline;
+    cursor: pointer;
+}
+#actions1 a.choice:hover, #actions1 a.choice:active, #actions1 a.choice:focus,
+    #actions2 a:hover, #actions2 a:active, #actions2 a:focus {
+    color: blue;
+    text-decoration: underline;
+}
+#actions1 a.disabled {
+    color: black;
+    text-decoration: none;
+    cursor: auto;
+}
+#actions1 a.disabled:hover, #actions1 a.disabled:active, #actions1 a.disabled:focus {
+    color: black;
+    text-decoration: none;
+}
+/* Drop-down actions and headings */
+#actions1 option {
+    color: black;
+    font-weight: normal;
+}
+#actions1 option.moreactions {
+    color: #aaa;
+}
+#actions1 option.heading {
+    font-weight: bold;
+}
+#actions1 option.choice {
+    padding-left: 20px;
+}
+#actions1 option.disabled {
+    padding-left: 20px;
+    color: #aaa;
 }
 
 /* Everything under the top bar */
