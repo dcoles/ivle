@@ -204,8 +204,6 @@ function handle_response(path, response, editmode)
 
     /* Clear away the existing page contents */
     clearpage();
-    /* Display the path at the top, for navigation */
-    presentpath(path);
 
     /* Check the status, and if not 200, read the error and handle this as an
      * error. */
@@ -280,7 +278,6 @@ function handle_response(path, response, editmode)
  */
 function clearpage()
 {
-    dom_removechildren(document.getElementById("path"));
     dom_removechildren(document.getElementById("filesbody"));
 }
 
@@ -346,34 +343,6 @@ function handle_error(message)
         + message.toString() + ".")
     txt_elem.setAttribute("class", "padding error");
     files.appendChild(txt_elem);
-}
-
-/** Presents a path list (address bar inside the page) for clicking.
- */
-function presentpath(path)
-{
-    var dom_path = document.getElementById("path");
-    var href_path = make_path(this_app);
-    var nav_path = "";
-    var dir;
-
-    /* Also set the document title */
-    document.title = path_basename(path) + " - IVLE";
-    /* Create all of the paths */
-    var pathlist = path.split("/");
-    for (var i=0; i<pathlist.length; i++)
-    {
-        dir = pathlist[i];
-        if (dir == "") continue;
-        /* Make an 'a' element */
-        href_path = path_join(href_path, dir);
-        nav_path = path_join(nav_path, dir);
-        var link = dom_make_link_elem("a", dir, "Navigate to " + nav_path,
-                href_path/*, "navigate(" + repr(href_path) + ")"*/);
-        dom_path.appendChild(link);
-        dom_path.appendChild(document.createTextNode("/"));
-    }
-    dom_path.removeChild(dom_path.lastChild);
 }
 
 /** Given a mime type, returns the path to the icon.

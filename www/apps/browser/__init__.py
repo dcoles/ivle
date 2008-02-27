@@ -25,10 +25,22 @@
 # simply presents static HTML and JavaScript, and all server-side activities
 # take place in the FileService app (for handling Ajax requests).
 
+import os.path
+import cgi
+
 from common import util
+
+# url path for this app
+THIS_APP = "files"
 
 def handle(req):
     """Handler for the File Browser application."""
+
+    # Work out where we are browsing
+    browsepath = req.path
+    if len(browsepath) == 0:
+        # If no path specified, default to the user's home directory
+        browsepath = req.user.login
 
     # Set request attributes
     req.content_type = "text/html"
@@ -46,14 +58,22 @@ def handle(req):
         "media/browser/editor.js",
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
+    # The page title should contain the name of the file being browsed
+    req.title = browsepath.rsplit('/', 1)[-1]
 
     # Start writing data
     req.write("""
 <!-- Top bar section -->
 
 <div id="topbar">
-<h2>IVLE File Browser</h2>
-<p id="path"></p>
+  <div id="path">
+    """)
+    # TODO: Work out if this is a directory or not
+    presentpath(req, browsepath, True)
+    req.write("""
+  </div>
+  <div id="actions1"></div>
+  <div id="actions2"></div>
 </div>
 <!-- End topbar -->
 
@@ -66,3 +86,32 @@ def handle(req):
 </html>
 """)
 
+def presentpath(req, path, isdir):
+    """
+    Presents a path list (address bar inside the page) for clicking.
+    Writes to req, expecting to have just written the opening div containing
+    the listing.
+    """
+    href_path = util.make_path(THIS_APP)
+    nav_path = ""
+
+    # Create all of the paths
+    pathlist = path.split("/")
+    segs_left = len(pathlist)
+    for path_seg in pathlist:
+        if path_seg == "":
+            continue
+        # Write a slash at the end unless this is the last path seg AND
+        # it's not a directory.
+        segs_left -= 1
+        add_slash = segs_left != 0 or isdir
+        # Make an 'a' element
+        href_path = href_path + '/' + path_seg
+        nav_path = nav_path + path_seg
+        if add_slash:
+            nav_path = nav_path + '/'
+        link = '<a href="%s" title="Navigate to %s">%s</a>' % (
+            href_path, nav_path, path_seg)
+        req.write(link)
+        if add_slash:
+            req.write('/')
