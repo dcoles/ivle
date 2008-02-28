@@ -64,7 +64,6 @@ def handle(req):
         # Otherwise, just serve directly (unless it's a directory)
         (_, path) = studpath.url_to_local(req.path)
         if path is None:
-            # TODO: Nicer 404 message?
             req.throw_error(req.HTTP_NOT_FOUND,
                 "The path specified is invalid.")
         elif not os.access(path, os.R_OK):

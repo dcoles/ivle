@@ -93,8 +93,6 @@ def serve_file(req, owner, filename):
             interp_object = interpret.interpreter_objects[interp_name]
             (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
         except KeyError:
-            # TODO: Nicer 500 message (this is due to bad configuration in
-            # conf/app/server.py)
             req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
                 "The interpreter for this file has not been "
                 "configured correctly.")
@@ -110,8 +108,8 @@ def serve_file(req, owner, filename):
 
         # toserve or not toserve
         if not toserve:
-            # TODO: Nicer 403 message
-            req.throw_error(req.HTTP_FORBIDDEN)
+            req.throw_error(req.HTTP_FORBIDDEN,
+                "Files of this type are not allowed to be served.")
         else:
             serve_file_direct(req, filename, type)
 
@@ -123,6 +121,7 @@ def serve_file_direct(req, filename, type):
     type: String. Mime type to serve the file with.
     """
     if not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The specified file does not exist.")
     req.content_type = type
     req.sendfile(filename)
