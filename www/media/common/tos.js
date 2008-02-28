@@ -66,9 +66,6 @@ function accept_license()
     var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
     dom_removechildren(tos_acceptbuttons);
     /* Print a "please wait" message */
-    /* XXX: The current implementation of Ajax is SYNCHRONOUS.
-     * That means we return right away; the animation won't work properly.
-     */
     tos_acceptbuttons.appendChild(dom_make_text_elem("p",
         "IVLE is now setting up your environment. Please wait..."));
     tos_acceptbuttons.appendChild(make_dots_anim());
@@ -83,7 +80,7 @@ function handle_accept_response(xhr)
     var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
     dom_removechildren(tos_acceptbuttons);
     /* Refresh the page; as the user is now (apparently) logged in */
-    window.location.reload()
+    window.location.href = window.location.href;
 }
 
 function decline_license()
