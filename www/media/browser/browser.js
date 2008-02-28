@@ -666,8 +666,7 @@ function handle_moreactions()
         action_paste();
         break;
     case "newfile":
-        // TODO
-        alert("Not yet implemented: New File");
+        action_newfile();
         break;
     case "mkdir":
         action_mkdir();

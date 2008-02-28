@@ -325,8 +325,12 @@ def action_putfile(req, fields):
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields.getfirst('data')
-    if path is None or data is None:
+    if path is None:
         raise ActionError("Required field missing")
+    if data is None:
+        # Workaround - field reader treats "" as None, so this is the only
+        # way to allow blank file uploads
+        data = ""
     path = actionpath_to_local(req, path)
 
     if data is not None:

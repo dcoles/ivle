@@ -63,6 +63,15 @@ function action_mkdir()
     return false;
 }
 
+function action_newfile()
+{
+    var path = prompt("New file name?");
+    if (path == null) return;
+    /* "Upload" a blank file */
+    do_action("putfile", current_path, {"path":path, "data":""});
+    return false;
+}
+
 function action_copy(files)
 {
     do_action("copy", current_path, {"path":files});
