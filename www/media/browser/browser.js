@@ -101,6 +101,9 @@ types_exec = [
 
 /* Global variables */
 
+/** The listing object returned by the server as JSON */
+file_listing = null;
+current_file = null;
 current_path = "";
 
 /** Filenames of all files selected
@@ -162,12 +165,12 @@ function navigate(path, editmode)
     callback = function(response)
         {
             /* Read the response and set up the page accordingly */
-            handle_response(path, response, editmode);
+            handle_response(path, response, url.args);
         }
     /* Get any query strings */
     url = parse_url(window.location.href);
     
-    /* Call the server and request the listing. This mutates the server. */
+    /* Call the server and request the listing. */
     ajax_call(callback, service_app, path, url.args, "GET");
 }
 
@@ -208,10 +211,10 @@ function get_handler_type(content_type)
  * things) be used to update the URL in the location bar.
  * \param response XMLHttpRequest object returned by the server. Should
  * contain all the response data.
- * \param editmode Optional boolean. If true, then the user navigated here
- * with an "edit" URL so we should favour using the editor.
+ * \param url_args Arguments dict, for the arguments passed to the URL
+ * in the browser's address bar (will be forwarded along).
  */
-function handle_response(path, response, editmode)
+function handle_response(path, response, url_args)
 {
     /* TODO: Set location bar to "path" */
     current_path = path;
@@ -230,61 +233,78 @@ function handle_response(path, response, editmode)
         return;
     }
 
+    /* This will always return a listing, whether it is a dir or a file.
+     */
+    var listing = response.responseText;
+    /* The listing SHOULD be valid JSON text. Parse it into an object. */
+    try
+    {
+        listing = JSON.parse(listing);
+        file_listing = listing.listing;     /* Global */
+    }
+    catch (e)
+    {
+        handle_error("The server returned an invalid directory listing");
+        return;
+    }
+    /* Get "." out, it's special */
+    current_file = file_listing["."];     /* Global */
+    delete file_listing["."];
+
     /* Check if this is a directory listing or file contents */
     var isdir = response.getResponseHeader("X-IVLE-Return") == "Dir";
-    if (!editmode && isdir)
+    if (isdir)
     {
-        var listing = response.responseText;
-        /* The listing SHOULD be valid JSON text. Parse it into an object. */
-        try
-        {
-            listing = JSON.parse(listing);
-        }
-        catch (e)
-        {
-            handle_error("The server returned an invalid directory listing");
-            return;
-        }
         handle_dir_listing(path, listing);
     }
     else
     {
-        /* Treat this as an ordinary file. Get the file type. */
-        var content_type = response.getResponseHeader("Content-Type");
-        var handler_type = get_handler_type(content_type);
-        /* If we're in "edit mode", always treat this file as text */
-        would_be_handler_type = handler_type;
-        if (editmode) handler_type = "text";
-        /* handler_type should now be set to either
-         * "text", "image", "audio" or "binary". */
-        switch (handler_type)
-        {
-        case "text":
-            if (isdir)
+        /* Need to make a 2nd ajax call, this time get the actual file
+         * contents */
+        callback = function(response)
             {
-                handle_text(path_join(path, "untitled"), "",
-                    would_be_handler_type);
+                /* Read the response and set up the page accordingly */
+                handle_contents_response(path, response);
             }
-            else
-            {
-                handle_text(path, response.responseText,
-                    would_be_handler_type);
-            }
-            break;
-        case "image":
-            /* TODO: Custom image handler */
-            handle_binary(path, response.responseText);
-            break;
-        case "audio":
-            /* TODO: Custom audio handler */
-            handle_binary(path, response.responseText);
-            break;
-        case "binary":
-            handle_binary(path);
-            break;
-        }
+        /* Call the server and request the listing. */
+        if (url_args)
+            args = shallow_clone_object(url_args);
+        else
+            args = {};
+        /* This time, get the contents of the file, not its metadata */
+        args['return'] = "contents";
+        ajax_call(callback, service_app, path, args, "GET");
     }
     update_actions(isdir);
+}
+
+function handle_contents_response(path, response)
+{
+    /* Treat this as an ordinary file. Get the file type. */
+    var content_type = response.getResponseHeader("Content-Type");
+    var handler_type = get_handler_type(content_type);
+    /* If we're in "edit mode", always treat this file as text */
+    would_be_handler_type = handler_type;
+    /* handler_type should now be set to either
+     * "text", "image", "audio" or "binary". */
+    switch (handler_type)
+    {
+    case "text":
+        handle_text(path, response.responseText,
+            would_be_handler_type);
+        break;
+    case "image":
+        /* TODO: Custom image handler */
+        handle_binary(path, response.responseText);
+        break;
+    case "audio":
+        /* TODO: Custom audio handler */
+        handle_binary(path, response.responseText);
+        break;
+    case "binary":
+        handle_binary(path);
+        break;
+    }
 }
 
 /** Deletes all "dynamic" content on the page.
@@ -434,7 +454,7 @@ function update_actions()
         {
             /* Display information about the current directory instead */
             filename = path_basename(current_path);
-            file = thisdir;
+            file = current_file;
         }
         else if (numsel == 1)
         {

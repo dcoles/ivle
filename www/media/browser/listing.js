@@ -31,10 +31,6 @@
 /* DOM nodeType constants */
 ELEMENT_NODE = 1;
 
-/** The listing object returned by the server as JSON */
-file_listing = null;
-thisdir = null;
-
 /** The current sort order (a list of fields to sort by, in order of
  * priority), and whether it is ascending or descending. */
 sort_order = [];
@@ -170,7 +166,7 @@ function update_sidepanel(total_file_size_sel)
     var p;
     var div;
     /* Is this dir under svn? */
-    var under_subversion = "svnstatus" in thisdir;
+    var under_subversion = "svnstatus" in current_file;
     dom_removechildren(sidepanel);
     if (selected_files.length <= 1)
     {
@@ -178,7 +174,7 @@ function update_sidepanel(total_file_size_sel)
         {
             /* Display information about the current directory instead */
             filename = path_basename(current_path);
-            file = thisdir;
+            file = current_file;
         }
         else if (selected_files.length == 1)
         {
@@ -765,13 +761,9 @@ function handle_dir_listing(path, listing)
     var row_toggle = 1;
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
-    file_listing = listing;     /* Global */
 
-    /* Get "." out, it's special */
-    thisdir = listing["."];     /* Global */
-    delete listing["."];
     /* Is this dir under svn? */
-    var under_subversion = "svnstatus" in thisdir;
+    var under_subversion = "svnstatus" in current_file;
 
     var files = document.getElementById("files");
     var file;

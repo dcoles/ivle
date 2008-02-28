@@ -519,6 +519,15 @@ Array.prototype.removeall = function(val)
     arr.splice(j, i-j);
 }
 
+/** Shallow-clones an object */
+function shallow_clone_object(obj)
+{
+    o = {};
+    for (k in obj)
+        o[k] = obj[k];
+    return o;
+}
+
 /** Returns a new XMLHttpRequest object, in a somewhat browser-agnostic
  * fashion.
  */

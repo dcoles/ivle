@@ -122,10 +122,4 @@ def handle(req):
             req.headers_out['X-IVLE-Action-Error'] = str(message)
 
     return_type = fields.getfirst('return')
-    # TEMP: Assume return=contents by default.
-    # (In the final, it will be "listing" by default; this is for backwards
-    # compatibility).
-    if return_type is None:
-        return_type = "contents"
-    # END TEMP
     listing.handle_return(req, return_type == "contents")
