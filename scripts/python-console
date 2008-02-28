@@ -5,7 +5,6 @@
 
 import cjson
 import codeop
-import cStringIO
 import md5
 import os
 import Queue
@@ -16,6 +15,9 @@ from threading import Thread
 from functools import partial
 
 import common.chat
+
+class Interrupt(Exception):
+    pass
 
 class ExpiryTimer(object):
     def __init__(self, idle):
@@ -40,36 +42,63 @@ class StdinFromWeb(object):
         self.lineQ = lineQ
 
     def readline(self):
-        # stop the clock!
         self.cmdQ.put({"input":None})
         expiry.ping()
         ln = self.lineQ.get()
         if 'chat' in ln:
             return ln['chat']
 
+class StdoutToWeb(object):
+    def __init__(self, cmdQ, lineQ):
+        self.cmdQ = cmdQ
+        self.lineQ = lineQ
+        self.remainder = ''
+
+    def write(self, stuff):
+        # Split the content up into lines, and ship all the completed
+        # lines off to the server.
+        lines = stuff.split("\n")
+        lines[0] = self.remainder + lines[0]
+        self.remainder = lines[-1]
+        del lines[-1]
+
+        if len(lines) > 0:
+            self.cmdQ.put({"output":lines})
+            expiry.ping()
+            ln = self.lineQ.get()
+            if 'interrupt' in ln:
+                raise Interrupt()
+
+    def flush(self):
+        res = self.remainder
+        self.remainder = ''
+        return res
+
 class PythonRunner(Thread):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
         self.lineQ = lineQ
-        self.out = cStringIO.StringIO()
+        self.out = None
         Thread.__init__(self)
 
     def execCmd(self, cmd):
         try:
             sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
+            self.out = StdoutToWeb(self.cmdQ, self.lineQ)
             sys.stdout = self.out
             sys.stderr = self.out
             res = eval(cmd, self.globs, self.locls)
-            self.cmdQ.put({"okay":(self.out.getvalue(),res)})
+            self.cmdQ.put({"okay":(self.out.flush(),res)})
             self.curr_cmd = ''
-            self.out = cStringIO.StringIO()
         except Exception, exc:
-            self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+            self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
             self.curr_cmd = ''
-            self.out = cStringIO.StringIO()
 
     def run(self):
-        self.init_state()
+        self.globs = {}
+        self.globs['__builtins__'] = globals()['__builtins__']
+        self.locls = {}
+        self.curr_cmd = ''
         compiler = codeop.CommandCompiler()
 
         while True:
@@ -89,24 +118,16 @@ class PythonRunner(Thread):
                     else:
                         self.execCmd(cmd)
                 except Exception, exc:
-                    self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+                    self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
                     self.curr_cmd = ''
-                    self.out = cStringIO.StringIO()
             if 'block' in ln:
                 # throw away a partial command.
                 try:
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
                 except Exception, exc:
-                    self.cmdQ.put({"exc":(self.out.getvalue(),str(exc))})
+                    self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
                     self.curr_cmd = ''
-                    self.out = cStringIO.StringIO()
-
-    def init_state(self):
-        self.globs = {}
-        self.globs['__builtins__'] = globals()['__builtins__']
-        self.locls = {}
-        self.curr_cmd = ''
 
 def daemonize():
     if os.fork():   # launch child and...

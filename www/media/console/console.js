@@ -233,14 +233,7 @@ function console_enter_line(inputbox, which)
     var args = {"key": server_key, "text":inputline};
     var callback = function(xhr)
         {
-            console_response(inputline, xhr.responseText);
-            if (inputbox != null)
-            {
-                /* Re-enable the text box */
-                clearTimeout(graytimer);
-                inputbox.removeAttribute("disabled");
-                inputbox.removeAttribute("class");
-            }
+            console_response(inputbox, graytimer, inputline, xhr.responseText);
         }
     /* Disable the text box */
     if (inputbox != null)
@@ -248,10 +241,11 @@ function console_enter_line(inputbox, which)
     ajax_call(callback, "consoleservice", which, args, "POST");
 }
 
-function console_response(inputline, responseText)
+function console_response(inputbox, graytimer, inputline, responseText)
 {
     var res = JSON.parse(responseText);
     var output = document.getElementById("console_output");
+    if (inputline)
     {
         var pre = document.createElement("pre");
         pre.setAttribute("class", "inputMsg");
@@ -302,11 +296,40 @@ function console_response(inputline, responseText)
         var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode("... "), prompt.firstChild);
     }
+    else if (res.hasOwnProperty('output'))
+    {
+        lines = res.output
+        for (var i = 0; i < lines.length; i++)
+        {
+            var pre = document.createElement("pre");
+            pre.setAttribute("class", "outputMsg");
+            pre.appendChild(document.createTextNode(lines[i] + "\n"));
+            output.appendChild(pre);
+        }
+        var callback = function(xhr)
+            {
+                console_response(inputbox, graytimer,
+                                 null, xhr.responseText);
+            }
+        var args = {"key": server_key, "text":''};
+        ajax_call(callback, "consoleservice", "chat", args, "POST");
+        // Return early, so we don't re-enable the input box.
+        return;
+    }
     else {
         // assert res.hasOwnProperty('input')
         var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode("+++ "), prompt.firstChild);
     }
+
+    if (inputbox != null)
+    {
+        /* Re-enable the text box */
+        clearTimeout(graytimer);
+        inputbox.removeAttribute("disabled");
+        inputbox.removeAttribute("class");
+    }
+
     /* Open up the console so we can see the output */
     console_maximize();
 }
