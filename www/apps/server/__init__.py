@@ -40,8 +40,8 @@ def handle(req):
     (user, path) = studpath.url_to_local(req.path)
 
     if user is None:
-        # TODO: Nicer 404 message?
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The path specified is invalid.")
 
     serve_file(req, user, path)
 
@@ -84,7 +84,8 @@ def serve_file(req, owner, filename):
         # 403 Forbidden error for visiting a directory
         # (Not giving a directory listing, since this can be seen by
         # the world at large. Directory contents are private).
-        req.throw_error(req.HTTP_FORBIDDEN)
+        req.throw_error(req.HTTP_FORBIDDEN,
+            "The path specified is a directory.")
     elif type in conf.app.server.interpreters:
         interp_name = conf.app.server.interpreters[type]
         try:
@@ -94,7 +95,9 @@ def serve_file(req, owner, filename):
         except KeyError:
             # TODO: Nicer 500 message (this is due to bad configuration in
             # conf/app/server.py)
-            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+                "The interpreter for this file has not been "
+                "configured correctly.")
         interpret.interpret_file(req, owner, jail_dir, path, interp_object)
 
     else:

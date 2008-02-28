@@ -65,9 +65,11 @@ def handle(req):
         (_, path) = studpath.url_to_local(req.path)
         if path is None:
             # TODO: Nicer 404 message?
-            req.throw_error(req.HTTP_NOT_FOUND)
+            req.throw_error(req.HTTP_NOT_FOUND,
+                "The path specified is invalid.")
         elif not os.access(path, os.R_OK):
-            req.throw_error(req.HTTP_NOT_FOUND)
+            req.throw_error(req.HTTP_NOT_FOUND,
+                "The specified file does not exist.")
         # If it's a directory, serve as a zip file
         if os.path.isdir(path):
             zipmode = True

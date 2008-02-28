@@ -28,7 +28,7 @@
 import os.path
 import cgi
 
-from common import util
+from common import (util, studpath)
 
 # url path for this app
 THIS_APP = "files"
@@ -61,6 +61,11 @@ def handle(req):
     # The page title should contain the name of the file being browsed
     req.title = browsepath.rsplit('/', 1)[-1]
 
+    _, localpath = studpath.url_to_local(browsepath)
+    if localpath is None:
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The path specified is invalid.")
+
     # Start writing data
     req.write("""
 <!-- Top bar section -->
@@ -68,8 +73,7 @@ def handle(req):
 <div id="topbar">
   <div id="path">
     """)
-    # TODO: Work out if this is a directory or not
-    isdir = True
+    isdir = os.path.isdir(localpath)
     presentpath(req, browsepath, isdir)
     req.write("""
   </div>
