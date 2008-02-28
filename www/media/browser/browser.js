@@ -157,10 +157,8 @@ function do_action(action, path, args, content_type, ignore_response)
  * Called "navigate", can also be used for a simple refresh.
  * Always makes a GET request.
  * No return value.
- * \param editmode Optional boolean. If true, then the user navigated here
- * with an "edit" URL so we should favour using the editor.
  */
-function navigate(path, editmode)
+function navigate(path)
 {
     callback = function(response)
         {
@@ -283,7 +281,6 @@ function handle_contents_response(path, response)
     /* Treat this as an ordinary file. Get the file type. */
     var content_type = response.getResponseHeader("Content-Type");
     var handler_type = get_handler_type(content_type);
-    /* If we're in "edit mode", always treat this file as text */
     would_be_handler_type = handler_type;
     /* handler_type should now be set to either
      * "text", "image", "audio" or "binary". */
@@ -329,50 +326,11 @@ function clearpage_dir()
     dom_removechildren(document.getElementById("sidepanel"));
 }
 
-/** Sets the mode to either "file browser" or "text editor" mode.
- * This modifies the window icon, and selected tab.
- * \param editmode If True, editor mode. Else, file browser mode.
- */
-function setmode(editmode)
-{
-    /* Find the DOM elements for the file browser and editor tabs */
-    var tabs = document.getElementById("apptabs");
-    var tab_files = null;
-    var tab_edit = null;
-    var a;
-    var href;
-    for (var i=0; i<tabs.childNodes.length; i++)
-    {
-        /* Find the href of the link within */
-        if (!tabs.childNodes[i].getElementsByTagName) continue;
-        a = tabs.childNodes[i].getElementsByTagName("a");
-        if (a.length == 0) continue;
-        href = a[0].getAttribute("href");
-        if (href == null) continue;
-        if (endswith(href, this_app))
-            tab_files = tabs.childNodes[i];
-        else if (endswith(href, edit_app))
-            tab_edit = tabs.childNodes[i];
-    }
-
-    if (editmode)
-    {
-        tab_files.removeAttribute("class");
-        tab_edit.setAttribute("class", "thisapp");
-    }
-    else
-    {
-        tab_edit.removeAttribute("class");
-        tab_files.setAttribute("class", "thisapp");
-    }
-}
-
 /*** HANDLERS for different types of responses (such as dir listing, file,
  * etc). */
 
 function handle_error(message)
 {
-    setmode(false);
     var files = document.getElementById("filesbody");
     var txt_elem = dom_make_text_elem("div", "Error: "
         + message.toString() + ".")
@@ -429,7 +387,6 @@ function svnstatus_to_string(svnstatus)
  */
 function handle_binary(path)
 {
-    setmode(false);
     var files = document.getElementById("filesbody");
     var div = document.createElement("div");
     files.appendChild(div);
@@ -689,7 +646,7 @@ function update_actions()
         var handler_type = null;
         if ("type" in file)
             handler_type = get_handler_type(file.type);
-        /* Action: Use the "files" / "edit" app */
+        /* Action: Use the "files" app */
         var path;
         if (selected_files.length == 1)
         {
@@ -700,7 +657,7 @@ function update_actions()
                     app_path(this_app, current_path, filename));
             else if (handler_type == "text")
                 p = dom_make_link_elem("p", "Edit", "Edit this file",
-                    app_path(edit_app, current_path, filename));
+                    app_path(this_app, current_path, filename));
             else
                 p = dom_make_link_elem("p", "Browse",
                     "View this file in the file browser",
@@ -914,7 +871,6 @@ window.onload = function()
     var path = parse_url(window.location.href).path;
     /* Strip out root_dir + "/files" from the front of the path */
     var strip = make_path(this_app);
-    var editmode = false;
     if (path.substr(0, strip.length) == strip)
         path = path.substr(strip.length+1);
     else
@@ -924,7 +880,6 @@ window.onload = function()
         if (path.substr(0, strip.length) == strip)
         {
             path = path.substr(strip.length+1);
-            editmode = true;
         }
     }
 
@@ -935,5 +890,5 @@ window.onload = function()
         path = username;
     }
 
-    navigate(path, editmode);
+    navigate(path);
 }

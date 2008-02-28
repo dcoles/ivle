@@ -292,7 +292,7 @@ function update_sidepanel(total_file_size_sel)
         var handler_type = null;
         if ("type" in file)
             handler_type = get_handler_type(file.type);
-        /* Action: Use the "files" / "edit" app */
+        /* Action: Use the "files" app */
         var path;
         if (selected_files.length == 1)
         {
@@ -303,7 +303,7 @@ function update_sidepanel(total_file_size_sel)
                     app_path(this_app, current_path, filename));
             else if (handler_type == "text")
                 p = dom_make_link_elem("p", "Edit", "Edit this file",
-                    app_path(edit_app, current_path, filename));
+                    app_path(this_app, current_path, filename));
             else
                 p = dom_make_link_elem("p", "Browse",
                     "View this file in the file browser",
@@ -756,7 +756,6 @@ function setup_for_dir_listing()
  */
 function handle_dir_listing(path, listing)
 {
-    setmode(false);
     setup_for_dir_listing();
     var row_toggle = 1;
     /* Nav through the top-level of the JSON to the actual listing object. */

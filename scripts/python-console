@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # usage:
-#   python-console <port> <magic>
+#   python-console <port> <magic> [<working-dir>]
 
 import cjson
 import codeop
@@ -172,5 +172,8 @@ def dispatch_msg(msg):
 if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
+    if len(sys.argv) >= 4:
+        # working_dir
+        os.chdir(sys.argv[3])
 
     common.chat.start_server(port, magic, True, dispatch_msg, initializer)

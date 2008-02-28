@@ -63,8 +63,6 @@ function handle_text(path, text, handler_type)
     /* Create a textarea with the text in it
      * (The makings of a primitive editor).
      */
-    setmode(true);
-
     var files = document.getElementById("filesbody");
     /* Put our UI at the top */
     present_editorhead(files, path, handler_type);

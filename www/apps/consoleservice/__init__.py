@@ -86,10 +86,9 @@ def handle_start(req):
         # Start the console server (port, magic)
         # trampoline usage: tramp uid jail_dir working_dir script_path args
         # console usage:    python-console port magic
-        # TODO: Pass working_dir as argument, let console cd to it
         cmd = ' '.join([trampoline_path, str(uid), jail_path,
                             console_dir, python_path, console_path,
-                            str(port), str(magic)])
+                            str(port), str(magic), working_dir])
 
         res = os.system(cmd)
 
