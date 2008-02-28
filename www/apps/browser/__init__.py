@@ -201,8 +201,10 @@ def present_actions2(req, isdir):
     """
     if isdir:
         req.write("""Select:
-    <a onclick="selectall()">All</a> :
-    <a onclick="selectnone()">None</a>
+    <a onclick="action_selectall(true)"
+        title="Select all files in this directory">All</a> :
+    <a onclick="action_selectall(false)"
+        title="Deselect all files in this directory">None</a>
 """)
     else:
         # TODO

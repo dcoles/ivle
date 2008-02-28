@@ -123,6 +123,28 @@ function action_commit(files)
     return false;
 }
 
+/** Selects or deselects all files in the listing.
+ * selected: true or false (defaults to true).
+ * If false, deselects instead of selecting.
+ */
+function action_selectall(selected)
+{
+    if (selected == null)
+        selected = true;
+    /* Iterate through and check all the boxes.
+     * Then update.
+     * (We do this through the DOM because that is the authority that
+     * update_selection uses to identify what is selected).
+     */
+    var files_children = document.getElementById("files").childNodes;
+    for (var i=0; i<files_children.length; i++)
+    {
+        tr = files_children[i];
+        tr.firstChild.firstChild.checked = selected;
+    }
+    update_selection();
+}
+
 /* Shows or hides the "upload panel" in the side panel.
  * toshow is true for showing, false for hiding.
  */
