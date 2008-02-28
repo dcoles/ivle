@@ -51,6 +51,51 @@ function action_rename(fromfilename)
 
 function action_remove(files)
 {
+    var conf_msg;
+    /* A heavy nesty bit of logic to determine the confirmation message.
+     */
+    if (files.length == 0)
+        return;
+    else if (files.length == 1)
+    {
+        if (file_listing[files[0]].isdir)
+            conf_msg = "Are you sure you want to delete the directory \""
+                + files[0] + "\"?\n"
+                + "All of the files in this directory will be lost.";
+        else
+            conf_msg = "Are you sure you want to delete the file \""
+                + files[0] + "\"?";
+    }
+    else
+    {
+        var confirm_filelist = "";
+        var num_dirs = 0;
+        for (var i=0; i<files.length; i++)
+        {
+            if (file_listing[files[i]].isdir)
+                num_dirs++;
+            confirm_filelist += "  - " + files[i] + "\n";
+        }
+        conf_msg = "Are you sure you want to delete all of the "
+            + "following ";
+        if (num_dirs > 0)
+        {
+            if (files.length == num_dirs)
+                conf_msg += "directories";
+            else
+                conf_msg += "files and directories";
+        }
+        else
+            conf_msg += "files";
+        conf_msg += ":\n" + confirm_filelist;
+        if (num_dirs > 0)
+            conf_msg += "\nAll of the files in these directories "
+                     + "will be lost.";
+    }
+    /* Now we have the conf message */
+
+    var confirmed = confirm(conf_msg);
+    if (!confirmed) return;
     do_action("remove", current_path, {"path":files});
     return false;
 }
