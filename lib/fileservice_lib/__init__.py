@@ -42,21 +42,30 @@
 # response body may contain the requested file.
 
 # Fileservice has two separate roles: First, an action is performed. This may
-# be a copy, write, or svn up operation. Then, a file or directory listing is
-# returned. This directory listing may be completely separate from the action,
+# be a copy, write, or svn up operation. Then, either a directory listing or
+# file contents are returned.
+# This listing/contents may be completely separate from the action,
 # but they are performed together because the client will usually want to
 # perform some action, then update its display as a result of the action.
 
-# GET requests will have all variables ignored, and the only behaviour will be
-# to generate the directory or file listing. POST requests will result in an
-# action if one is specified. If the action is UNSUCCESSFUL, returns the
-# header "X-IVLE-Action-Error: <errormessage>". Successful actions succeed
-# silently. Note that the action does not affect the HTTP response code (it
-# may be 200 even upon failure).
+# The special "return" variable can be "listing" or "contents" - listing is
+# the default if unspecified. If "listing", it will return a directory listing
+# of the file specified. If the file is not a directory, it just returns a
+# single "." object, with details about the file.
+# If "contents", it will return the contents of the file specified. If the
+# file is a directory, it will simply return the listing again.
+
+# GET requests will have all variables other than "return" ignored, and the
+# only behaviour will be to generate the directory or file listing. POST
+# requests will result in an action if one is specified. If the action is
+# UNSUCCESSFUL, returns the header "X-IVLE-Action-Error: <errormessage>".
+# Successful actions succeed silently. Note that the action does not affect
+# the HTTP response code (it may be 200 even upon failure).
 
 # The path (req.path) controls which file or directory will be
 # returned. If it is a file, returns the header "X-IVLE-Return: File" and
-# status 200 OK. The response body is a verbatim dump of the file specified.
+# status 200 OK. The response body is either a verbatim dump of the file
+# specified, or a single-file directory listing, as described above.
 # The Content-Type will probably be text/plain but should not be relied upon.
 # If it is a directory, returns the header "X-IVLE-Return: Dir" and status
 # 200 OK. The response body is a JSON directory listing (see below). The
@@ -102,9 +111,8 @@ def handle(req):
     # Ignore arguments if not POST, since we aren't allowed to cause
     # side-effects on the server.
     act = None
-    fields = None
+    fields = req.get_fieldstorage()
     if req.method == 'POST':
-        fields = req.get_fieldstorage()
         act = fields.getfirst('action')
     
     if act is not None:
@@ -113,4 +121,11 @@ def handle(req):
         except action.ActionError, message:
             req.headers_out['X-IVLE-Action-Error'] = str(message)
 
-    listing.handle_return(req)
+    return_type = fields.getfirst('return')
+    # TEMP: Assume return=contents by default.
+    # (In the final, it will be "listing" by default; this is for backwards
+    # compatibility).
+    if return_type is None:
+        return_type = "contents"
+    # END TEMP
+    listing.handle_return(req, return_type == "contents")

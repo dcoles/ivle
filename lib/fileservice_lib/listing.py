@@ -127,11 +127,19 @@ else:
 mime_dirlisting = "text/html"
 #mime_dirlisting = "application/json"
 
-def handle_return(req):
-    """Perform the "return" part of the response.
+def handle_return(req, return_contents):
+    """
+    Perform the "return" part of the response.
     This function returns the file or directory listing contained in
     req.path. Sets the HTTP response code in req, writes additional headers,
-    and writes the HTTP response, if any."""
+    and writes the HTTP response, if any.
+
+    If return_contents is True, and the path is a non-directory, returns the
+    contents of the file verbatim. If False, returns a directory listing
+    with a single file, ".", and info about the file.
+
+    If the path is a directory, return_contents is ignored.
+    """
 
     (user, jail, path) = studpath.url_to_jailpaths(req.path)
 
@@ -152,7 +160,7 @@ def handle_return(req):
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
         req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
-    else:
+    elif return_contents:
         # It's a file. Return the file contents.
         # First get the mime type of this file
         # (Note that importing common.util has already initialised mime types)
@@ -163,6 +171,11 @@ def handle_return(req):
         req.headers_out['X-IVLE-Return'] = 'File'
 
         req.sendfile(path)
+    else:
+        # It's a file. Return a "fake directory listing" with just this file.
+        req.content_type = mime_dirlisting
+        req.headers_out['X-IVLE-Return'] = 'File'
+        req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
 
 def get_dirlisting(req, svnclient, path):
     """Given a local absolute path, creates a directory listing object
@@ -171,7 +184,7 @@ def get_dirlisting(req, svnclient, path):
     req: Request object. Will not be mutated; just reads the session.
     svnclient: Svn client object.
     path: String. Absolute path on the local file system. Not checked,
-        must already be guaranteed safe.
+        must already be guaranteed safe. May be a file or a directory.
     """
     # Are we in 'revision mode' - has someone sent the 'r' query
     # Work out the revisions from query
@@ -213,16 +226,17 @@ def get_dirlisting(req, svnclient, path):
     except pysvn.ClientError:
         # Presumably the directory is not under version control.
         # Fallback to just an OS file listing.
-        for filename in os.listdir(path):
-            listing[filename] = file_to_fileinfo(path, filename)
+        try:
+            for filename in os.listdir(path):
+                listing[filename] = file_to_fileinfo(path, filename)
+        except OSError:
+            # Non-directories will error - that's OK, we just want the "."
+            pass
         # The subversion one includes "." while the OS one does not.
         # Add "." to the output, so the caller can see we are
         # unversioned.
         mtime = os.path.getmtime(path)
-        listing["."] = {"isdir" : True,
-            "mtime" : mtime, "mtime_nice" : make_date_nice(mtime),
-            "mtime_short" : make_date_nice_short(mtime),
-            "type_nice" : util.nice_filetype("/")}
+        listing["."] = file_to_fileinfo(path, "")
 
     # Listing is a nested object inside the top-level JSON.
     listing = {"listing" : listing}
@@ -241,7 +255,7 @@ def file_to_fileinfo(path, filename):
     """Given a filename (relative to a given path), gets all the info "ls"
     needs to display about the filename. Returns a dict containing a number
     of fields related to the file (excluding the filename itself)."""
-    fullpath = os.path.join(path, filename)
+    fullpath = path if len(filename) == 0 else os.path.join(path, filename)
     d = {}
     file_stat = os.stat(fullpath)
     if stat.S_ISDIR(file_stat.st_mode):
@@ -250,11 +264,11 @@ def file_to_fileinfo(path, filename):
     else:
         d["isdir"] = False
         d["size"] = file_stat.st_size
-        (type, _) = mimetypes.guess_type(filename)
+        (type, _) = mimetypes.guess_type(fullpath)
         if type is None:
             type = conf.mimetypes.default_mimetype
         d["type"] = type
-        d["type_nice"] = util.nice_filetype(filename)
+        d["type_nice"] = util.nice_filetype(fullpath)
     d["mtime"] = file_stat.st_mtime
     d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
     d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
