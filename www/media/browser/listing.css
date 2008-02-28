@@ -23,13 +23,13 @@
 /* FILE LISTINGS TABLE */
 
 #filetable {
-    /* Position to fill its containing box, except the right 300px, for
+    /* Position to fill its containing box, except the right 200px, for
      * sidepanel. */
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
-    right: 300px;
+    right: 200px;
     border-collapse: collapse;
     border-right: 1px solid #888;
     padding: 0;
@@ -131,7 +131,7 @@ tr.row2sel {
     top: 0;
     bottom: 0;
     right: 0;
-    width: 300px;
+    width: 200px;
     border-left: 1px solid #888;
     border-top: 1px solid #888;
     background-color: #ccc;

@@ -239,7 +239,15 @@ function update_sidepanel(total_file_size_sel)
         }
         if ("mtime_nice" in file)
         {
-            p = dom_make_text_elem("p", "Modified: " + file.mtime_nice);
+            /* Break into lines on comma (separating date from time) */
+            filetime_lines = file.mtime_nice.split(",");
+            p = document.createElement("p");
+            p.appendChild(document.createTextNode("Modified:"));
+            for (var i=0; i<filetime_lines.length; i++)
+            {
+                p.appendChild(document.createElement("br"));
+                p.appendChild(document.createTextNode(filetime_lines[i]));
+            }
             sidepanel.appendChild(p);
         }
     }
@@ -259,133 +267,7 @@ function update_sidepanel(total_file_size_sel)
         sidepanel.appendChild(p);
     }
 
-    p = dom_make_text_elem("h3", "Actions");
-    sidepanel.appendChild(p);
-
-    if (selected_files.length <= 1)
-    {
-        if (file.isdir)
-        {
-            /* Publish/unpublish */
-            if (selected_files.length == 0)
-                path = ".";
-            else
-                path = filename;
-            if ("published" in file && file.published)
-            {
-                p = dom_make_link_elem("p", "Unpublish",
-                    "Make it so this directory cannot be seen by anyone but you",
-                    null,
-                    "return action_unpublish(" + repr(path) + ")");
-                sidepanel.appendChild(p);
-            }
-            else
-            {
-                p = dom_make_link_elem("p", "Publish",
-                    "Make it so this directory can be seen by anyone on the web",
-                    null,
-                    "return action_publish(" + repr(path) + ")");
-                sidepanel.appendChild(p);
-            }
-        }
-
-        var handler_type = null;
-        if ("type" in file)
-            handler_type = get_handler_type(file.type);
-        /* Action: Use the "files" app */
-        var path;
-        if (selected_files.length == 1)
-        {
-            /* Don't have "Browse" if this is the current dir */
-            if (file.isdir)
-                p = dom_make_link_elem("p", "Browse",
-                    "Navigate to this directory in the file browser",
-                    app_path(this_app, current_path, filename));
-            else if (handler_type == "text")
-                p = dom_make_link_elem("p", "Edit", "Edit this file",
-                    app_path(this_app, current_path, filename));
-            else
-                p = dom_make_link_elem("p", "Browse",
-                    "View this file in the file browser",
-                    app_path(this_app, current_path, filename));
-            sidepanel.appendChild(p);
-        }
-
-        /* Action: Use the "serve" app */
-        /* TODO: Figure out if this file is executable,
-         * and change the link to "Run" */
-        p = null;
-        if (file.isdir || handler_type == "binary") {}
-        else
-            p = dom_make_link_elem("p", "View",
-                "View this file",
-                app_path(serve_app, current_path, filename));
-        if (p)
-            sidepanel.appendChild(p);
-
-        /* Action: Use the "download" app */
-        p = null;
-        if (selected_files.length == 0)
-            path = app_path(download_app, current_path);
-        else
-            path = app_path(download_app, current_path, filename);
-        if (file.isdir)
-            p = dom_make_link_elem("p", "Download as zip",
-                "Download this directory as a ZIP file", path);
-        else
-            p = dom_make_link_elem("p", "Download",
-                "Download this file to your computer", path);
-        if (p)
-            sidepanel.appendChild(p);
-
-        if (selected_files.length > 0)
-        {   /* Can't rename if we're in it */
-            p = dom_make_link_elem("p", "Rename",
-                "Change the name of this file", null,
-                "return action_rename(" + repr(filename) + ")");
-            sidepanel.appendChild(p);
-        }
-    }
-    else
-    {
-        path = urlencode_path(app_path(download_app, current_path)) + "?";
-        for (var i=0; i<selected_files.length; i++)
-            path += "path=" + encodeURIComponent(selected_files[i]) + "&";
-        path = path.substr(0, path.length-1);
-        /* Multiple files selected */
-        p = dom_make_link_elem("p", "Download as zip",
-            "Download the selected files as a ZIP file", path, null, true);
-        sidepanel.appendChild(p);
-    }
-
-    /* Common actions */
-    if (selected_files.length > 0)
-    {
-        p = dom_make_link_elem("p", "Delete",
-            "Delete the selected files", null,
-            "return action_remove(selected_files)");
-        sidepanel.appendChild(p);
-        p = dom_make_link_elem("p", "Cut",
-            "Prepare to move the selected files to another directory", null,
-            "return action_cut(selected_files)");
-        sidepanel.appendChild(p);
-        p = dom_make_link_elem("p", "Copy",
-            "Prepare to copy the selected files to another directory", null,
-            "return action_copy(selected_files)");
-        sidepanel.appendChild(p);
-    }
-    p = dom_make_link_elem("p", "Paste",
-        "Paste the copied or cut files to the current directory", null,
-        "return action_paste()");
-    sidepanel.appendChild(p);
-    p = dom_make_link_elem("p", "Make Directory",
-        "Make a new subdirectory in the current directory", null,
-        "return action_mkdir()");
-    sidepanel.appendChild(p);
-    p = dom_make_link_elem("p", "Upload",
-        "Upload a file to the current directory", null,
-        "return show_uploadpanel()");
-    sidepanel.appendChild(p);
+    /* TEMPORARY: Move to top bar */
     /* The "Upload" button expands the following panel with upload tools */
     /* This panel has a form for submitting the file to, and an iframe to load
      * the target page in (this avoids the entire page being refreshed) */
@@ -421,6 +303,7 @@ function update_sidepanel(total_file_size_sel)
     input = document.createElement("input");
     input.setAttribute("type", "file");
     input.setAttribute("name", "data");
+    input.setAttribute("size", "10");
     p.appendChild(input);
 
     p = document.createElement("p");
@@ -462,32 +345,6 @@ function update_sidepanel(total_file_size_sel)
     upload_iframe.setAttribute("onload", "upload_callback()");
     div.appendChild(upload_iframe);
     /* END Upload panel */
-
-    if (under_subversion)
-    {
-        /* TODO: Only show relevant links */
-        p = dom_make_text_elem("h3", "Subversion");
-        sidepanel.appendChild(p);
-
-        /* TODO: if any selected files are unversioned */
-        p = dom_make_link_elem("p", "Add",
-            "Schedule the selected temporary files to be added permanently",
-            null,
-            "return action_add(selected_files)");
-        sidepanel.appendChild(p);
-        p = dom_make_link_elem("p", "Revert",
-            "Restore the selected files back to their last committed state",
-            null,
-            "return action_revert(selected_files)");
-        sidepanel.appendChild(p);
-        /* TODO: Update */
-        p = dom_make_link_elem("p", "Commit",
-            "Commit any changes to the permanent repository",
-            null,
-            "return action_commit(selected_files)");
-        sidepanel.appendChild(p);
-    }
-
 }
 
 /** Updates the side-panel and status bar to reflect the current set of
