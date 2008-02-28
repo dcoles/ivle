@@ -253,6 +253,12 @@ function save_settings()
             set_result("Successfully updated details.");
             user_data.nick = nickval;
             user_data.email = emailval;
+            /* Now a little hack - update the user's nick display
+             * in the heading bar, so they are sure it has been changed.
+             */
+            var usernick = document.getElementById("usernick");
+            dom_removechildren(usernick);
+            usernick.appendChild(document.createTextNode(nickval));
         }
         else
         {

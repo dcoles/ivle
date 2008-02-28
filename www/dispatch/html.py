@@ -89,8 +89,8 @@ def write_html_head(req):
     if req.user:
         # Get the user's nickname from the request session
         nickname = req.user.nick
-        req.write('  <p class="userhello">%s (<span '
-            'class="username">%s</span>) |\n'
+        req.write('  <p class="userhello"><span id="usernick">%s</span> '
+            '(<span class="username">%s</span>) |\n'
             '    <a href="%s">Settings</a> |\n'
             '    <a href="%s">Help</a> |\n'
             '    <a href="%s">Sign out</a>\n'
