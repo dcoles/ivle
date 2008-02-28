@@ -177,14 +177,11 @@ def get_dirlisting(req, svnclient, path):
     # Work out the revisions from query
     revision = None
 
-    url = urlparse.urlparse(req.path)
-    querystr = url[4] # Query component
-    query = parse_qs(querystr)
-    r_str = None
-    if 'r' in query:
-        r_str = query['r'][0]
+    r_str = req.get_fieldstorage().getfirst("r")
 
-    if r_str == "HEAD":
+    if r_str is None:
+        pass
+    elif r_str == "HEAD":
         revision = pysvn.Revision( pysvn.opt_revision_kind.head )
     elif r_str == "WORKING":
         revision = pysvn.Revision( pysvn.opt_revision_kind.working )
