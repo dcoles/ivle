@@ -255,17 +255,11 @@ function console_response(inputbox, graytimer, inputline, responseText)
     if (res.hasOwnProperty('okay'))
     {
         // Success!
-        // print out the output (res.okay[0])
-        var pre = document.createElement("pre");
-        pre.setAttribute("class", "outputMsg");
-        pre.appendChild(document.createTextNode(res.okay[0]));
-        output.appendChild(pre);
-        // print out the return value (res.okay[1])
-        if (res.okay[1])
+        if (res.okay)
         {
             var pre = document.createElement("pre");
             pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(res.okay[1] + "\n"));
+            pre.appendChild(document.createTextNode(res.okay + "\n"));
             output.appendChild(pre);
         }
         // set the prompt to >>>
@@ -275,19 +269,10 @@ function console_response(inputbox, graytimer, inputline, responseText)
     else if (res.hasOwnProperty('exc'))
     {
         // Failure!
-        // print out any output that came before the error
-        if (res.exc[0].length > 0)
-        {
-            var pre = document.createElement("pre");
-            pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(res.exc[0]));
-            output.appendChild(pre);
-        }
-
         // print out the error message (res.exc)
         var pre = document.createElement("pre");
         pre.setAttribute("class", "errorMsg");
-        pre.appendChild(document.createTextNode(res.exc[1]));
+        pre.appendChild(document.createTextNode(res.exc));
         output.appendChild(pre);
     }
     else if (res.hasOwnProperty('more'))
@@ -298,12 +283,11 @@ function console_response(inputbox, graytimer, inputline, responseText)
     }
     else if (res.hasOwnProperty('output'))
     {
-        lines = res.output
-        for (var i = 0; i < lines.length; i++)
+        if (res.output.length > 0)
         {
             var pre = document.createElement("pre");
             pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(lines[i] + "\n"));
+            pre.appendChild(document.createTextNode(res.output));
             output.appendChild(pre);
         }
         var callback = function(xhr)

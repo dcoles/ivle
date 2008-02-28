@@ -63,35 +63,43 @@ class StdoutToWeb(object):
         del lines[-1]
 
         if len(lines) > 0:
-            self.cmdQ.put({"output":lines})
+            lines.append('')
+            text = "\n".join(lines)
+            self.cmdQ.put({"output":text})
             expiry.ping()
             ln = self.lineQ.get()
             if 'interrupt' in ln:
                 raise Interrupt()
 
     def flush(self):
-        res = self.remainder
-        self.remainder = ''
-        return res
+        if len(self.remainder) > 0:
+            self.cmdQ.put({"output":self.remainder})
+            expiry.ping()
+            ln = self.lineQ.get()
+            self.remainder = ''
+            if 'interrupt' in ln:
+                raise Interrupt()
 
 class PythonRunner(Thread):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
         self.lineQ = lineQ
-        self.out = None
+        self.stdout = None
         Thread.__init__(self)
 
     def execCmd(self, cmd):
         try:
             sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-            self.out = StdoutToWeb(self.cmdQ, self.lineQ)
-            sys.stdout = self.out
-            sys.stderr = self.out
+            self.stdout = StdoutToWeb(self.cmdQ, self.lineQ)
+            sys.stdout = self.stdout
+            sys.stderr = self.stdout
             res = eval(cmd, self.globs, self.locls)
-            self.cmdQ.put({"okay":(self.out.flush(),res)})
+            self.stdout.flush()
+            self.cmdQ.put({"okay":res})
             self.curr_cmd = ''
         except Exception, exc:
-            self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
+            self.stdout.flush()
+            self.cmdQ.put({"exc":str(exc)})
             self.curr_cmd = ''
 
     def run(self):
@@ -118,7 +126,8 @@ class PythonRunner(Thread):
                     else:
                         self.execCmd(cmd)
                 except Exception, exc:
-                    self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
+                    self.stdout.flush()
+                    self.cmdQ.put({"exc":str(exc)})
                     self.curr_cmd = ''
             if 'block' in ln:
                 # throw away a partial command.
@@ -126,7 +135,8 @@ class PythonRunner(Thread):
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
                 except Exception, exc:
-                    self.cmdQ.put({"exc":(self.out.flush(),str(exc))})
+                    self.stdout.flush()
+                    self.cmdQ.put({"exc":str(exc)})
                     self.curr_cmd = ''
 
 def daemonize():
