@@ -623,9 +623,68 @@ function handle_moreactions()
     /* Reset to "More actions..." */
     moreactions.selectedIndex = 0;
 
+    /* If 0 files selected, filename is the name of the current dir.
+     * If 1 file selected, filename is that file.
+     */
+    if (selected_files.length == 0)
+        filename = path_basename(current_path);
+    else if (selected_files.length == 1)
+        filename = selected_files[0];
+    else
+        filename = null;
+
     /* Now handle the selected action */
-    alert("Action: " + selectedaction);
-    /* TODO */
+    switch(selectedaction)
+    {
+    case "publish":
+        action_publish(selected_files);
+        break;
+    case "unpublish":
+        action_unpublish(selected_files);
+        break;
+    case "share":
+        // TODO
+        alert("Not yet implemented: Sharing files");
+        break;
+    case "submit":
+        // TODO
+        alert("Not yet implemented: Submit");
+        break;
+    case "rename":
+        action_rename(filename);
+        break;
+    case "delete":
+        action_remove(selected_files);
+        break;
+    case "copy":
+        action_copy(selected_files);
+        break;
+    case "cut":
+        action_cut(selected_files);
+        break;
+    case "paste":
+        action_paste();
+        break;
+    case "newfile":
+        // TODO
+        alert("Not yet implemented: New File");
+        break;
+    case "mkdir":
+        action_mkdir();
+        break;
+    case "upload":
+        show_uploadpanel(true);
+        break;
+    case "svnadd":
+        action_add(selected_files);
+        break;
+    case "svnrevert":
+        action_revert(selected_files);
+        break;
+    case "svncommit":
+        action_commit(selected_files);
+        break;
+    }
 }
 
 /** Called when the page loads initially.
