@@ -17,7 +17,8 @@ from functools import partial
 import common.chat
 
 class Interrupt(Exception):
-    pass
+    def __init__(self):
+        Exception.__init__(self, "Interrupted!")
 
 class ExpiryTimer(object):
     def __init__(self, idle):

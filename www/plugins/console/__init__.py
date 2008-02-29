@@ -69,6 +69,8 @@ def present(req, windowpane=False):
     <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
     <input id="console_inputText"
       type="text" size="80" onkeypress="return catch_input(event.keyCode)" />
+    <input type='button' value='Interrupt' onclick='set_interrupt();'/>
+    <input type='button' value='Clear Output' onclick='return clear_output();'/>
 """)
     if windowpane:
         req.write("""<span class="console_button maximize">

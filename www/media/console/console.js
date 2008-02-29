@@ -34,6 +34,8 @@ console_filler = null;
 windowpane_mode = false;
 server_started = false;
 
+interrupted = false;
+
 /* Starts the console server, if it isn't already.
  * This can be called any number of times - it only starts the one server.
  * Note that this is asynchronous. It will return after signalling to start
@@ -211,12 +213,28 @@ function History()
 
 var hist = new History();
 
+function set_interrupt()
+{
+    interrupted = true;
+}
+
+function clear_output()
+{
+    var output = document.getElementById("console_output");
+    while (output.firstChild)
+    {
+        output.removeChild(output.firstChild);
+    }
+}
+
 /** Send a line of text to the Python server, wait for its return, and react
  * to its response by writing to the output box.
  * Also maximize the console window if not already.
  */
 function console_enter_line(inputbox, which)
 {
+    interrupted = false;
+
     if (typeof(inputbox) == "string")
     {
         var inputline = inputbox;
@@ -290,8 +308,16 @@ function console_response(inputbox, graytimer, inputline, responseText)
                 console_response(inputbox, graytimer,
                                  null, xhr.responseText);
             }
+        if (interrupted)
+        {
+            var kind = "interrupt";
+        }
+        else
+        {
+            var kind = "chat";
+        }
         var args = {"key": server_key, "text":''};
-        ajax_call(callback, "consoleservice", "chat", args, "POST");
+        ajax_call(callback, "consoleservice", kind, args, "POST");
 
         /* Open up the console so we can see the output */
         console_maximize();
@@ -313,6 +339,7 @@ function console_response(inputbox, graytimer, inputline, responseText)
         clearTimeout(graytimer);
         inputbox.removeAttribute("disabled");
         inputbox.removeAttribute("class");
+        interrupted = false;
     }
 
     /* Open up the console so we can see the output */
