@@ -220,7 +220,7 @@ def present_actions2(req, isdir):
       </span>
       <!-- This iframe is for making a call to upload the file without
            refreshing the page. (It will refresh the listing). -->
-      <iframe onload="refresh()" style="display: none;"
+      <iframe onload="upload_callback()" style="display: none;"
           name="upload_iframe" id="upload_iframe"></iframe>
     </form>
 """ % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))

@@ -112,6 +112,8 @@ current_path = "";
  */
 selected_files = [];
 
+upload_callback_count = 0;      /* See upload_callback */
+
 /** Calls the server using Ajax, performing an action on the server side.
  * Receives the response from the server and performs a refresh of the page
  * contents, updating it to display the returned data (such as a directory
@@ -302,6 +304,26 @@ function handle_contents_response(path, response)
         handle_binary(path);
         break;
     }
+}
+
+/* Called when a form upload comes back (from an iframe).
+ * Refreshes the page.
+ */
+function upload_callback()
+{
+    /* This has a pretty nasty hack, which happens to work.
+     * upload_callback is set as the "onload" callback for the iframe which
+     * receives the response from the server for uploading a file.
+     * This means it gets called twice. Once when initialising the iframe, and
+     * a second time when the actual response comes back.
+     * All we want to do is call navigate to refresh the page. But we CAN'T do
+     * that on the first load or it will just go into an infinite cycle of
+     * refreshing. We need to refresh the page ONLY on the second refresh.
+     * upload_callback_count is reset to 0 just before the iframe is created.
+     */
+    upload_callback_count++;
+    if (upload_callback_count >= 2)
+        refresh();
 }
 
 /** Deletes all "dynamic" content on the page.
