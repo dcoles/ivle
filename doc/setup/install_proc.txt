@@ -140,34 +140,23 @@ sudo apache2ctl -k restart
 ##########################################################################
 # Setting up phpBB Forum in IVLE
 ##########################################################################
-#
-# Change to the installed IVLE directory
+# Change back to the SVN directory
+cd $IVLESVN
+
+# Create a postgres database
+# (only need the first line if it was previously created and is now changed)
+sudo -u postgres dropdb ivle_forum
+sudo -u postgres createdb ivle_forum
+sudo -u postgres psql -d ivle_forum < userdb/forum_schema.sql
+sudo -u postgres psql -d ivle_forum < userdb/forum_data.sql
+
+#Change to the installed IVLE directory
 cd /opt/ivle
 # Fix permissions for install
 cd www/php/phpBB3
-mkdir store
-chmod 777 cache/ files/ store/ images/avatars/upload config.php
-
-# Add database to Postgres server
-sudo -u postgres createdb forum
-
-# Log on to IVLE and open the Forum Application (/forum)
-# Click 'INSTALL' tab, 'Proceed to next step'
-# Check that requirements are OK
-# Click 'Start install'
-# Fill in Database configuration
-#   Database type: PostgreSQL 7.x/8.x
-#   # localhost doesn't work, but localhost.csse.unimelb.edu.au does?
-#   Database server hostname: 127.0.0.1
-#   Database name: forum
-#   Database username: postgres
-#   Database password: ##Same as password for ivle db##
-# Complete the rest of the wizard with site settings
-
-# Remove the Install directory to enable access
-rm -rf install/
-
-# Disable Registration...
+# At very minimum you apache user must be able to write to
+# cache/ files/ store/ images/avatars/upload config.php
+chown www-data:www-data .
 
 ##########################################################################
 # Installing Pound reverse proxy (optional)

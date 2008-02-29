@@ -272,6 +272,10 @@ config_options.append(ConfigOption("db_dbname", "ivle",
     """Database name:""",
     """
 # Database name"""))
+config_options.append(ConfigOption("db_forumdbname", "ivle_forum",
+    """Forum Database name:""",
+    """
+# Forum Database name"""))
 config_options.append(ConfigOption("db_user", "postgres",
     """Username for DB server login:""",
     """
@@ -620,6 +624,7 @@ def conf(args):
     conffile = os.path.join(cwd, "lib/conf/conf.py")
     jailconffile = os.path.join(cwd, "lib/conf/jailconf.py")
     conf_hfile = os.path.join(cwd, "trampoline/conf.h")
+    phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
 
     # Get command-line arguments to avoid asking questions.
 
@@ -777,11 +782,48 @@ static const int allowed_uids[] = { %s };
 
     print "Successfully wrote trampoline/conf.h"
 
+    # Write www/php/phpBB3/config.php
+
+    try:
+        conf = open(phpBBconffile, "w")
+        
+        # php-pg work around
+        if db_host == 'localhost':
+            forumdb_host = '127.0.0.1'
+        else:
+            forumdb_host = db_host
+
+        conf.write( """<?php
+// phpBB 3.0.x auto-generated configuration file
+// Do not change anything in this file!
+$dbms = 'postgres';
+$dbhost = '""" + forumdb_host + """';
+$dbport = '""" + str(db_port) + """';
+$dbname = '""" + db_forumdbname + """';
+$dbuser = '""" + db_user + """';
+$dbpasswd = '""" + db_password + """';
+
+$table_prefix = 'phpbb_';
+$acm_type = 'file';
+$load_extensions = '';
+@define('PHPBB_INSTALLED', true);
+// @define('DEBUG', true);
+//@define('DEBUG_EXTRA', true);
+?>"""   )
+    
+        conf.close()
+    except IOError, (errno, strerror):
+        print "IO error(%s): %s" % (errno, strerror)
+        sys.exit(1)
+
+    print "Successfully wrote www/php/phpBB3/config.php"
+
     print
     print "You may modify the configuration at any time by editing"
     print conffile
     print jailconffile
     print conf_hfile
+    print phpBBconffile
     print
     return 0
 
