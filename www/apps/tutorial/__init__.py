@@ -357,9 +357,11 @@ def present_exercise(req, exercisesrc, exerciseid):
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
     req.write("""\n<div class="exercisebuttons">
   <input type="button" value="Run"
-    onclick="runexercise(&quot;exercise%d&quot;, %s)" />
+    onclick="runexercise(&quot;exercise%d&quot;, %s)"
+    title="Run this program in the console" />
   <input type="button" value="Submit"
-    onclick="submitexercise(&quot;exercise%d&quot;, %s)" />
+    onclick="submitexercise(&quot;exercise%d&quot;, %s)"
+    title="Submit this solution for evaluation" />
 </div>
 <div class="testoutput">
 </div>
