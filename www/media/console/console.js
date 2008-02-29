@@ -109,8 +109,6 @@ function console_maximize()
     if (!windowpane_mode) return;
     console_body.setAttribute("class", "windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
-    /* Focus the input box by default */
-    document.getElementById("console_inputText").focus()
 }
 
 /* current_text is the string currently on the command line.
@@ -319,8 +317,10 @@ function console_response(inputbox, graytimer, inputline, responseText)
         var args = {"key": server_key, "text":''};
         ajax_call(callback, "consoleservice", kind, args, "POST");
 
-        /* Open up the console so we can see the output */
+        // Open up the console so we can see the output
+        // FIXME: do we need to maximize here?
         console_maximize();
+
         /* Auto-scrolling */
         divScroll.activeScroll();
 
@@ -346,6 +346,9 @@ function console_response(inputbox, graytimer, inputline, responseText)
     console_maximize();
     /* Auto-scrolling */
     divScroll.activeScroll();
+
+    // Focus the input box by default
+    // document.getElementById("console_inputText").focus()
 }
 
 function catch_input(key)
