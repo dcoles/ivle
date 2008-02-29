@@ -32,7 +32,7 @@ app_icon_dir_small = "media/images/apps/small"
 # of the site). This is the app's URL name.
 # Note that if this app requires authentication, the user will first be
 # presented with the login screen.
-default_app = "files"
+default_app = "home"
 # Which application to use for "public host" URLs.
 # (See conf.py)
 public_app = "serve"
@@ -127,6 +127,16 @@ app_diff = App(dir = "diff",
                     requireauth = True,
                     hashelp = False)
 
+app_subjects = App(dir = "subjects",
+                    name = "Subject Homepages",
+                    requireauth = False,
+                    hashelp = False)
+
+app_home = App(dir = "home",
+                    name = "Home",
+                    requireauth = True,
+                    hashelp = False)
+
 # Mapping URL names to apps
 
 app_url = {
@@ -145,6 +155,8 @@ app_url = {
     "settings" : app_settings,
     "userservice" : app_userservice,
     "diff" : app_diff,
+    "subjects" : app_subjects,
+    "home" : app_home,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
