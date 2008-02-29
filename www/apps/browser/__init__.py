@@ -200,12 +200,30 @@ def present_actions2(req, isdir):
     (editor).
     """
     if isdir:
-        req.write("""Select:
-    <a onclick="action_selectall(true)"
-        title="Select all files in this directory">All</a> :
-    <a onclick="action_selectall(false)"
-        title="Deselect all files in this directory">None</a>
-""")
+        req.write("""    <form target="upload_iframe"
+          action="%s"
+          enctype="multipart/form-data" method="post">
+      Select:
+      <a onclick="action_selectall(true)"
+          title="Select all files in this directory">All</a> :
+      <a onclick="action_selectall(false)"
+          title="Deselect all files in this directory">None</a>
+
+      <span style="display:none" id="uploadpanel">| Upload file:
+        <input type="hidden" value="putfiles" name="action" />
+        <input type="hidden" value="" name="path" />
+        <input type="file" name="data" />
+        <input type="checkbox" checked="on" value="true" name="unpack"
+          />Unpack zip file
+        <input type="button" onclick="show_uploadpanel(false)" value="Hide" />
+        <input type="submit" value="Send" />
+      </span>
+      <!-- This iframe is for making a call to upload the file without
+           refreshing the page. (It will refresh the listing). -->
+      <iframe onload="refresh()" style="display: none;"
+          name="upload_iframe" id="upload_iframe"></iframe>
+    </form>
+""" % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))
     else:
         # TODO
         pass

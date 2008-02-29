@@ -38,6 +38,10 @@
     background-color: #aaf;
 }
 
+#topbar div {
+    margin: 0.2em;
+}
+
 #topbar #path a {
     font-weight: bold;
 }

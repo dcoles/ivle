@@ -177,7 +177,7 @@ function navigate(path)
  */
 function refresh()
 {
-    navigate(current_path, false);
+    navigate(current_path);
 }
 
 /** Determines the "handler type" from a MIME type.

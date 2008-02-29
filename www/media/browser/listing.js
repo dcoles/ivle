@@ -205,30 +205,6 @@ function show_uploadpanel(toshow)
     return false;
 }
 
-/* Called when a form upload comes back (from an iframe).
- * Refreshes the page.
- */
-function upload_callback()
-{
-    /* This has a pretty nasty hack, which happens to work.
-     * upload_callback is set as the "onload" callback for the iframe which
-     * receives the response from the server for uploading a file.
-     * This means it gets called twice. Once when initialising the iframe, and
-     * a second time when the actual response comes back.
-     * All we want to do is call navigate to refresh the page. But we CAN'T do
-     * that on the first load or it will just go into an infinite cycle of
-     * refreshing. We need to refresh the page ONLY on the second refresh.
-     * upload_callback_count is reset to 0 just before the iframe is created.
-     */
-    upload_callback_count++;
-    if (upload_callback_count == 2)
-    {
-        navigate(current_path);
-        /* Keep upload panel open */
-        show_uploadpanel(true);
-    }
-}
-
 /** END ACTIONS **/
 
 /** Updates the side-panel AND the actions in the top-bar. Expects selected_files
@@ -342,85 +318,6 @@ function update_sidepanel(total_file_size_sel)
             + nice_filesize(total_file_size_sel));
         sidepanel.appendChild(p);
     }
-
-    /* TEMPORARY: Move to top bar */
-    /* The "Upload" button expands the following panel with upload tools */
-    /* This panel has a form for submitting the file to, and an iframe to load
-     * the target page in (this avoids the entire page being refreshed) */
-    div = document.createElement("div");
-    div.setAttribute("id", "uploadpanel");
-    /* This deliberately hides the upload panel whenever the selection
-     * changes. It can be re-shown by clicking "upload". */
-    div.setAttribute("style", "display: none;");
-    sidepanel.appendChild(div);
-    p = dom_make_text_elem("h3", "Upload File");
-    div.appendChild(p);
-    var form = document.createElement("form");
-    form.setAttribute("method", "POST");
-    form.setAttribute("enctype", "multipart/form-data");
-    form.setAttribute("action", app_path("fileservice", current_path));
-    form.setAttribute("target", "upload_iframe");
-    div.appendChild(form);
-    var input;
-    input = document.createElement("input");
-    input.setAttribute("type", "hidden");
-    input.setAttribute("name", "action");
-    input.setAttribute("value", "putfiles");
-    form.appendChild(input);
-
-    input = document.createElement("input");
-    input.setAttribute("type", "hidden");
-    input.setAttribute("name", "path");
-    input.setAttribute("value", "");
-    form.appendChild(input);
-
-    p = document.createElement("p");
-    form.appendChild(p);
-    input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("name", "data");
-    input.setAttribute("size", "10");
-    p.appendChild(input);
-
-    p = document.createElement("p");
-    form.appendChild(p);
-    input = document.createElement("input");
-    input.setAttribute("type", "checkbox");
-    input.setAttribute("name", "unpack");
-    input.setAttribute("value", "true");
-    input.setAttribute("checked", "on");
-    p.appendChild(input);
-    p.appendChild(document.createTextNode(" Unpack zip file"));
-
-    p = document.createElement("p");
-    form.appendChild(p);
-    input = document.createElement("input");
-    input.setAttribute("type", "button");
-    input.setAttribute("value", "Hide");
-    input.setAttribute("onclick", "show_uploadpanel(false)");
-    p.appendChild(input);
-    p.appendChild(document.createTextNode(" "));
-    input = document.createElement("input");
-    input.setAttribute("type", "submit");
-    input.setAttribute("value", "Send");
-    p.appendChild(input);
-
-    /* Now we create an invisible iframe which will receive the upload.
-     * The form submits to fileservice, loading the result into this iframe
-     * instead of the whole browser window (this is an alternative to Ajax,
-     * since Ajax doesn't allow reading the file from the user's disk).
-     * Note this iframe's id is the same as the form's target.
-     */
-    var upload_iframe = document.createElement("iframe");
-    upload_iframe.setAttribute("id", "upload_iframe");
-    upload_iframe.setAttribute("name", "upload_iframe");
-    upload_iframe.setAttribute("style", "display: none;");
-    /* When we get a callback, simply cause a nav to the current path, so we
-     * update the directory listing. */
-    upload_callback_count = 0;      /* See upload_callback */
-    upload_iframe.setAttribute("onload", "upload_callback()");
-    div.appendChild(upload_iframe);
-    /* END Upload panel */
 }
 
 /** Updates the side-panel and status bar to reflect the current set of
