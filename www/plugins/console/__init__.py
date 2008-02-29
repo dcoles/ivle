@@ -62,8 +62,7 @@ def present(req, windowpane=False):
 """ % cgi.escape(util.make_path("media/images/interface/minimize.png")))
     req.write("""</div>
   <div id="console_body2">
-  <div id="console_output">
-  </div>
+  <pre id="console_output"></pre>
   <div id="console_input">
     <div id="console_inputArea">
     </div>

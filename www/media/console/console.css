@@ -126,17 +126,17 @@
      */
     height: 2em;
 }
-pre.errorMsg {
+*.errorMsg {
     color: red;
     margin-top: 0em;
     margin-bottom: 0em;
 }
-pre.inputMsg {
+*.inputMsg {
     color: #404040;
     margin-top: 0em;
     margin-bottom: 0em;
 }
-pre.outputMsg {
+*.outputMsg {
     margin-top: 0em;
     margin-bottom: 0em;
 }

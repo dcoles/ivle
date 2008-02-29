@@ -230,6 +230,13 @@ function console_enter_line(inputbox, which)
         var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
             + "\"disabled\");", 100);
     }
+    var output = document.getElementById("console_output");
+    {
+        var span = document.createElement("span");
+        span.setAttribute("class", "inputMsg");
+        span.appendChild(document.createTextNode(inputline + "\n"));
+        output.appendChild(span);
+    }
     var args = {"key": server_key, "text":inputline};
     var callback = function(xhr)
         {
@@ -245,22 +252,13 @@ function console_response(inputbox, graytimer, inputline, responseText)
 {
     var res = JSON.parse(responseText);
     var output = document.getElementById("console_output");
-    if (inputline)
-    {
-        var pre = document.createElement("pre");
-        pre.setAttribute("class", "inputMsg");
-        pre.appendChild(document.createTextNode(inputline + "\n"));
-        output.appendChild(pre);
-    }
     if (res.hasOwnProperty('okay'))
     {
         // Success!
         if (res.okay)
         {
-            var pre = document.createElement("pre");
-            pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(res.okay + "\n"));
-            output.appendChild(pre);
+            output.appendChild(document.createTextNode(res.okay + "\n"));
+            output.appendChild(span);
         }
         // set the prompt to >>>
         var prompt = document.getElementById("console_prompt");
@@ -270,10 +268,10 @@ function console_response(inputbox, graytimer, inputline, responseText)
     {
         // Failure!
         // print out the error message (res.exc)
-        var pre = document.createElement("pre");
-        pre.setAttribute("class", "errorMsg");
-        pre.appendChild(document.createTextNode(res.exc));
-        output.appendChild(pre);
+        var span = document.createElement("span");
+        span.setAttribute("class", "errorMsg");
+        span.appendChild(document.createTextNode(res.exc + "\n"));
+        output.appendChild(span);
     }
     else if (res.hasOwnProperty('more'))
     {
@@ -285,10 +283,7 @@ function console_response(inputbox, graytimer, inputline, responseText)
     {
         if (res.output.length > 0)
         {
-            var pre = document.createElement("pre");
-            pre.setAttribute("class", "outputMsg");
-            pre.appendChild(document.createTextNode(res.output));
-            output.appendChild(pre);
+            output.appendChild(document.createTextNode(res.output));
         }
         var callback = function(xhr)
             {
