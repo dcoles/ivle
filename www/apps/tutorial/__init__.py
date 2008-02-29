@@ -121,7 +121,7 @@ def handle_media_path(req):
     # First normalise the path
     urlpath = os.path.normpath(req.path)
     # Now if it begins with ".." or separator, then it's illegal
-    if urlpath.startswith("..") or urlpath.startswith(os.sep):
+    if urlpath.startswith("..") or urlpath.startswith('/'):
         req.throw_error(req.HTTP_FORBIDDEN,
             "Invalid path.")
     filename = os.path.join(conf.subjects_base, urlpath)
@@ -141,7 +141,7 @@ def handle_media_path(req):
 def handle_toplevel_menu(req):
     # This is represented as a directory. Redirect and add a slash if it is
     # missing.
-    if req.uri[-1] != os.sep:
+    if req.uri[-1] != '/':
         req.throw_redirect(make_tutorial_path())
     req.write_html_head_foot = True
     req.write('<div id="ivle_padding">\n')
@@ -167,7 +167,7 @@ def is_valid_subjname(subject):
 def handle_subject_menu(req, subject):
     # This is represented as a directory. Redirect and add a slash if it is
     # missing.
-    if req.uri[-1] != os.sep:
+    if req.uri[-1] != '/':
         req.throw_redirect(make_tutorial_path(subject))
     # Subject names must be valid identifiers
     if not is_valid_subjname(subject):
@@ -308,7 +308,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     # First normalise the path
     exercisesrc = os.path.normpath(exercisesrc)
     # Now if it begins with ".." or separator, then it's illegal
-    if exercisesrc.startswith("..") or exercisesrc.startswith(os.sep):
+    if exercisesrc.startswith("..") or exercisesrc.startswith('/'):
         exercisefile = None
     else:
         exercisefile = os.path.join(conf.exercises_base, exercisesrc)
