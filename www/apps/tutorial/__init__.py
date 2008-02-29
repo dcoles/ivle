@@ -99,7 +99,8 @@ def handle(req):
             handle_media_path(req)
             return
         if len(path_segs) > 2:
-            req.throw_error(req.HTTP_NOT_FOUND)
+            req.throw_error(req.HTTP_NOT_FOUND,
+                "Invalid tutorial path.")
         if len(path_segs) == 2:
             worksheet = path_segs[1]
 
@@ -121,14 +122,16 @@ def handle_media_path(req):
     urlpath = os.path.normpath(req.path)
     # Now if it begins with ".." or separator, then it's illegal
     if urlpath.startswith("..") or urlpath.startswith(os.sep):
-        req.throw_error(req.HTTP_FORBIDDEN)
+        req.throw_error(req.HTTP_FORBIDDEN,
+            "Invalid path.")
     filename = os.path.join(conf.subjects_base, urlpath)
     (type, _) = mimetypes.guess_type(filename)
     if type is None:
         type = conf.mimetypes.default_mimetype
     ## THIS CODE taken from apps/server/__init__.py
     if not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The requested file does not exist.")
     if os.path.isdir(filename):
         req.throw_error(req.HTTP_FORBIDDEN,
             "The requested file is a directory.")
@@ -168,7 +171,8 @@ def handle_subject_menu(req, subject):
         req.throw_redirect(make_tutorial_path(subject))
     # Subject names must be valid identifiers
     if not is_valid_subjname(subject):
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "Invalid subject name: %s." % repr(subject))
     # Parse the subject description file
     # The subject directory must have a file "subject.xml" in it,
     # or it does not exist (404 error).
@@ -176,7 +180,8 @@ def handle_subject_menu(req, subject):
         subjectfile = open(os.path.join(conf.subjects_base, subject,
             "subject.xml"))
     except:
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "Subject %s not found." % repr(subject))
 
     # Read in data about the subject
     subjectdom = minidom.parse(subjectfile)
@@ -206,14 +211,17 @@ def handle_subject_menu(req, subject):
 def handle_worksheet(req, subject, worksheet):
     # Subject and worksheet names must be valid identifiers
     if not is_valid_subjname(subject) or not is_valid_subjname(worksheet):
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "Invalid subject name %s or worksheet name %s."
+                % (repr(subject), repr(worksheet)))
 
     # Read in worksheet data
     try:
         worksheetfile = open(os.path.join(conf.subjects_base, subject,
             worksheet + ".xml"))
     except:
-        req.throw_error(req.HTTP_NOT_FOUND)
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "Worksheet file not found.")
 
     worksheetdom = minidom.parse(worksheetfile)
     worksheetfile.close()
@@ -221,8 +229,8 @@ def handle_worksheet(req, subject, worksheet):
     # change.
     worksheetdom = worksheetdom.documentElement
     if worksheetdom.tagName != "worksheet":
-        # TODO: Nicer error message, to help authors
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "The worksheet XML file's top-level element must be <worksheet>.")
     worksheetname = worksheetdom.getAttribute("name")
 
     # Now all the errors are out the way, we can begin writing
@@ -322,8 +330,8 @@ def present_exercise(req, exercisesrc, exerciseid):
     exercisefile.close()
     exercisedom = exercisedom.documentElement
     if exercisedom.tagName != "exercise":
-        # TODO: Nicer error message, to help authors
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR)
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "The exercise XML file's top-level element must be <exercise>.")
     exercisename = exercisedom.getAttribute("name")
     rows = exercisedom.getAttribute("rows")
     if not rows:
