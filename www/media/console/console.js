@@ -316,6 +316,8 @@ function console_response(inputbox, graytimer, inputline, responseText)
 
     /* Open up the console so we can see the output */
     console_maximize();
+    /* Auto-scrolling */
+    divScroll.activeScroll();
 }
 
 function catch_input(key)
@@ -373,3 +375,31 @@ function catch_input(key)
         break;
     }
 }
+
+/**** Following Code modified from ******************************************/
+/**** http://radio.javaranch.com/pascarello/2006/08/17/1155837038219.html ***/
+/****************************************************************************/
+var chatscroll = new Object();
+
+chatscroll.Pane = function(scrollContainerId)
+{
+    this.scrollContainerId = scrollContainerId;
+}
+
+chatscroll.Pane.prototype.activeScroll = function()
+{
+    var scrollDiv = document.getElementById(this.scrollContainerId);
+    var currentHeight = 0;
+        
+    if (scrollDiv.scrollHeight > 0)
+        currentHeight = scrollDiv.scrollHeight;
+    else 
+        if (objDiv.offsetHeight > 0)
+            currentHeight = scrollDiv.offsetHeight;
+
+    scrollDiv.scrollTop = currentHeight;
+
+    scrollDiv = null;
+}
+
+var divScroll = new chatscroll.Pane('console_output');
