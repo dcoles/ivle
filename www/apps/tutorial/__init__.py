@@ -88,7 +88,7 @@ def handle(req):
     # Note: Don't print write_html_head_foot just yet
     # If we encounter errors later we do not want this
 
-    path_segs = req.path.split(os.sep)
+    path_segs = req.path.split('/')
     subject = None
     worksheet = None
     if len(req.path) > 0:
