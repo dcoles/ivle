@@ -292,6 +292,12 @@ function console_response(inputbox, graytimer, inputline, responseText)
             }
         var args = {"key": server_key, "text":''};
         ajax_call(callback, "consoleservice", "chat", args, "POST");
+
+        /* Open up the console so we can see the output */
+        console_maximize();
+        /* Auto-scrolling */
+        divScroll.activeScroll();
+
         // Return early, so we don't re-enable the input box.
         return;
     }
