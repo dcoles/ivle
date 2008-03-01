@@ -31,6 +31,7 @@ from common import util
 def handle(req):
     """Handler for the Subjects application. Links to subject home pages."""
 
+    req.styles = ["media/subjects/subjects.css"]
     if req.path == "":
         handle_toplevel_menu(req)
     else:
