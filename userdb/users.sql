@@ -15,7 +15,8 @@ CREATE TABLE login (
     svn_pass    VARCHAR,
     email       VARCHAR,
     fullname    VARCHAR NOT NULL,
-    studentid   VARCHAR -- may be null
+    studentid   VARCHAR, -- may be null
+    settings    VARCHAR
 );
 
 CREATE TABLE offering (
