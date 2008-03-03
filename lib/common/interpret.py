@@ -28,6 +28,7 @@
 # This can be resolved but needs careful sanitisation. See fixup_environ.
 
 from common import studpath
+from common import db
 import conf
 import functools
 
@@ -41,6 +42,24 @@ import cgi
 # working on smaller output
 
 CGI_BLOCK_SIZE = 65535
+
+uids = {}
+
+def get_uid(login):
+    """Get the unix uid corresponding to the given login name.
+       If it is not in the dictionary of uids, then consult the
+       database and retrieve an update of the user table."""
+    global uids
+    if login in uids:
+        return uids[login]
+
+    conn = db.DB()
+    res = conn.get_all('login', ['login', 'unixid'])
+    def repack(flds):
+        return (flds['login'], flds['unixid'])
+    uids = dict(map(repack,res))
+
+    return uids[login]
 
 def interpret_file(req, owner, jail_dir, filename, interpreter):
     """Serves a file by interpreting it using one of IVLE's builtin
@@ -72,7 +91,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     # (Note: files are executed by their owners, not the logged in user.
     # This ensures users are responsible for their own programs and also
     # allows them to be executed by the public).
-    uid = req.user.unixid
+    uid = get_uid(owner)
 
     # Split up req.path again, this time with respect to the jail
     (working_dir, _) = os.path.split(filename_abs)
