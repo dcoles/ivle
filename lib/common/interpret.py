@@ -73,19 +73,15 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     filename: Absolute filename within the user's jail.
     interpreter: A function object to call.
     """
-    # Make sure the file exists (otherwise some interpreters may not actually
-    # complain).
-    # Don't test for execute permission, that will only be required for
-    # certain interpreters.
+    # We can't test here whether or not the target file actually exists,
+    # because the apache user may not have permission. Instead we have to
+    # rely on the interpreter generating an error.
     if filename.startswith(os.sep):
         filename_abs = filename
         filename_rel = filename[1:]
     else:
         filename_abs = os.path.join(os.sep, filename)
         filename_rel = filename
-
-    if not os.access(os.path.join(jail_dir, filename_rel), os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND)
 
     # Get the UID of the owner of the file
     # (Note: files are executed by their owners, not the logged in user.
