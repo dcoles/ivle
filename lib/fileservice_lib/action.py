@@ -542,7 +542,10 @@ def action_svnpublish(req, fields):
     Reads fields: 'path'
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path), paths)
+    if len(paths):
+        paths = map(lambda path: actionpath_to_local(req, path), paths)
+    else:
+        paths = [studpath.url_to_jailpaths(req.path)[2]]
 
     try:
         for path in paths:
