@@ -140,8 +140,7 @@ sudo apache2ctl -k restart
 ##########################################################################
 # Setting up phpBB Forum in IVLE
 ##########################################################################
-# Change back to the SVN directory
-cd $IVLESVN
+# This should all be run from the SVN directory
 
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
@@ -156,7 +155,7 @@ cd /opt/ivle
 cd www/php/phpBB3
 # At very minimum you apache user must be able to write to
 # cache/ files/ store/ images/avatars/upload config.php
-chown www-data:www-data .
+sudo chown -R www-data:www-data .
 
 ##########################################################################
 # Installing Pound reverse proxy (optional)
