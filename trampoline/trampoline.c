@@ -195,6 +195,12 @@ int main(int argc, char* const argv[])
     /* setuid to the given user ID.
      * Henceforth we will be running as this user instead of root.
      */
+    if (setgid(uid))
+    {
+        perror("could not setgid");
+        exit(1);
+    }
+
     if (setuid(uid))
     {
         perror("could not setuid");
