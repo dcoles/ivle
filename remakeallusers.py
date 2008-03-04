@@ -41,26 +41,33 @@ if os.getuid() != 0:
 try:
     db = common.db.DB()
     list = db.get_users()
+    res = db.get_all('login', ['login', 'unixid'])
+    def repack(flds):
+        return (flds['login'], flds['unixid'])
+    uids = dict(map(repack,res))
+
+    return uids[login]
+
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
 list.sort(key=lambda user: user.login)
 for user in list:
-    username = user.login
+    login = user.login
 
     try:
-        # Resolve the user's username into a UID
+        # Resolve the user's login into a UID
         # Create the user if it does not exist
         try:
-            (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+            uid = uids[login]
         except KeyError:
-            raise Exception("User %s does not have a Unix user account"
-                % username)
+            raise Exception("User %s does not have a unixid in the database"
+                % login)
         # Remake the user's jail
-        common.makeuser.make_jail(username, uid)
+        common.makeuser.make_jail(login, uid)
     except Exception, message:
         print "Error: " + str(message)
         continue
 
-    print "Successfully recreated user %s's jail." % username
+    print "Successfully recreated user %s's jail." % login
