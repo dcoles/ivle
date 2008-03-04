@@ -56,6 +56,11 @@ class StdoutToWeb(object):
         self.remainder = ''
 
     def write(self, stuff):
+        # if there's less than 1K, buffer
+        if len(self.remainder) + len(stuff) < 128:
+            self.remainder = self.remainder + stuff
+            return
+
         # Split the content up into lines, and ship all the completed
         # lines off to the server.
         lines = stuff.split("\n")
