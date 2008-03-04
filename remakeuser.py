@@ -33,28 +33,30 @@ import pwd
 sys.path.append(os.path.join(os.getcwd(), 'www'))
 import conf
 import common.makeuser
+import common.db
 
 if len(sys.argv) <= 1:
-    print "Usage: python remakeuser.py <username>"
+    print "Usage: python remakeuser.py <login>"
     sys.exit()
 
 if os.getuid() != 0:
     print "Must run remakeuser.py as root."
     sys.exit()
 
-username = sys.argv[1]
+login = sys.argv[1]
 
 try:
-    # Resolve the user's username into a UID
+    # Resolve the user's login into a UID
     # Create the user if it does not exist
     try:
-        (_,_,uid,_,_,_,_) = pwd.getpwnam(username)
+        conn = common.db.DB()
+        uid = conn.get_single({'login':login}, 'login', ['unixid'], ['login'])
     except KeyError:
-        raise Exception("User does not have a Unix user account")
+        raise Exception("User does not have a unixid in the database")
     # Remake the user's jail
-    common.makeuser.make_jail(username, uid)
+    common.makeuser.make_jail(login, uid)
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
-print "Successfully recreated user %s's jail." % username
+print "Successfully recreated user %s's jail." % login
