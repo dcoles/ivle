@@ -44,6 +44,7 @@ import common.makeuser, common.db
 requireds = ["login", "fullname", "rolenm"]
 optionals = [
     ('p', 'password', "Cleartext password for this user"),
+    ('u', 'unixid', "Numeric unix user id"),
     ('n', 'nick', "Display name (defaults to <fullname>)"),
     ('e', 'email', "Email address"),
     ('s', 'studentid', "Student ID")
@@ -83,19 +84,15 @@ login = user['login']
 if 'nick' not in user:
     user['nick'] = user['fullname']
 
-try:
-    # Resolve the user's username into a UID
-    # Create the user if it does not exist
+# Resolve the user's username into a UID
+if 'unixid' not in user:
     try:
         (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
+        user['unixid'] = uid
     except KeyError:
-        if os.system("useradd '%s'" % login) != 0:
-            raise Exception("Failed to add Unix user account")
-        try:
-            (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
-        except KeyError:
-            raise Exception("Failed to add Unix user account")
-    user['unixid'] = uid
+        user['unixid'] = random.randrange(5000,10000)
+
+try:
     # Make the user's database entry
     common.makeuser.make_user_db(**user)
 except Exception, message:
