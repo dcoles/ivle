@@ -32,6 +32,7 @@ import os
 import os.path
 import pwd
 import getopt
+import random
 # Import modules from the website is tricky since they're in the www
 # directory.
 sys.path.append(os.path.join(os.getcwd(), 'www'))
