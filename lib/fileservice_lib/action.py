@@ -72,28 +72,13 @@
 # * putfile ignores the upload filename, the entire filename is specified on
 #       path. putfiles calls files after the name on the user's machine.
 #
-# Clipboard-based actions. Cut/copy/paste work in the same way as modern
-# file browsers, by keeping a server-side clipboard of files that have been
-# cut and copied. The clipboard is stored in the session data, so it persists
-# across navigation, tabs and browser windows, but not across browser
-# sessions.
-# 
-# action=copy: Write file(s) to the session-based clipboard. Overrides any
-#               existing clipboard data. Does not actually copy the file.
-#               The files are physically copied when the clipboard is pasted.
-#       path:   The path to the file or directory to copy. Can be specified
-#               multiple times.
-# 
-# action=cut: Write file(s) to the session-based clipboard. Overrides any
-#               existing clipboard data. Does not actually move the file.
-#               The files are physically moved when the clipboard is pasted.
-#       path:   The path to the file or directory to cut. Can be specified
-#               multiple times.
-# 
-# action=paste: Copy or move the files stored in the clipboard. Clears the
-#               clipboard. The files are copied or moved to a specified dir.
-#       path:   The path to the DIRECTORY to paste the files to. Must not
+# action=paste: Copy or move the files to a specified dir.
+#       src:    The path to the DIRECTORY to get the files from (relative).
+#       dst:    The path to the DIRECTORY to paste the files to. Must not
 #               be a file.
+#       mode:   'copy' or 'move'
+#       file:   File to be copied or moved, relative to src, to a destination
+#               relative to dst. Can be specified multiple times.
 #
 # Subversion actions.
 # action=svnadd: Add an existing file(s) to version control.
@@ -402,74 +387,44 @@ def action_putfiles(req, fields):
             raise ActionError(
                 "Could not write to one or more of the target files")
 
-def action_copy_or_cut(req, fields, mode):
-    """Marks specified files on the clipboard, stored in the
-    browser session. Sets clipboard for either a cut or copy operation
-    as specified.
-
-    Reads fields: 'path'
-    """
-    # The clipboard object created conforms to the JSON clipboard
-    # specification given at the top of listing.py.
-    # Note that we do not check for the existence of files here. That is done
-    # in the paste operation.
-    files = fields.getlist('path')
-    clipboard = { "mode" : mode, "base" : req.path, "files" : files }
-    session = req.get_session()
-    session['clipboard'] = clipboard
-    session.save()
-
-def action_copy(req, fields):
-    """Marks specified files on the clipboard, stored in the
-    browser session. Sets clipboard for a "copy" action.
-
-    Reads fields: 'path'
-    """
-    action_copy_or_cut(req, fields, "copy")
-
-def action_cut(req, fields):
-    """Marks specified files on the clipboard, stored in the
-    browser session. Sets clipboard for a "cut" action.
-
-    Reads fields: 'path'
-    """
-    action_copy_or_cut(req, fields, "cut")
-
 def action_paste(req, fields):
-    """Performs the copy or move action with the files stored on
-    the clipboard in the browser session. Copies/moves the files
-    to the specified directory. Clears the clipboard.
+    """Performs the copy or move action with the files specified.
+    Copies/moves the files to the specified directory.
 
-    Reads fields: 'path'
+    Reads fields: 'src', 'dst', 'mode', 'file' (multiple).
+    src: Base path that all the files are relative to (source).
+    dst: Destination path to paste into.
+    mode: 'copy' or 'move'.
+    file: (Multiple) Files relative to base, which will be copied
+        or moved to new locations relative to path.
     """
     errormsg = None
 
-    todir = fields.getfirst('path')
-    if todir is None:
+    dst = fields.getfirst('dst')
+    src = fields.getfirst('src')
+    mode = fields.getfirst('mode')
+    files = fields.getlist('file')
+    if dst is None or src is None or mode is None:
         raise ActionError("Required field missing")
-    todir_local = actionpath_to_local(req, todir)
-    if not os.path.isdir(todir_local):
-        raise ActionError("Target is not a directory")
-
-    session = req.get_session()
-    try:
-        clipboard = session['clipboard']
-        files = clipboard['files']
-        base = clipboard['base']
-        if clipboard['mode'] == "copy":
-            copy = True
-        else:
-            copy = False
-    except KeyError:
-        raise ActionError("Clipboard was empty")
+    if mode == "copy":
+        copy = True
+    elif mode == "move":
+        copy = False
+    else:
+        raise ActionError("Invalid mode (must be 'copy' or 'move')")
+    dst_local = actionpath_to_local(req, dst)
+    if not os.path.isdir(dst_local):
+        raise ActionError("dst is not a directory")
 
     errorfiles = []
     for file in files:
         # The source must not be interpreted as relative to req.path
         # Add a slash (relative to top-level)
-        frompath = os.sep + os.path.join(base, file)
+        if src[:1] != '/':
+            src = '/' + src
+        frompath = os.path.join(src, file)
         # The destination is found by taking just the basename of the file
-        topath = os.path.join(todir, os.path.basename(file))
+        topath = os.path.join(dst, os.path.basename(file))
         try:
             movefile(req, frompath, topath, copy)
         except ActionError, message:
@@ -482,16 +437,11 @@ def action_paste(req, fields):
             # Add this file to errorfiles; it will be put back on the
             # clipboard for possible future pasting.
             errorfiles.append(file)
-    # If errors occured, augment the clipboard and raise ActionError
-    if len(errorfiles) > 0:
-        clipboard['files'] = errorfiles
-        session['clipboard'] = clipboard
-        session.save()
+    if errormsg is not None:
         raise ActionError(errormsg)
 
-    # Success: Clear the clipboard
-    del session['clipboard']
-    session.save()
+    # XXX errorfiles contains a list of files that couldn't be pasted.
+    # we currently do nothing with this.
 
 def action_svnadd(req, fields):
     """Performs a "svn add" to each file specified.
@@ -608,9 +558,6 @@ actions_table = {
     "mkdir" : action_mkdir,
     "putfile" : action_putfile,
     "putfiles" : action_putfiles,
-
-    "copy" : action_copy,
-    "cut" : action_cut,
     "paste" : action_paste,
 
     "svnadd" : action_svnadd,
