@@ -347,7 +347,8 @@ function urlencode_path(path)
 function write_cookie(key, value)
 {
     var sendstr = encodeURIComponent(key) + "="
-        + encodeURIComponent(JSON.stringify(value));
+        + encodeURIComponent(JSON.stringify(value))
+        + "; path=" + urlencode_path(root_dir);
     /* This actually just assigns to the key, not replacing the whole cookie
      * as it appears to. */
     document.cookie = sendstr;
