@@ -24,6 +24,7 @@
 # Does not include the login page. See login.py.
 
 import cgi
+import urllib
 import os.path
 
 import conf
@@ -175,8 +176,9 @@ def print_apps_list(file, thisapp):
         file.write('    <li%s>' % li_attr)
         if app.icon:
             file.write('<img src="%s" alt="" /> '
-                % cgi.escape(get_icon_url(urlname)))
-        file.write('<a href="%s">%s</a></li>\n'
-            % (cgi.escape(util.make_path(urlname)), cgi.escape(app.name)))
+                % urllib.quote(get_icon_url(urlname)))
+        file.write('<a href="%s" title="%s">%s</a></li>\n'
+            % (urllib.quote(util.make_path(urlname)), cgi.escape(app.desc),
+                cgi.escape(app.name)))
 
     file.write('  </ul>\n')
