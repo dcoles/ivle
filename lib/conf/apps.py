@@ -7,21 +7,25 @@
 enable_debuginfo = False
 
 # Allow App objects
-# Note: icon is a string of a file basename. The icon files are found in
+# Notes:
+# desc is a full description for the front page. It isn't required
+# unless this app is in apps_on_home_page.
+# icon is a string of a file basename. The icon files are found in
 # app_icon_dir, defined below.
 class App:
-    def __init__(self, dir, name, icon = None, requireauth = True,
-        hashelp = False):
+    def __init__(self, dir, name, desc=None, icon = None,
+        requireauth = True, hashelp = False):
         self.dir = dir
         self.name = name
+        self.desc = desc
         self.icon = icon
         self.requireauth = requireauth
         self.hashelp = hashelp
     def __repr__(self):
-        return ("App(dir=" + repr(self.dir) + ", name=" + repr(self.name) +
-            ", icon=" + repr(self.icon) +
-            ", requireauth=" + repr(self.requireauth) + ", hashelp="
-            + repr(self.hashelp) + ")")
+        return ("App(dir=%s, name=%s, desc=%s, icon=%s, requireauth=%s, "
+                "hashelp=%s)" % (repr(self.dir), repr(self.name),
+                repr(self.desc), repr(self.icon), repr(self.requireauth),
+                repr(self.hashelp)))
 
 # Directory where app icons are stored, relative to the IVLE root.
 app_icon_dir = "media/images/apps"
@@ -41,6 +45,8 @@ public_app = "serve"
 
 app_browser =   App(dir = "browser",
                     name = "Files",
+                    desc = "Gives you access to all of your files and lets "
+                           "you download, upload, edit and run them.",
                     icon = "browser.png",
                     requireauth = True,
                     hashelp = True)
@@ -52,6 +58,8 @@ app_fileservice = App(dir = "fileservice",
 
 app_console =     App(dir = "console",
                     name = "Console",
+                    desc = "A Python console where you can try out code "
+                           "without having to save and run it.",
                     icon = "console.png",
                     requireauth = True,
                     hashelp = True)
@@ -63,6 +71,7 @@ app_consoleservice = App(dir = "consoleservice",
 
 app_tutorial =     App(dir = "tutorial",
                     name = "Worksheets",
+                    desc = "Online tutorials and exercises for lab work.",
                     icon = "tutorial.png",
                     requireauth = True,
                     hashelp = True)
@@ -84,6 +93,7 @@ app_download =  App(dir = "download",
 
 app_help =      App(dir = "help",
                     name = "Help",
+                    desc = "IVLE help pages",
                     icon = "help.png",
                     requireauth = True,
                     hashelp = False)
@@ -95,6 +105,8 @@ app_debuginfo = App(dir = "debuginfo",
 
 app_forum = App(dir = "forum",
                     name = "Forum",
+                    desc = "Discussion boards for material relating to "
+                           "Informatics, IVLE and Python.",
                     icon = "forum.png",
                     requireauth = True,
                     hashelp = False)
@@ -122,12 +134,17 @@ app_diff = App(dir = "diff",
                     hashelp = False)
 
 app_subjects = App(dir = "subjects",
-                    name = "Subject Homepages",
+                    name = "Subjects",
+                    desc = "Announcements and information about the subjects "
+                           "you are enrolled in.",
+                    icon = "subjects.png",
                     requireauth = False,
                     hashelp = False)
 
 app_home = App(dir = "home",
                     name = "Home",
+                    desc = "IVLE home page",
+                    icon = "home.png",
                     requireauth = True,
                     hashelp = False)
 
@@ -158,4 +175,8 @@ if enable_debuginfo:
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["files", "tutorial", "console", "forum", "help"]
+apps_in_tabs = ["home", "subjects", "files", "tutorial", "console",
+                "forum", "help"]
+
+# List of apps that go in the list on the home page
+apps_on_home_page = ["subjects", "files", "tutorial", "console", "forum"]

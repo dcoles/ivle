@@ -23,8 +23,10 @@
 # A sample / testing application for IVLE.
 
 import cgi
+import urllib
 
 from common import util
+from conf import apps
 
 def handle(req):
     """Handler for the student home application.
@@ -45,15 +47,15 @@ def handle(req):
   <p>These are the different facilities provided by IVLE.
     They are always accessible from the links at the top.</p>
   <ul>
-    <li><a href="%s">Files</a><br />
-      Gives you access to all of your files and lets you download, upload,
-        edit and run them.</li>
-  </ul>
-"""
-    % (
-        cgi.escape(util.make_path("files")),
-    ))
-    # TODO: More Apps
+""")
+    for app in apps.apps_on_home_page:
+        req.write('    <li><a href="%s">%s</a><br />\n      %s</li>\n'
+        % (
+            urllib.quote(util.make_path(app)),
+            cgi.escape(apps.app_url[app].name),
+            cgi.escape(apps.app_url[app].desc),
+        ))
+    req.write("  </ul>\n")
 
     req.write("""<h3>Announcements</h3>
 """)
