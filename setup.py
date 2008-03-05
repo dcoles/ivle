@@ -528,6 +528,7 @@ def listmake(args):
     list_scripts = [
         "scripts/python-console",
         "scripts/fileservice",
+        "scripts/serveservice",
         "scripts/usrmgt-server",
         "scripts/diffservice",
     ]
@@ -857,6 +858,7 @@ def build(args):
     # Chmod the python console
     action_chmod_x('jail/opt/ivle/scripts/python-console', dry)
     action_chmod_x('jail/opt/ivle/scripts/fileservice', dry)
+    action_chmod_x('jail/opt/ivle/scripts/serveservice', dry)
     
     # Also copy the IVLE lib directory into the jail
     # This is necessary for running certain scripts

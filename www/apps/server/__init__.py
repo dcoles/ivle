@@ -31,6 +31,8 @@ import conf.app.server
 import os
 import mimetypes
 
+serveservice_path = "/opt/ivle/scripts/serveservice"
+
 def handle(req):
     """Handler for the Server application which serves pages."""
     req.write_html_head_foot = False
@@ -101,17 +103,17 @@ def serve_file(req, owner, filename):
     else:
         # Otherwise, use the blacklist/whitelist to see if this file should be
         # served or disallowed
-        if conf.app.server.blacklist_served_filetypes:
-            toserve = type not in conf.app.server.served_filetypes_blacklist
-        else:
-            toserve = type in conf.app.server.served_filetypes_whitelist
-
-        # toserve or not toserve
-        if not toserve:
+        if (conf.app.server.blacklist_served_filetypes and \
+                type in conf.app.server.served_filetypes_blacklist) or \
+           (conf.app.server.served_filetypes_whitelist and \
+                type not in conf.app.server.served_filetypes_whitelist): 
             req.throw_error(req.HTTP_FORBIDDEN,
                 "Files of this type are not allowed to be served.")
-        else:
-            serve_file_direct(req, filename, type)
+
+        interp_object = interpret.interpreter_objects["cgi-python"]
+        user_jail_dir = os.path.join(conf.jail_base, req.user.login)
+        interpret.interpret_file(req, req.user.login, user_jail_dir,
+            serveservice_path, interp_object)
 
 def serve_file_direct(req, filename, type):
     """Serves a file by directly writing it out to the response.

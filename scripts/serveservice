@@ -1,0 +1,43 @@
+#!/usr/bin/python
+
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2008 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Script: serveservice
+# Author: Thomas Conway
+# Date:   6/3/2007
+
+# A CGI script for serving files.
+
+import mimetypes
+import os
+
+from common import cgirequest
+from common import studpath
+
+req = cgirequest.CGIRequest()
+filename = studpath.url_to_jailpaths(req.path)[2]
+
+if not os.access(filename, os.R_OK):
+    req.throw_error(req.HTTP_NOT_FOUND, "The specified file does not exist.")
+
+(type, _) = mimetypes.guess_type(filename)
+if type is None:
+    type = conf.mimetypes.default_mimetype
+
+req.content_type = type
+req.sendfile(filename)
