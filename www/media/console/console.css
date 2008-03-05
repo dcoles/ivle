@@ -131,6 +131,12 @@
     margin-top: 0em;
     margin-bottom: 0em;
 }
+*.inputPrompt {
+    color: #800;    /* Deep red */
+    font-weight: bold;
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
 *.inputMsg {
     color: #404040;
     margin-top: 0em;

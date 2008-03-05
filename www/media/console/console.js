@@ -248,6 +248,12 @@ function console_enter_line(inputbox, which)
     }
     var output = document.getElementById("console_output");
     {
+        // Print ">>>" span
+        var span = document.createElement("span");
+        span.setAttribute("class", "inputPrompt");
+        span.appendChild(document.createTextNode(">>> "));
+        output.appendChild(span);
+        // Print input line itself in a span
         var span = document.createElement("span");
         span.setAttribute("class", "inputMsg");
         span.appendChild(document.createTextNode(inputline + "\n"));
@@ -296,6 +302,9 @@ function console_response(inputbox, graytimer, inputline, responseText)
         span.setAttribute("class", "errorMsg");
         span.appendChild(document.createTextNode(res.exc + "\n"));
         output.appendChild(span);
+        // set the prompt to >>>
+        var prompt = document.getElementById("console_prompt");
+        prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
     }
     else if (res.hasOwnProperty('more'))
     {
