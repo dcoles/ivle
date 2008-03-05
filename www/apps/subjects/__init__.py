@@ -41,7 +41,7 @@ def handle_toplevel_menu(req):
     # This is represented as a directory. Redirect and add a slash if it is
     # missing.
     if req.uri[-1] != '/':
-        req.throw_redirect(make_tutorial_path())
+        req.throw_redirect(req.uri + '/')
 
     # Get list of subjects
     # TODO: Fetch from DB. For now, just get directory listing
