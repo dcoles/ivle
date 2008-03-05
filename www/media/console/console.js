@@ -266,7 +266,15 @@ function console_enter_line(inputbox, which)
 
 function console_response(inputbox, graytimer, inputline, responseText)
 {
-    var res = JSON.parse(responseText);
+    try
+    {
+        var res = JSON.parse(responseText);
+    }
+    catch (e)
+    {
+        alert("An internal error occurred in the python console.");
+        return;
+    }
     var output = document.getElementById("console_output");
     if (res.hasOwnProperty('okay'))
     {
@@ -348,7 +356,8 @@ function console_response(inputbox, graytimer, inputline, responseText)
     divScroll.activeScroll();
 
     // Focus the input box by default
-    // document.getElementById("console_inputText").focus()
+    document.getElementById("console_output").focus()
+    document.getElementById("console_inputText").focus()
 }
 
 function catch_input(key)
