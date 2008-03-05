@@ -39,6 +39,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <limits.h>
 
 /* conf.h is admin-configured by the setup process.
@@ -112,7 +114,7 @@ void daemonize(void)
 static void usage(const char* nm)
 {
     fprintf(stderr,
-        "usage: %s [-d] <uid> <jail> <cwd> <program> [args...]\n", nm);
+        "usage: %s [-d] [-u] <uid> <jail> <cwd> <program> [args...]\n", nm);
     exit(1);
 }
 
@@ -125,6 +127,7 @@ int main(int argc, char* const argv[])
     int uid;
     int arg_num = 1;
     int daemon_mode = 0;
+    int unlimited = 0;
     char canonical_jailpath[PATH_MAX];
 
     /* Disallow execution from all users but the whitelisted ones, and root */
@@ -147,6 +150,16 @@ int main(int argc, char* const argv[])
             usage(argv[0]);
         }
         daemon_mode = 1;
+        arg_num++;
+    }
+
+    if (strcmp(argv[arg_num], "-u") == 0)
+    {
+        if (argc < 6)
+        {
+            usage(argv[0]);
+        }
+        unlimited = 1;
         arg_num++;
     }
     uid = atoi(argv[arg_num++]);
@@ -210,6 +223,47 @@ int main(int argc, char* const argv[])
     if (daemon_mode)
     {
         daemonize();
+    }
+
+    /* set user resource limits */
+    if (!unlimited)
+    {
+        struct rlimit l;
+        /* Process size in virtual memory */
+        l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
+        l.rlim_max = 72 * 1024 * 1024; /* 64Mb */
+        if (setrlimit(RLIMIT_AS, &l))
+        {
+            perror("could not setrlimit/RLIMIT_AS");
+            exit(1);
+        }
+
+        /* Core */
+        l.rlim_cur = 0;
+        l.rlim_max = 0;
+        if (setrlimit(RLIMIT_CORE, &l))
+        {
+            perror("could not setrlimit/RLIMIT_CORE");
+            exit(1);
+        }
+
+        /* CPU */
+        l.rlim_cur = 25;
+        l.rlim_max = 30;
+        if (setrlimit(RLIMIT_CPU, &l))
+        {
+            perror("could not setrlimit/RLIMIT_CPU");
+            exit(1);
+        }
+
+        /* File Size */
+        l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
+        l.rlim_max = 72 * 1024 * 1024; /* 72Mb */
+        if (setrlimit(RLIMIT_FSIZE, &l))
+        {
+            perror("could not setrlimit/RLIMIT_FSIZE");
+            exit(1);
+        }
     }
 
     /* exec (replace this process with the a new instance of the target
