@@ -48,6 +48,8 @@ class StdinFromWeb(object):
         ln = self.lineQ.get()
         if 'chat' in ln:
             return ln['chat']
+        if 'interrupt' in ln:
+            raise Interrupt()
 
 class StdoutToWeb(object):
     def __init__(self, cmdQ, lineQ):
@@ -90,13 +92,12 @@ class PythonRunner(Thread):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
         self.lineQ = lineQ
-        self.stdout = None
+        self.stdout = StdoutToWeb(self.cmdQ, self.lineQ)
         Thread.__init__(self)
 
     def execCmd(self, cmd):
         try:
             sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-            self.stdout = StdoutToWeb(self.cmdQ, self.lineQ)
             sys.stdout = self.stdout
             sys.stderr = self.stdout
             res = eval(cmd, self.globs, self.locls)
