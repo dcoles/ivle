@@ -117,21 +117,40 @@ function action_newfile()
     return false;
 }
 
+/* Mode is either "copy" or "move".
+ */
+function action_copy_or_cut(files, mode)
+{
+    /* Store the "clipboard" in the browser cookie */
+    var clip_obj = {"src": current_path, "file": files, "mode": mode};
+    write_cookie("clipboard", clip_obj);
+}
+
 function action_copy(files)
 {
-    do_action("copy", current_path, {"path":files});
+    action_copy_or_cut(files, "copy");
     return false;
 }
 
 function action_cut(files)
 {
-    do_action("cut", current_path, {"path":files});
+    action_copy_or_cut(files, "move");
     return false;
 }
 
 function action_paste()
 {
-    do_action("paste", current_path, {"path":"."});
+    /* Get the "clipboard" object from the browser cookie */
+    var clip_obj = read_cookie("clipboard");
+    if (clip_obj == null)
+    {
+        alert("No files have been cut or copied.");
+        return false;
+    }
+    /* The clip_obj is exactly what we want to pass, plus the current path
+     * as destination. */
+    clip_obj.dst = ".";
+    do_action("paste", current_path, clip_obj);
     return false;
 }
 
