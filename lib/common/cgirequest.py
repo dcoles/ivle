@@ -242,7 +242,7 @@ class CGIRequest:
         else:
             return sys.stdin.read(len)
 
-    def throw_error(self, httpcode):
+    def throw_error(self, httpcode, message):
         """Writes out an HTTP error of the specified code. Exits the process,
         so any code following this call will not be executed.
 
@@ -253,20 +253,7 @@ class CGIRequest:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
-        self.status = httpcode
-        self.content_type = "text/html"
-        # Emulate an Apache error
-        self.write("""<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html><head>
-<title>%d Error</title>
-</head><body>
-<h1>Error</h1>
-<p>A %d error was triggered by a CGI app.</p>
-</body></html>
-""" % (httpcode, httpcode))
-        # Exit the process completely
-        self.flush()
-        sys.exit(httpcode)
+        raise common.util.IVLEError(httpcode, message)
 
     def throw_redirect(self, location):
         """Writes out an HTTP redirect to the specified URL. Exits the
