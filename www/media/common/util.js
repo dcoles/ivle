@@ -341,6 +341,39 @@ function urlencode_path(path)
     return path;
 }
 
+/** Writes a JSONable object to the cookie under a particular key
+ * (JSON encoded and URL encoded).
+ */
+function write_cookie(key, value)
+{
+    var sendstr = encodeURIComponent(key) + "="
+        + encodeURIComponent(JSON.stringify(value));
+    /* This actually just assigns to the key, not replacing the whole cookie
+     * as it appears to. */
+    document.cookie = sendstr;
+}
+/** Reads a cookie which has a JSONable object encoded as its value.
+ * Returns the object, parsed from JSON.
+ */
+function read_cookie(key)
+{
+    var cookies = document.cookie.split(";");
+    var checkstart = encodeURIComponent(key) + "=";
+    var checklen = checkstart.length;
+    for (var i=0; i<cookies.length; i++)
+    {
+        var cookie = cookies[i];
+        while (cookie[0] == ' ')
+            cookie = cookie.substr(1);
+        if (cookie.substr(0, checklen) == checkstart)
+        {
+            var valstr = cookie.substr(checklen);
+            valstr = decodeURIComponent(valstr);
+            return JSON.parse(valstr);
+        }
+    }
+}
+
 /** Given an argument map, as output in the args parameter of the return of
  * parseurl, gets the first occurence of an argument in the URL string.
  * If the argument was not found, returns null.
