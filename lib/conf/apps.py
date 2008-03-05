@@ -40,14 +40,8 @@ public_app = "serve"
 # Application definitions
 
 app_browser =   App(dir = "browser",
-                    name = "File Browser",
+                    name = "Files",
                     icon = "browser.png",
-                    requireauth = True,
-                    hashelp = True)
-
-app_editor =   App(dir = "editor",
-                    name = "Text Editor",
-                    icon = "editor.png",
                     requireauth = True,
                     hashelp = True)
 
@@ -68,7 +62,7 @@ app_consoleservice = App(dir = "consoleservice",
                     hashelp = False)
 
 app_tutorial =     App(dir = "tutorial",
-                    name = "Tutorial",
+                    name = "Worksheets",
                     icon = "tutorial.png",
                     requireauth = True,
                     hashelp = True)
@@ -141,7 +135,6 @@ app_home = App(dir = "home",
 
 app_url = {
     "files" : app_browser,
-    "edit" : app_editor,
     "fileservice" : app_fileservice,
     "console" : app_console,
     "consoleservice" : app_consoleservice,
@@ -165,4 +158,4 @@ if enable_debuginfo:
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["files", "edit", "console", "tutorial", "forum", "help"]
+apps_in_tabs = ["files", "tutorial", "console", "forum", "help"]
