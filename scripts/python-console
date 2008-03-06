@@ -58,15 +58,23 @@ class StdoutToWeb(object):
         self.remainder = ''
 
     def write(self, stuff):
-        # if there's less than 1K, buffer
-        if len(self.remainder) + len(stuff) < 128:
-            self.remainder = self.remainder + stuff
+        self.remainder = self.remainder + stuff
+
+        # if there's less than 128 bytes, buffer
+        if len(self.remainder) < 128:
             return
 
-        # Split the content up into lines, and ship all the completed
-        # lines off to the server.
-        lines = stuff.split("\n")
-        lines[0] = self.remainder + lines[0]
+        # if there's lots, then send it in 1/2K blocks
+        while len(self.remainder) > 512:
+            blk = self.remainder[0:512]
+            self.cmdQ.put({"output":blk})
+            expiry.ping()
+            ln = self.lineQ.get()
+            self.remainder = self.remainder[512:]
+
+        # Finally, split the remainder up into lines, and ship all the
+        # completed lines off to the server.
+        lines = self.remainder.split("\n")
         self.remainder = lines[-1]
         del lines[-1]
 
