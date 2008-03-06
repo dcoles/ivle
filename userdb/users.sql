@@ -104,6 +104,7 @@ CREATE TABLE project_mark (
 
 CREATE TABLE problem (
     problemid   SERIAL PRIMARY KEY NOT NULL,
+    identifier  VARCHAR UNIQUE NOT NULL,
     spec        VARCHAR
 );
 
