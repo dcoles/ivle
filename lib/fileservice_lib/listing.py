@@ -114,6 +114,10 @@ import conf.mimetypes
 # Make a Subversion client object
 svnclient = pysvn.Client()
 
+# Whether or not to ignore dot files.
+# TODO check settings!
+ignore_dot_files = True
+
 # For time calculations
 seconds_per_day = 86400 # 60 * 60 * 24
 if time.daylight:
@@ -237,6 +241,11 @@ def get_dirlisting(req, svnclient, path):
         # unversioned.
         mtime = os.path.getmtime(path)
         listing["."] = file_to_fileinfo(path, "")
+
+    if ignore_dot_files:
+        for fn in listing.keys():
+            if fn != "." and fn.startswith("."):
+                del listing[fn]
 
     # Listing is a nested object inside the top-level JSON.
     listing = {"listing" : listing}
