@@ -91,6 +91,13 @@ CREATE TABLE project_extension (
     notes       VARCHAR
 );
 
+CREATE TABLE project_submission (
+    assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
+    projectid   INT4 REFERENCES project (projectid) NOT NULL,
+    path        VARCHAR NOT NULL,
+    revision    INT4 NOT NULL
+);
+
 CREATE TABLE project_mark (
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     projectid   INT4 REFERENCES project (projectid) NOT NULL,
