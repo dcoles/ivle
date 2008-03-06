@@ -151,13 +151,6 @@ def activate_user(props):
         except Exception, exc:
             logging.warning("While mkdiring info1: %s" % str(exc))
             pass
-        logging.debug("Creating /submissions")
-        try:
-            svn.mkdir(conf.svn_addr + login + "/submissions",
-                      "Initial creation of submissions directory")
-        except Exception, exc:
-            logging.warning("While mkdiring submissions: %s" % str(exc))
-            pass
         logging.debug("Creating /stuff")
         try:
             svn.mkdir(conf.svn_addr + login + "/stuff",
@@ -192,12 +185,6 @@ def activate_user(props):
                          common.studpath.url_to_local(login + "/stuff")[1])
         except Exception, exc:
             logging.warning("While mkdiring stuff: %s" % str(exc))
-            pass
-        try:
-            svn.checkout(conf.svn_addr + login + "/submissions",
-                         common.studpath.url_to_local(login + "/submissions")[1])
-        except Exception, exc:
-            logging.warning("While mkdiring submissions: %s" % str(exc))
             pass
         try:
             svn.checkout(conf.svn_addr + login + "/info1",
