@@ -37,7 +37,11 @@ function runexercise(exerciseid, filename)
     var code = exercisebox.value;
 
     /* Dump the entire file to the console */
-    console_enter_line(code, "block");
+    var callback = function()
+    {
+        console_enter_line(code, "block");
+    }
+    start_server(callback)
     return;
 }
 

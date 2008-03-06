@@ -86,11 +86,6 @@ function console_init(windowpane)
         windowpane_mode = true;
         console_minimize();
     }
-    /* TEMP: Start the server now.
-     * Ultimately we want the server to start only when a line is typed, but
-     * it currently does it asynchronously and doesn't start in time for the
-     * first line. */
-    start_server();
 }
 
 /** Hide the main console panel, so the console minimizes to just an input box
