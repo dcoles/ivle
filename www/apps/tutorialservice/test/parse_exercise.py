@@ -144,9 +144,9 @@ def getCaseData(caseNode):
 
     return case
                 
-def parse_exercise_file(filename, exercise_num=1):
+def parse_exercise_file(fileobj, exercise_num=1):
     """ Parse an xml exercise file and return a testsuite for that exercise """
-    dom = parse(filename)
+    dom = parse(fileobj)
 
     # get exercise
     count = 0

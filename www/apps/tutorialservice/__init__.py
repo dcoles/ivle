@@ -35,9 +35,11 @@
 # Returns a JSON response string indicating the results.
 
 import os
+import time
 
 import cjson
 
+from common import db
 import test
 import conf
 
@@ -92,6 +94,28 @@ def handle_test(req, exercise, code, fields):
     # Return it.
     test_results = exercise_obj.run_tests(code)
     req.write(cjson.encode(test_results))
+
+    conn = db.DB()
+
+    x = conn.get_single({'identifier':exercise},
+                        'problem', ['problemid'], ['identifier'])
+    problemid = x['problemid']
+
+    x = conn.get_single({'login':req.user.login},
+                        'login', ['loginid'], ['login'])
+    loginid = x['loginid']
+
+    rec = {}
+    rec['problemid'] = problemid
+    rec['loginid'] = loginid
+    rec['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())
+    rec['complete'] = test_results['passed']
+    rec['attempt'] = code
+
+    print >> open("/tmp/attempts.txt", "a"), repr(rec)
+
+    conn.insert(rec, 'problem_attempt',
+                set(['problemid','loginid','date','complete','attempt']))
 
 def handle_run(req, exercise, code, fields):
     """Handles a run action."""
