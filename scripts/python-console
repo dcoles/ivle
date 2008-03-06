@@ -190,5 +190,6 @@ if __name__ == "__main__":
     if len(sys.argv) >= 4:
         # working_dir
         os.chdir(sys.argv[3])
+        os.environ['HOME'] = sys.argv[3]
 
     common.chat.start_server(port, magic, True, dispatch_msg, initializer)
