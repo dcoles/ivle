@@ -126,7 +126,7 @@ def handle_test(req, exercise, code, fields):
     rec = {}
     rec['problemid'] = problemid
     rec['loginid'] = loginid
-    rec['date'] = time.gmtime()
+    rec['date'] = time.localtime()
     rec['complete'] = test_results['passed']
     rec['attempt'] = code
 
