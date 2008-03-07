@@ -97,9 +97,27 @@ def handle_test(req, exercise, code, fields):
 
     conn = db.DB()
 
-    x = conn.get_single({'identifier':exercise},
-                        'problem', ['problemid'], ['identifier'])
-    problemid = x['problemid']
+    try:
+        x = conn.get_single({'identifier':exercise},
+                            'problem', ['problemid'], ['identifier'])
+        problemid = x['problemid']
+    except Exception, e:
+        # if we failed to get a problemid, it was probably because
+        # the exercise wasn't in the db. So lets insert it!
+        #
+        # The insert can fail if someone else simultaneously does
+        # the insert, so if the insert fails, we ignore the problem. 
+        try:
+            conn.insert({'identifier': exercise}, 'problem',
+                    set(['identifier']))
+        except Exception, e:
+            pass
+
+        # Assuming the insert succeeded, we should be able to get the
+        # problemid now.
+        x = conn.get_single({'identifier':exercise},
+                            'problem', ['problemid'], ['identifier'])
+        problemid = x['problemid']
 
     x = conn.get_single({'login':req.user.login},
                         'login', ['loginid'], ['login'])
