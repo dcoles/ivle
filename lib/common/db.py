@@ -35,8 +35,11 @@ import pg
 import conf
 import md5
 import copy
+import time
 
 from common import (caps, user)
+
+TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 def _escape(val):
     """Wrapper around pg.escape_string. Prepares the Python value for use in
@@ -67,6 +70,8 @@ def _escape(val):
         return str(val)
     elif isinstance(val, caps.Role):
         return _escape(str(val))
+    elif isinstance(val, time.struct_time):
+        return _escape(time.strftime(TIMESTAMP_FORMAT, val))
     else:
         raise DBException("Attempt to insert an unsupported type "
             "into the database")

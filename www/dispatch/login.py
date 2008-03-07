@@ -84,15 +84,11 @@ def login(req):
                     badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
-                    # TODO: Store the User object in session instead of
-                    # individual fields
                     session = req.get_session()
                     session['user'] = login_details
                     session.save()
-                    # XXX time.localtime() (a tuple of ints) is not valid for
-                    # inserting as a TIMESTAMP in the DB.
-                    #db.DB().update_user(username.value,
-                    #                    last_login=time.localtime())
+                    db.DB().update_user(username.value,
+                                        last_login = time.localtime())
                     req.add_cookie(forumutil.make_forum_cookie(login_details))
                     req.throw_redirect(req.uri)
 

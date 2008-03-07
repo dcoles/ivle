@@ -23,6 +23,8 @@
 # user. Objects of this class are expected to be stored in the request
 # session.
 
+import db
+import time
 import common.caps
 
 # Similar to db.login_fields_list but contains a different set of fields.
@@ -35,6 +37,9 @@ user_fields_list = (
     "role", "studentid", "acct_exp", "pass_exp", "last_login",
     "svn_pass", "local_password",
 )
+timestamp_fields = frozenset((
+    "acct_exp", "pass_exp", "last_login",
+))
 # Fields not included: passhash, last_login
 
 class UserException(Exception):
@@ -70,6 +75,14 @@ class User(object):
                             "'fullname' missing")
                 else:
                     self.__setattr__(r, None)
+        for field in timestamp_fields:
+            # Convert all timestamp fields from strings to Timestamp objects
+            if hasattr(self, field):
+                val = self.__getattribute__(field)
+                if val is not None:
+                    val = time.strptime(val, db.TIMESTAMP_FORMAT)
+                    self.__setattr__(field, val)
+
     def __repr__(self):
         items = ["%s=%s" % (r, repr(self.__getattribute__(r)))
             for r in user_fields_list]
