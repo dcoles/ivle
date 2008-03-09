@@ -190,6 +190,9 @@ def present_actions1(req):
       <option id="act_svncommit" class="disabled" disabled="disabled"
         title="Commit any changes to the permanent repository"
         value="svncommit">Commit</option>
+      <option id="act_svncheckout" class="disabled" disabled="disabled"
+        title="Re-check out your default directories"
+        value="svncheckout">Re-Checkout</option>
     </select>
 """)
 

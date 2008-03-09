@@ -187,6 +187,17 @@ function action_commit(files)
     return false;
 }
 
+/* Call userservice to re-check out the default workspaces */
+function action_checkout()
+{
+    var conf_msg = "This will check out new workspaces for your subversion "
+        + "repositories, in the default place in your top-level directory. "
+        + "Continue?";
+    var confirmed = confirm(conf_msg);
+    if (!confirmed) return;
+    ajax_call(refresh, "userservice", "do_checkout", {}, "POST");
+}
+
 /** Selects or deselects all files in the listing.
  * selected: true or false (defaults to true).
  * If false, deselects instead of selecting.

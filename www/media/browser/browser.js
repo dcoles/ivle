@@ -630,6 +630,18 @@ function update_actions()
         svncommit.setAttribute("class", "choice");
         svncommit.removeAttribute("disabled");
     }
+    var svncheckout = document.getElementById("act_svncheckout");
+    /* current_path == username: We are at the top level */
+    if (current_path == username)
+    {
+        svncheckout.setAttribute("class", "choice");
+        svncheckout.removeAttribute("disabled");
+    }
+    else
+    {
+        svncheckout.setAttribute("class", "disabled");
+        svncheckout.setAttribute("disabled", "disabled");
+    }
 
     return;
 }
@@ -704,6 +716,9 @@ function handle_moreactions()
         break;
     case "svncommit":
         action_commit(selected_files);
+        break;
+    case "svncheckout":
+        action_checkout();
         break;
     }
 }
