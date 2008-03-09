@@ -46,8 +46,6 @@ try:
         return (flds['login'], flds['unixid'])
     uids = dict(map(repack,res))
 
-    return uids[login]
-
 except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
