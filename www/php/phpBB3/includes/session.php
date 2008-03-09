@@ -1961,10 +1961,10 @@ class user extends session
   {
 	global $db, $phpEx;
 
-		// Shared secret between IVLE and the Forum
-		$ivle_secret = 'VERYSECRET';
+	// Get the shared secret between IVLE and the Forum
+	require($phpbb_root_path . 'config.' . $phpEx);
 
-		// Shared Cookie
+	// Shared Cookie
 	$ivle_cookie = explode(':',$_COOKIE['ivleforumcookie']);
    
 	if ($ivle_cookie == "NONE") {
@@ -1980,63 +1980,62 @@ class user extends session
 
 	// Check if uid + nick + email + secret is the same as the hash
 	//$ivle_auth = False; // Flag just incase anything else need to know
-	if(md5($ivle_cookie[0].$ivle_cookie[1].$ivle_cookie[2].$ivle_cookie[3].$ivle_secret) 
+	if(md5($ivle_cookie[0].$ivle_cookie[1].$ivle_cookie[2].$ivle_cookie[3].$forum_secret) 
 	== $ivle_hash) {
 	  //$ivle_auth = True;
 	
-			// Check if the user exists in the database
-			$sql = 'SELECT user_id
-                    FROM ' . USERS_TABLE . "
-                    WHERE username = '" . $db->sql_escape($ivle_uid) . "';";
-			$result = $db->sql_query($sql);
-			$row = $db->sql_fetchrow($result);
-			$user_id = $row['user_id'];
-			$db->sql_freeresult($result);
+	// Check if the user exists in the database
+	$sql = 'SELECT user_id
+		FROM ' . USERS_TABLE . "
+		WHERE username = '" . $db->sql_escape($ivle_uid) . "';";
+		$result = $db->sql_query($sql);
+		$row = $db->sql_fetchrow($result);
+		$user_id = $row['user_id'];
+		$db->sql_freeresult($result);
 
-			// If no user_id is found for the username, create a new user
-			if(!$user_id) {
-				// Needed for IVLE auth overide
-				include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+	// If no user_id is found for the username, create a new user
+	if(!$user_id) {
+		// Needed for IVLE auth overide
+		include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
 	   
 		// Add all users to the Registered Group
-				$sql = 'SELECT group_id
-						FROM ' . GROUPS_TABLE . "
+		$sql = 'SELECT group_id
+			FROM ' . GROUPS_TABLE . "
 			WHERE group_name = '" . $db->sql_escape('REGISTERED') . "'
-						AND group_type = " . GROUP_SPECIAL;
-				$result = $db->sql_query($sql);
-				$row = $db->sql_fetchrow($result);
-				$db->sql_freeresult($result);
+			AND group_type = " . GROUP_SPECIAL;
+		$result = $db->sql_query($sql);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		if (!$row) {
+			trigger_error('NO_GROUP');
+		}
 
-				if (!$row) {
-					trigger_error('NO_GROUP');
-				}
-
-				$group_id = $row['group_id'];
+		$group_id = $row['group_id'];
 
 		// Get the Time and Timezone
-				$timezone = date('Z') / 3600;
-				$is_dst = date('I');
-				$timezone = ($is_dst) ? $timezone - 1 : $timezone;
-				
+		$timezone = date('Z') / 3600;
+		$is_dst = date('I');
+		$timezone = ($is_dst) ? $timezone - 1 : $timezone;
+			
 		// Fill into array
 		$user_row = array(
-					'username'				=> $ivle_uid,
-					'user_password'			=> '', # Not a valid hash
-					'user_email'			=> $ivle_email,
-					'group_id'				=> (int) $group_id,
-					'user_timezone'			=> (float) $timezone,
-					'user_dst'				=> $is_dst,
-					'user_lang'				=> 'en',
-		  'user_type'				=> USER_NORMAL,
-					'user_actkey'			=> '',
-					'user_ip'				=> $this->ip,
-					'user_regdate'			=> time(),
-					'user_inactive_reason'	=> 0,
-					'user_inactive_time'	=> 0,
-				);
+			'username'				=> $ivle_uid,
+			'user_password'			=> '', # Not a valid hash
+			'user_email'			=> $ivle_email,
+			'group_id'				=> (int) $group_id,
+			'user_timezone'			=> (float) $timezone,
+			'user_dst'				=> $is_dst,
+			'user_lang'				=> 'en',
+			'user_type'				=> USER_NORMAL,
+			'user_actkey'			=> '',
+			'user_ip'				=> $this->ip,
+			'user_regdate'			=> time(),
+			'user_inactive_reason'	=> 0,
+			'user_inactive_time'	=> 0,
+		);
 		 
-				// Add user
-				$user_id = user_add($user_row);
+		// Add user
+		$user_id = user_add($user_row);
 
 		// Add any aditional groups
 		// Select the equvialent group
@@ -2052,9 +2051,10 @@ class user extends session
 		if ($group) {
 			// Find the group_id
 			$sql = 'SELECT group_id
-                    FROM ' . GROUPS_TABLE . "
-                    WHERE group_name = '" . $db->sql_escape($group) . "'
-					AND group_type = " . GROUP_SPECIAL;
+				FROM ' . GROUPS_TABLE . "
+				WHERE group_name = '" . $db->sql_escape($group) . "'
+				AND group_type = " . GROUP_SPECIAL;
+			
 			$result = $db->sql_query($sql);
 			$row = $db->sql_fetchrow($result);
 			$db->sql_freeresult($result);

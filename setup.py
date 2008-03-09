@@ -67,6 +67,8 @@ import errno
 import mimetypes
 import compileall
 import getopt
+import hashlib
+import uuid
 
 # Import modules from the website is tricky since they're in the www
 # directory.
@@ -645,11 +647,12 @@ def conf(args):
     %s
     %s
     %s
+    %s
 prompting you for details about your configuration. The file will be
 overwritten if it already exists. It will *not* install or deploy IVLE.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, jailconffile, conf_hfile)
+""" % (conffile, jailconffile, conf_hfile, phpBBconffile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -690,6 +693,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         "Must be an integer between 0 and 65535." % repr(usrmgt_port))
         return 1
 
+    # Generate the forum secret
+    forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+
     # Write lib/conf/conf.py
 
     try:
@@ -703,6 +709,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         for opt in config_options:
             conf.write('%s\n%s = %s\n' % (opt.comment, opt.option_name,
                 repr(globals()[opt.option_name])))
+
+	# Add the forum secret to the config file (regenerated each config)
+        conf.write('forum_secret = "%s"\n' % (forum_secret))
 
         conf.close()
     except IOError, (errno, strerror):
@@ -810,6 +819,8 @@ $load_extensions = '';
 @define('PHPBB_INSTALLED', true);
 // @define('DEBUG', true);
 //@define('DEBUG_EXTRA', true);
+
+$forum_secret = '""" + forum_secret +"""';
 ?>"""   )
     
         conf.close()

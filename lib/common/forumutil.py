@@ -25,11 +25,12 @@ import hashlib
 import time
 from mod_python import Cookie
 from urllib import quote
+from conf import conf
 
 cookie_name = 'ivleforumcookie'
 
 def make_forum_cookie(login_details):
-    secret = "VERYSECRET"
+    secret = conf.forum_secret
 
     login = quote(login_details.login)
     nick = quote(login_details.nick)
