@@ -207,6 +207,10 @@ def do_checkout(props):
 
     login = props['login']
     svn = pysvn.Client()
+    svn.callback_get_login = partial(get_login, login, passwd)
+
+    if conf.svn_addr[-1] != '/':
+        conf.svn_addr = conf.svn_addr + "/"
 
     # FIXME: </hack>
 
