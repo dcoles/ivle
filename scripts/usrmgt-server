@@ -206,6 +206,7 @@ def do_checkout(props):
     """
 
     login = props['login']
+    svn = pysvn.Client()
 
     # FIXME: </hack>
 

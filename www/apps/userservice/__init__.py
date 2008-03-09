@@ -196,7 +196,7 @@ def handle_do_checkout(req, fields):
     """
     if req.method != "POST":
         req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-        "Only POST requests are valid methods to create_user.")
+        "Only POST requests are valid methods to do_checkout.")
 
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
@@ -282,7 +282,7 @@ def handle_update_user(req, fields):
     """
     if req.method != "POST":
         req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-        "Only POST requests are valid methods to create_user.")
+        "Only POST requests are valid methods to update_user.")
 
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
