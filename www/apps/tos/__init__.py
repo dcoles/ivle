@@ -29,10 +29,6 @@ from common import util
 def handle(req):
     """Handler for the TOS application."""
 
-    # Just redirect to the app's Help page
-    license_file = os.path.join(util.make_local_path("apps"),
-                        "tos", "license.html")
-
     # Set request attributes
     req.content_type = "text/html"
     req.write_html_head_foot = True
@@ -45,5 +41,5 @@ Service:</p>
 """)
 
     # Print out the contents of the license file
-    req.sendfile(license_file)
+    util.send_terms_of_service(req)
     req.write('<hr />\n</div>\n')

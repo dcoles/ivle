@@ -25,6 +25,7 @@ import time
 
 from mod_python import Session
 
+import conf
 from common import (util, db, caps, forumutil)
 from auth import authenticate, autherror
 
@@ -183,9 +184,7 @@ menu.</p>
 <hr />
 """ % fullname)
     # Write out the text of the license
-    license_file = os.path.join(util.make_local_path("apps"),
-                        "tos", "license.html")
-    req.sendfile(license_file)
+    util.send_terms_of_service(req)
     req.write("""<hr />
 <div id="tos_acceptbuttons">
 <p>Please click "I Accept" to indicate that you have read and understand these

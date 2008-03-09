@@ -239,6 +239,12 @@ system):""",
     """
 # In the local file system, where are the subject-independent exercise sheet
 # file spaces located."""))
+config_options.append(ConfigOption("tos_path",
+    "/home/informatics/tos.html",
+    """Location where the Terms of Service document is stored (on the local
+    file system):""",
+    """
+# In the local file system, where is the Terms of Service document located."""))
 config_options.append(ConfigOption("public_host", "public.localhost",
     """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""",

@@ -134,3 +134,34 @@ def nice_filetype(filename):
                 return filename[filename.rindex('.')+1:].upper() + " file"
             except ValueError:
                 return "File"
+
+def send_terms_of_service(req):
+    """
+    Sends the Terms of Service document to the req object.
+    This consults conf to find out where the TOS is located on disk, and sends
+    that. If it isn't found, it sends a generic message explaining to admins
+    how to create a real one.
+    """
+    try:
+        req.sendfile(conf.tos_path)
+    except IOError:
+        req.write(
+"""<h1>Terms of Service</h1>
+<p><b>*** SAMPLE ONLY ***</b></p>
+<p>This is the text of the IVLE Terms of Service.</p>
+<p>The administrator should create a license file with an appropriate
+"Terms of Service" license for your organisation.</p>
+<h2>Instructions for Administrators</h2>
+<p>You are seeing this message because you have not configured a Terms of
+Service document.</p>
+<p>When you configured IVLE, you specified a path to the Terms of Service
+document (this is found in <b><tt>lib/conf/conf.py</tt></b> under
+"<tt>tos_path</tt>").</p>
+<p>Create a file at this location; an HTML file with the appropriately-worded
+license.</p>
+<p>This should be a normal XHTML file, except it should not contain
+<tt>html</tt>, <tt>head</tt> or <tt>body</tt> elements - it should
+just be the contents of a body element (IVLE will wrap it accordingly).</p>
+<p>This will automatically be used as the license text instead of this
+placeholder text.</p>
+""")
