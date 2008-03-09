@@ -25,6 +25,7 @@
 
 import mimetypes
 import os
+import conf
 
 from common import cgirequest
 from common import studpath
