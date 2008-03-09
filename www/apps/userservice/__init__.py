@@ -329,9 +329,24 @@ def handle_get_user(req, fields):
     if 'role' in user:
         user['rolenm'] = str(user['role'])
         del user['role']
-    user = dict(user)
     try:
         del user['svn_pass']
+    except KeyError:
+        pass
+    # Convert time stamps to nice strings
+    try:
+        if user['pass_exp'] is not None:
+            user['pass_exp'] = str(user['pass_exp'])
+    except KeyError:
+        pass
+    try:
+        if user['acct_exp'] is not None:
+            user['acct_exp'] = str(user['acct_exp'])
+    except KeyError:
+        pass
+    try:
+        if user['last_login'] is not None:
+            user['last_login'] = str(user['last_login'])
     except KeyError:
         pass
     response = cjson.encode(user)
