@@ -178,7 +178,31 @@ def activate_user(props):
         cf.close()
 
         # Check out the repositories into the student's home dir
-        do_checkout(props)
+        # FIXME: Call do_checkout instead of replicating this code.
+        # (do_checkout currently doesn't work)
+        #do_checkout(props)
+
+        # FIXME: </hack>
+
+        logging.debug("Checking out directories in the jail")
+        try:
+            svn.checkout(conf.svn_addr + login + "/stuff",
+                         common.studpath.url_to_local(login + "/stuff")[1])
+            os.system("chown -R %d:%d %s" \
+                    % (details.unixid, details.unixid,
+                       common.studpath.url_to_local(login + "/stuff")[1]))
+        except Exception, exc:
+            logging.warning("While mkdiring stuff: %s" % str(exc))
+            pass
+        try:
+            svn.checkout(conf.svn_addr + login + "/info1",
+                         common.studpath.url_to_local(login + "/info1")[1])
+            os.system("chown -R %d:%d %s" \
+                    % (details.unixid, details.unixid,
+                       common.studpath.url_to_local(login + "/info1")[1]))
+        except Exception, exc:
+            logging.warning("While mkdiring info1: %s" % str(exc))
+            pass
 
         # FIXME: should this be nicer?
         os.system("chown -R %d:%d %s" \
@@ -204,6 +228,9 @@ def do_checkout(props):
                       STRING REQUIRED
        Return Value: None
     """
+    # XXX / FIXME: This doesn't work - cannot get passwd
+    # (activate_me creates passwd, other svn stuff gets it from jailconf - we
+    # can't access either at this point).
 
     login = props['login']
     svn = pysvn.Client()
