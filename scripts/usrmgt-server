@@ -177,21 +177,8 @@ def activate_user(props):
         cf.write("svn_pass = %s\n" % repr(passwd))
         cf.close()
 
-        # FIXME: </hack>
-
-        logging.debug("Checking out directories in the jail")
-        try:
-            svn.checkout(conf.svn_addr + login + "/stuff",
-                         common.studpath.url_to_local(login + "/stuff")[1])
-        except Exception, exc:
-            logging.warning("While mkdiring stuff: %s" % str(exc))
-            pass
-        try:
-            svn.checkout(conf.svn_addr + login + "/info1",
-                         common.studpath.url_to_local(login + "/info1")[1])
-        except Exception, exc:
-            logging.warning("While mkdiring info1: %s" % str(exc))
-            pass
+        # Check out the repositories into the student's home dir
+        do_checkout(props)
 
         # FIXME: should this be nicer?
         os.system("chown -R %d:%d %s" \
@@ -207,10 +194,48 @@ def activate_user(props):
     finally:
         db.close()
 
+def do_checkout(props):
+    """Create the default contents of a user's jail by checking out from the
+    repositories.
+    If any directory already exists, just fail silently (so this is not a
+    "wipe-and-checkout", merely a checkout if it failed or something).
+       Expected properties:
+        login       - the user name for the jail
+                      STRING REQUIRED
+       Return Value: None
+    """
+
+    login = props['login']
+
+    # FIXME: </hack>
+
+    logging.debug("Checking out directories in the jail")
+    try:
+        svn.checkout(conf.svn_addr + login + "/stuff",
+                     common.studpath.url_to_local(login + "/stuff")[1])
+        os.system("chown -R %d:%d %s" \
+                % (details.unixid, details.unixid,
+                   common.studpath.url_to_local(login + "/stuff")[1]))
+    except Exception, exc:
+        logging.warning("While mkdiring stuff: %s" % str(exc))
+        pass
+    try:
+        svn.checkout(conf.svn_addr + login + "/info1",
+                     common.studpath.url_to_local(login + "/info1")[1])
+        os.system("chown -R %d:%d %s" \
+                % (details.unixid, details.unixid,
+                   common.studpath.url_to_local(login + "/info1")[1]))
+    except Exception, exc:
+        logging.warning("While mkdiring info1: %s" % str(exc))
+        pass
+
+    return {"response": "okay"}
+
 actions = {
         'create_user':create_user,
         'update_user':update_user,
         'activate_user':activate_user,
+        'do_checkout':do_checkout,
     }
 
 def dispatch(props):
