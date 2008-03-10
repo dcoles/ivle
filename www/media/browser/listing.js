@@ -43,7 +43,8 @@ icon_size = 16;
 
 function action_rename(fromfilename)
 {
-    var tofilename = prompt("Rename file \"" + fromfilename + "\" to?");
+    var tofilename = prompt("Rename file \"" + fromfilename + "\" to?",
+        fromfilename);
     if (tofilename == null) return;
     do_action("move", current_path, {"from":fromfilename, "to":tofilename});
     return false;
