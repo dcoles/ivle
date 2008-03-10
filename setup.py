@@ -959,8 +959,12 @@ def install(args):
     action_copylist(install_list.list_lib, ivle_install_dir, dry)
     
     # Copy the php directory
-    action_copytree('www/php/phpBB3',os.path.join(ivle_install_dir,'www/php/phpBB3'), 
-    dry)
+    forum_dir = "www/php/phpBB3"
+    forum_path = os.path.join(ivle_install_dir, forum_dir)
+    action_copytree(forum_dir, forum_path, dry)
+    print "chown -R www-data:www-data %s" % forum_path
+    if not dry:
+        os.system("chown -R www-data:www-data %s" % forum_path)
 
     if not nojail:
         # Copy the local jail directory built by the build action
