@@ -53,6 +53,7 @@ sudo apt-get install php5 php5-pgsql
 #
 # See trunk/doc/dependencies.txt
 
+# CJSON
 wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
 tar -zxvf python-cjson-1.0.5.tar.gz
 
@@ -60,6 +61,19 @@ cd python-cjson-1.0.5
 ./setup.py build
 sudo ./setup.py install
 cd ..
+
+# NLTK for student code
+wget 'http://prdownloads.sourceforge.net/nltk/nltk-0.9.2.tar.gz'
+tar -xzvf nltk-0.9.2.tar.gz
+wget 'http://prdownloads.sourceforge.net/nltk/nltk-data-0.9.2.zip'
+unzip nltk-data-0.9.2.zip
+
+cd nltk-0.9.2
+sudo python setup.py install
+cd ..
+sudo mkdir /usr/share/nltk
+sudo mv data /usr/share/nltk/
+sudo chmod -R g+r /usr/share/nltk/data
 
 # Documentation packages needed for tutorial system: Docutils, Epydoc
 # wget each of these, untar them, and then do: sudo python ./setup.py install

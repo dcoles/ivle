@@ -49,3 +49,4 @@ Additionally, these libraries are installed by the setup script for the
 purposes of student code using them:
 
 * [matplotlib](http://matplotlib.sourceforge.net/)
+* [nltk](http://nltk.sourceforge.net)

@@ -181,6 +181,7 @@ JAIL_COPYTREES = {
         'jail/usr/lib/python%s' % PYTHON_VERSION,
     '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
     '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
+    '/usr/share/nltk': 'jail/usr/share/nltk',
 }
 
 class ConfigOption:
