@@ -75,6 +75,14 @@ sudo mkdir /usr/share/nltk
 sudo mv data /usr/share/nltk/
 sudo chmod -R g+r /usr/share/nltk/data
 
+# Beautiful Soup for student code
+wget 'http://www.crummy.com/software/BeautifulSoup/download/BeautifulSoup.tar.gz'
+tar -xzvf BeautifulSoup.tar.gz
+
+cd BeautifulSoup*
+sudo python setup.py install
+cd ..
+
 # Documentation packages needed for tutorial system: Docutils, Epydoc
 # wget each of these, untar them, and then do: sudo python ./setup.py install
 
