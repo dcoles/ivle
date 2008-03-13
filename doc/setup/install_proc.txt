@@ -76,6 +76,9 @@ sudo mv data /usr/share/nltk/
 sudo chmod -R g+r /usr/share/nltk/data
 
 # Beautiful Soup for student code
+# via apt-get
+sudo apt-get install python-beautifulsoup
+# or 
 wget 'http://www.crummy.com/software/BeautifulSoup/download/BeautifulSoup.tar.gz'
 tar -xzvf BeautifulSoup.tar.gz
 
