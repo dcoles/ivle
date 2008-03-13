@@ -8,6 +8,7 @@ import urllib
 from functools import partial
 import traceback
 import logging
+import errno
 
 import conf
 import common.db
@@ -270,6 +271,15 @@ actions = {
         'do_checkout':do_checkout,
     }
 
+def initializer():
+    try:
+        pidfile = open('/var/run/usrmgt-server.pid', 'w')
+        pidfile.write('%d\n' % os.getpid())
+        pidfile.close()
+    except IOError, (errno, strerror):
+        print "Couldn't write PID file. IO error(%s): %s" % (errno, strerror)
+        sys.exit(1)
+
 def dispatch(props):
     logging.debug(repr(props))
     action = props.keys()[0]
@@ -287,4 +297,4 @@ if __name__ == "__main__":
     logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
     logging.info("Starting usrmgt server on port %d (pid = %d)" % (port, pid))
 
-    common.chat.start_server(port, magic, True, dispatch)
+    common.chat.start_server(port, magic, True, dispatch, initializer)
