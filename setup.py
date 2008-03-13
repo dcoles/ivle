@@ -163,7 +163,7 @@ JAIL_FILES = [
     '/etc/matplotlibrc',
     # Needed for resolv
     '/lib/libnss_dns.so.2',
-    #'/lib/libnss_mdns4.so',
+    '/lib/libnss_mdns4_minimal.so.2',
     '/etc/hosts',
     '/etc/resolv.conf',
     #'/etc/hosts.conf',
