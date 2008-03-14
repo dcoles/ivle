@@ -163,6 +163,21 @@ sudo chown www-data:www-data /home/informatics/sessions
 sudo apache2ctl -k restart
 
 ##########################################################################
+# User management server: usrmgt-server
+##########################################################################
+# To start the user management server:
+cd /opt/ivle/scripts
+sudo ./usrmgt-server <port> <database password>
+# Note that the port number and database password are recorded in
+# the automatically created init.d script: doc/setup/usrmgt-server.init
+
+# To run it at boot time:
+sudo cp doc/setup/usrmgt-server.init /etc/init.d
+sudo chown root:root /etc/init.d/usrmgt-server
+sudo chmod 700 /etc/init.d/usrmgt-server  # so world can't read database magic
+sudo update-rc.d usrmgt-server defaults 99  # create symlinks in /etc/rc*.d
+
+##########################################################################
 # Setting up phpBB Forum in IVLE
 ##########################################################################
 # This should all be run from the SVN directory
