@@ -51,3 +51,4 @@ purposes of student code using them:
 * [matplotlib](http://matplotlib.sourceforge.net/)
 * [nltk](http://nltk.sourceforge.net)
 * [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup)
+* [lxml](http://codespeak.net/lxml/)
