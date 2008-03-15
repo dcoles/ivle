@@ -64,28 +64,60 @@ def handle(req):
     exercise = exercise.value
     code = code.value
 
-    if act == "test":
+    if act == "save":
+        handle_save(req, exercise, code, fields)
+    elif act == "test":
         handle_test(req, exercise, code, fields)
     elif act == "run":
         handle_run(req, exercise, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
+def open_exercise_file(exercisename):
+    """Given an exercise name, opens the corresponding XML file for reading.
+    Returns None if the exercise file was not found.
+    """
+    # First normalise the path
+    exercisename = os.path.normpath(exercisename)
+    # Now if it begins with ".." or separator, then it's illegal
+    if exercisename.startswith("..") or exercisename.startswith(os.sep):
+        exercisefile = None
+    else:
+        exercisefile = os.path.join(conf.exercises_base, exercisename)
+
+    try:
+        return open(exercisefile)
+    except (TypeError, IOError):    # TypeError if exercisefile == None
+        return None
+
+def handle_save(req, exercise, code, fields):
+    """Handles a save action. This saves the user's code without executing it.
+    """
+    # Need to open JUST so we know this is a real exercise.
+    # (This avoids users submitting code for bogus exercises).
+    exercisefile = open_exercise_file(exercise)
+    if exercisefile is None:
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The exercise was not found.")
+    exercisefile.close()
+
+    req.write('{"result": "ok"}')
+
+    conn = db.DB()
+
+    conn.write_problem_save(
+        login = req.user.login,
+        exercisename = exercise,
+        date = time.localtime(),
+        text = code)
+
 def handle_test(req, exercise, code, fields):
     """Handles a test action."""
 
-    # First normalise the path
-    exercise = os.path.normpath(exercise)
-    # Now if it begins with ".." or separator, then it's illegal
-    if exercise.startswith("..") or exercise.startswith(os.sep):
-        exercisefile = None
-    else:
-        exercisefile = os.path.join(conf.exercises_base, exercise)
-
-    try:
-        exercisefile = open(exercisefile)
-    except (TypeError, IOError):    # TypeError if exercisefile == None
-        req.throw_error(req.HTTP_NOT_FOUND)
+    exercisefile = open_exercise_file(exercise)
+    if exercisefile is None:
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The exercise was not found.")
 
     # Parse the file into a exercise object using the test suite
     exercise_obj = test.parse_exercise_file(exercisefile)

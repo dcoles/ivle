@@ -81,6 +81,31 @@ function submitexercise(exerciseid, filename)
         "multipart/form-data");
 }
 
+/** User clicks "Save" button. Do an Ajax call to store it.
+ * exerciseid: "id" of the exercise's div element.
+ * filename: Filename of the exercise's XML file (used to identify the exercise
+ *     when interacting with the server).
+ */
+function saveexercise(exerciseid, filename)
+{
+    /* Get the source code the student is submitting */
+    var exercisediv = document.getElementById(exerciseid);
+    var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
+    var code = exercisebox.value;
+
+    var args = {"code": code, "exercise": filename, "action": "save"};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            // XXX Maybe check to see if this worked?
+        }
+    ajax_call(callback, "tutorialservice", "", args, "POST",
+        "multipart/form-data");
+}
+
 /** Given a exercise div, return the testoutput div which is its child.
  * (The div which is its child whose class is "testoutput".
  */

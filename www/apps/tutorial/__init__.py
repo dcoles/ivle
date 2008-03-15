@@ -356,6 +356,9 @@ def present_exercise(req, exercisesrc, exerciseid):
             % (rows, exercisepartial))
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
     req.write("""\n<div class="exercisebuttons">
+  <input type="button" value="Save"
+    onclick="saveexercise(&quot;exercise%d&quot;, %s)"
+    title="Save your solution to this exercise" />
   <input type="button" value="Run"
     onclick="runexercise(&quot;exercise%d&quot;, %s)"
     title="Run this program in the console" />
@@ -365,5 +368,5 @@ def present_exercise(req, exercisesrc, exerciseid):
 </div>
 <div class="testoutput">
 </div>
-""" % (exerciseid, filename, exerciseid, filename))
+""" % (exerciseid, filename, exerciseid, filename, exerciseid, filename))
     req.write("</div>\n")
