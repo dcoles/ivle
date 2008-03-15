@@ -347,6 +347,9 @@ def present_exercise(req, exercisesrc, exerciseid):
     try:
         saved_text = db.get_problem_stored_text(login=req.user.login,
             exercisename=exercisesrc)
+        # Also get the number of attempts taken and whether this is complete.
+        complete, attempts = db.get_problem_status(login=req.user.login,
+            exercisename=exercisesrc)
     finally:
         db.close()
     if saved_text is not None:
@@ -381,4 +384,15 @@ def present_exercise(req, exercisesrc, exerciseid):
 </div>
 """ % (exerciseid, exerciseid, filename, exerciseid, filename,
        exerciseid, exerciseid, filename))
+    # Write the "summary" - whether this problem is complete and how many
+    # attempts it has taken.
+    req.write("""<div class="problem_summary">
+  <ul><li id="summaryli_exercise%d" class="%s">
+    <b><span id="summarycomplete_exercise%d">%s</span>.</b>
+    Attempts: <span id="summaryattempts_exercise%d">%d</span>.
+  </li></ul>
+</div>
+""" % (exerciseid, "complete" if complete else "incomplete",
+        exerciseid, "Complete" if complete else "Incomplete",
+        exerciseid, attempts))
     req.write("</div>\n")
