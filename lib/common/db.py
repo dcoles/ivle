@@ -61,7 +61,7 @@ def _escape(val):
     # WARNING: PostgreSQL-specific code
     if val is None:
         return "NULL"
-    elif isinstance(val, str):
+    elif isinstance(val, str) or isinstance(val, unicode):
         return "E'" + pg.escape_string(val) + "'"
     elif isinstance(val, bool):
         return "TRUE" if val else "FALSE"
