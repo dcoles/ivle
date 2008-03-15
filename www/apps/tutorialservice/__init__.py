@@ -39,7 +39,7 @@ import time
 
 import cjson
 
-from common import db
+from common import (db, util)
 import test
 import conf
 
@@ -73,29 +73,12 @@ def handle(req):
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def open_exercise_file(exercisename):
-    """Given an exercise name, opens the corresponding XML file for reading.
-    Returns None if the exercise file was not found.
-    """
-    # First normalise the path
-    exercisename = os.path.normpath(exercisename)
-    # Now if it begins with ".." or separator, then it's illegal
-    if exercisename.startswith("..") or exercisename.startswith(os.sep):
-        exercisefile = None
-    else:
-        exercisefile = os.path.join(conf.exercises_base, exercisename)
-
-    try:
-        return open(exercisefile)
-    except (TypeError, IOError):    # TypeError if exercisefile == None
-        return None
-
 def handle_save(req, exercise, code, fields):
     """Handles a save action. This saves the user's code without executing it.
     """
     # Need to open JUST so we know this is a real exercise.
     # (This avoids users submitting code for bogus exercises).
-    exercisefile = open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercise)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
@@ -114,7 +97,7 @@ def handle_save(req, exercise, code, fields):
 def handle_test(req, exercise, code, fields):
     """Handles a test action."""
 
-    exercisefile = open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercise)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")

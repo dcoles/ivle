@@ -110,6 +110,24 @@ def split_path(path):
     else:
         return tuple(splitpath)
 
+def open_exercise_file(exercisename):
+    """Given an exercise name, opens the corresponding XML file for reading.
+    Returns None if the exercise file was not found.
+    (For tutorials / worksheets).
+    """
+    # First normalise the path
+    exercisename = os.path.normpath(exercisename)
+    # Now if it begins with ".." or separator, then it's illegal
+    if exercisename.startswith("..") or exercisename.startswith(os.sep):
+        exercisefile = None
+    else:
+        exercisefile = os.path.join(conf.exercises_base, exercisename)
+
+    try:
+        return open(exercisefile)
+    except (TypeError, IOError):    # TypeError if exercisefile == None
+        return None
+
 # Initialise mime types library
 mimetypes.init()
 for (ext, mimetype) in conf.mimetypes.additional_mime_types.items():
