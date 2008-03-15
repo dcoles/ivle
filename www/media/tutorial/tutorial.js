@@ -77,7 +77,7 @@ function submitexercise(exerciseid, filename)
     var callback = function(xhr)
         {
             var testresponse = JSON.parse(xhr.responseText);
-            handle_testresponse(exercisediv, testresponse);
+            handle_testresponse(exercisediv, exerciseid, testresponse);
             set_saved_status(exerciseid, filename, "Saved");
             set_submit_status(exerciseid, filename, "Submit");
         }
@@ -189,7 +189,7 @@ function get_testoutput(exercisediv)
 /** Given a response object (JSON-parsed object), displays the result of the
  * test to the user. This modifies the given exercisediv's children.
  */
-function handle_testresponse(exercisediv, testresponse)
+function handle_testresponse(exercisediv, exerciseid, testresponse)
 {
     var testoutput = get_testoutput(exercisediv);
     var i, j;
@@ -254,6 +254,31 @@ function handle_testresponse(exercisediv, testresponse)
                 }
             }
         }
+    }
+
+    /* Update the summary box (completed, attempts) with the new values we got
+     * back from the tutorialservice.
+     */
+    var summaryli = document.getElementById("summaryli_" + exerciseid);
+    var summarycomplete = document.getElementById("summarycomplete_"
+        + exerciseid);
+    var summaryattempts = document.getElementById("summaryattempts_"
+        + exerciseid);
+    summaryli.setAttribute("class",
+        (testresponse.completed ? "complete" : "incomplete"));
+    summarycomplete.removeChild(summarycomplete.lastChild);
+    summarycomplete.appendChild(document.createTextNode(testresponse.completed
+        ? "Complete" : "Incomplete"));
+    var old_attempts_value = summaryattempts.lastChild.data;
+    summaryattempts.removeChild(summaryattempts.lastChild);
+    summaryattempts.appendChild(document.createTextNode(
+        testresponse.attempts));
+    if (testresponse.completed && testresponse.attempts == 1 &&
+        old_attempts_value == "0")
+    {
+        /* Add "Well done" for extra congratulations */
+        summaryli.appendChild(document.createTextNode(
+            " Well done!"));
     }
 }
 

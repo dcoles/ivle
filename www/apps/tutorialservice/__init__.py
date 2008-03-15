@@ -88,11 +88,14 @@ def handle_save(req, exercise, code, fields):
 
     conn = db.DB()
 
-    conn.write_problem_save(
-        login = req.user.login,
-        exercisename = exercise,
-        date = time.localtime(),
-        text = code)
+    try:
+        conn.write_problem_save(
+            login = req.user.login,
+            exercisename = exercise,
+            date = time.localtime(),
+            text = code)
+    finally:
+        conn.close()
 
 def handle_test(req, exercise, code, fields):
     """Handles a test action."""
@@ -108,16 +111,27 @@ def handle_test(req, exercise, code, fields):
     # Run the test cases. Get the result back as a JSONable object.
     # Return it.
     test_results = exercise_obj.run_tests(code)
-    req.write(cjson.encode(test_results))
 
     conn = db.DB()
+    try:
+        conn.insert_problem_attempt(
+            login = req.user.login,
+            exercisename = exercise,
+            date = time.localtime(),
+            complete = test_results['passed'],
+            attempt = code)
 
-    conn.insert_problem_attempt(
-        login = req.user.login,
-        exercisename = exercise,
-        date = time.localtime(),
-        complete = test_results['passed'],
-        attempt = code)
+        # Query the DB to get an updated score on whether or not this problem
+        # has EVER been completed (may be different from "passed", if it has
+        # been completed before), and the total number of attempts.
+        completed, attempts = conn.get_problem_status(req.user.login,
+            exercise)
+        test_results["completed"] = completed
+        test_results["attempts"] = attempts
+
+        req.write(cjson.encode(test_results))
+    finally:
+        conn.close()
 
 def handle_run(req, exercise, code, fields):
     """Handles a run action."""
