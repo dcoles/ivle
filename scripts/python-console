@@ -108,7 +108,7 @@ class PythonRunner(Thread):
             sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
             sys.stdout = self.stdout
             sys.stderr = self.stdout
-            res = eval(cmd, self.globs, self.locls)
+            res = eval(cmd, self.globs)
             self.stdout.flush()
             self.cmdQ.put({"okay":res})
             self.curr_cmd = ''
@@ -120,7 +120,6 @@ class PythonRunner(Thread):
     def run(self):
         self.globs = {}
         self.globs['__builtins__'] = globals()['__builtins__']
-        self.locls = {}
         self.curr_cmd = ''
         compiler = codeop.CommandCompiler()
 
