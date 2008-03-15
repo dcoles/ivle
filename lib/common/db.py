@@ -408,7 +408,8 @@ class DB:
         Also returns False if the login does not exist (so if you want to
         differentiate these cases, use get_user and catch an exception).
         """
-        query = "SELECT passhash FROM login WHERE login = '%s';" % login
+        query = ("SELECT passhash FROM login WHERE login = %s;"
+            % _escape(login))
         if dry: return query
         result = self.db.query(query)
         if result.ntuples() == 1:
