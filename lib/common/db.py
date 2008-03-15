@@ -556,6 +556,48 @@ class DB:
         else:
             return None
 
+    def get_problem_status(self, login, exercisename, dry=False):
+        """Given a login name and exercise name, returns information about the
+        user's performance on that problem.
+        Returns a tuple of:
+            - A boolean, whether they have successfully passed this exercise.
+            - An int, the number of attempts they have made up to and
+              including the first successful attempt (or the total number of
+              attempts, if not yet successful).
+        """
+        problemid = self.get_problem_problemid(exercisename)
+        loginid = self.get_user_loginid(login)  # May raise a DBException
+
+        # ASSUME that it is completed, get the total number of attempts up to
+        # and including the first successful attempt.
+        # (Get the date of the first successful attempt. Then count the number
+        # of attempts made <= that date).
+        # Will return an empty table if the problem has never been
+        # successfully completed.
+        query = """SELECT COUNT(*) FROM problem_attempt
+    WHERE loginid = %d AND problemid = %d AND date <=
+        (SELECT date FROM problem_attempt
+            WHERE loginid = %d AND problemid = %d AND complete = TRUE
+            ORDER BY date ASC
+            LIMIT 1);""" % (loginid, problemid, loginid, problemid)
+        if dry: return query
+        result = self.db.query(query)
+        count = int(result.getresult()[0][0])
+        if count > 0:
+            # The user has made at least 1 successful attempt.
+            # Return True for success, and the number of attempts up to and
+            # including the successful one.
+            return (True, count)
+        else:
+            # Returned 0 rows - this indicates that the problem has not been
+            # completed.
+            # Return the total number of attempts, and False for success.
+            query = """SELECT COUNT(*) FROM problem_attempt
+    WHERE loginid = %d AND problemid = %d;""" % (loginid, problemid)
+            result = self.db.query(query)
+            count = int(result.getresult()[0][0])
+            return (False, count)
+
     def close(self):
         """Close the DB connection. Do not call any other functions after
         this. (The behaviour of doing so is undefined).
