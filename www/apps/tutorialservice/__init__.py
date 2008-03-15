@@ -98,9 +98,7 @@ def handle_test(req, exercise, code, fields):
     conn = db.DB()
 
     try:
-        x = conn.get_single({'identifier':exercise},
-                            'problem', ['problemid'], ['identifier'])
-        problemid = x['problemid']
+        problemid = conn.get_problem_problemid(exercise)
     except Exception, e:
         # if we failed to get a problemid, it was probably because
         # the exercise wasn't in the db. So lets insert it!
@@ -108,32 +106,22 @@ def handle_test(req, exercise, code, fields):
         # The insert can fail if someone else simultaneously does
         # the insert, so if the insert fails, we ignore the problem. 
         try:
-            conn.insert({'identifier': exercise}, 'problem',
-                    set(['identifier']))
+            conn.insert_problem(exercise)
         except Exception, e:
             pass
 
         # Assuming the insert succeeded, we should be able to get the
         # problemid now.
-        x = conn.get_single({'identifier':exercise},
-                            'problem', ['problemid'], ['identifier'])
-        problemid = x['problemid']
+        problemid = conn.get_problem_problemid(exercise)
 
-    x = conn.get_single({'login':req.user.login},
-                        'login', ['loginid'], ['login'])
-    loginid = x['loginid']
+    loginid = conn.get_user_loginid(req.user.login)
 
-    rec = {}
-    rec['problemid'] = problemid
-    rec['loginid'] = loginid
-    rec['date'] = time.localtime()
-    rec['complete'] = test_results['passed']
-    rec['attempt'] = code
-
-    print >> open("/tmp/attempts.txt", "a"), repr(rec)
-
-    conn.insert(rec, 'problem_attempt',
-                set(['problemid','loginid','date','complete','attempt']))
+    conn.insert_problem_attempt(
+        problemid = problemid,
+        loginid = loginid,
+        date = time.localtime(),
+        complete = test_results['passed'],
+        attempt = code)
 
 def handle_run(req, exercise, code, fields):
     """Handles a run action."""

@@ -387,6 +387,19 @@ class DB:
         # Package into User objects
         return [user.User(**userdict) for userdict in userdicts]
 
+    def get_user_loginid(self, login, dry=False):
+        """Given a login, returns the integer loginid for this user.
+
+        Raises a DBException if the login is not found in the DB.
+        """
+        userdict = self.get_single({"login": login}, "login",
+            ['loginid'], self.login_primary,
+            error_notfound="get_user_loginid: No user with that login name",
+            dry=dry)
+        if dry:
+            return userdict     # Query string
+        return userdict['loginid']
+
     def user_authenticate(self, login, password, dry=False):
         """Performs a password authentication on a user. Returns True if
         "passhash" is the correct passhash for the given login, False
@@ -406,6 +419,47 @@ class DB:
             return _passhash(password) == passhash
         else:
             return False
+
+    # PROBLEM AND PROBLEM ATTEMPT FUNCTIONS #
+
+    def get_problem_problemid(self, exercisename, dry=False):
+        """Given an exercise name, returns the associated problemID.
+
+        Raises a DBException if the login is not found in the DB.
+        """
+        d = self.get_single({"identifier": exercisename}, "problem",
+            ['problemid'], frozenset(["identifier"]),
+            error_notfound="get_problem_problemid: No exercise with that name",
+            dry=dry)
+        if dry:
+            return d        # Query string
+        return d['problemid']
+
+    def insert_problem(self, exercisename, dry=False):
+        """Inserts a new problem in the problem table, with the given
+        exercisename.
+        """
+        return self.insert({'identifier': exercisename}, "problem",
+                frozenset(['identifier']), dry=dry)
+
+    def insert_problem_attempt(self, problemid, loginid, date, complete,
+        attempt, dry=False):
+        """Inserts the details of a problem attempt into the database.
+        problemid, loginid: Primary keys to map to the problem and login
+            tables, respectively.
+        date: struct_time, the date this attempt was made.
+        complete: bool. Whether the test passed or not.
+        attempt: Text of the attempt.
+        """
+        return self.insert({
+                'problemid': problemid,
+                'loginid': loginid,
+                'date': date,
+                'complete': complete,
+                'attempt': attempt,
+            }, 'problem_attempt',
+            frozenset(['problemid','loginid','date','complete','attempt']),
+            dry=dry)
 
     def close(self):
         """Close the DB connection. Do not call any other functions after
