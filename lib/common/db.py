@@ -520,21 +520,34 @@ class DB:
                 frozenset(['date', 'text']),
                 frozenset(['problemid', 'loginid']))
 
-    def get_problem_attempt_last_text(self, login, exercisename, dry=False):
+    def get_problem_stored_text(self, login, exercisename, dry=False):
         """Given a login name and exercise name, returns the text of the
-        last submitted attempt for this question. Returns None if the user has
-        not made an attempt on this problem.
+        last saved/submitted attempt for this question.
+        Returns None if the user has not saved or made an attempt on this
+        problem.
+        (If the user has both saved and submitted, it returns whichever was
+        made last).
 
         Note: Even if dry, will still physically call get_problem_problemid,
         which may mutate the DB, and get_user_loginid, which may fail.
         """
         problemid = self.get_problem_problemid(exercisename)
         loginid = self.get_user_loginid(login)  # May raise a DBException
-        # "Get the single newest attempt made by this user for this problem"
-        query = ("SELECT attempt FROM problem_attempt "
-            "WHERE loginid = %d AND problemid = %d "
-            "ORDER BY date DESC "
-            "LIMIT 1;" % (loginid, problemid))
+        # This very complex query finds all submissions made by this user for
+        # this problem, as well as the save made by this user for this
+        # problem, and returns the text of the newest one.
+        # (Whichever is newer out of the save or the submit).
+        query = """SELECT text FROM
+    (
+        (SELECT * FROM problem_save WHERE loginid = %d AND problemid = %d)
+    UNION
+        (SELECT problemid, loginid, date, text FROM problem_attempt
+         AS problem_attempt (problemid, loginid, date, text)
+         WHERE loginid = %d AND problemid = %d)
+    )
+    AS _
+    ORDER BY date DESC
+    LIMIT 1;""" % (loginid, problemid, loginid, problemid)
         if dry: return query
         result = self.db.query(query)
         if result.ntuples() == 1:
