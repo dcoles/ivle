@@ -350,3 +350,67 @@ function create_response_item(type, level, desc, detail)
     li.appendChild(document.createTextNode(detail));
     return li;
 }
+
+/** Special key handlers for exercise text boxes */
+function catch_textbox_input(exerciseid, filename, key)
+{
+    /* NOTE: Copied and modified from console/console.js:catch_input. */
+    /* Always update the saved status, so it will enable the save button and
+     * auto-save timer. */
+    set_saved_status(exerciseid, filename, "Save");
+    var inp = document.getElementById('textarea_' + exerciseid);
+    switch (key)
+    {
+    case 9:                 /* Tab key */
+        var selstart = inp.selectionStart;
+        var selend = inp.selectionEnd;
+        var chars_added;
+        if (selstart == selend)
+        {
+            /* No selection, just a carat. Insert a tab here. */
+            inp.value = inp.value.substr(0, selstart)
+                + TAB_STRING + inp.value.substr(selstart);
+            chars_added = TAB_STRING.length;
+        }
+        else
+        {
+            /* Text is selected.
+             * Indent each line that is selected.
+             */
+            var pre_sel = inp.value.substr(0, selstart);
+            var in_sel = inp.value.substr(selstart, selend-selstart);
+            var post_sel = inp.value.substr(selend);
+            console.log("pre_sel = " + repr(pre_sel));
+            console.log("in_sel = " + repr(in_sel));
+            console.log("post_sel = " + repr(post_sel));
+            /* Move everything after the last newline in pre_sel to in_sel,
+             * so it will be indented too (ie. the first line
+             * partially-selected). */
+            var pre_sel_newline = pre_sel.lastIndexOf('\n')+1;
+            in_sel = pre_sel.substr(pre_sel_newline) + in_sel;
+            pre_sel = pre_sel.substr(0, pre_sel_newline);
+            /* Now insert TAB_STRING before each line of in_sel */
+            in_sel = in_sel.split('\n');
+            var new_in_sel = TAB_STRING + in_sel[0]
+            for (var i=1; i<in_sel.length; i++)
+                new_in_sel += '\n' + TAB_STRING + in_sel[i];
+            chars_added = TAB_STRING.length * in_sel.length;
+
+            inp.value = pre_sel + new_in_sel + post_sel;
+        }
+        /* Update the selection so the same characters as before are selected
+         */
+        inp.selectionStart = selstart + chars_added;
+        inp.selectionEnd = inp.selectionStart + (selend - selstart);
+        /* Cancel the event, so the TAB key doesn't move focus away from this
+         * box */
+        return false;
+        /* Note: If it happens that some browsers don't support event
+         * cancelling properly, this hack might work instead:
+        setTimeout(
+            "document.getElementById('console_inputText').focus()",
+            0);
+         */
+        break;
+    }
+}

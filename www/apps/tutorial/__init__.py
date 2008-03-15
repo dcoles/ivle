@@ -444,13 +444,14 @@ def present_exercise(req, exercisesrc, exerciseid):
         req.write("<div>%s</div>\n" % exercisedesc)
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
     exercisepartial = cgi.escape(exercisepartial)
-    req.write('<textarea class="exercisebox" '
-        'onkeypress="set_saved_status(&quot;exercise%s&quot;, %s, '
-            '&quot;Save&quot;)" '
-        'onchange="set_saved_status(&quot;exercise%s&quot;, %s, '
+    req.write('<textarea id="textarea_exercise%d" class="exercisebox" '
+        'onkeypress="return catch_textbox_input(&quot;exercise%d&quot;, %s, '
+            'event.keyCode)" '
+        'onchange="set_saved_status(&quot;exercise%d&quot;, %s, '
             '&quot;Save&quot;)" '
         'cols="80" rows="%s">%s</textarea>'
-        % (exerciseid, filename, exerciseid, filename, rows, exercisepartial))
+        % (exerciseid, exerciseid, filename, exerciseid, filename,
+            rows, exercisepartial))
     req.write("""\n<div class="exercisebuttons">
   <input type="button" value="Saved" disabled="disabled"
     id="savebutton_exercise%d"
