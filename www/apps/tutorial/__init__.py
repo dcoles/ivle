@@ -373,11 +373,12 @@ def present_exercise(req, exercisesrc, exerciseid):
     onclick="runexercise(&quot;exercise%d&quot;, %s)"
     title="Run this program in the console" />
   <input type="button" value="Submit"
+    id="submitbutton_exercise%d"
     onclick="submitexercise(&quot;exercise%d&quot;, %s)"
     title="Submit this solution for evaluation" />
 </div>
 <div class="testoutput">
 </div>
 """ % (exerciseid, exerciseid, filename, exerciseid, filename,
-       exerciseid, filename))
+       exerciseid, exerciseid, filename))
     req.write("</div>\n")

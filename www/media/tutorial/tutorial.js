@@ -62,6 +62,8 @@ function handle_runresponse(exercisediv, runresponse)
  */
 function submitexercise(exerciseid, filename)
 {
+    set_submit_status(exerciseid, filename, "Submitting...");
+    set_saved_status(exerciseid, filename, "Saving...");
     /* Get the source code the student is submitting */
     var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
@@ -76,6 +78,8 @@ function submitexercise(exerciseid, filename)
         {
             var testresponse = JSON.parse(xhr.responseText);
             handle_testresponse(exercisediv, testresponse);
+            set_saved_status(exerciseid, filename, "Saved");
+            set_submit_status(exerciseid, filename, "Submit");
         }
     ajax_call(callback, "tutorialservice", "", args, "POST",
         "multipart/form-data");
@@ -150,6 +154,21 @@ function set_saved_status(exerciseid, filename, stat)
             + repr(filename) + ")"
         savetimers[timername] = setTimeout(save_string, 10000);
     }
+}
+
+/** Changes the state of the submit button, so it can appear disabled during
+ * the submission process (to avoid multiple clicks).
+ * stat is a string which specifies the status, and also the button text.
+ * If stat == "Submit", then it indicates it is available for submission.
+ * This will enable the "Submit" button.
+ * Any other value (recommended: "Submitting...") will disable the "Submit"
+ * button.
+ */
+function set_submit_status(exerciseid, filename, stat)
+{
+    var button = document.getElementById("submitbutton_" + exerciseid);
+    button.disabled = stat != "Submit";
+    button.value = stat;
 }
 
 /** Given a exercise div, return the testoutput div which is its child.
