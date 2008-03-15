@@ -98,8 +98,8 @@ def handle_test(req, exercise, code, fields):
     conn = db.DB()
 
     conn.insert_problem_attempt(
-        exercisename = exercise,
         login = req.user.login,
+        exercisename = exercise,
         date = time.localtime(),
         complete = test_results['passed'],
         attempt = code)

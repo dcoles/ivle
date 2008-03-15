@@ -455,7 +455,7 @@ class DB:
 
         return d['problemid']
 
-    def insert_problem_attempt(self, exercisename, login, date, complete,
+    def insert_problem_attempt(self, login, exercisename, date, complete,
         attempt, dry=False):
         """Inserts the details of a problem attempt into the database.
         exercisename: Name of the exercise. (identifier field of problem
@@ -482,6 +482,29 @@ class DB:
             }, 'problem_attempt',
             frozenset(['problemid','loginid','date','complete','attempt']),
             dry=dry)
+
+    def get_problem_attempt_last_text(self, login, exercisename, dry=False):
+        """Given a login name and exercise name, returns the text of the
+        last submitted attempt for this question. Returns None if the user has
+        not made an attempt on this problem.
+
+        Note: Even if dry, will still physically call get_problem_problemid,
+        which may mutate the DB, and get_user_loginid, which may fail.
+        """
+        problemid = self.get_problem_problemid(exercisename)
+        loginid = self.get_user_loginid(login)  # May raise a DBException
+        # "Get the single newest attempt made by this user for this problem"
+        query = ("SELECT attempt FROM problem_attempt "
+            "WHERE loginid = %d AND problemid = %d "
+            "ORDER BY date DESC "
+            "LIMIT 1;" % (loginid, problemid))
+        if dry: return query
+        result = self.db.query(query)
+        if result.ntuples() == 1:
+            # The user has made at least 1 attempt. Return the newest.
+            return result.getresult()[0][0]
+        else:
+            return None
 
     def close(self):
         """Close the DB connection. Do not call any other functions after
