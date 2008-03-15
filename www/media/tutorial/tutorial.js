@@ -88,6 +88,7 @@ function submitexercise(exerciseid, filename)
  */
 function saveexercise(exerciseid, filename)
 {
+    set_saved_status(exerciseid, filename, "Saving...");
     /* Get the source code the student is submitting */
     var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
@@ -101,9 +102,54 @@ function saveexercise(exerciseid, filename)
     var callback = function(xhr)
         {
             // XXX Maybe check to see if this worked?
+            set_saved_status(exerciseid, filename, "Saved");
         }
     ajax_call(callback, "tutorialservice", "", args, "POST",
         "multipart/form-data");
+}
+
+/* savetimers is a dict mapping exerciseIDs to timer IDs.
+ * Its members indicate all exercises that have been modified but not saved.
+ */
+savetimers = {}
+
+/** Changes whether an exercise is considered "saved" or not.
+ * stat is a string which specifies the status, and also the button text.
+ * If stat == "Save", then it indicates it is NOT saved. This will
+ * enable the "Save" button, and set a timer going which will auto-save
+ * after a set period of time (eg. 30 seconds).
+ * Any other value will disable the "Save" button and disable the timer.
+ * stat should be "Saving..." when the save request is issued, and "Saved"
+ * when the response comes back.
+ */
+function set_saved_status(exerciseid, filename, stat)
+{
+    var timername = "savetimer_" + exerciseid;
+    var button = document.getElementById("savebutton_" + exerciseid);
+    var is_saved = stat != "Save";
+    button.value = stat;
+
+    /* Disable the timer, if it exists */
+    if (typeof(savetimers[timername]) != "undefined")
+    {
+        clearTimeout(savetimers[timername]);
+        savetimers[timername] = undefined;
+    }
+
+    if (is_saved)
+    {
+        /* Disable the button */
+        button.disabled = true;
+    }
+    else
+    {
+        /* Enable the button */
+        button.disabled = false;
+        /* Create a timer which will auto-save when it expires */
+        var save_string = "saveexercise(" + repr(exerciseid) + ", "
+            + repr(filename) + ")"
+        savetimers[timername] = setTimeout(save_string, 10000);
+    }
 }
 
 /** Given a exercise div, return the testoutput div which is its child.

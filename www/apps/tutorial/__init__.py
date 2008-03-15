@@ -356,11 +356,17 @@ def present_exercise(req, exercisesrc, exerciseid):
     req.write("<p><b>Exercise:</b> %s</p>\n" % exercisename)
     if exercisedesc is not None:
         req.write("<div>%s</div>\n" % exercisedesc)
-    req.write('<textarea class="exercisebox" cols="80" rows="%s">%s</textarea>'
-            % (rows, exercisepartial))
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
+    req.write('<textarea class="exercisebox" '
+        'onkeypress="set_saved_status(&quot;exercise%s&quot;, %s, '
+            '&quot;Save&quot;)" '
+        'onchange="set_saved_status(&quot;exercise%s&quot;, %s, '
+            '&quot;Save&quot;)" '
+        'cols="80" rows="%s">%s</textarea>'
+        % (exerciseid, filename, exerciseid, filename, rows, exercisepartial))
     req.write("""\n<div class="exercisebuttons">
-  <input type="button" value="Save"
+  <input type="button" value="Saved" disabled="disabled"
+    id="savebutton_exercise%d"
     onclick="saveexercise(&quot;exercise%d&quot;, %s)"
     title="Save your solution to this exercise" />
   <input type="button" value="Run"
@@ -372,5 +378,6 @@ def present_exercise(req, exercisesrc, exerciseid):
 </div>
 <div class="testoutput">
 </div>
-""" % (exerciseid, filename, exerciseid, filename, exerciseid, filename))
+""" % (exerciseid, exerciseid, filename, exerciseid, filename,
+       exerciseid, filename))
     req.write("</div>\n")
