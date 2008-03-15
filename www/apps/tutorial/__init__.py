@@ -240,12 +240,78 @@ def handle_worksheet(req, subject, worksheet):
     req.write('<div id="ivle_padding">\n')
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
+    present_table_of_contents(req, worksheetdom, 0)
 
     # Write each element
     exerciseid = 0
     for node in worksheetdom.childNodes:
         exerciseid = present_worksheet_node(req, node, exerciseid)
     req.write("</div>\n")   # tutorialbody
+
+def present_table_of_contents(req, node, exerciseid):
+    """Given a node of a worksheet XML document, writes out a table of
+    contents to the request. This recursively searches for "excercise"
+    and heading elements to write out.
+
+    When exercise elements are encountered, the DB is queried for their
+    completion status, and the ball is shown of the appropriate colour.
+
+    exerciseid is the ID to use for the first exercise.
+    """
+    # XXX This means the DB is queried twice for each element.
+    # Consider caching these results for lookup later.
+    req.write("""<div id="tutorial-toc">
+<h2>Worksheet Contents</h2>
+<ul>
+""")
+    db = common.db.DB()
+    try:
+        for tag, xml in find_all_nodes(req, node):
+            if tag == "ex":
+                # Exercise node
+                # Fragment ID is an accumulating exerciseid
+                # (The same algorithm is employed when presenting exercises)
+                fragment_id = "exercise%d" % exerciseid
+                exerciseid += 1
+                exercisesrc = xml.getAttribute("src")
+                # TODO: Get proper exercise title
+                title = exercisesrc
+                # Get the completion status of this exercise
+                complete, _ = db.get_problem_status(req.user.login,
+                    exercisesrc)
+                req.write('  <li class="%s" id="toc_li_%s"><a href="#%s">%s'
+                    '</a></li>\n'
+                    % ("complete" if complete else "incomplete",
+                        fragment_id, fragment_id, cgi.escape(title)))
+            else:
+                # Heading node
+                fragment_id = getID(xml)
+                title = getTextData(xml)
+                req.write('  <li><a href="#%s">%s</a></li>\n'
+                    % (fragment_id, cgi.escape(title)))
+    finally:
+        db.close()
+    req.write('</ul>\n</div>\n')
+
+def find_all_nodes(req, node):
+    """Generator. Searches through a node and yields all headings and
+    exercises. (Recursive).
+    When finding a heading, yields a pair ("hx", headingnode), where "hx" is
+    the element name, such as "h1", "h2", etc.
+    When finding an exercise, yields a pair ("ex", exercisenode), where
+    exercisenode is the DOM node for this exercise.
+    """
+    if node.nodeType == node.ELEMENT_NODE:
+        if node.tagName == "exercise":
+            yield "ex", node
+        elif (node.tagName == "h1" or node.tagName == "h2"
+            or node.tagName == "h3"):
+            yield node.tagName, node
+        else:
+            # Some other element. Recurse.
+            for childnode in node.childNodes:
+                for yieldval in find_all_nodes(req, childnode):
+                    yield yieldval
 
 def present_worksheet_node(req, node, exerciseid):
     """Given a node of a worksheet XML document, writes it out to the
@@ -286,6 +352,21 @@ def innerXML(elem):
         s += child.toxml()
     return s
 
+def getID(element):
+    """Get the first ID attribute found when traversing a node and its
+    children. (This is used to make fragment links to a particular element).
+    Returns None if no ID is found.
+    """
+    id = element.getAttribute("id")
+    if id is not None and id != '':
+        return id
+    for child in element.childNodes:
+        if child.nodeType == child.ELEMENT_NODE:
+            id = getID(child)
+            if id is not None:
+                return id
+    return None
+
 def getTextData(element):
     """ Get the text and cdata inside an element
     Leading and trailing whitespace are stripped
@@ -294,8 +375,10 @@ def getTextData(element):
     for child in element.childNodes:
         if child.nodeType == child.CDATA_SECTION_NODE:
             data += child.data
-        if child.nodeType == child.TEXT_NODE:
+        elif child.nodeType == child.TEXT_NODE:
             data += child.data
+        elif child.nodeType == child.ELEMENT_NODE:
+            data += getTextData(child)
 
     return data.strip()
 

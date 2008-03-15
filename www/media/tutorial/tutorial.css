@@ -46,6 +46,15 @@ li.incomplete {
     list-style: url(../images/tutorial/incomplete.png);
 }
 
+#tutorial-toc li.complete {
+    list-style: url(../images/tutorial/tiny/complete.png);
+    margin-left: 1.5em;
+}
+#tutorial-toc li.incomplete {
+    list-style: url(../images/tutorial/tiny/incomplete.png);
+    margin-left: 1.5em;
+}
+
 /*
 :Author: Edward Loper, James Curran
 :Copyright: This stylesheet has been placed in the public domain.
