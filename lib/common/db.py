@@ -455,15 +455,24 @@ class DB:
 
         return d['problemid']
 
-    def insert_problem_attempt(self, problemid, loginid, date, complete,
+    def insert_problem_attempt(self, exercisename, login, date, complete,
         attempt, dry=False):
         """Inserts the details of a problem attempt into the database.
-        problemid, loginid: Primary keys to map to the problem and login
-            tables, respectively.
+        exercisename: Name of the exercise. (identifier field of problem
+            table). If this exercise does not exist, also creates a new row in
+            the problem table for this exercise name.
+        login: Name of the user submitting the attempt. (login field of the
+            login table).
         date: struct_time, the date this attempt was made.
         complete: bool. Whether the test passed or not.
         attempt: Text of the attempt.
+
+        Note: Even if dry, will still physically call get_problem_problemid,
+        which may mutate the DB, and get_user_loginid, which may fail.
         """
+        problemid = self.get_problem_problemid(exercisename)
+        loginid = self.get_user_loginid(login)  # May raise a DBException
+
         return self.insert({
                 'problemid': problemid,
                 'loginid': loginid,

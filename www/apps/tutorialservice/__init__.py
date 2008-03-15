@@ -97,12 +97,9 @@ def handle_test(req, exercise, code, fields):
 
     conn = db.DB()
 
-    problemid = conn.get_problem_problemid(exercise)
-    loginid = conn.get_user_loginid(req.user.login)
-
     conn.insert_problem_attempt(
-        problemid = problemid,
-        loginid = loginid,
+        exercisename = exercise,
+        login = req.user.login,
         date = time.localtime(),
         complete = test_results['passed'],
         attempt = code)
