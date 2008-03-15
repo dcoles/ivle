@@ -356,10 +356,11 @@ def present_exercise(req, exercisesrc, exerciseid):
         exercisepartial = saved_text
 
     # Print this exercise out to HTML 
-    req.write("<p><b>Exercise:</b> %s</p>\n" % exercisename)
+    req.write("<p><b>Exercise:</b> %s</p>\n" % cgi.escape(exercisename))
     if exercisedesc is not None:
         req.write("<div>%s</div>\n" % exercisedesc)
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
+    exercisepartial = cgi.escape(exercisepartial)
     req.write('<textarea class="exercisebox" '
         'onkeypress="set_saved_status(&quot;exercise%s&quot;, %s, '
             '&quot;Save&quot;)" '
