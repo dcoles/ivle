@@ -32,8 +32,18 @@ li.pass {
 li.fail {
     list-style: url(../images/tutorial/fail.png);
 }
+li.semifail {
+    list-style: url(../images/tutorial/semifail.png);
+}
 li.exception {
     list-style: url(../images/tutorial/exception.png);
+}
+
+li.complete {
+    list-style: url(../images/tutorial/pass.png);
+}
+li.incomplete {
+    list-style: url(../images/tutorial/incomplete.png);
 }
 
 /*
