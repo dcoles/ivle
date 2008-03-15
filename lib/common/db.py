@@ -424,23 +424,36 @@ class DB:
 
     def get_problem_problemid(self, exercisename, dry=False):
         """Given an exercise name, returns the associated problemID.
-
-        Raises a DBException if the login is not found in the DB.
+        If the exercise name is NOT in the database, it inserts it and returns
+        the new problemID. Hence this may mutate the DB, but is idempotent.
         """
-        d = self.get_single({"identifier": exercisename}, "problem",
-            ['problemid'], frozenset(["identifier"]),
-            error_notfound="get_problem_problemid: No exercise with that name",
-            dry=dry)
-        if dry:
-            return d        # Query string
+        try:
+            d = self.get_single({"identifier": exercisename}, "problem",
+                ['problemid'], frozenset(["identifier"]),
+                dry=dry)
+            if dry:
+                return d        # Query string
+        except DBException:
+            if dry:
+                # Shouldn't try again, must have failed for some other reason
+                raise
+            # if we failed to get a problemid, it was probably because
+            # the exercise wasn't in the db. So lets insert it!
+            #
+            # The insert can fail if someone else simultaneously does
+            # the insert, so if the insert fails, we ignore the problem. 
+            try:
+                self.insert({'identifier': exercisename}, "problem",
+                        frozenset(['identifier']))
+            except Exception, e:
+                pass
+
+            # Assuming the insert succeeded, we should be able to get the
+            # problemid now.
+            d = self.get_single({"identifier": exercisename}, "problem",
+                ['problemid'], frozenset(["identifier"]))
+
         return d['problemid']
-
-    def insert_problem(self, exercisename, dry=False):
-        """Inserts a new problem in the problem table, with the given
-        exercisename.
-        """
-        return self.insert({'identifier': exercisename}, "problem",
-                frozenset(['identifier']), dry=dry)
 
     def insert_problem_attempt(self, problemid, loginid, date, complete,
         attempt, dry=False):

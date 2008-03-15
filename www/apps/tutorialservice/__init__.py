@@ -97,23 +97,7 @@ def handle_test(req, exercise, code, fields):
 
     conn = db.DB()
 
-    try:
-        problemid = conn.get_problem_problemid(exercise)
-    except Exception, e:
-        # if we failed to get a problemid, it was probably because
-        # the exercise wasn't in the db. So lets insert it!
-        #
-        # The insert can fail if someone else simultaneously does
-        # the insert, so if the insert fails, we ignore the problem. 
-        try:
-            conn.insert_problem(exercise)
-        except Exception, e:
-            pass
-
-        # Assuming the insert succeeded, we should be able to get the
-        # problemid now.
-        problemid = conn.get_problem_problemid(exercise)
-
+    problemid = conn.get_problem_problemid(exercise)
     loginid = conn.get_user_loginid(req.user.login)
 
     conn.insert_problem_attempt(
