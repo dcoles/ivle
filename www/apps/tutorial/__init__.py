@@ -40,6 +40,7 @@ import cjson
 from common import util
 import conf
 import plugins.console
+import common.db
 
 from rst import rst
 
@@ -305,17 +306,8 @@ def present_exercise(req, exercisesrc, exerciseid):
     """
     req.write('<div class="exercise" id="exercise%d">\n'
         % exerciseid)
-    # First normalise the path
-    exercisesrc = os.path.normpath(exercisesrc)
-    # Now if it begins with ".." or separator, then it's illegal
-    if exercisesrc.startswith("..") or exercisesrc.startswith('/'):
-        exercisefile = None
-    else:
-        exercisefile = os.path.join(conf.exercises_base, exercisesrc)
-
-    try:
-        exercisefile = open(exercisefile)
-    except (TypeError, IOError):    # TypeError if exercisefile == None
+    exercisefile = util.open_exercise_file(exercisesrc)
+    if exercisefile is None:
         req.write("<p><b>Server Error</b>: "
             + "Exercise file could not be opened.</p>\n")
         req.write("</div>\n")
@@ -347,6 +339,18 @@ def present_exercise(req, exercisesrc, exerciseid):
                 exercisedesc = rst(innerXML(elem).strip())
             if elem.tagName == "partial":
                 exercisepartial= getTextData(elem) + '\n'
+
+    # If the user has already saved some text for this problem, or submitted
+    # an attempt, then use that text instead of the supplied "partial".
+    saved_text = None
+    db = common.db.DB()
+    try:
+        saved_text = db.get_problem_stored_text(login=req.user.login,
+            exercisename=exercisesrc)
+    finally:
+        db.close()
+    if saved_text is not None:
+        exercisepartial = saved_text
 
     # Print this exercise out to HTML 
     req.write("<p><b>Exercise:</b> %s</p>\n" % exercisename)
