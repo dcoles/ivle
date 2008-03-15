@@ -484,6 +484,42 @@ class DB:
             frozenset(['problemid','loginid','date','complete','attempt']),
             dry=dry)
 
+    def write_problem_save(self, login, exercisename, date, text, dry=False):
+        """Writes text to the problem_save table (for when the user saves an
+        exercise). Creates a new row, or overwrites an existing one if the
+        user has already saved that problem.
+        (Unlike problem_attempt, does not keep historical records).
+        """
+        problemid = self.get_problem_problemid(exercisename)
+        loginid = self.get_user_loginid(login)  # May raise a DBException
+
+        try:
+            return self.insert({
+                    'problemid': problemid,
+                    'loginid': loginid,
+                    'date': date,
+                    'text': text,
+                }, 'problem_save',
+                frozenset(['problemid','loginid','date','text']),
+                dry=dry)
+        except pg.ProgrammingError:
+            # May have failed because this problemid/loginid row already
+            # exists (they have a unique key constraint).
+            # Do an update instead.
+            if dry:
+                # Shouldn't try again, must have failed for some other reason
+                raise
+            self.update({
+                    'problemid': problemid,
+                    'loginid': loginid,
+                },
+                {
+                    'date': date,
+                    'text': text,
+                }, "problem_save",
+                frozenset(['date', 'text']),
+                frozenset(['problemid', 'loginid']))
+
     def get_problem_attempt_last_text(self, login, exercisename, dry=False):
         """Given a login name and exercise name, returns the text of the
         last submitted attempt for this question. Returns None if the user has

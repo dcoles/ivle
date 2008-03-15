@@ -152,6 +152,14 @@ CREATE TABLE problem_attempt (
     PRIMARY KEY (problemid,loginid,date)
 );
 
+CREATE TABLE problem_save (
+    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    date        TIMESTAMP NOT NULL,
+    text        VARCHAR NOT NULL,
+    PRIMARY KEY (problemid,loginid)
+);
+
 CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 
 CREATE TABLE problem_attempt_breakdown (
