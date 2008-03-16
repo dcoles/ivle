@@ -95,6 +95,7 @@
     right: 0;
     /* top == #topbar.height + #topbar.padding * 2 */
     top: 5.6em;
-    bottom: 0;
+    /* Space for the mimimised console */
+    bottom: 2em;
 }
 
