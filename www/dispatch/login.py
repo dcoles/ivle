@@ -143,8 +143,13 @@ def login(req):
     <tr><td colspan="2"><input type="submit" value="Login" /></td></tr>
   </table>
 </form>
-</div>
 """)
+    # Write the "Message of the Day" document, if it exists.
+    try:
+        req.sendfile(conf.motd_path)
+    except IOError:
+        pass
+    req.write('</div>\n')
 
     return None
 
