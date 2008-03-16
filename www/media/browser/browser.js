@@ -487,7 +487,27 @@ function update_actions()
     /* Available if exactly one file is selected,
      * and it is a Python file.
      */
-    /* TODO */
+    var run = document.getElementById("act_run");
+     
+    if (numsel == 0 && !file.isdir && file.type == "text/x-python")
+    {
+        // In the edit window
+        run.setAttribute("class", "choice");
+        localpath = app_path('home',current_path);
+        run.setAttribute("onclick", "runfile('" + localpath + "')");
+    }
+    else if (numsel == 1 && !file.isdir && file.type == "text/x-python")
+    {
+        // In the browser window
+        run.setAttribute("class", "choice");
+        localpath = app_path('home',current_path,filename);
+        run.setAttribute("onclick", "runfile('" + localpath + "')");
+    }
+    else
+    {
+        run.setAttribute("class", "disabled");
+        run.removeAttribute("onclick");
+    }
 
     /* Download */
     /* Always available.
@@ -723,6 +743,20 @@ function handle_moreactions()
     }
 }
 
+/** User clicks "Run" button.
+ * Do an Ajax call and print the test output.
+ */
+function runfile(localpath)
+{
+    /* Dump the entire file to the console */
+    var callback = function()
+    {
+        console_enter_line("execfile('" + localpath + "')", "block");
+    }
+    start_server(callback)
+    return;
+}
+
 /** Called when the page loads initially.
  */
 window.onload = function()
@@ -754,4 +788,7 @@ window.onload = function()
     }
 
     navigate(path);
+
+    /* Set up the console plugin to display as a popup window */
+    console_init(true);
 }
