@@ -128,7 +128,9 @@ function resetexercise(exerciseid)
     var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var resettextbox = document.getElementById("input_resettext_" + exerciseid);
-    exercisebox.value = resettextbox.value;
+    var text_urlencoded = resettextbox.value;
+    /* Need to un-urlencode the value */
+    exercisebox.value = decodeURIComponent(text_urlencoded);
 }
 
 /* savetimers is a dict mapping exerciseIDs to timer IDs.

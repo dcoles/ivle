@@ -444,10 +444,9 @@ def present_exercise(req, exercisesrc, exerciseid):
     if exercisedesc is not None:
         req.write("<div>%s</div>\n" % exercisedesc)
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
-    exercisepartial = cgi.escape(exercisepartial)
     req.write("""<input id="input_resettext_exercise%d" type="hidden"
     value="%s" />"""
-        % (exerciseid, exercisepartial_backup))
+        % (exerciseid, urllib.quote(exercisepartial_backup)))
     req.write("""<textarea id="textarea_exercise%d" class="exercisebox"
     onkeypress="return catch_textbox_input(&quot;exercise%d&quot;, %s,
         event.keyCode)"
@@ -455,29 +454,30 @@ def present_exercise(req, exercisesrc, exerciseid):
         &quot;Save&quot;)"
     cols="80" rows="%s">%s</textarea>"""
         % (exerciseid, exerciseid, filename, exerciseid, filename,
-            rows, exercisepartial))
-    req.write("""\n<div class="exercisebuttons">
-  <input type="button" value="Reset"
+            rows, cgi.escape(exercisepartial)))
+    req.write("""\n<div class="exercisebuttons">\n""")
+    req.write("""  <input type="button" value="Reset"
     id="resetbutton_exercise%d"
-    onclick="resetexercise(&quot;exercise%d&quot;, %s)"
-    title="Reload the original partial solution for this exercise" />
-  <input type="button" value="Saved" disabled="disabled"
+    onclick="resetexercise(&quot;exercise%d&quot;)"
+    title="Reload the original partial solution for this exercise" />\n"""
+        % (exerciseid, exerciseid))
+    req.write("""  <input type="button" value="Saved" disabled="disabled"
     id="savebutton_exercise%d"
     onclick="saveexercise(&quot;exercise%d&quot;, %s)"
-    title="Save your solution to this exercise" />
-  <input type="button" value="Run"
+    title="Save your solution to this exercise" />\n"""
+        % (exerciseid, exerciseid, filename))
+    req.write("""  <input type="button" value="Run"
     onclick="runexercise(&quot;exercise%d&quot;, %s)"
-    title="Run this program in the console" />
-  <input type="button" value="Submit"
+    title="Run this program in the console" />\n"""
+        % (exerciseid, filename))
+    req.write("""  <input type="button" value="Submit"
     id="submitbutton_exercise%d"
     onclick="submitexercise(&quot;exercise%d&quot;, %s)"
-    title="Submit this solution for evaluation" />
-</div>
+    title="Submit this solution for evaluation" />\n"""
+        % (exerciseid, exerciseid, filename))
+    req.write("""</div>
 <div class="testoutput">
-</div>
-""" % (exerciseid, exerciseid, filename, exerciseid, exerciseid, filename,
-        exerciseid, filename,
-        exerciseid, exerciseid, filename))
+</div>\n""")
     # Write the "summary" - whether this problem is complete and how many
     # attempts it has taken.
     req.write("""<div class="problem_summary">
