@@ -77,6 +77,10 @@ def getCasePartData(partNode):
             test_type = child.getAttribute('type')
             if test_type == '': test_type = DEFAULT_TEST_TYPE
             part.add_stderr_test(getTextData(child), test_type)
+        elif child.tagName == 'result':
+            test_type = child.getAttribute('type')
+            if test_type == '': test_type = DEFAULT_TEST_TYPE
+            part.add_result_test(getTextData(child), test_type)
         elif child.tagName == 'exception':
             test_type = child.getAttribute('type')
             if test_type == '': test_type = DEFAULT_TEST_TYPE

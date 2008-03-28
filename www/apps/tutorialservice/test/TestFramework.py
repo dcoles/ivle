@@ -179,6 +179,12 @@ class TestCasePart:
         
         (test_type, function) = self._stderr_test
         self._stderr_test = (test_type, self._validate_function(function, included_code))
+        
+        (test_type, function) = self._result_test
+        self._result_test = (test_type, self._validate_function(function, included_code))
+        
+        (test_type, function) = self._exception_test
+        self._exception_test = (test_type, self._validate_function(function, included_code))
 
         for filename, (test_type, function) in self._file_tests.items():
             self._file_tests[filename] = (test_type, self._validate_function(function, included_code))
@@ -390,7 +396,9 @@ class TestCase:
             if not self._function == None:
                 if self._function not in global_space_copy:
                     raise FunctionNotFoundError(self._function)
-                solution_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
+                func_to_exec = lambda: global_space_copy[self._function](
+                                    *self._list_args, **self._keyword_args)
+                solution_data = self._run_function(func_to_exec, solution)
                 
         except:
             raise ScriptExecutionError(sys.exc_info())
@@ -404,7 +412,9 @@ class TestCase:
             if not self._function == None:
                 if self._function not in global_space_copy:
                     raise FunctionNotFoundError(self._function)
-                attempt_data = self._run_function(lambda: global_space_copy[self._function](*self._list_args, **self._keyword_args))
+                func_to_exec = lambda: global_space_copy[self._function](
+                    *self._list_args, **self._keyword_args)
+                attempt_data = self._run_function(func_to_exec, attempt_code)
         except:
             case_dict['exception'] = ScriptExecutionError(sys.exc_info()).to_dict()
             case_dict['passed'] = False
@@ -442,8 +452,8 @@ class TestCase:
     def _execfile(self, filename, global_space):
         """ Execute the file given by 'filename' in global_space, and return the outputs. """
         self._initialise_global_space(global_space)
-        data = self._run_function(lambda: execfile(filename, global_space))
-        data['code'] = open(filename).read()
+        data = self._run_function(lambda: execfile(filename, global_space),
+            code = open(filename).read())
         return data
 
     def _execstring(self, string, global_space):
@@ -453,8 +463,7 @@ class TestCase:
         def f():
             exec string in global_space
             
-        data = self._run_function(f)
-        data['code'] = string
+        data = self._run_function(f, code=string)
         return data
 
     def _initialise_global_space(self, global_space):
@@ -467,10 +476,12 @@ class TestCase:
         global_space['raw_input'] = lambda x=None: raw_input()
         return global_space
 
-    def _run_function(self, function):
+    def _run_function(self, function, code):
         """ Run the provided function with the provided stdin, capturing stdout and stderr
         and the return value.
         Return all the output data.
+        code: The full text of the code, which needs to be stored as part of
+        the returned dictionary.
         """
         import sys, StringIO
         sys_stdout, sys_stdin, sys_stderr = sys.stdout, sys.stdin, sys.stderr
@@ -493,7 +504,8 @@ class TestCase:
 
         self._current_filespace_copy.flush_all()
             
-        return {'result': result,
+        return {'code': code,
+                'result': result,
                 'exception': exception_name,
                 'stdout': output_stream.getvalue(),
                 'stderr': output_stream.getvalue(),
