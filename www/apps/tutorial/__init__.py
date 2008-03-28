@@ -456,15 +456,15 @@ def present_exercise(req, exercisesrc, exerciseid):
         % (exerciseid, exerciseid, filename, exerciseid, filename,
             rows, cgi.escape(exercisepartial)))
     req.write("""\n<div class="exercisebuttons">\n""")
-    req.write("""  <input type="button" value="Reset"
-    id="resetbutton_exercise%d"
-    onclick="resetexercise(&quot;exercise%d&quot;)"
-    title="Reload the original partial solution for this exercise" />\n"""
-        % (exerciseid, exerciseid))
     req.write("""  <input type="button" value="Saved" disabled="disabled"
     id="savebutton_exercise%d"
     onclick="saveexercise(&quot;exercise%d&quot;, %s)"
     title="Save your solution to this exercise" />\n"""
+        % (exerciseid, exerciseid, filename))
+    req.write("""  <input type="button" value="Reset"
+    id="resetbutton_exercise%d"
+    onclick="resetexercise(&quot;exercise%d&quot;, %s)"
+    title="Reload the original partial solution for this exercise" />\n"""
         % (exerciseid, exerciseid, filename))
     req.write("""  <input type="button" value="Run"
     onclick="runexercise(&quot;exercise%d&quot;, %s)"

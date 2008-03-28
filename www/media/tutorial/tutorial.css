@@ -11,6 +11,7 @@
 
 .exercisebox, .runoutput {
     width: 80%;
+    margin-bottom: 1.5em;
 }
 
 .exercisebuttons {

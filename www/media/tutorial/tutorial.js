@@ -116,8 +116,10 @@ function saveexercise(exerciseid, filename)
  * box with the hidden "reset button backup" field, containing the original
  * partial fragment.
  * exerciseid: "id" of the exercise's div element.
+ * filename: Filename of the exercise's XML file (used to identify the exercise
+ *     when interacting with the server).
  */
-function resetexercise(exerciseid)
+function resetexercise(exerciseid, filename)
 {
     conf_msg = "This will delete your solution to this exercise, and reset "
         + "it back to the default partial solution.\n\n"
@@ -131,6 +133,9 @@ function resetexercise(exerciseid)
     var text_urlencoded = resettextbox.value;
     /* Need to un-urlencode the value */
     exercisebox.value = decodeURIComponent(text_urlencoded);
+    /* We changed the text, so make Save button available, and autosave after
+     * 10 seconds. */
+    set_saved_status(exerciseid, filename, "Save");
 }
 
 /* savetimers is a dict mapping exerciseIDs to timer IDs.
