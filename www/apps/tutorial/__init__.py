@@ -422,6 +422,7 @@ def present_exercise(req, exercisesrc, exerciseid):
                 exercisedesc = rst(innerXML(elem).strip())
             if elem.tagName == "partial":
                 exercisepartial= getTextData(elem) + '\n'
+    exercisepartial_backup = exercisepartial
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
@@ -444,15 +445,22 @@ def present_exercise(req, exercisesrc, exerciseid):
         req.write("<div>%s</div>\n" % exercisedesc)
     filename = cgi.escape(cjson.encode(exercisesrc), quote=True)
     exercisepartial = cgi.escape(exercisepartial)
-    req.write('<textarea id="textarea_exercise%d" class="exercisebox" '
-        'onkeypress="return catch_textbox_input(&quot;exercise%d&quot;, %s, '
-            'event.keyCode)" '
-        'onchange="set_saved_status(&quot;exercise%d&quot;, %s, '
-            '&quot;Save&quot;)" '
-        'cols="80" rows="%s">%s</textarea>'
+    req.write("""<input id="input_resettext_exercise%d" type="hidden"
+    value="%s" />"""
+        % (exerciseid, exercisepartial_backup))
+    req.write("""<textarea id="textarea_exercise%d" class="exercisebox"
+    onkeypress="return catch_textbox_input(&quot;exercise%d&quot;, %s,
+        event.keyCode)"
+    onchange="set_saved_status(&quot;exercise%d&quot;, %s,
+        &quot;Save&quot;)"
+    cols="80" rows="%s">%s</textarea>"""
         % (exerciseid, exerciseid, filename, exerciseid, filename,
             rows, exercisepartial))
     req.write("""\n<div class="exercisebuttons">
+  <input type="button" value="Reset"
+    id="resetbutton_exercise%d"
+    onclick="resetexercise(&quot;exercise%d&quot;, %s)"
+    title="Reload the original partial solution for this exercise" />
   <input type="button" value="Saved" disabled="disabled"
     id="savebutton_exercise%d"
     onclick="saveexercise(&quot;exercise%d&quot;, %s)"
@@ -467,8 +475,9 @@ def present_exercise(req, exercisesrc, exerciseid):
 </div>
 <div class="testoutput">
 </div>
-""" % (exerciseid, exerciseid, filename, exerciseid, filename,
-       exerciseid, exerciseid, filename))
+""" % (exerciseid, exerciseid, filename, exerciseid, exerciseid, filename,
+        exerciseid, filename,
+        exerciseid, exerciseid, filename))
     # Write the "summary" - whether this problem is complete and how many
     # attempts it has taken.
     req.write("""<div class="problem_summary">

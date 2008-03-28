@@ -112,6 +112,25 @@ function saveexercise(exerciseid, filename)
         "multipart/form-data");
 }
 
+/** User clicks "Reset" button. Replace the contents of the user program text
+ * box with the hidden "reset button backup" field, containing the original
+ * partial fragment.
+ * exerciseid: "id" of the exercise's div element.
+ */
+function resetexercise(exerciseid)
+{
+    conf_msg = "This will delete your solution to this exercise, and reset "
+        + "it back to the default partial solution.\n\n"
+        + "Are you sure you want to do this?";
+    if (!confirm(conf_msg))
+        return;
+    /* Get the source code the student is submitting */
+    var exercisediv = document.getElementById(exerciseid);
+    var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
+    var resettextbox = document.getElementById("input_resettext_" + exerciseid);
+    exercisebox.value = resettextbox.value;
+}
+
 /* savetimers is a dict mapping exerciseIDs to timer IDs.
  * Its members indicate all exercises that have been modified but not saved.
  */
