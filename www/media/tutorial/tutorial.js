@@ -62,6 +62,7 @@ function handle_runresponse(exercisediv, runresponse)
  */
 function submitexercise(exerciseid, filename)
 {
+    var original_saved_status = get_saved_status(exerciseid);
     set_submit_status(exerciseid, filename, "Submitting...");
     set_saved_status(exerciseid, filename, "Saving...");
     /* Get the source code the student is submitting */
@@ -76,7 +77,20 @@ function submitexercise(exerciseid, filename)
     /* AJAX callback function */
     var callback = function(xhr)
         {
-            var testresponse = JSON.parse(xhr.responseText);
+            var testresponse;
+            try
+            {
+                testresponse = JSON.parse(xhr.responseText);
+            }
+            catch (ex)
+            {
+                alert("There was an error submitting or running your code. "
+                    + "Please notify the administrators of this.");
+                /* Since it failed, set the Save button back how it was. */
+                set_saved_status(exerciseid, filename, original_saved_status);
+                set_submit_status(exerciseid, filename, "Submit");
+                return;
+            }
             handle_testresponse(exercisediv, exerciseid, testresponse);
             set_saved_status(exerciseid, filename, "Saved");
             set_submit_status(exerciseid, filename, "Submit");
@@ -180,6 +194,18 @@ function set_saved_status(exerciseid, filename, stat)
             + repr(filename) + ")"
         savetimers[timername] = setTimeout(save_string, 10000);
     }
+}
+
+/** Retrieves the saved status of a given exercise.
+ * Returns "Save" if the exercise is modified and needs to be saved.
+ * Returns "Saved" if the exercise has been saved and is unmodified.
+ * Returns "Saving..." if the exercise is in the process of being saved
+ *  (an ajax request is on its way).
+ */
+function get_saved_status(exerciseid)
+{
+    var button = document.getElementById("savebutton_" + exerciseid);
+    return button.value;
 }
 
 /** Changes the state of the submit button, so it can appear disabled during
