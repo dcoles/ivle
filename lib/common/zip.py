@@ -51,7 +51,8 @@ def make_zip(basepath, paths, file):
             # Relative to req.path
             relpath = os.path.join(basepath, path)
 
-        _, r = studpath.url_to_local(relpath)
+        #_, r = studpath.url_to_local(relpath)
+        r = relpath
         if r is None:
             raise OSError("ZIP: Invalid path")
         if not os.access(r, os.R_OK):

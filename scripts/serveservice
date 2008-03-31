@@ -26,19 +26,78 @@
 import mimetypes
 import os
 import conf
+import StringIO
+import urlparse
 
-from common import cgirequest
-from common import studpath
+from common import (cgirequest, studpath)
+from common import zip as zipmod
 
 req = cgirequest.CGIRequest()
-filename = studpath.url_to_jailpaths(req.path)[2]
 
-if not os.access(filename, os.R_OK):
-    req.throw_error(req.HTTP_NOT_FOUND, "The specified file does not exist.")
+# Work out the parts of the URL
+url = urlparse.urlparse(req.path)
+querystr = url[4]
+urlpath = url[2]
+filename = studpath.url_to_jailpaths(urlpath)[2]
 
-(type, _) = mimetypes.guess_type(filename)
-if type is None:
-    type = conf.mimetypes.default_mimetype
+default_mimetype = "application/octet-stream"
+zip_mimetype = "application/zip"
 
-req.content_type = type
-req.sendfile(filename)
+zipmode = False
+zipbasepath = None
+zipfilename = None
+path = None
+
+# If any "path=" variables have been supplied, bring these into a list and
+# make a zip file instead.
+fields = req.get_fieldstorage()
+paths = fields.getlist("path")
+if len(paths) > 0:
+    zipmode = True
+    zipbasepath = filename
+    zipfilename = os.path.basename(zipbasepath)
+    #for i in range(0, len(paths)):
+        #paths[i] = paths[i].value
+else:
+    if filename is None:
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The path specified is invalid.")
+    elif not os.access(filename, os.R_OK):
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The specified file (%s) does not exist." % path)
+     # If it's a directory, serve as a zip file
+    if os.path.isdir(filename):
+        zipmode = True
+        # Zip it from the perspective of its own parent.
+        # That way it will be a directory in the top level of the zip
+        # file.
+        if filename[-1] == os.sep: filename = filename[:-1]
+        splitpath = filename.rsplit(os.sep, 1)
+        if len(splitpath) == 1:
+            zipbasepath = ''
+            paths = [filename]
+        else:
+            zipbasepath = splitpath[0]
+            paths = [splitpath[1]]
+        zipfilename = paths[0]
+
+if zipmode:
+    req.content_type = zip_mimetype
+    # zipfilename is some filename. Strip trailing slash or extension,
+    # and add ".zip".
+    if zipfilename == '':
+        zipfilename = "files"
+    elif zipfilename[-1] == '/':
+        zipfilename = zipfilename[:-1]
+    elif '.' in zipfilename:
+        zipfilename = zipfilename[:zipfilename.rindex('.')]
+    zipfilename += ".zip"
+    req.headers_out["Content-Disposition"] = ("attachment; filename=" +   
+        zipfilename)
+    zipfile = StringIO.StringIO()
+    zipmod.make_zip(zipbasepath, paths, zipfile)
+        
+    req.write(zipfile.getvalue())
+else:
+    req.content_type = default_mimetype
+    req.sendfile(filename)

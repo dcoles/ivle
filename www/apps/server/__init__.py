@@ -33,6 +33,11 @@ import mimetypes
 
 serveservice_path = "/opt/ivle/scripts/serveservice"
 
+# Serve all files as application/octet-stream so the browser presents them as
+# a download.
+default_mimetype = "application/octet-stream"
+zip_mimetype = "application/zip"
+
 def handle(req):
     """Handler for the Server application which serves pages."""
     req.write_html_head_foot = False
@@ -62,7 +67,7 @@ def authorize(req):
         # their own files, and can access all of them).
         studpath.authorize(req)
 
-def serve_file(req, owner, filename):
+def serve_file(req, owner, filename, download=False):
     """Serves a file, using one of three possibilities: interpreting the file,
     serving it directly, or denying it and returning a 403 Forbidden error.
     No return value. Writes to req (possibly throwing a server error exception
@@ -71,18 +76,28 @@ def serve_file(req, owner, filename):
     req: An IVLE request object.
     owner: Username of the user who owns the file being served.
     filename: Filename in the local file system.
+    download:  Should the file be viewed in browser or downloaded
     """
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
     authorize(req)
 
     # First get the mime type of this file
+    # If download then use "application/octet-stream" type to force the browser 
+    # to download the file.
     # (Note that importing common.util has already initialised mime types)
-    (type, _) = mimetypes.guess_type(filename)
-    if type is None:
-        type = conf.mimetypes.default_mimetype
+    if download:
+        if os.path.isdir(filename):
+            type = zip_mimetype
+        else:
+            type = default_mimetype
+        req.headers_out["Content-Disposition"] = "attachment"
+    else:
+        (type, _) = mimetypes.guess_type(filename)
+        if type is None:
+            type = conf.mimetypes.default_mimetype
 
     # If this type is to be interpreted
-    if os.path.isdir(filename):
+    if os.path.isdir(filename) and not download:
         # 403 Forbidden error for visiting a directory
         # (Not giving a directory listing, since this can be seen by
         # the world at large. Directory contents are private).
