@@ -99,5 +99,5 @@ if zipmode:
         
     req.write(zipfile.getvalue())
 else:
-    req.content_type = default_mimetype
+    #req.content_type = default_mimetype
     req.sendfile(filename)
