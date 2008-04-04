@@ -64,7 +64,7 @@ else:
             "The path specified is invalid.")
     elif not os.access(filename, os.R_OK):
         req.throw_error(req.HTTP_NOT_FOUND,
-            "The specified file (%s) does not exist." % path)
+            "The specified file (%s) does not exist." % urlpath)
      # If it's a directory, serve as a zip file
     if os.path.isdir(filename):
         zipmode = True
