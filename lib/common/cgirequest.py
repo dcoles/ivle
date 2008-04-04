@@ -141,7 +141,7 @@ class CGIRequest:
         path = common.util.unmake_path(self.uri)
         if self.publicmode:
             self.app = None
-            self.path = path
+            (_, self.path) = (common.util.split_path(path))
         else:
             (self.app, self.path) = (common.util.split_path(path))
         self.user = None
