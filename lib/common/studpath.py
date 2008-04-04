@@ -25,7 +25,7 @@
 # they dont own.
 
 import os
-
+import stat
 import pysvn
 
 import conf
@@ -101,7 +101,7 @@ def url_to_jailpaths(urlpath):
 
     return (user, jail, path)
 
-def published(path):
+def svnpublished(path):
     """Given a path on the LOCAL file system, determines whether the path has
     its "ivle:published" property active (in subversion). Returns True
     or False."""
@@ -112,6 +112,25 @@ def published(path):
         # Not under version control? Then it isn't published.
         return False
     return len(props) > 0
+
+def published(path):
+    """Given a path on the LOCAL file system, determines whether the path has a 
+    '.published' file.  Returns True or False."""
+    publish_file_path = os.path.join(path,'.published')
+    return os.access(publish_file_path,os.F_OK)
+
+def worldreadable(path):
+    """Given a path on the LOCAL file system, determines whether the path is 
+    world readble. Returns True or False."""
+    try:
+        mode = os.stat(path).st_mode
+        if mode & stat.S_IROTH:
+            return True
+        else:
+            return False
+    except OSError, e:
+        return False
+
 
 def authorize(req):
     """Given a request, checks whether req.user is allowed to
@@ -144,5 +163,5 @@ def authorize_public(req):
     """
     _, path = url_to_local(req.path)
     dirpath, _ = os.path.split(path)
-    if not published(dirpath):
+    if not (worldreadable(dirpath) and published(dirpath)):
         req.throw_error(req.HTTP_FORBIDDEN)

@@ -126,8 +126,8 @@ def serve_file(req, owner, filename, download=False):
                 "Files of this type are not allowed to be served.")
 
         interp_object = interpret.interpreter_objects["cgi-python"]
-        user_jail_dir = os.path.join(conf.jail_base, req.user.login)
-        interpret.interpret_file(req, req.user.login, user_jail_dir,
+        user_jail_dir = os.path.join(conf.jail_base, owner)
+        interpret.interpret_file(req, owner, user_jail_dir,
             serveservice_path, interp_object)
 
 def serve_file_direct(req, filename, type):
