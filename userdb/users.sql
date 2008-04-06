@@ -115,6 +115,22 @@ CREATE TABLE problem (
     spec        VARCHAR
 );
 
+CREATE TABLE worksheet (
+    worksheetid SERIAL PRIMARY KEY NOT NULL,
+    subject     VARCHAR NOT NULL,
+    identifier  VARCHAR NOT NULL,
+    assessable  BOOLEAN,
+    mtime       TIMESTAMP,
+    UNIQUE (subject, identifier)
+);
+
+CREATE TABLE worksheet_problem (
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    optional    BOOLEAN,
+    PRIMARY KEY (worksheetid, problemid)
+);
+
 CREATE TABLE problem_tag (
     problemid   INT4 REFERENCES problem (problemid),
     tag         VARCHAR NOT NULL,

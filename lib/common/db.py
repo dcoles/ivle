@@ -51,6 +51,8 @@ def _escape(val):
     * bool: Returns as "TRUE" or "FALSE", unquoted.
     * NoneType: Returns "NULL", unquoted.
     * common.caps.Role: Returns the role as a quoted, lowercase string.
+    * time.struct_time: Returns the time as a quoted string for insertion into
+        a TIMESTAMP column.
     Raises a DBException if val has an unsupported type.
     """
     # "E'" is postgres's way of making "escape" strings.
@@ -74,7 +76,7 @@ def _escape(val):
         return _escape(time.strftime(TIMESTAMP_FORMAT, val))
     else:
         raise DBException("Attempt to insert an unsupported type "
-            "into the database")
+            "into the database (%s)" % repr(type(val)))
 
 def _passhash(password):
     return md5.md5(password).hexdigest()
@@ -597,6 +599,106 @@ class DB:
             result = self.db.query(query)
             count = int(result.getresult()[0][0])
             return (False, count)
+
+    # WORKSHEET/PROBLEM ASSOCIATION AND MARKS CALCULATION
+
+    def get_worksheet_mtime(self, subject, worksheet, dry=False):
+        """
+        For a given subject/worksheet name, gets the time the worksheet was
+        last updated in the DB, if any.
+        This can be used to check if there is a newer version on disk.
+        Returns the timestamp as a time.struct_time, or None if the worksheet
+        is not found or has no stored mtime.
+        """
+        try:
+            r = self.get_single(
+                {"subject": subject, "identifier": worksheet},
+                "worksheet", ["mtime"], ["subject", "identifier"],
+                dry=dry)
+        except DBException:
+            # Assume the worksheet is not in the DB
+            return None
+        if dry:
+            return r
+        if r["mtime"] is None:
+            return None
+        return time.strptime(r["mtime"], TIMESTAMP_FORMAT)
+
+    def create_worksheet(self, subject, worksheet, problems,
+        assessable=False):
+        """
+        Inserts or updates rows in the worksheet and worksheet_problems
+        tables, to create a worksheet in the database.
+        This atomically performs all operations. If the worksheet is already
+        in the DB, removes it and all its associated problems and rebuilds.
+        Sets the timestamp to the current time.
+
+        problems is a collection of pairs. The first element of the pair is
+        the problem identifier ("identifier" column of the problem table). The
+        second element is an optional boolean, "optional". This can be omitted
+        (so it's a 1-tuple), and then it will default to False.
+
+        Note: As with get_problem_problemid, if a problem name is not in the
+        DB, it will be added to the problem table.
+        """
+        self.start_transaction()
+        try:
+            # Use the current time as the "mtime" field
+            mtime = time.localtime()
+            try:
+                # Get the worksheetid
+                r = self.get_single(
+                    {"subject": subject, "identifier": worksheet},
+                    "worksheet", ["worksheetid"], ["subject", "identifier"])
+                worksheetid = r["worksheetid"]
+
+                # Delete any problems which might exist
+                query = ("DELETE FROM worksheet_problem "
+                    "WHERE worksheetid = %d;" % worksheetid)
+                self.db.query(query)
+                # Update the row with the new details
+                query = ("UPDATE worksheet "
+                    "SET assessable = %s, mtime = %s "
+                    "WHERE worksheetid = %d;"
+                    % (_escape(assessable), _escape(mtime), worksheetid))
+                self.db.query(query)
+            except DBException:
+                # Assume the worksheet is not in the DB
+                # Create the worksheet row
+                query = ("INSERT INTO worksheet "
+                    "(subject, identifier, assessable, mtime) "
+                    "VALUES (%s, %s, %s, %s);"""
+                    % (_escape(subject), _escape(worksheet),
+                    _escape(assessable), _escape(mtime)))
+                self.db.query(query)
+                # Now get the worksheetid again - should succeed
+                r = self.get_single(
+                    {"subject": subject, "identifier": worksheet},
+                    "worksheet", ["worksheetid"], ["subject", "identifier"])
+                worksheetid = r["worksheetid"]
+
+            # Now insert each problem into the worksheet_problem table
+            for problem in problems:
+                if isinstance(problem, tuple):
+                    prob_identifier = problem[0]
+                    try:
+                        optional = problem[1]
+                    except IndexError:
+                        optional = False
+                else:
+                    prob_identifier = problem
+                    optional = False
+                problemid = self.get_problem_problemid(prob_identifier)
+                query = ("INSERT INTO worksheet_problem "
+                    "(worksheetid, problemid, optional) "
+                    "VALUES (%d, %d, %s);"
+                    % (worksheetid, problemid, _escape(optional)))
+                self.db.query(query)
+
+            self.commit()
+        except:
+            self.rollback()
+            raise
 
     def close(self):
         """Close the DB connection. Do not call any other functions after

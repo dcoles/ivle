@@ -29,6 +29,8 @@
 # The second path segment is the worksheet name.
 
 import os
+import os.path
+import time
 import cgi
 import urllib
 import re
@@ -217,12 +219,15 @@ def handle_worksheet(req, subject, worksheet):
                 % (repr(subject), repr(worksheet)))
 
     # Read in worksheet data
+    worksheetfilename = os.path.join(conf.subjects_base, subject,
+            worksheet + ".xml")
     try:
-        worksheetfile = open(os.path.join(conf.subjects_base, subject,
-            worksheet + ".xml"))
+        worksheetfile = open(worksheetfilename)
+        worksheetmtime = os.path.getmtime(worksheetfilename)
     except:
         req.throw_error(req.HTTP_NOT_FOUND,
             "Worksheet file not found.")
+    worksheetmtime = time.localtime(worksheetmtime)
 
     worksheetdom = minidom.parse(worksheetfile)
     worksheetfile.close()
@@ -240,7 +245,14 @@ def handle_worksheet(req, subject, worksheet):
     req.write('<div id="ivle_padding">\n')
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
-    present_table_of_contents(req, worksheetdom, 0)
+    exercise_list = present_table_of_contents(req, worksheetdom, 0)
+    # Get the "assessable" attribute of the worksheet element.
+    # Default to False
+    assessable = worksheetdom.getAttribute("assessable") == "true"
+    # If the database is missing this worksheet or out of date, update its
+    # details about this worksheet
+    update_db_worksheet(subject, worksheet, exercise_list, worksheetmtime,
+        assessable)
 
     # Write each element
     exerciseid = 0
@@ -257,7 +269,12 @@ def present_table_of_contents(req, node, exerciseid):
     completion status, and the ball is shown of the appropriate colour.
 
     exerciseid is the ID to use for the first exercise.
+
+    As a secondary feature, this records the identifier (xml filename) and
+    optionality of each exercise in a list of pairs [(str, bool)], and returns
+    this list. This can be used to cache this information in the database.
     """
+    exercise_list = []
     # XXX This means the DB is queried twice for each element.
     # Consider caching these results for lookup later.
     req.write("""<div id="tutorial-toc">
@@ -274,6 +291,10 @@ def present_table_of_contents(req, node, exerciseid):
                 fragment_id = "exercise%d" % exerciseid
                 exerciseid += 1
                 exercisesrc = xml.getAttribute("src")
+                # Optionality: Defaults to False
+                exerciseoptional = xml.getAttribute("optional") == "true"
+                # Record the name and optionality for returning in the list
+                exercise_list.append((exercisesrc, exerciseoptional))
                 # TODO: Get proper exercise title
                 title = exercisesrc
                 # Get the completion status of this exercise
@@ -292,6 +313,7 @@ def present_table_of_contents(req, node, exerciseid):
     finally:
         db.close()
     req.write('</ul>\n</div>\n')
+    return exercise_list
 
 def find_all_nodes(req, node):
     """Generator. Searches through a node and yields all headings and
@@ -490,3 +512,23 @@ def present_exercise(req, exercisesrc, exerciseid):
         exerciseid, "Complete" if complete else "Incomplete",
         exerciseid, attempts))
     req.write("</div>\n")
+
+def update_db_worksheet(subject, worksheet, exercise_list,
+    file_mtime, assessable=False):
+    """
+    Determines if the database is missing this worksheet or out of date,
+    and inserts or updates its details about the worksheet.
+    exercise_list is a list of (filename, optional) pairs as returned by
+    present_table_of_contents.
+    assessable is boolean.
+    file_mtime is a time.struct_time with the modification time of the XML
+    file. The database will not be updated unless worksheetmtime is newer than
+    the mtime in the database.
+    """
+    db = common.db.DB()
+    try:
+        db_mtime = db.get_worksheet_mtime(subject, worksheet)
+        if db_mtime is None or file_mtime > db_mtime:
+            db.create_worksheet(subject, worksheet, exercise_list, assessable)
+    finally:
+        db.close()
