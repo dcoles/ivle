@@ -443,6 +443,62 @@ def action_paste(req, fields):
     # XXX errorfiles contains a list of files that couldn't be pasted.
     # we currently do nothing with this.
 
+def action_publish(req,fields):
+    """Marks the folder as published by adding a '.published' file to the 
+    directory and ensuring that the parent directory permissions are correct
+
+    Reads fields: 'path'
+    """
+    paths = fields.getlist('path')
+    user = studpath.url_to_local(req.path)[0]
+    homedir = "/home/%s" % user
+    if len(paths):
+        paths = map(lambda path: actionpath_to_local(req, path), paths)
+    else:
+        paths = [studpath.url_to_jailpaths(req.path)[2]]
+
+    # Set all the dirs in home dir world browsable (o+r,o+x)
+    #FIXME: Should really only do those in the direct path not all of the 
+    # folders in a students home directory
+    for root,dirs,files in os.walk(homedir):
+        os.chmod(root, os.stat(root).st_mode|0005)
+
+    try:
+        for path in paths:
+            if os.path.isdir(path):
+                pubfile = open(os.path.join(path,'.published'),'w')
+                pubfile.write("This directory is published\n")
+                pubfile.close()
+            else:
+                raise ActionError("Can only publish directories")
+    except OSError, e:
+        raise ActionError("Directory could not be published")
+
+def action_unpublish(req,fields):
+    """Marks the folder as unpublished by removing a '.published' file in the 
+    directory (if it exits). It does not change the permissions of the parent 
+    directories.
+
+    Reads fields: 'path'
+    """
+    paths = fields.getlist('path')
+    if len(paths):
+        paths = map(lambda path: actionpath_to_local(req, path), paths)
+    else:
+        paths = [studpath.url_to_jailpaths(req.path)[2]]
+
+    try:
+        for path in paths:
+            if os.path.isdir(path):
+                pubfile = os.path.join(path,'.published')
+                if os.path.isfile(pubfile):
+                    os.remove(pubfile)
+            else:
+                raise ActionError("Can only unpublish directories")
+    except OSError, e:
+        raise ActionError("Directory could not be unpublished")
+
+
 def action_svnadd(req, fields):
     """Performs a "svn add" to each file specified.
 
@@ -559,6 +615,8 @@ actions_table = {
     "putfile" : action_putfile,
     "putfiles" : action_putfiles,
     "paste" : action_paste,
+    "publish" : action_publish,
+    "unpublish" : action_unpublish,
 
     "svnadd" : action_svnadd,
     "svnupdate" : action_svnupdate,

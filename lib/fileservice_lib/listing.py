@@ -60,8 +60,8 @@
 #   - incomplete - a directory doesn't contain a complete entries list
 #   (From pysvn)
 #   If svnstatus is "Missing" then the file has no other attributes.
-#   * published: Boolean. True if the file has ivle:published property in
-#   Subversion.
+#   * published: Boolean. True if the file is published. (Marked by a
+#       .published file in the folder)
 #   * isdir: Boolean. True if the file is a directory. Always present unless
 #   svnstatus is "missing".
 #   * size: Number. Size of the file in bytes. Present for non-directory
@@ -270,6 +270,8 @@ def file_to_fileinfo(path, filename):
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
         d["type_nice"] = util.nice_filetype("/")
+        # Only directories can be published
+        d["published"] = studpath.published(fullpath)
     else:
         d["isdir"] = False
         d["size"] = file_stat.st_size
@@ -354,7 +356,7 @@ def PysvnList_tofileinfo(path, list):
         d["isdir"] = True
         d["type_nice"] = util.nice_filetype("/")
         # Only directories can be published
-        #d["published"] = studpath.published(fullpath)
+        d["published"] = studpath.published(fullpath)
     else:
         d["isdir"] = False
         d["size"] = pysvnlist.size

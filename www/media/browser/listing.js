@@ -169,7 +169,7 @@ function action_revert(files)
 
 function action_publish(files)
 {
-    do_action("svnpublish", current_path, {"path":files});
+    do_action("publish", current_path, {"path":files});
     return false;
 }
 
