@@ -597,9 +597,16 @@ function update_actions()
     var share = document.getElementById("act_share");
     if (numsel <= 1 && !file.isdir)
     {
-        /* TODO: Work out if parent dir is published */
-        share.setAttribute("class", "choice");
-        share.removeAttribute("disabled");
+        /* Work out if parent dir is published */
+        parentdir = current_file;
+        if (parentdir.published)
+        {
+            share.setAttribute("class", "choice");
+            share.removeAttribute("disabled");
+        } else {
+            share.setAttribute("class", "disabled");
+            share.setAttribute("disabled", "disabled");
+        }
     }
     else
     {
@@ -709,8 +716,8 @@ function handle_moreactions()
         action_unpublish(selected_files);
         break;
     case "share":
-        // TODO
-        alert("Not yet implemented: Sharing files");
+        //alert("Not yet implemented: Sharing files");
+        window.open(public_app_path(serve_app, current_path, filename), 'share')
         break;
     case "submit":
         // TODO

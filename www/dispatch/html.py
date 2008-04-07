@@ -59,9 +59,10 @@ def write_html_head(req):
         username = "null"
     req.write("""  <script type="text/javascript">
     root_dir = %s;
+    public_host = %s;
     username = %s;
   </script>
-""" % (repr(conf.root_dir), username))
+""" % (repr(conf.root_dir), repr(conf.public_host), username))
     iconurl = get_icon_url(req.app, small=True)
     if iconurl:
         req.write("""  <link rel="shortcut icon" href="%s" />
