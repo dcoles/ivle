@@ -564,9 +564,21 @@ function update_actions()
     if (numsel <= 1 && file.isdir)
     {
         /* TODO: Work out of file is svn'd */
-        /* TODO: If this dir is already published, call it "Unpublish" */
         publish.setAttribute("class", "choice");
         publish.removeAttribute("disabled");
+        /* If this dir is already published, call it "Unpublish" */
+        if (file.published)
+        {
+            publish.setAttribute("value", "unpublish");
+            publish.setAttribute("title" ,"Make it so this directory "
+                + "can not be seen by anyone on the web");
+            publish.textContent = "Unpublish";
+        } else {
+            publish.setAttribute("value", "publish");
+            publish.setAttribute("title","Make it so this directory "
+                + "can be seen by anyone on the web");
+            publish.textContent = "Publish";
+        }
         submit.setAttribute("class", "choice");
         submit.removeAttribute("disabled");
     }

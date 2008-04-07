@@ -175,7 +175,7 @@ function action_publish(files)
 
 function action_unpublish(files)
 {
-    do_action("svnunpublish", current_path, {"path":files});
+    do_action("unpublish", current_path, {"path":files});
     return false;
 }
 
