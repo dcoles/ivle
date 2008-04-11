@@ -96,6 +96,6 @@
     /* top == #topbar.height + #topbar.padding * 2 */
     top: 5.6em;
     /* Space for the mimimised console */
-    bottom: 2em;
+    bottom: 3.5em;
 }
 
