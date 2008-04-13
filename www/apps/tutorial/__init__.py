@@ -199,17 +199,62 @@ def handle_subject_menu(req, subject):
                 worksheetdom.getAttribute("name"))
             worksheets.append(worksheet)
 
-    # Now all the errors are out the way, we can begin writing
-    req.title = "Tutorial - %s" % subject
-    req.write_html_head_foot = True
-    req.write('<div id="ivle_padding">\n')
-    req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
-    req.write("<h2>Worksheets</h2>\n<ul>\n")
-    for worksheet in worksheets:
-        req.write('  <li><a href="%s">%s</a></li>\n'
-            % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
-    req.write("</ul>\n")
-    req.write("</div>\n")   # tutorialbody
+    db = common.db.DB()
+    try:
+        # Now all the errors are out the way, we can begin writing
+        req.title = "Tutorial - %s" % subject
+        req.write_html_head_foot = True
+        req.write('<div id="ivle_padding">\n')
+        req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
+        req.write('<h2>Worksheets</h2>\n<ul id="tutorial-toc">\n')
+        # As we go, calculate the total score for this subject
+        # (Assessable worksheets only, mandatory problems only)
+        problems_done = 0
+        problems_total = 0
+        for worksheet in worksheets:
+            req.write('  <li><a href="%s">%s</a>'
+                % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
+            try:
+                if db.worksheet_is_assessable(subject, worksheet.id):
+                    mand_done, mand_total, opt_done, opt_total = (
+                        db.calculate_score_worksheet(req.user.login, subject,
+                            worksheet.id))
+                    if opt_total > 0:
+                        optional_message = " (excluding optional exercises)"
+                    else:
+                        optional_message = ""
+                    if mand_done >= mand_total:
+                        complete_class = "complete"
+                    elif mand_done > 0:
+                        complete_class = "semicomplete"
+                    else:
+                        complete_class = "incomplete"
+                    problems_done += mand_done
+                    problems_total += mand_total
+                    req.write('\n    <ul><li class="%s">'
+                            'Completed %d/%d%s</li></ul>\n  '
+                            % (complete_class, mand_done, mand_total,
+                                optional_message))
+            except common.db.DBException:
+                # Worksheet is probably not in database yet
+                pass
+            req.write('</li>\n')
+        req.write("</ul>\n")
+        if problems_total > 0:
+            if problems_done >= problems_total:
+                complete_class = "complete"
+            elif problems_done > 0:
+                complete_class = "semicomplete"
+            else:
+                complete_class = "incomplete"
+            problems_pct = (100 * problems_done) / problems_total       # int
+            req.write('<ul><li class="%s">Total exercises completed: %d/%d '
+                        '(%d%%)</li></ul>'
+                % (complete_class, problems_done, problems_total,
+                    problems_pct))
+        req.write("</div>\n")   # tutorialbody
+    finally:
+        db.close()
 
 def handle_worksheet(req, subject, worksheet):
     # Subject and worksheet names must be valid identifiers

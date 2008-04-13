@@ -78,6 +78,30 @@ def _escape(val):
         raise DBException("Attempt to insert an unsupported type "
             "into the database (%s)" % repr(type(val)))
 
+def _parse_boolean(val):
+    """
+    Accepts a boolean as output from the DB (either the string 't' or 'f').
+    Returns a boolean value True or False.
+    Also accepts other values which mean True or False in PostgreSQL.
+    If none match, raises a DBException.
+    """
+    # On a personal note, what sort of a language allows 7 different values
+    # to denote each of True and False?? (A: SQL)
+    if isinstance(val, bool):
+        return val
+    elif val == 't':
+        return True
+    elif val == 'f':
+        return False
+    elif val == 'true' or val == 'y' or val == 'yes' or val == '1' \
+        or val == 1:
+        return True
+    elif val == 'false' or val == 'n' or val == 'no' or val == '0' \
+        or val == 0:
+        return False
+    else:
+        raise DBException("Invalid boolean value returned from DB")
+
 def _passhash(password):
     return md5.md5(password).hexdigest()
 
@@ -566,8 +590,13 @@ class DB:
             - An int, the number of attempts they have made up to and
               including the first successful attempt (or the total number of
               attempts, if not yet successful).
+        Note: exercisename may be an int, in which case it will be directly
+        used as the problemid.
         """
-        problemid = self.get_problem_problemid(exercisename)
+        if isinstance(exercisename, int):
+            problemid = exercisename
+        else:
+            problemid = self.get_problem_problemid(exercisename)
         loginid = self.get_user_loginid(login)  # May raise a DBException
 
         # ASSUME that it is completed, get the total number of attempts up to
@@ -699,6 +728,51 @@ class DB:
         except:
             self.rollback()
             raise
+
+    def worksheet_is_assessable(self, subject, worksheet, dry=False):
+        r = self.get_single(
+            {"subject": subject, "identifier": worksheet},
+            "worksheet", ["assessable"], ["subject", "identifier"], dry=dry)
+        return _parse_boolean(r["assessable"])
+
+    def calculate_score_worksheet(self, login, subject, worksheet):
+        """
+        Calculates the score for a user on a given worksheet.
+        Returns a 4-tuple of ints, consisting of:
+        (No. mandatory exercises completed,
+         Total no. mandatory exercises,
+         No. optional exercises completed,
+         Total no. optional exercises)
+        """
+        self.start_transaction()
+        try:
+            mand_done = 0
+            mand_total = 0
+            opt_done = 0
+            opt_total = 0
+            # Get a list of problems and optionality for all problems in the
+            # worksheet
+            query = ("""SELECT problemid, optional FROM worksheet_problem
+    WHERE worksheetid = (SELECT worksheetid FROM worksheet
+                         WHERE subject = %s and identifier = %s);"""
+                    % (_escape(subject), _escape(worksheet)))
+            result = self.db.query(query)
+            # Now get the student's pass/fail for each problem in this worksheet
+            for problemid, optional in result.getresult():
+                done, _ = self.get_problem_status(login, problemid)
+                # done is a bool, whether this student has completed that
+                # problem
+                if _parse_boolean(optional):
+                    opt_total += 1
+                    if done: opt_done += 1
+                else:
+                    mand_total += 1
+                    if done: mand_done += 1
+            self.commit()
+        except:
+            self.rollback()
+            raise
+        return mand_done, mand_total, opt_done, opt_total
 
     def close(self):
         """Close the DB connection. Do not call any other functions after

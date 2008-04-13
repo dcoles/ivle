@@ -46,6 +46,9 @@ li.complete {
 li.incomplete {
     list-style: url(../images/tutorial/incomplete.png);
 }
+li.semicomplete {
+    list-style: url(../images/tutorial/semifail.png);
+}
 
 #tutorial-toc li.complete {
     list-style: url(../images/tutorial/tiny/complete.png);
@@ -53,6 +56,10 @@ li.incomplete {
 }
 #tutorial-toc li.incomplete {
     list-style: url(../images/tutorial/tiny/incomplete.png);
+    margin-left: 1.5em;
+}
+#tutorial-toc li.semicomplete {
+    list-style: url(../images/tutorial/tiny/semicomplete.png);
     margin-left: 1.5em;
 }
 
