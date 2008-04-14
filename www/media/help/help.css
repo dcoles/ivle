@@ -1,0 +1,17 @@
+/* IVLE - Informatics Virtual Learning Environment
+ * Copyright (C) 2007-2008 The University of Melbourne
+ * Style Sheet for Help Browser
+ * This file is redistributable under the terms of the GNU General Public
+ * License version 2 or later.
+ */
+
+/* GENERAL FORMATTING */
+
+/* SPECIAL CLASSES */
+div.example
+{
+    border: solid 1px black;
+    padding: 0.5em;
+    background-color: #DDD; /* Very light grey */
+}
+

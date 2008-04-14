@@ -80,6 +80,7 @@ def show_help_app(req, app):
     # Set request attributes
     req.content_type = "text/html"
     req.write_html_head_foot = True
+    req.styles = ["media/help/help.css"]
 
     # Start writing data
     req.write('<div id="ivle_padding">\n')
