@@ -744,6 +744,27 @@ class DB:
             self.rollback()
             raise
 
+    def set_worksheet_assessable(self, subject, worksheet, assessable,
+        dry=False):
+        """
+        Sets the "assessable" field of a worksheet without updating the mtime.
+
+        IMPORTANT: This will NOT update the mtime. This is designed to allow
+        updates which did not come from the worksheet XML file. It would be
+        bad to update the mtime without consulting the XML file because then
+        it would appear the database is up to date, when it isn't.
+
+        Therefore, call this method if you are getting "assessable"
+        information from outside the worksheet XML file (eg. from the subject
+        XML file).
+
+        Unlike create_worksheet, raises a DBException if the worksheet is not
+        in the database.
+        """
+        return self.update({"subject": subject, "identifier": worksheet},
+            {"assessable": assessable}, "worksheet", ["assessable"],
+            ["subject", "identifier"], dry=dry)
+
     def worksheet_is_assessable(self, subject, worksheet, dry=False):
         r = self.get_single(
             {"subject": subject, "identifier": worksheet},
