@@ -52,12 +52,13 @@ THIS_APP = "tutorial"
 re_ident = re.compile("[0-9A-Za-z_]+")
 
 class Worksheet:
-    def __init__(self, id, name):
+    def __init__(self, id, name, assessable):
         self.id = id
         self.name = name
+        self.assessable = assessable
     def __repr__(self):
-        return ("Worksheet(id=" + repr(self.id) + ", name=" + repr(self.name)
-                + ")")
+        return ("Worksheet(id=%s, name=%s, assessable=%s)"
+                % (repr(self.id), repr(self.name), repr(self.assessable)))
 
 def make_tutorial_path(subject=None, worksheet=None):
     """Creates an absolute (site-relative) path to a tutorial sheet.
@@ -195,8 +196,13 @@ def handle_subject_menu(req, subject):
     worksheets = []     # List of string IDs
     for worksheetdom in worksheetsdom.childNodes:
         if worksheetdom.nodeType == worksheetdom.ELEMENT_NODE:
+            # Get the 3 attributes for this node and construct a Worksheet
+            # object.
+            # (Note: assessable will default to False, unless it is explicitly
+            # set to "true").
             worksheet = Worksheet(worksheetdom.getAttribute("id"),
-                worksheetdom.getAttribute("name"))
+                worksheetdom.getAttribute("name"),
+                worksheetdom.getAttribute("assessable") == "true")
             worksheets.append(worksheet)
 
     db = common.db.DB()
@@ -215,7 +221,16 @@ def handle_subject_menu(req, subject):
             req.write('  <li><a href="%s">%s</a>'
                 % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
             try:
-                if db.worksheet_is_assessable(subject, worksheet.id):
+                # If the assessable status of this worksheet has changed,
+                # update the DB
+                # (Note: This fails the try block if the worksheet is not yet
+                # in the DB, which is fine. The author should visit the
+                # worksheet page to get it into the DB).
+                if (db.worksheet_is_assessable(subject, worksheet.id) !=
+                    worksheet.assessable):
+                    db.set_worksheet_assessable(subject, worksheet.id,
+                        assessable=worksheet.assessable)
+                if worksheet.assessable:
                     mand_done, mand_total, opt_done, opt_total = (
                         db.calculate_score_worksheet(req.user.login, subject,
                             worksheet.id))
@@ -291,13 +306,10 @@ def handle_worksheet(req, subject, worksheet):
     req.write("<h1>IVLE Tutorials - %s</h1>\n<h2>%s</h2>\n"
         % (cgi.escape(subject), cgi.escape(worksheetname)))
     exercise_list = present_table_of_contents(req, worksheetdom, 0)
-    # Get the "assessable" attribute of the worksheet element.
-    # Default to False
-    assessable = worksheetdom.getAttribute("assessable") == "true"
     # If the database is missing this worksheet or out of date, update its
     # details about this worksheet
-    update_db_worksheet(subject, worksheet, worksheetmtime,
-        exercise_list, assessable)
+    # Note: Do NOT set assessable (this is done at the subject level).
+    update_db_worksheet(subject, worksheet, worksheetmtime, exercise_list)
 
     # Write each element
     exerciseid = 0
