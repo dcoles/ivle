@@ -296,8 +296,8 @@ def handle_worksheet(req, subject, worksheet):
     assessable = worksheetdom.getAttribute("assessable") == "true"
     # If the database is missing this worksheet or out of date, update its
     # details about this worksheet
-    update_db_worksheet(subject, worksheet, exercise_list, worksheetmtime,
-        assessable)
+    update_db_worksheet(subject, worksheet, worksheetmtime,
+        exercise_list, assessable)
 
     # Write each element
     exerciseid = 0
@@ -558,17 +558,20 @@ def present_exercise(req, exercisesrc, exerciseid):
         exerciseid, attempts))
     req.write("</div>\n")
 
-def update_db_worksheet(subject, worksheet, exercise_list,
-    file_mtime, assessable=False):
+def update_db_worksheet(subject, worksheet, file_mtime,
+    exercise_list=None, assessable=None):
     """
     Determines if the database is missing this worksheet or out of date,
     and inserts or updates its details about the worksheet.
-    exercise_list is a list of (filename, optional) pairs as returned by
-    present_table_of_contents.
-    assessable is boolean.
     file_mtime is a time.struct_time with the modification time of the XML
     file. The database will not be updated unless worksheetmtime is newer than
     the mtime in the database.
+    exercise_list is a list of (filename, optional) pairs as returned by
+    present_table_of_contents.
+    assessable is boolean.
+    exercise_list and assessable are optional, and if omitted, will not change
+    the existing data. If the worksheet does not yet exist, and assessable
+    is omitted, it defaults to False.
     """
     db = common.db.DB()
     try:

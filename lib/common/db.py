@@ -653,8 +653,8 @@ class DB:
             return None
         return time.strptime(r["mtime"], TIMESTAMP_FORMAT)
 
-    def create_worksheet(self, subject, worksheet, problems,
-        assessable=False):
+    def create_worksheet(self, subject, worksheet, problems=None,
+        assessable=None):
         """
         Inserts or updates rows in the worksheet and worksheet_problems
         tables, to create a worksheet in the database.
@@ -666,6 +666,10 @@ class DB:
         the problem identifier ("identifier" column of the problem table). The
         second element is an optional boolean, "optional". This can be omitted
         (so it's a 1-tuple), and then it will default to False.
+
+        Problems and assessable are optional, and if omitted, will not change
+        the existing data. If the worksheet does not yet exist, and assessable
+        is omitted, it defaults to False.
 
         Note: As with get_problem_problemid, if a problem name is not in the
         DB, it will be added to the problem table.
@@ -681,18 +685,28 @@ class DB:
                     "worksheet", ["worksheetid"], ["subject", "identifier"])
                 worksheetid = r["worksheetid"]
 
-                # Delete any problems which might exist
-                query = ("DELETE FROM worksheet_problem "
-                    "WHERE worksheetid = %d;" % worksheetid)
-                self.db.query(query)
+                # Delete any problems which might exist, if problems is
+                # supplied. If it isn't, keep the existing ones.
+                if problems is not None:
+                    query = ("DELETE FROM worksheet_problem "
+                        "WHERE worksheetid = %d;" % worksheetid)
+                    self.db.query(query)
                 # Update the row with the new details
-                query = ("UPDATE worksheet "
-                    "SET assessable = %s, mtime = %s "
-                    "WHERE worksheetid = %d;"
-                    % (_escape(assessable), _escape(mtime), worksheetid))
+                if assessable is None:
+                    query = ("UPDATE worksheet "
+                        "SET mtime = %s WHERE worksheetid = %d;"
+                        % (_escape(mtime), worksheetid))
+                else:
+                    query = ("UPDATE worksheet "
+                        "SET assessable = %s, mtime = %s "
+                        "WHERE worksheetid = %d;"
+                        % (_escape(assessable), _escape(mtime), worksheetid))
                 self.db.query(query)
             except DBException:
                 # Assume the worksheet is not in the DB
+                # If assessable is not supplied, default to False.
+                if assessable is None:
+                    assessable = False
                 # Create the worksheet row
                 query = ("INSERT INTO worksheet "
                     "(subject, identifier, assessable, mtime) "
@@ -707,22 +721,23 @@ class DB:
                 worksheetid = r["worksheetid"]
 
             # Now insert each problem into the worksheet_problem table
-            for problem in problems:
-                if isinstance(problem, tuple):
-                    prob_identifier = problem[0]
-                    try:
-                        optional = problem[1]
-                    except IndexError:
+            if problems is not None:
+                for problem in problems:
+                    if isinstance(problem, tuple):
+                        prob_identifier = problem[0]
+                        try:
+                            optional = problem[1]
+                        except IndexError:
+                            optional = False
+                    else:
+                        prob_identifier = problem
                         optional = False
-                else:
-                    prob_identifier = problem
-                    optional = False
-                problemid = self.get_problem_problemid(prob_identifier)
-                query = ("INSERT INTO worksheet_problem "
-                    "(worksheetid, problemid, optional) "
-                    "VALUES (%d, %d, %s);"
-                    % (worksheetid, problemid, _escape(optional)))
-                self.db.query(query)
+                    problemid = self.get_problem_problemid(prob_identifier)
+                    query = ("INSERT INTO worksheet_problem "
+                        "(worksheetid, problemid, optional) "
+                        "VALUES (%d, %d, %s);"
+                        % (worksheetid, problemid, _escape(optional)))
+                    self.db.query(query)
 
             self.commit()
         except:
