@@ -264,9 +264,15 @@ def handle_subject_menu(req, subject):
                 complete_class = "incomplete"
             problems_pct = (100 * problems_done) / problems_total       # int
             req.write('<ul><li class="%s">Total exercises completed: %d/%d '
-                        '(%d%%)</li></ul>'
+                        '(%d%%)</li></ul>\n'
                 % (complete_class, problems_done, problems_total,
                     problems_pct))
+            # XXX Marks calculation (should be abstracted out of here!)
+            # percent / 16, rounded down, with a maximum mark of 5
+            max_mark = 5
+            mark = min(problems_pct / 16, max_mark)
+            req.write('<p style="font-weight: bold">Worksheet mark: %d/%d'
+                        '</p>\n' % (mark, max_mark))
         req.write("</div>\n")   # tutorialbody
     finally:
         db.close()
