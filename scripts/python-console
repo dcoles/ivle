@@ -114,7 +114,8 @@ class PythonRunner(Thread):
             self.curr_cmd = ''
         except Exception, exc:
             self.stdout.flush()
-            self.cmdQ.put({"exc":str(exc)})
+            exc_classname = exc.__class__.__name__
+            self.cmdQ.put({"exc": exc_classname + ": " + exc.message})
             self.curr_cmd = ''
 
     def run(self):
