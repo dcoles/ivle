@@ -170,6 +170,8 @@ JAIL_FILES = [
     #'/etc/hostname',
     '/etc/nsswitch.conf',
     '/lib/libnss_files.so.2',
+    # Needed for PIL
+    '/usr/lib/libjpeg.so.62',
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
@@ -181,6 +183,8 @@ JAIL_COPYTREES = {
         'jail/usr/lib/python%s' % PYTHON_VERSION,
     '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
     '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
+    '/usr/share/pycentral': 'jail/usr/share/pycentral',
+    '/usr/share/pycentral-data': 'jail/usr/share/pycentral-data',
     '/usr/share/nltk': 'jail/usr/share/nltk',
 }
 

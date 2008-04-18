@@ -89,6 +89,9 @@ cd ..
 # LXML for student code
 sudo apt-get install python-lxml
 
+# Python Imaging Library for student code
+sudo apt-get install python-imaging
+
 # Documentation packages needed for tutorial system: Docutils, Epydoc
 # wget each of these, untar them, and then do: sudo python ./setup.py install
 
