@@ -172,6 +172,9 @@ JAIL_FILES = [
     '/lib/libnss_files.so.2',
     # Needed for PIL
     '/usr/lib/libjpeg.so.62',
+    # Needed by lxml
+    '/usr/lib/libxslt.so.1',
+    '/usr/lib/libexslt.so.0',
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
