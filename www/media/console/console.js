@@ -301,6 +301,24 @@ function console_response(inputbox, graytimer, inputline, responseText)
         var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
     }
+    else if (res.hasOwnProperty('restart') && res.hasOwnProperty('key'))
+    {
+        // Server has indicated that the console should be restarted
+        
+        // Get the new key (host, port, magic)
+        server_key = res.key;
+
+        // Print a reason to explain why we'd do such a horrible thing
+        // (console timeout, server error etc.)
+        var span = document.createElement("span");
+        span.setAttribute("class", "errorMsg");
+        span.appendChild(document.createTextNode("Console Restart: " + res.restart + "\n"));
+        output.appendChild(span);
+        // set the prompt to >>>
+        var prompt = document.getElementById("console_prompt");
+        prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
+
+    }
     else if (res.hasOwnProperty('more'))
     {
         // Need more input, so set the prompt to ...
