@@ -184,6 +184,8 @@ JAIL_LINKS = {
 JAIL_COPYTREES = {
     '/usr/lib/python%s' % PYTHON_VERSION:
         'jail/usr/lib/python%s' % PYTHON_VERSION,
+    '/var/lib/python-support/python%s' % PYTHON_VERSION:
+        'jail/var/lib/python-support/python%s' %PYTHON_VERSION,
     '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
     '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
     '/usr/share/pycentral': 'jail/usr/share/pycentral',
