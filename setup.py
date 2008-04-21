@@ -69,6 +69,7 @@ import compileall
 import getopt
 import hashlib
 import uuid
+import pysvn
 
 # Import modules from the website is tricky since they're in the www
 # directory.
@@ -1043,6 +1044,14 @@ def build(args):
 
     if dry:
         print "Dry run (no actions will be executed\n"
+    
+    # Find out the revison number
+    revnum = get_svn_revision()
+    print "Building Revision %s"%str(revnum)
+    if not dry:
+        vfile = open('BUILD-VERSION','w')
+        vfile.write(str(revnum) + '\n')
+        vfile.close()
 
     # Compile the trampoline
     curdir = os.getcwd()
@@ -1431,5 +1440,16 @@ def filter_mutate(function, list):
             del list[i]
         i -= 1
 
+def get_svn_revision():
+    """Returns either the current SVN revision of this build, or None"""
+    try:
+        svn = pysvn.Client()
+        entry = svn.info('.')
+        revnum = entry.revision.number
+    except pysvn.ClientError, e:
+        revnum = None
+    return revnum
+
 if __name__ == "__main__":
     sys.exit(main())
+
