@@ -154,6 +154,12 @@ sudo -u postgres psql -d ivle < userdb/users.sql
 ./setup.py build
 sudo ./setup.py install
 
+# Make the directory containing the svn auth.  Make sure it is owned by 
+# www-data, or at least readable and writable by it.
+# Make the SVN directory for IVLE
+sudo mkdir /opt/ivle/svn
+sudo chown -R www-data:www-data /opt/ivle/svn
+
 # Create a user
 sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
 # role = guest/student/tutor/lecturer/admin
