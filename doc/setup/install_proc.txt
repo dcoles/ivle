@@ -92,6 +92,15 @@ sudo apt-get install python-lxml
 # Python Imaging Library for student code
 sudo apt-get install python-imaging
 
+# Elementtree 1.3a for student code
+# Needs libtidy for 'TidyHTML' parts
+sudo apt-get install libtidy-0.99-0 
+
+svn co http://svn.effbot.org/public/tags/elementtree-1.3a3-20070912/ elementtree1.3
+cd elementtree1.3
+sudo python setup.py install
+cd ..
+
 # Documentation packages needed for tutorial system: Docutils, Epydoc
 # wget each of these, untar them, and then do: sudo python ./setup.py install
 

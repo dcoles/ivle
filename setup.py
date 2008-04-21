@@ -175,6 +175,8 @@ JAIL_FILES = [
     # Needed by lxml
     '/usr/lib/libxslt.so.1',
     '/usr/lib/libexslt.so.0',
+    # Needed by elementtree
+    '/usr/lib/libtidy-0.99.so.0',
 ]
 # Symlinks to make within the jail. Src mapped to dst.
 JAIL_LINKS = {
