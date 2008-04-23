@@ -522,7 +522,9 @@ def present_exercise(req, exercisesrc, exerciseid):
     finally:
         db.close()
     if saved_text is not None:
-        exercisepartial = saved_text
+        # Important: We got the string from the DB encoded in UTF-8
+        # Make it a unicode string.
+        exercisepartial = saved_text.decode('utf-8')
 
     # Print this exercise out to HTML 
     req.write("<p><b>Exercise:</b> %s</p>\n" % cgi.escape(exercisename))
