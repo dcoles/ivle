@@ -54,3 +54,4 @@ purposes of student code using them:
 * [lxml](http://codespeak.net/lxml/)
 * [PIL](http://www.pythonware.com/products/pil/)
 * [elementtree](http://effbot.org/zone/elementtree-13-intro.htm) - 1.3 ALPHA
+* [simpletal](http://www.owlfish.com/software/simpleTAL/)
