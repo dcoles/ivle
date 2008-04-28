@@ -28,5 +28,7 @@
     bottom: 0;
     /* Override EditArea's specified width and height */
     width: 100% ! important;
-    height: auto ! important;
+    /* FIXME: This is not quite right, but a better approximation of 'right' 
+     * for the time being (Something is very odd with the spacing) */
+    height: 100% ! important;
 }
