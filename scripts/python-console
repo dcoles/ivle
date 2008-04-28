@@ -96,24 +96,45 @@ class StdoutToWeb(object):
             if 'interrupt' in ln:
                 raise Interrupt()
 
+class WebIO(object):
+    """Provides a file like interface to the Web front end of the console.
+    You may print text to the console using write(), flush any buffered output 
+    using flush(), or request text from the console using readline()"""
+    
+    def __init__(self, cmdQ, lineQ):
+        self.cmdQ = cmdQ
+        self.lineQ = lineQ
+        self.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
+        self.stdout = StdoutToWeb(self.cmdQ, self.lineQ)
+
+    def write(self, stuff):
+        self.stdout.write(stuff)
+
+    def flush(self):
+        self.stdout.flush()
+
+    def readline(self):
+        self.stdout.flush()
+        return self.stdin.readline()
+
 class PythonRunner(Thread):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
         self.lineQ = lineQ
-        self.stdout = StdoutToWeb(self.cmdQ, self.lineQ)
+        self.webio = WebIO(self.cmdQ, self.lineQ)
         Thread.__init__(self)
 
     def execCmd(self, cmd):
         try:
-            sys.stdin = StdinFromWeb(self.cmdQ, self.lineQ)
-            sys.stdout = self.stdout
-            sys.stderr = self.stdout
+            sys.stdin = self.webio
+            sys.stdout = self.webio
+            sys.stderr = self.webio
             res = eval(cmd, self.globs)
-            self.stdout.flush()
+            self.webio.flush()
             self.cmdQ.put({"okay":res})
             self.curr_cmd = ''
         except Exception, exc:
-            self.stdout.flush()
+            self.webio.flush()
             exc_classname = exc.__class__.__name__
             self.cmdQ.put({"exc": exc_classname + ": " + str(exc)})
             self.curr_cmd = ''
@@ -141,7 +162,7 @@ class PythonRunner(Thread):
                     else:
                         self.execCmd(cmd)
                 except Exception, exc:
-                    self.stdout.flush()
+                    self.webio.flush()
                     self.cmdQ.put({"exc":str(exc)})
                     self.curr_cmd = ''
             if 'block' in ln:
@@ -150,7 +171,7 @@ class PythonRunner(Thread):
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
                 except Exception, exc:
-                    self.stdout.flush()
+                    self.webio.flush()
                     self.cmdQ.put({"exc":str(exc)})
                     self.curr_cmd = ''
 
