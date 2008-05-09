@@ -41,7 +41,8 @@ def handle(req):
     browsepath = req.path
     if len(browsepath) == 0:
         # If no path specified, default to the user's home directory
-        browsepath = req.user.login
+        redirectPath = util.make_path(os.path.join(THIS_APP,req.user.login))
+        req.throw_redirect(util.make_path(redirectPath))
 
     # Set request attributes
     req.content_type = "text/html"
