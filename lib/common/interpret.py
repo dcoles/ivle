@@ -197,10 +197,11 @@ def process_cgi_output(req, data, cgiflags):
         # Break data into lines of CGI header data. 
         linebuf = cgiflags.linebuf + data
         # First see if we can split all header data
-        split = linebuf.split('\r\n\r\n', 1)
-        if len(split) == 1:
-            # Allow UNIX newlines instead
-            split = linebuf.split('\n\n', 1)
+        # We need to get the double CRLF- or LF-terminated headers, whichever
+        # is smaller, as either sequence may appear somewhere in the body.
+        usplit = linebuf.split('\n\n', 1)
+        wsplit = linebuf.split('\r\n\r\n', 1)
+        split = len(usplit[0]) > len(wsplit[0]) and wsplit or usplit
         if len(split) == 1:
             # Haven't seen all headers yet. Buffer and come back later.
             cgiflags.linebuf = linebuf
