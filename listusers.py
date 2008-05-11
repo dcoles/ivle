@@ -26,6 +26,30 @@
 import sys
 import os
 import common.db
+import getopt
+
+# Options processing
+def usage():
+    print "listusers.py [OPTIONS]"
+    print "     Gets a list of all users in the IVLE database."
+    print "     Must be run as root."
+    print "     OPTIONS"
+    print "         -h --help       This message."
+    print "         -n --names      Just print usernames."
+
+justnames = False
+try:
+    opts, _ = getopt.getopt(sys.argv[1:], "nh", ["names", "help"])
+except getopt.GetoptError, e:
+    print str(e)
+    usage()
+    sys.exit()
+opts = dict(opts)
+if "-h" in opts or "--help" in opts:
+    usage()
+    sys.exit()
+if "-n" in opts or "--names" in opts:
+    justnames = True
 
 if os.getuid() != 0:
     print "Must run listusers.py as root."
@@ -40,4 +64,7 @@ except Exception, message:
 
 list.sort(key=lambda user: user.login)
 for user in list:
-    print repr(user)
+    if justnames:
+        print user.login
+    else:
+        print repr(user)
