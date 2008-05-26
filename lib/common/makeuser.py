@@ -38,7 +38,7 @@ import shutil
 import time
 import uuid
 import warnings
-
+import filecmp
 import conf
 import db
 
@@ -122,14 +122,43 @@ def make_svn_auth(login, throw_on_error=True):
 
     return passwd
 
-def make_jail(username, uid, force=True):
+def generate_manifest(basedir, targetdir, parent=''):
+    """ From a basedir and a targetdir work out which files are missing or out 
+    of date and need to be added/updated and which files are redundant and need 
+    to be removed.
+    
+    parent: This is used for the recursive call to track the relative paths 
+    that we have decended.
+    """
+    
+    cmp = filecmp.dircmp(basedir, targetdir)
+
+    # Add all new files and files that have changed
+    to_add = [os.path.join(parent,x) for x in (cmp.left_only + cmp.diff_files)]
+
+    # Remove files that are redundant
+    to_remove = [os.path.join(parent,x) for x in cmp.right_only]
+    
+    # Recurse
+    for d in cmp.common_dirs:
+        newbasedir = os.path.join(basedir, d)
+        newtargetdir = os.path.join(targetdir, d)
+        newparent = os.path.join(parent, d)
+        (sadd,sremove) = generate_manifest(newbasedir, newtargetdir, newparent)
+        to_add += sadd
+        to_remove += sremove
+
+    return (to_add, to_remove)
+
+
+def make_jail(username, uid, force=True, manifest=None):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
-    This expects there to be a "template" directory within the jail root which
+    This expects there to be a "staging" directory within the jail root which
     contains all the files for a sample student jail. It creates the student's
     directory in the jail root, by making a hard-link copy of every file in the
-    template directory, recursively.
+    staging directory, recursively.
 
     Returns the path to the user's home directory.
 
@@ -142,17 +171,20 @@ def make_jail(username, uid, force=True):
 
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
+
+    manifest: If provided this will be a tupple (to_add, to_remove) of files or 
+    directories to add or remove from the jail.
     """
     # MUST run as root or some of this may fail
     if os.getuid() != 0:
         raise Exception("Must run make_jail as root")
     
-    templatedir = os.path.join(conf.jail_base, 'template')
-    if not os.path.isdir(templatedir):
-        raise Exception("Template jail directory does not exist: " +
-            templatedir)
+    stagingdir = os.path.join(conf.jail_base, '__staging__')
+    if not os.path.isdir(stagingdir):
+        raise Exception("Staging jail directory does not exist: " +
+            stagingdir)
     # tempdir is for putting backup homes in
-    tempdir = os.path.join(conf.jail_base, 'temp')
+    tempdir = os.path.join(conf.jail_base, '__temp__')
     if not os.path.exists(tempdir):
         os.makedirs(tempdir)
     elif not os.path.isdir(tempdir):
@@ -179,10 +211,36 @@ def make_jail(username, uid, force=True):
             # the backup will be un-made.
             # XXX This will still leave the user's jail in an unusable state,
             # but at least they won't lose their files.
-            shutil.rmtree(userdir)
-
-            # Hard-link (copy aliasing) the entire tree over
-            linktree(templatedir, userdir)
+            if manifest:
+                (to_add, to_remove) = manifest
+                # Remove redundant files and directories
+                for d in to_remove:
+                    dst = os.path.join(userdir, d)
+                    src = os.path.join(stagingdir, d)
+                    if os.path.isdir(dst):
+                        shutil.rmtree(dst)
+                    elif os.path.isfile(dst):
+                        os.remove(dst)
+                # Add new files
+                for d in to_add:
+                    dst = os.path.join(userdir, d)
+                    src = os.path.join(stagingdir, d)
+                    # Clear the previous file/dir
+                    if os.path.isdir(dst):
+                        shutil.rmtree(dst)
+                    elif os.path.isfile(dst):
+                        os.remove(dst)
+                    # Link the file/dirs
+                    if os.path.isdir(src):
+                        linktree(src, dst)
+                    elif os.path.isfile(src):
+                        os.link(src, dst)
+                    
+            else:
+                # No manifest, do a full rebuild
+                shutil.rmtree(userdir)
+                # Hard-link (copy aliasing) the entire tree over
+                linktree(stagingdir, userdir)
         finally:
             # Set up the user's home directory (restore backup)
             # First make sure the directory is empty and its parent exists
@@ -198,7 +256,7 @@ def make_jail(username, uid, force=True):
     else:
         # No user jail exists
         # Hard-link (copy aliasing) the entire tree over
-        linktree(templatedir, userdir)
+        linktree(stagingdir, userdir)
 
         # Set up the user's home directory
         userhomedir = os.path.join(homedir, username)

@@ -55,7 +55,7 @@
 # Copy trampoline/trampoline to $target/bin.
 # chown and chmod the installed trampoline.
 # Copy www/ to $target.
-# Copy jail/ to jails template directory (unless --nojail specified).
+# Copy jail/ to jails __staging__ directory (unless --nojail specified).
 
 import os
 import stat
@@ -530,7 +530,7 @@ Create $target/bin.
 Copy trampoline/trampoline to $target/bin.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
-Copy jail/ to jails template directory (unless --nojail specified).
+Copy jail/ to jails __staging__ directory (unless --nojail specified).
 Copy subjects/ to subjects directory (unless --nosubjects specified).
 
 --nojail        Do not copy the jail.
@@ -1167,9 +1167,9 @@ def install(args):
 
     if not nojail:
         # Copy the local jail directory built by the build action
-        # to the jails template directory (it will be used as a template
-        # for all the students' jails).
-        action_copytree('jail', os.path.join(jail_base, 'template'), dry)
+        # to the jails __staging__ directory (it will be used to help build
+        # all the students' jails).
+        action_copytree('jail', os.path.join(jail_base, '__staging__'), dry)
     if not nosubjects:
         # Copy the subjects and exercises directories across
         action_copylist(install_list.list_subjects, subjects_base, dry,
@@ -1216,18 +1216,18 @@ def updatejails(args):
         print >>sys.stderr, "(I need to chown some files)."
         return 1
 
-    # Update the template jail directory in case it hasn't been installed
+    # Update the staging jail directory in case it hasn't been installed
     # recently.
-    action_copytree('jail', os.path.join(jail_base, 'template'), dry)
+    action_copytree('jail', os.path.join(jail_base, '__staging__'), dry)
 
     # Re-link all the files in all students jails.
     for dir in os.listdir(jail_base):
-        if dir == 'template': continue
+        if dir == '__staging__': continue
         # First back up the student's home directory
         temp_home = os.tmpnam()
         action_rename(os.path.join(jail_base, dir, 'home'), temp_home, dry)
         # Delete the student's jail and relink the jail files
-        action_linktree(os.path.join(jail_base, 'template'),
+        action_linktree(os.path.join(jail_base, '__staging__'),
             os.path.join(jail_base, dir), dry)
         # Restore the student's home directory
         action_rename(temp_home, os.path.join(jail_base, dir, 'home'), dry)

@@ -30,9 +30,15 @@ import os.path
 import pwd
 import conf
 import common.makeuser
+import optparse
+import shutil
 # Import modules from the website is tricky since they're in the www
 # directory.
 sys.path.append(os.path.join(os.getcwd(), 'www'))
+
+p = optparse.OptionParser()
+p.add_option('--incremental', '-i', action='store_true')
+options, arguments = p.parse_args()
 
 if os.getuid() != 0:
     print "Must run remakeallusers.py as root."
@@ -50,6 +56,22 @@ except Exception, message:
     print "Error: " + str(message)
     sys.exit(1)
 
+# First check that our __templateuser__ directory exits, if not create it
+templateuserdir = os.path.join(conf.jail_base, '__templateuser__')
+stagingdir = templatedir = os.path.join(conf.jail_base, '__staging__')
+if not os.path.isdir(templateuserdir):
+    os.mkdir(templateuserdir)
+
+# Generate manifest of files that differ between template user and staging
+if options.incremental:
+    print "Incremental Rebuild selected"
+    manifest = common.makeuser.generate_manifest(stagingdir, templateuserdir)
+    print "Generated change manifest"
+    print "Adding/Updating: %s\nRemoving: %s" % manifest
+else:
+    # Force a full rebuild
+    manifest = None
+
 list.sort(key=lambda user: user.login)
 for user in list:
     login = user.login
@@ -63,9 +85,18 @@ for user in list:
             raise Exception("User %s does not have a unixid in the database"
                 % login)
         # Remake the user's jail
-        common.makeuser.make_jail(login, uid)
+        common.makeuser.make_jail(login, uid, manifest=manifest)
     except Exception, message:
         print "Error: " + str(message)
         continue
 
     print "Successfully recreated user %s's jail." % login
+    
+# Update the template user directory
+print "Updating templateuser directory"
+shutil.rmtree(templateuserdir)
+#common.makeuser.linktree(stagingdir, templateuserdir)
+common.makeuser.make_jail('__templateuser__', 0, manifest=manifest)
+shutil.rmtree(os.path.join(templateuserdir, 'home'))
+
+print "Done!"
