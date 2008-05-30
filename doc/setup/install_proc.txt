@@ -104,6 +104,9 @@ cd ..
 # SimpleTAL for student code
 sudo apt-get install python-simpletal
 
+# SciPy for student code
+sudo apt-get install python-scipy
+
 # Documentation packages needed for tutorial system: Docutils, Epydoc
 # wget each of these, untar them, and then do: sudo python ./setup.py install
 
