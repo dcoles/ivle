@@ -37,7 +37,8 @@ sudo apt-get update
 sudo apt-get install subversion
 sudo apt-get install gcc libc6 libc6-dev make
 sudo apt-get install apache2 libapache2-mod-python
-sudo apt-get install python2.5-dev python-svn python-webpy python-numpy python-matplotlib
+sudo apt-get install python2.5-dev python-svn python-webpy
+sudo apt-get install python-numpy python-matplotlib
 sudo apt-get install postgresql python-pygresql python-ldap
 sudo apt-get install php5 php5-pgsql
 
@@ -54,6 +55,9 @@ sudo apt-get install php5 php5-pgsql
 # See trunk/doc/dependencies.txt
 
 # CJSON
+# Note: apt-get install python-cjson puts it in an unexpected place.
+# Setup doesn't handle this correctly, so just install by hand:
+
 wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
 tar -zxvf python-cjson-1.0.5.tar.gz
 
@@ -61,6 +65,7 @@ cd python-cjson-1.0.5
 ./setup.py build
 sudo ./setup.py install
 cd ..
+
 
 # NLTK for student code
 wget 'http://prdownloads.sourceforge.net/nltk/nltk-0.9.2.tar.gz'
@@ -194,8 +199,9 @@ sudo apache2ctl -k restart
 ##########################################################################
 # To start the user management server:
 cd /opt/ivle/scripts
-sudo ./usrmgt-server <port> <database password>
-# Note that the port number and database password are recorded in
+sudo ./usrmgt-server <port> <usrmgt-password>
+# usrmgt-password is the password entered in setup.py config (usrmgt_magic)
+# Note that the port number and usrmgt password are recorded in
 # the automatically created init.d script: doc/setup/usrmgt-server.init
 
 # To run it at boot time:
