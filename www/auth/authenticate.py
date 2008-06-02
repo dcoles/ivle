@@ -146,6 +146,9 @@ for modname in conf.auth_modules.split(','):
     except ImportError:
         raise AuthError("Internal error: Can't import auth module %s"
             % repr(modname))
+    except ValueError:
+        # If auth_modules is "", we may get an empty string - ignore
+        continue
     try:
         authfunc = mod.auth
     except AttributeError:
