@@ -31,6 +31,10 @@
 
 # TODO: When creating a new home directory, chown it to its owner
 
+# TODO: In chown_to_webserver:
+# Do not call os.system("chown www-data") - use Python lib
+# and use the web server uid given in conf. (Several places).
+
 import md5
 import os
 import stat
@@ -41,6 +45,17 @@ import warnings
 import filecmp
 import conf
 import db
+
+def chown_to_webserver(filename):
+    """
+    Chowns a file so the web server user owns it.
+    (This is useful in setting up Subversion conf files).
+    Assumes root.
+    """
+    try:
+        os.system("chown -R www-data:www-data %s" % filename)
+    except:
+        pass
 
 def make_svn_repo(login, throw_on_error=True):
     """Create a repository for the given user.
@@ -54,10 +69,8 @@ def make_svn_repo(login, throw_on_error=True):
         print repr(exc)
         if throw_on_error:
             raise
-    try:
-        os.system("chown -R www-data:www-data %s" % path)
-    except Exception:
-        pass
+
+    chown_to_webserver(path)
 
 def rebuild_svn_config():
     """Build the complete SVN configuration file.
@@ -88,6 +101,7 @@ def rebuild_svn_config():
         f.write("\n")
     f.close()
     os.rename(conf.svn_conf + ".new", conf.svn_conf)
+    chown_to_webserver(conf.svn_conf)
 
 def make_svn_config(login, throw_on_error=True):
     """Add an entry to the apache-svn config file for the given user.
@@ -101,6 +115,7 @@ def make_svn_config(login, throw_on_error=True):
     #f.write("@admin = rw\n")
     f.write("\n")
     f.close()
+    chown_to_webserver(conf.svn_conf)
 
 def make_svn_auth(login, throw_on_error=True):
     """Setup svn authentication for the given user.
@@ -119,6 +134,10 @@ def make_svn_auth(login, throw_on_error=True):
                                               login, passwd))
     if res != 0 and throw_on_error:
         raise Exception("Unable to create ivle-auth for %s" % login)
+
+    # Make sure the file is owned by the web server
+    if create == "c":
+        chown_to_webserver(conf.svn_auth_ivle)
 
     return passwd
 
@@ -331,3 +350,6 @@ def make_user_db(throw_on_error = True, **kwargs):
         if res != 0 and throw_on_error:
             raise Exception("Unable to create local-auth for %s" % kwargs['login'])
 
+    # Make sure the file is owned by the web server
+    if create == "c":
+        chown_to_webserver(conf.svn_auth_local)
