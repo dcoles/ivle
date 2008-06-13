@@ -661,7 +661,6 @@ function ajax_call(callback, app, path, args, method, content_type)
             xhr.setRequestHeader("Content-Type", content_type);
             message = make_query_string(args);
         }
-        xhr.setRequestHeader("Content-Length", message.length);
         xhr.send(message);
     }
 }
