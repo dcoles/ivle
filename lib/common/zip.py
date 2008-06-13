@@ -91,6 +91,9 @@ def unzip(path, file):
     Note: All files go directly into the path. To avoid having a "zip bomb"
     situation, the zip file should have a single directory in it with all the
     files.
+    The path is an absolute path in the current filesystem
+    (if this code is executed inside the jail, then it's inside the jail,
+    if it's not then it's not).
     """
     zip = zipfile.ZipFile(file, 'r')
     # First test the zip file
@@ -98,12 +101,7 @@ def unzip(path, file):
         raise OSError("ZIP: Bad zip file")
 
     for filename in zip.namelist():
-        # Work out the name of this file on the local file system, and make
-        # sure it is valid
-        relpath = os.path.join(path, filename)
-        _, localpath = studpath.url_to_local(relpath)
-        if localpath is None:
-            raise OSError("ZIP: Permission denied")
+        localpath = os.path.join(path, filename)
         # Create directory for filename
         (file_dir, _) = os.path.split(localpath)
         if not os.path.exists(file_dir):

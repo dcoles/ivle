@@ -355,7 +355,7 @@ def action_putfiles(req, fields):
     for datum in data:
         # Each of the uploaded files
         filepath = os.path.join(path, datum.filename)
-        filedata = datum.value
+        filedata = datum.file
 
         if unpack and datum.filename.lower().endswith(".zip"):
             # A zip file - unpack it instead of just copying
@@ -363,7 +363,10 @@ def action_putfiles(req, fields):
             # Note: Just unzip into the current directory (ignore the
             # filename)
             try:
-                zip.unzip(path, filedata)
+                # First get the entire path (within jail)
+                _, _, abspath = studpath.url_to_jailpaths(path)
+                abspath = os.path.join(os.sep, abspath)
+                zip.unzip(abspath, filedata)
             except (OSError, IOError):
                 goterror = True
         else:
