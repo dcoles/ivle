@@ -163,36 +163,12 @@ def activate_user(props):
         logging.debug("Creating jail")
         common.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
 
-        # Check out the repositories into the student's home dir
-        # FIXME: Call do_checkout instead of replicating this code.
-        # (do_checkout currently doesn't work)
-        #do_checkout(props)
-
-        logging.debug("Checking out directories in the jail")
-        try:
-            svn.checkout(conf.svn_addr + login + "/stuff",
-                         common.studpath.url_to_local(login + "/stuff")[1])
-            os.system("chown -R %d:%d %s" \
-                    % (details.unixid, details.unixid,
-                       common.studpath.url_to_local(login + "/stuff")[1]))
-        except Exception, exc:
-            logging.warning("While mkdiring stuff: %s" % str(exc))
-            pass
-        try:
-            svn.checkout(conf.svn_addr + login + "/info1",
-                         common.studpath.url_to_local(login + "/info1")[1])
-            os.system("chown -R %d:%d %s" \
-                    % (details.unixid, details.unixid,
-                       common.studpath.url_to_local(login + "/info1")[1]))
-        except Exception, exc:
-            logging.warning("While mkdiring info1: %s" % str(exc))
-            pass
+        do_checkout(props, svn_pass=passwd)
 
         # FIXME: should this be nicer?
         os.system("chown -R %d:%d %s" \
                 % (details.unixid, details.unixid,
                    common.studpath.url_to_local(login)[1]))
-
 
         logging.info("Enabling user")
         db.update_user(login, state='enabled')
@@ -202,7 +178,7 @@ def activate_user(props):
     finally:
         db.close()
 
-def do_checkout(props):
+def do_checkout(props, svn_pass=None):
     """Create the default contents of a user's jail by checking out from the
     repositories.
     If any directory already exists, just fail silently (so this is not a
@@ -212,25 +188,29 @@ def do_checkout(props):
                       STRING REQUIRED
        Return Value: None
     """
-    # XXX / FIXME: This doesn't work - cannot get passwd
-    # (activate_me creates passwd, other svn stuff gets it from jailconf - we
-    # can't access either at this point).
-
     login = props['login']
+
+    # If svn_pass isn't supplied, grab it from the DB
+    if svn_pass is None:
+        db = common.db.DB()
+        user = db.get_user(login)
+        svn_pass = user.svn_pass
+        db.close()
+
     svn = pysvn.Client()
-    svn.callback_get_login = partial(get_login, login, passwd)
+    svn.callback_get_login = partial(get_login, login, svn_pass)
 
-    if conf.svn_addr[-1] != '/':
-        conf.svn_addr = conf.svn_addr + "/"
+    if conf.svn_addr[-1] != os.sep:
+        conf.svn_addr += os.sep
 
-    # FIXME: </hack>
+    # FIXME: <hack>
 
     logging.debug("Checking out directories in the jail")
     try:
         svn.checkout(conf.svn_addr + login + "/stuff",
                      common.studpath.url_to_local(login + "/stuff")[1])
         os.system("chown -R %d:%d %s" \
-                % (details.unixid, details.unixid,
+                % (user.unixid, user.unixid,
                    common.studpath.url_to_local(login + "/stuff")[1]))
     except Exception, exc:
         logging.warning("While mkdiring stuff: %s" % str(exc))
@@ -239,11 +219,13 @@ def do_checkout(props):
         svn.checkout(conf.svn_addr + login + "/info1",
                      common.studpath.url_to_local(login + "/info1")[1])
         os.system("chown -R %d:%d %s" \
-                % (details.unixid, details.unixid,
+                % (user.unixid, user.unixid,
                    common.studpath.url_to_local(login + "/info1")[1]))
     except Exception, exc:
         logging.warning("While mkdiring info1: %s" % str(exc))
         pass
+
+    # FIXME: </hack>
 
     return {"response": "okay"}
 
