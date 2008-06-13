@@ -170,7 +170,7 @@ def generate_manifest(basedir, targetdir, parent=''):
     return (to_add, to_remove)
 
 
-def make_jail(username, uid, force=True, manifest=None):
+def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -191,8 +191,12 @@ def make_jail(username, uid, force=True, manifest=None):
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
 
-    manifest: If provided this will be a tupple (to_add, to_remove) of files or 
+    manifest: If provided this will be a pair (to_add, to_remove) of files or
     directories to add or remove from the jail.
+
+    svn_pass: If provided this will be a string, the randomly-generated
+    Subversion password for this user (if you happen to already have it).
+    If not provided, it will be read from the database.
     """
     # MUST run as root or some of this may fail
     if os.getuid() != 0:
@@ -271,7 +275,7 @@ def make_jail(username, uid, force=True, manifest=None):
             # directory). But it shouldn't fail as homedir should not exist.
             os.makedirs(homedir)
             shutil.move(homebackup, homedir)
-        return os.path.join(homedir, username)
+        userhomedir = os.path.join(homedir, username)   # Return value
     else:
         # No user jail exists
         # Hard-link (copy aliasing) the entire tree over
@@ -284,7 +288,70 @@ def make_jail(username, uid, force=True, manifest=None):
         os.chown(userhomedir, uid, uid)
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
-        return userhomedir
+
+    # There is 1 special file which should not be hard-linked, but instead
+    # generated specific to this user: /opt/ivle/lib/conf/conf.py.
+    # "__" username "__" users are exempt (special)
+    if not (username.startswith("__") and username.endswith("__")):
+        make_conf_py(username, userdir, stagingdir, svn_pass)
+
+    return userhomedir
+
+def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
+    """
+    Creates (overwriting any existing file) a file /opt/ivle/lib/conf/conf.py
+    in a given user's jail.
+    username: Username.
+    user_jail_dir: User's jail dir, ie. conf.jail_base + username
+    staging_dir: The dir with the staging copy of the jail. (With the
+        template conf.py file).
+    svn_pass: As with make_jail. User's SVN password, but if not supplied,
+        will look up in the DB.
+    """
+    # Note: It is important to delete this file and recreate it (somewhat
+    # ironically beginning by pasting the same contents in again), rather than
+    # simply appending.
+    # Note that all files initially are aliased, so appending would result
+    # in a massive aliasing problem. Deleting and recreating ensures that
+    # the conf.py files are unique to each jail.
+    template_conf_path = os.path.join(staging_dir,"opt/ivle/lib/conf/conf.py")
+    conf_path = os.path.join(user_jail_dir, "opt/ivle/lib/conf/conf.py")
+
+    # If svn_pass isn't supplied, grab it from the DB
+    if svn_pass is None:
+        dbconn = db.DB()
+        svn_pass = dbconn.get_user(username).svn_pass
+        dbconn.close()
+
+    # Read the contents of the template conf file
+    try:
+        template_conf_file = open(template_conf_path, "r")
+        template_conf_data = template_conf_file.read()
+        template_conf_file.close()
+    except:
+        # Couldn't open template conf.py for some reason
+        # Just treat it as empty file
+        template_conf_data = ""
+
+    # Remove the target conf file if it exists
+    try:
+        os.remove(conf_path)
+    except OSError:
+        pass
+    conf_file = open(conf_path, "w")
+    conf_file.write(template_conf_data)
+    conf_file.write("\n# The login name for the owner of the jail\n")
+    conf_file.write("login = %s\n" % repr(username))
+    conf_file.write("\n")
+    conf_file.write("# The subversion-only password for the owner of "
+        "the jail\n")
+    conf_file.write("svn_pass = %s\n" % repr(svn_pass))
+    conf_file.close()
+
+    # Make this file world-readable
+    # (chmod 644 conf_path)
+    os.chmod(conf_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP
+                        | stat.S_IROTH)
 
 def linktree(src, dst):
     """Recursively hard-link a directory tree using os.link().

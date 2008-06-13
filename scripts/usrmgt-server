@@ -161,41 +161,12 @@ def activate_user(props):
             pass
 
         logging.debug("Creating jail")
-        common.makeuser.make_jail(login, details.unixid)
-
-        # FIXME: <hack>
-
-        tcf_path = os.path.join(conf.jail_base, 'template/opt/ivle/lib/conf/conf.py')
-        cf_path = os.path.join(conf.jail_base, login, 'opt/ivle/lib/conf/conf.py')
-
-        try:
-            tcf = open(tcf_path, "r")
-            tcf_data = tcf.read()
-            tcf.close()
-        except:
-            # Couldn't open template conf.py for some reason
-            # Just treat it as empty file
-            tcf_data = ""
-
-        try:
-            os.remove(cf_path)
-        except OSError:
-            pass
-        cf = open(cf_path, "w")
-        cf.write(tcf_data)
-        cf.write("# The login name for the owner of the jail\n")
-        cf.write("login = %s\n" % repr(login))
-        cf.write("\n")
-        cf.write("# The subversion-only password for the owner of the jail\n")
-        cf.write("svn_pass = %s\n" % repr(passwd))
-        cf.close()
+        common.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
 
         # Check out the repositories into the student's home dir
         # FIXME: Call do_checkout instead of replicating this code.
         # (do_checkout currently doesn't work)
         #do_checkout(props)
-
-        # FIXME: </hack>
 
         logging.debug("Checking out directories in the jail")
         try:
