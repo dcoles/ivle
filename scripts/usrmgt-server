@@ -306,7 +306,7 @@ if __name__ == "__main__":
 
     pid = os.getpid()
 
-    logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.DEBUG)
+    logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
     logging.info("Starting usrmgt server on port %d (pid = %d)" % (port, pid))
 
     common.chat.start_server(port, magic, True, dispatch, initializer)
