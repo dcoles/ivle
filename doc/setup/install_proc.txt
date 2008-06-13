@@ -174,7 +174,7 @@ sudo chown -R www-data:www-data /opt/ivle/svn
 # Make sure they are owned by www-data.
 cd /home/informatics
 sudo mkdir repositories sessions
-sudo chown -R www-data:www-data svn repositories sessions
+sudo chown -R www-data:www-data repositories sessions
 
 # Create a user
 sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
