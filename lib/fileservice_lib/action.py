@@ -132,7 +132,7 @@ import conf
 
 def get_login(_realm, _username, _may_save):
     """Return the subversion credentials for the user."""
-    return (True, conf.login, conf.passwd, True)
+    return (True, conf.login, conf.svn_pass, True)
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
