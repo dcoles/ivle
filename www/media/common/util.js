@@ -311,7 +311,7 @@ function build_url(obj)
     if (("path" in obj) && obj.path != null)
     {
         var path = urlencode_path(obj.path.toString());
-        if (url.length > 0 && path.length > 0 && path[0] != "/")
+        if (url.length > 0 && path.length > 0 && path.charAt(0) != "/")
             path = "/" + path;
         url += path;
     }
@@ -426,11 +426,11 @@ function path_join(path1 /*, path2, ... */)
     {
         arg = arguments[i];
         if (arg.length == 0) continue;
-        if (arg[0] == '/')
+        if (arg.charAt(0) == '/')
             path = arg;
         else
         {
-            if (path.length > 0 && path[path.length-1] != '/')
+            if (path.length > 0 && path.charAt(path.length-1) != '/')
                 path += '/';
             path += arg;
         }
@@ -491,7 +491,7 @@ function make_multipart_formdata(args, boundary)
 function pathlist_to_path(pathlist)
 {
     ret = path_join.apply(null, pathlist);
-    if (ret[ret.length-1] != '/')
+    if (ret.charAt(ret.length-1) != '/')
         ret += '/';
     return ret;
 }
