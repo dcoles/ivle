@@ -369,7 +369,7 @@ function create_response_item(type, level, desc, detail)
     if (level == 0) /* print Pass/Fail tag at outer level only */
     {
         var b = document.createElement("b");
-        var text = type[0].toUpperCase() + type.substr(1) + ":";
+        var text = type.charAt(0).toUpperCase() + type.substr(1) + ":";
         b.appendChild(document.createTextNode(text));
         li.appendChild(b);
     }
