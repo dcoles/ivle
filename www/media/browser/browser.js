@@ -658,7 +658,7 @@ function update_actions()
 
     /* Paste, new file, new directory, upload */
     /* Disable if the current file is not a directory */
-    if (!current_file.is_dir)
+    if (!current_file.isdir)
     {
         var paste = document.getElementById("act_paste");
         var newfile = document.getElementById("act_newfile");
@@ -699,6 +699,17 @@ function update_actions()
     {
         svncheckout.setAttribute("class", "disabled");
         svncheckout.setAttribute("disabled", "disabled");
+    }
+
+    /* There is currently nothing on the More Actions menu of use
+     * when the current file is not a directory. Hence, just remove
+     * it entirely.
+     * (This makes some of the above decisions somewhat redundant).
+     */
+    if (!(current_file.isdir))
+    {
+        var moreactions = document.getElementById("moreactions_area");
+        moreactions.setAttribute("style", "display: none;");
     }
 
     return;

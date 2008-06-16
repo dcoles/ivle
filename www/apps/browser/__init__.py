@@ -144,7 +144,7 @@ def present_actions1(req):
         class="disabled">Run</a> :
     <a id="act_download" class="choice">Download</a> :
     <a title="Refresh the current page" onclick="refresh()"
-        class="choice">Refresh</a> :
+        class="choice">Refresh</a><span id="moreactions_area"> :
     <select id="moreactions" onchange="handle_moreactions()"
         onblur="handle_moreactions()">
       <option class="moreactions" value="top"
@@ -200,7 +200,7 @@ def present_actions1(req):
       <option id="act_svncheckout" class="disabled" disabled="disabled"
         title="Re-check out your default directories"
         value="svncheckout">Re-Checkout</option>
-    </select>
+    </select></span>
 """)
 
 def present_actions2(req, isdir):

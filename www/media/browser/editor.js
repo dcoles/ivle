@@ -20,10 +20,7 @@ function edit_text()
  */
 function present_editorhead(elem, path, handler_type)
 {
-    var div = document.createElement("div");
-    /* Insert as the head element */
-    elem.insertBefore(div, elem.firstChild)
-    div.setAttribute("id", "editorhead");
+    var div = document.getElementById("actions2");
 
     /* Set up minimal interface */
     var p = dom_make_text_elem("p", "Path: ");
