@@ -468,14 +468,18 @@ function update_actions()
     }
 
     /* Serve */
-    /* Available if exactly one file is selected,
+    /* Available if zero or one files are selected,
      * and only if this is a file, not a directory */
     var serve = document.getElementById("act_serve");
-    if (numsel == 1 && !file.isdir)
+    if (numsel <= 1 && !file.isdir)
     {
         serve.setAttribute("class", "choice");
-        serve.setAttribute("href",
-            app_path(serve_app, current_path, filename));
+        if (numsel == 0)
+            serve.setAttribute("href",
+                app_path(serve_app, current_path));
+        else
+            serve.setAttribute("href",
+                app_path(serve_app, current_path, filename));
     }
     else
     {
@@ -653,7 +657,22 @@ function update_actions()
     }
 
     /* Paste, new file, new directory, upload */
-    /* Always enabled (assuming this is a directory) */
+    /* Disable if the current file is not a directory */
+    if (!current_file.is_dir)
+    {
+        var paste = document.getElementById("act_paste");
+        var newfile = document.getElementById("act_newfile");
+        var mkdir = document.getElementById("act_mkdir");
+        var upload = document.getElementById("act_upload");
+        paste.setAttribute("class", "disabled");
+        paste.setAttribute("disabled", "disabled");
+        newfile.setAttribute("class", "disabled");
+        newfile.setAttribute("disabled", "disabled");
+        mkdir.setAttribute("class", "disabled");
+        mkdir.setAttribute("disabled", "disabled");
+        upload.setAttribute("class", "disabled");
+        upload.setAttribute("disabled", "disabled");
+    }
 
     /* Subversion actions */
     /* TODO: Work out when these are appropriate */
