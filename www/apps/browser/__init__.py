@@ -139,7 +139,7 @@ def present_actions1(req):
     req.write("""    <a id="act_open" class="disabled">Open</a> :
     <a id="act_serve"
         title="View this file on the web, running your code if this is a CGI file"
-        class="disabled">Serve</a> :
+        class="disabled" target="_blank">Serve</a> :
     <a id="act_run" title="Run the selected Python file in the console"
         class="disabled">Run</a> :
     <a id="act_download" class="choice">Download</a> :
