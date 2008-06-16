@@ -123,7 +123,8 @@ class CGIRequest:
 
         if ('SERVER_NAME' not in os.environ or
             'REQUEST_METHOD' not in os.environ or
-            'REQUEST_URI' not in os.environ):
+            'SCRIPT_NAME' not in os.environ or
+            'PATH_INFO' not in os.environ):
             raise Exception("No CGI environment found")
 
         # Determine if the browser used the public host name to make the
@@ -135,7 +136,7 @@ class CGIRequest:
 
         # Inherit values for the input members
         self.method = os.environ['REQUEST_METHOD']
-        self.uri = os.environ['REQUEST_URI']
+        self.uri = os.environ['SCRIPT_NAME'] + os.environ['PATH_INFO']
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
         path = common.util.unmake_path(self.uri)

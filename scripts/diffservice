@@ -30,7 +30,6 @@ import cgi
 from os import path
 import pysvn
 import re
-import urlparse
 
 def htmlfy_diff(difftext):
     """Adds HTML markup to a udiff string"""
@@ -71,38 +70,34 @@ def get_revision(r_str):
 # IVLE handler environment.
 
 req = cgirequest.CGIRequest()
-
-# CGI Headers
-print("Content-Type: text/html\n")
-print("\n")
+req.content_type = "text/html"
 
 # Beginning of the page
-print('<div id="ivle_padding">')
-print('<h1>Diff</h1>')
+req.write('<div id="ivle_padding">\n')
+req.write('<h1>Diff</h1>\n')
 
 # Work out the revisions from query
-url = urlparse.urlparse(req.path)
-querystr = url[4]
-urlpath = url[2]
-query = parse_qs(querystr)
+fields = req.get_fieldstorage()
+field_r = fields.getlist("r")
 # Default revisions
 rev1=pysvn.Revision( pysvn.opt_revision_kind.base )
 rev2=pysvn.Revision( pysvn.opt_revision_kind.working )
-if 'r' in query:
-    if len(query['r']) == 2:
-        r2 = get_revision(query['r'][1])
+# Override revisions from query string
+if len(field_r) >= 1:
+    r1 = get_revision(field_r[0])
+    if r1 != None:
+        rev1 = r1
+    if len(field_r) >= 2:
+        r2 = get_revision(field_r[1])
         if r2 != None:
             rev2 = r2
-    r1 = get_revision(query['r'][0])
-    if r1 != None:
-        rev1=r1
 
 # Attempt to get the diff for these revisons
 try:
     svnclient = pysvn.Client()
     diff = svnclient.diff
     diff_text = diff( '/tmp/svndiff',
-        path.join('/home/', urlpath),
+        path.join('/home/', req.path),
         revision1=rev1,
         #revision1=pysvn.Revision( pysvn.opt_revision_kind.base ),
         #url_or_path2=url_or_path,
@@ -123,17 +118,17 @@ try:
     split_diff = diff_matcher.findall(diff_text)
 
     # Prints output
-    print("<dl>")
+    req.write("<dl>\n")
     for filediff in split_diff:
         filename = filediff[0]
         diffbody = htmlfy_diff(filediff[1])
-        print("<dt><strong>File:</strong> " + filename + "</dt>")
-        print("<dd><code><pre>" + diffbody + "</pre></code></dd>")
-    print("</dl>")
+        req.write("<dt><strong>File:</strong> " + filename + "</dt>\n")
+        req.write("<dd><code><pre>" + diffbody + "</pre></code></dd>\n")
+    req.write("</dl>\n")
 
 except pysvn._pysvn_2_5.ClientError, e:
-    print("<dl><dt><strong>Error:</strong></dt><dd>")
-    print(e)
-    print("</dd></dl>")
+    req.write("<dl><dt><strong>Error:</strong></dt><dd>\n")
+    req.write(e + "\n")
+    req.write("</dd></dl>\n")
 
-print('</div>')
+req.write('</div>\n')
