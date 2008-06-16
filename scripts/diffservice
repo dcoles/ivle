@@ -26,6 +26,7 @@
 
 from common import cgirequest
 from cgi import parse_qs
+import cgi
 from os import path
 import pysvn
 import re
@@ -33,7 +34,7 @@ import urlparse
 
 def htmlfy_diff(difftext):
     """Adds HTML markup to a udiff string"""
-    output = difftext
+    output = cgi.escape(difftext)
     match_file = re.compile(r'^([\+\-]{3})\s(\S+)\s\((.+)\)$',re.MULTILINE)
     match_range = re.compile(r'^\@\@ (.*) \@\@$',re.MULTILINE)
     match_add = re.compile(r'^\+(.*)$',re.MULTILINE)
