@@ -27,7 +27,7 @@ function present_editorhead(elem, path, handler_type)
     var div = document.getElementById("actions2");
 
     /* Set up minimal interface */
-    var p = dom_make_text_elem("p", "Path: ");
+    var p = dom_make_text_elem("p", "Save as: ");
     var pathname = document.createElement("input");
     pathname.setAttribute("type", "text");
     pathname.setAttribute("size", "30");
