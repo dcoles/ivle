@@ -1,18 +1,22 @@
-saved_status = null;
-
 function save_file()
 {
-    filename = document.getElementById("save_filename").value;
+    var savebutton = document.getElementById("save_button");
+    var filename = document.getElementById("save_filename").value;
     data = editAreaLoader.getValue("editbox");
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
     do_action("putfile", filename, {"path":".", "data":data}, null, true);
-    saved_status.data = "Saved.";
+    savebutton.setAttribute("value", "Saved");
+    // XXX Do not disable for now; there is a problem getting the callback
+    // to edit_text.
+    //savebutton.setAttribute("disabled", "disabled");
 }
 
 function edit_text()
 {
-    saved_status.data = "Not saved.";
+    var savebutton = document.getElementById("save_button");
+    savebutton.setAttribute("value", "Save");
+    savebutton.removeAttribute("disabled");
 }
 
 /** Presents the "editor heading" (the part with the save box)
@@ -31,14 +35,14 @@ function present_editorhead(elem, path, handler_type)
     pathname.setAttribute("value", path);
     p.appendChild(pathname);
     var savebutton = document.createElement("input");
+    savebutton.setAttribute("id", "save_button");
     savebutton.setAttribute("type", "button");
-    savebutton.setAttribute("value", "Save");
+    savebutton.setAttribute("value", "Saved");
+    savebutton.setAttribute("disabled", "disabled");
     savebutton.setAttribute("onclick", "save_file()");
     p.appendChild(savebutton);
     var t = document.createTextNode(" ");
     p.appendChild(t);
-    saved_status = document.createTextNode("Saved.");
-    //p.appendChild(saved_status);
     div.appendChild(p);
 
     /* Print a warning message if this is not actually a text file.
@@ -82,7 +86,8 @@ function handle_text(path, text, handler_type)
         start_highlight: true,
         allow_toggle: false,
         allow_resize: false,
-        replace_tab_by_spaces: 4
+        replace_tab_by_spaces: 4,
+        change_callback: "edit_text"
     });
 }
 
