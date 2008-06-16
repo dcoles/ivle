@@ -93,9 +93,7 @@ def login(req):
                     req.add_cookie(forumutil.make_forum_cookie(login_details))
                     req.throw_redirect(req.uri)
 
-    # Give a 403 Forbidden status, but present a full HTML login page
-    # instead of the usual 403 error.
-    req.status = req.HTTP_FORBIDDEN
+    # Present the HTML login page
     req.content_type = "text/html"
     req.title = "Login"
     req.write_html_head_foot = True
