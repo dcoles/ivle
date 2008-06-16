@@ -1,26 +1,30 @@
-.diff_add {
+.diff {
+    margin-left: 3em;
+}
+
+.diff-add {
     /*background-color:#aaffaa;*/
     color: green;
 }
-.diff_chg {
+.diff-chg {
     /*background-color:#ffff77;*/
     color: olive;
 }
 
-.diff_sub {
+.diff-sub {
     /*background-color:#ffaaaa;*/
     color: maroon;
 }
 
-.diff_range {
+.diff-range {
     text-decoration: underline;
 }
 
-.diff_files {
+.diff-files {
     font-weight: bold;
 }
 
-.diff_special {
+.diff-special {
     /*font-style: italic;*/
     font-variant: small-caps;
     color: gray;

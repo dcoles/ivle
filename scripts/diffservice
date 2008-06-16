@@ -40,15 +40,15 @@ def htmlfy_diff(difftext):
     match_sub = re.compile(r'^\-(.*)$',re.MULTILINE)
     match_special = re.compile(r'^\\(.*)$',re.MULTILINE)
     output = match_file.sub(
-        r'<span class="diff_files">\1 \2 <em>(\3)</em></span>', output)
+        r'<span class="diff-files">\1 \2 <em>(\3)</em></span>', output)
     output = match_range.sub(
-        r'<span class="diff_range">@@ \1 @@</span>', output)
+        r'<span class="diff-range">@@ \1 @@</span>', output)
     output = match_add.sub(
-        r'<span class="diff_add">+\1</span>', output)
+        r'<span class="diff-add">+\1</span>', output)
     output = match_sub.sub(
-        r'<span class="diff_sub">-\1</span>', output)
+        r'<span class="diff-sub">-\1</span>', output)
     output = match_special.sub(
-        r'<span class="diff_special">\\\1</span>', output)
+        r'<span class="diff-special">\\\1</span>', output)
     return output
 
 def get_revision(r_str):
@@ -118,17 +118,15 @@ try:
     split_diff = diff_matcher.findall(diff_text)
 
     # Prints output
-    req.write("<dl>\n")
     for filediff in split_diff:
         filename = filediff[0]
         diffbody = htmlfy_diff(filediff[1])
-        req.write("<dt><strong>File:</strong> " + filename + "</dt>\n")
-        req.write("<dd><code><pre>" + diffbody + "</pre></code></dd>\n")
-    req.write("</dl>\n")
+        req.write('<p><b>File:</b> %s</p>\n'
+            % cgi.escape(filename))
+        req.write('<pre class="diff">%s</pre>\n' % diffbody)
 
 except pysvn._pysvn_2_5.ClientError, e:
-    req.write("<dl><dt><strong>Error:</strong></dt><dd>\n")
-    req.write(e + "\n")
-    req.write("</dd></dl>\n")
+    req.write('<p><b>Error:</b></p>\n')
+    req.write('<pre class="diff">%s</pre>\n' % cgi.escape(e))
 
 req.write('</div>\n')
