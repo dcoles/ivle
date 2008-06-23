@@ -653,7 +653,7 @@ function ajax_call(callback, app, path, args, method, content_type)
         if (content_type == "multipart/form-data")
         {
             xhr.setRequestHeader("Content-Type",
-                "multipart/form-data, boundary=" + boundary);
+                "multipart/form-data; boundary=" + boundary);
             message = make_multipart_formdata(args, boundary);
         }
         else

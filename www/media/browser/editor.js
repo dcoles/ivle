@@ -6,7 +6,8 @@ function save_file()
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
     do_action("putfile", filename,
-              {"path":".", "data":data, "overwrite":"true"}, null, true);
+              {"path":".", "data":data, "overwrite":"true"},
+              "multipart/form-data", true);
     savebutton.setAttribute("value", "Saved");
     // XXX Do not disable for now; there is a problem getting the callback
     // to edit_text.
