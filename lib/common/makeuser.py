@@ -331,7 +331,8 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     except:
         # Couldn't open template conf.py for some reason
         # Just treat it as empty file
-        template_conf_data = ""
+        template_conf_data = ("# Warning: Problem building config script.\n"
+                              "# Could not find template conf.py file.\n")
 
     # Remove the target conf file if it exists
     try:
