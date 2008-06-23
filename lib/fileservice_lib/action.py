@@ -147,7 +147,7 @@ def get_login(_realm, existing_login, _may_save):
 # Make a Subversion client object
 svnclient = pysvn.Client()
 svnclient.callback_get_login = get_login
-svnclient.exception_style = 1               # Detailed exceptions
+svnclient.exception_style = 0               # Simple (string) exceptions
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -523,8 +523,8 @@ def action_svnadd(req, fields):
 
     try:
         svnclient.add(paths, recurse=True, force=True)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be added")
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
 
 def action_svnupdate(req, fields):
     """Performs a "svn update" to each file specified.
@@ -538,8 +538,8 @@ def action_svnupdate(req, fields):
 
     try:
         svnclient.update(path, recurse=True)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be updated")
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
 
 def action_svnrevert(req, fields):
     """Performs a "svn revert" to each file specified.
@@ -551,8 +551,8 @@ def action_svnrevert(req, fields):
 
     try:
         svnclient.revert(paths, recurse=True)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be reverted")
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
 
 def action_svnpublish(req, fields):
     """Sets svn property "ivle:published" on each file specified.
@@ -591,7 +591,7 @@ def action_svnunpublish(req, fields):
     try:
         for path in paths:
             svnclient.propdel("ivle:published", path, recurse=False)
-    except pysvn.ClientError:
+    except pysvn.ClientError, e:
         raise ActionError("Directory could not be unpublished")
 
 def action_svncommit(req, fields):
@@ -606,8 +606,8 @@ def action_svncommit(req, fields):
 
     try:
         svnclient.checkin(paths, logmsg, recurse=True)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be committed")
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
 
 def action_svncheckout(req, fields):
     """Performs a "svn checkout" of each path specified.
@@ -622,8 +622,8 @@ def action_svncheckout(req, fields):
     try:
         svnclient.callback_get_login = get_login
         svnclient.checkout(url, local_path, recurse=True)
-    except pysvn.ClientError:
-        raise ActionError("One or more files could not be checked out")
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
 
 # Table of all action functions #
 # Each function has the interface f(req, fields).
