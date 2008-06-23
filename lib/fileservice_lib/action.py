@@ -130,9 +130,19 @@ import pysvn
 from common import (util, studpath, zip)
 import conf
 
-def get_login(_realm, _username, _may_save):
-    """Return the subversion credentials for the user."""
-    return (True, conf.login, conf.svn_pass, True)
+def get_login(_realm, existing_login, _may_save):
+    """Callback function used by pysvn for authentication.
+    realm, existing_login, _may_save: The 3 arguments passed by pysvn to
+        callback_get_login.
+        The following has been determined empirically, not from docs:
+        existing_login will be the name of the user who owns the process on
+        the first attempt, "" on subsequent attempts. We use this fact.
+    """
+    # Only provide credentials on the _first_ attempt.
+    # If we're being asked again, then it means the credentials failed for
+    # some reason and we should just fail. (This is not desirable, but it's
+    # better than being asked an infinite number of times).
+    return (existing_login != "", conf.login, conf.svn_pass, True)
 
 # Make a Subversion client object
 svnclient = pysvn.Client()

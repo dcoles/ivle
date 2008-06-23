@@ -98,11 +98,28 @@ def update_user(props):
     db.update_user(**update)
     db.close()
 
-def get_login(login, passwd, _realm, _login, _may_save):
+def get_login(login, passwd, realm, existing_login, _may_save):
     """Callback function used by pysvn for authentication.
+    login, passwd: Credentials of the user attempting to log in.
+        passwd in clear (this should be the user's svn_pass, a
+        randomly-generated permanent password for this user, not their main
+        IVLE password).
+    realm, existing_login, _may_save: The 3 arguments passed by pysvn to
+        callback_get_login.
+        The following has been determined empirically, not from docs:
+        existing_login will be the name of the user who owns the process on
+        the first attempt, "" on subsequent attempts. We use this fact.
     """
-    logging.debug("Getting password for %s (realm %s)" % (login, _realm))
-    return (True, login, passwd, False)
+    logging.debug("Getting password for %s (realm %s)" % (login, realm))
+    # Only provide credentials on the _first_ attempt.
+    # If we're being asked again, then it means the credentials failed for
+    # some reason and we should just fail. (This is not desirable, but it's
+    # better than being asked an infinite number of times).
+    if existing_login == "":
+        logging.warning("Could not authenticate SVN for %s" % login)
+        return (False, login, passwd, False)
+    else:
+        return (True, login, passwd, False)
 
 def activate_user(props):
     """Create the on-disk stuff for the given user.
