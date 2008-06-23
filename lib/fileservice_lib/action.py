@@ -147,6 +147,7 @@ def get_login(_realm, existing_login, _may_save):
 # Make a Subversion client object
 svnclient = pysvn.Client()
 svnclient.callback_get_login = get_login
+svnclient.exception_style = 1               # Detailed exceptions
 
 DEFAULT_LOGMESSAGE = "No log message supplied."
 
@@ -559,6 +560,9 @@ def action_svnpublish(req, fields):
     anyway).
 
     Reads fields: 'path'
+
+    XXX Currently unused by the client (calls action_publish instead, which
+    has a completely different publishing model).
     """
     paths = fields.getlist('path')
     if len(paths):
@@ -577,6 +581,9 @@ def action_svnunpublish(req, fields):
     """Deletes svn property "ivle:published" on each file specified.
 
     Reads fields: 'path'
+
+    XXX Currently unused by the client (calls action_unpublish instead, which
+    has a completely different publishing model).
     """
     paths = fields.getlist('path')
     paths = map(lambda path: actionpath_to_local(req, path), paths)
