@@ -143,7 +143,9 @@ function do_action(action, path, args, content_type, ignore_response)
              * to the user */
             var error = response.getResponseHeader("X-IVLE-Action-Error");
             if (error != null)
-                alert("Error: " + error.toString() + ".");
+                /* Note: This header (in particular) comes URI-encoded, to
+                 * allow multi-line error messages. Decode */
+                alert("Error: " + decodeURIComponent(error.toString()) + ".");
             /* Now read the response and set up the page accordingly */
             if (ignore_response != true)
                 handle_response(path, response);
