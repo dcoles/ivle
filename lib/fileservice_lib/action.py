@@ -239,7 +239,7 @@ def movefile(req, frompath, topath, copy=False):
     if os.path.exists(topath):
         if frompath == topath:
             raise ActionError("Source and destination are the same")
-        raise ActionError("Another file already exists with that name")
+        raise ActionError("A file already exists with that name")
 
     try:
         if copy:
@@ -303,6 +303,9 @@ def action_mkdir(req, fields):
         raise ActionError("Required field missing")
     path = actionpath_to_local(req, path)
 
+    if os.path.exists(path):
+        raise ActionError("A file already exists with that name")
+
     # Create the directory
     try:
         os.mkdir(path)
@@ -338,7 +341,7 @@ def action_putfile(req, fields):
 
     if not overwrite:
         if os.path.exists(path):
-            raise ActionError("A file with that name already exists")
+            raise ActionError("A file already exists with that name")
 
     # Copy the contents of file object 'data' to the path 'path'
     try:
