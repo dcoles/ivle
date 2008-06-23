@@ -603,6 +603,23 @@ function new_xmlhttprequest()
     }
 }
 
+/** Creates a random string of length length,
+ * consisting of alphanumeric characters.
+ */
+var rand_chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZ"
+               + "abcdefghiklmnopqrstuvwxyz";
+function random_string(length)
+{
+    var str = Array(length);
+    var v;
+    for (var i=0; i<length; i++)
+    {
+        v = Math.floor(Math.random() * rand_chars.length);
+        str[i] = rand_chars.charAt(v);
+    }
+    return str.join('');
+}
+
 /** Makes an asynchronous XMLHttpRequest call to the server.
  * Sends the XMLHttpRequest object containing the completed response to a
  * specified callback function.
@@ -627,7 +644,7 @@ function ajax_call(callback, app, path, args, method, content_type)
     /* A random string, for multipart/form-data
      * (This is not checked against anywhere else, it is solely defined and
      * used within this function) */
-    var boundary = "48234n334nu7n4n2ynonjn234t683jyh80j";
+    var boundary = random_string(20);
     var xhr = new_xmlhttprequest();
     xhr.onreadystatechange = function()
         {
