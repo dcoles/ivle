@@ -405,7 +405,7 @@ def action_putfiles(req, fields):
             try:
                 dest = open(filepath_local, 'wb')
                 if data is not None:
-                    shutil.copyfileobj(cStringIO.StringIO(filedata), dest)
+                    shutil.copyfileobj(filedata, dest)
             except OSError:
                 goterror = True
 
