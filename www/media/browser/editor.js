@@ -40,7 +40,9 @@ function present_editorhead(elem, path, handler_type)
     savebutton.setAttribute("id", "save_button");
     savebutton.setAttribute("type", "button");
     savebutton.setAttribute("value", "Saved");
-    savebutton.setAttribute("disabled", "disabled");
+    // XXX Do not disable for now; there is a problem getting the callback
+    // to edit_text.
+    //savebutton.setAttribute("disabled", "disabled");
     savebutton.setAttribute("onclick", "save_file()");
     p.appendChild(savebutton);
     var t = document.createTextNode(" ");
