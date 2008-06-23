@@ -339,7 +339,12 @@ def action_putfile(req, fields):
     else:
         overwrite = True
 
-    if not overwrite:
+    if overwrite:
+        # Overwrite files; but can't if it's a directory
+        if os.path.isdir(path):
+            raise ActionError("A directory already exists "
+                    + "with that name")
+    else:
         if os.path.exists(path):
             raise ActionError("A file already exists with that name")
 
@@ -372,7 +377,6 @@ def action_putfiles(req, fields):
         raise ActionError("Required field missing")
     path = actionpath_to_urlpath(req, path)
     goterror = False
-
 
     for datum in data:
         # Each of the uploaded files
