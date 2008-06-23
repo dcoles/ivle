@@ -148,7 +148,7 @@ function do_action(action, path, args, content_type, ignore_response)
                 alert("Error: " + decodeURIComponent(error.toString()) + ".");
             /* Now read the response and set up the page accordingly */
             if (ignore_response != true)
-                handle_response(path, response);
+                handle_response(path, response, true);
         }
     /* Call the server and perform the action. This mutates the server. */
     ajax_call(callback, service_app, path, args, "POST", content_type);
@@ -167,7 +167,7 @@ function navigate(path)
     callback = function(response)
         {
             /* Read the response and set up the page accordingly */
-            handle_response(path, response, url.args);
+            handle_response(path, response, false, url.args);
         }
     /* Get any query strings */
     url = parse_url(window.location.href);
@@ -213,10 +213,13 @@ function get_handler_type(content_type)
  * things) be used to update the URL in the location bar.
  * \param response XMLHttpRequest object returned by the server. Should
  * contain all the response data.
+ * \param is_action Boolean. True if this is the response to an action, false
+ * if this is the response to a simple listing. This is used in handling the
+ * error.
  * \param url_args Arguments dict, for the arguments passed to the URL
  * in the browser's address bar (will be forwarded along).
  */
-function handle_response(path, response, url_args)
+function handle_response(path, response, is_action, url_args)
 {
     /* TODO: Set location bar to "path" */
     current_path = path;
@@ -246,7 +249,37 @@ function handle_response(path, response, url_args)
     }
     catch (e)
     {
-        handle_error("The server returned an invalid directory listing");
+        if (is_action)
+        {
+            var err = document.createElement("div");
+            var p = dom_make_text_elem("p", "Error: "
+                    + "There was an unexpected server error processing "
+                    + "the selected command.");
+            err.appendChild(p);
+            p = dom_make_text_elem("p", "If the problem persists, please "
+                    + "contact the system administrator.")
+            err.appendChild(p);
+            p = document.createElement("p");
+            var refresh = document.createElement("input");
+            refresh.setAttribute("type", "button");
+            refresh.setAttribute("value", "Back to file view");
+            refresh.setAttribute("onclick", "refresh()");
+            p.appendChild(refresh);
+            err.appendChild(p);
+            handle_error(err);
+        }
+        else
+        {
+            var err = document.createElement("div");
+            var p = dom_make_text_elem("p", "Error: "
+                    + "There was an unexpected server error retrieving "
+                    + "the requested file or directory.");
+            err.appendChild(p);
+            p = dom_make_text_elem("p", "If the problem persists, please "
+                    + "contact the system administrator.")
+            err.appendChild(p);
+            handle_error(err);
+        }
         return;
     }
     /* Get "." out, it's special */
@@ -353,11 +386,25 @@ function clearpage_dir()
 /*** HANDLERS for different types of responses (such as dir listing, file,
  * etc). */
 
+/* handle_error.
+ * message may either be a string, or a DOM node, which will be placed inside
+ * a div.
+ */
 function handle_error(message)
 {
     var files = document.getElementById("filesbody");
-    var txt_elem = dom_make_text_elem("div", "Error: "
-        + message.toString() + ".")
+    var txt_elem;
+    if (typeof(message) == "string")
+    {
+        txt_elem = dom_make_text_elem("div", "Error: "
+                   + message.toString() + ".")
+    }
+    else
+    {
+        /* Assume message is a DOM node */
+        txt_elem = document.createElement("div");
+        txt_elem.appendChild(message);
+    }
     txt_elem.setAttribute("class", "padding error");
     files.appendChild(txt_elem);
 }
