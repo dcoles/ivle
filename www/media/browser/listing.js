@@ -114,6 +114,8 @@ function action_newfile()
     var path = prompt("New file name?");
     if (path == null) return;
     /* "Upload" a blank file */
+    /* Note: "overwrite" defaults to false, so will error if it already
+     * exists. */
     do_action("putfile", current_path, {"path":path, "data":""});
     return false;
 }

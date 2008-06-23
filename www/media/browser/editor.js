@@ -5,7 +5,8 @@ function save_file()
     data = editAreaLoader.getValue("editbox");
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
-    do_action("putfile", filename, {"path":".", "data":data}, null, true);
+    do_action("putfile", filename,
+              {"path":".", "data":data, "overwrite":"true"}, null, true);
     savebutton.setAttribute("value", "Saved");
     // XXX Do not disable for now; there is a problem getting the callback
     // to edit_text.

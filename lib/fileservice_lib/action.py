@@ -41,15 +41,13 @@
 #       to:     The path of the target filename. Error if the file already
 #               exists.
 #
-# action=putfile: Upload a file to the student workspace, and optionally
-#               accept zip files which will be unpacked.
-#       path:   The path to the file to be written. If it exists, will
-#               overwrite. Error if the target file is a directory.
+# action=putfile: Upload a file to the student workspace.
+#       path:   The path to the file to be written. Error if the target
+#               file is a directory.
 #       data:   Bytes to be written to the file verbatim. May either be
 #               a string variable or a file upload.
-#       unpack: Optional. If "true", and the data is a valid ZIP file,
-#               will create a directory instead and unpack the ZIP file
-#               into it.
+#       overwrite: Optional. If supplied, the file will be overwritten.
+#               Otherwise, error if path already exists.
 #
 # action=putfiles: Upload multiple files to the student workspace, and
 #                 optionally accept zip files which will be unpacked.
@@ -58,7 +56,7 @@
 #       data:   A file upload (may not be a simple string). The filename
 #               will be used to determine the target filename within
 #               the given path.
-#       unpack: Optional. If "true", if any data is a valid ZIP file,
+#       unpack: Optional. If supplied, if any data is a valid ZIP file,
 #               will create a directory instead and unpack the ZIP file
 #               into it.
 #
@@ -67,7 +65,7 @@
 #               does. The dir will be made with this name.
 #
 # The differences between putfile and putfiles are:
-# * putfile can only accept a single file.
+# * putfile can only accept a single file, and can't unpack zipfiles.
 # * putfile can accept string data, doesn't have to be a file upload.
 # * putfile ignores the upload filename, the entire filename is specified on
 #       path. putfiles calls files after the name on the user's machine.
@@ -113,8 +111,8 @@
 #               checked out.
 # 
 # TODO: Implement the following actions:
-#   putfiles, svnrevert, svnupdate, svncommit
-# TODO: Implement ZIP unpacking in putfile and putfiles.
+#   svnupdate (done?)
+# TODO: Implement ZIP unpacking in putfiles (done?).
 # TODO: svnupdate needs a digest to tell the user the files that were updated.
 #   This can be implemented by some message passing between action and
 #   listing, and having the digest included in the listing. (Problem if
@@ -315,7 +313,7 @@ def action_putfile(req, fields):
     """Writes data to a file, overwriting it if it exists and creating it if
     it doesn't.
 
-    Reads fields: 'path', 'data' (file upload)
+    Reads fields: 'path', 'data' (file upload), 'overwrite'
     """
     # TODO: Read field "unpack".
     # Important: Data is "None" if the file submitted is empty.
@@ -331,6 +329,16 @@ def action_putfile(req, fields):
 
     if data is not None:
         data = cStringIO.StringIO(data)
+
+    overwrite = fields.getfirst('overwrite')
+    if overwrite is None:
+        overwrite = False
+    else:
+        overwrite = True
+
+    if not overwrite:
+        if os.path.exists(path):
+            raise ActionError("A file with that name already exists")
 
     # Copy the contents of file object 'data' to the path 'path'
     try:
