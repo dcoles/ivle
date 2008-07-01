@@ -169,8 +169,10 @@ def start_console(uid, jail_path, working_dir):
 
         tries += 1
 
+    # If we can't start the console after 5 attemps (can't find a free port 
+    # during random probing, syntax errors, segfaults) throw an exception.
     if tries == 5:
-        raise Exception, "unable to find a free port!"
+        raise Exception, "unable to start console service!"
 
     return (host, port, magic)
 
