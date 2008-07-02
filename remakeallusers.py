@@ -32,17 +32,20 @@ import conf
 import common.makeuser
 import optparse
 import shutil
-# Import modules from the website is tricky since they're in the www
-# directory.
-sys.path.append(os.path.join(os.getcwd(), 'www'))
+import logging
 
 p = optparse.OptionParser()
 p.add_option('--incremental', '-i', action='store_true')
+p.add_option('--verbose', '-v', action='store_true')
 options, arguments = p.parse_args()
 
+if options.verbose:
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                        level=logging.DEBUG)
+
 if os.getuid() != 0:
-    print "Must run remakeallusers.py as root."
-    sys.exit()
+    print >> sys.stderr, "%s must be run as root" % sys.argv[0]
+    sys.exit(1)
 
 try:
     db = common.db.DB()
@@ -51,9 +54,8 @@ try:
     def repack(flds):
         return (flds['login'], flds['unixid'])
     uids = dict(map(repack,res))
-
 except Exception, message:
-    print "Error: " + str(message)
+    logging.error(str(message))
     sys.exit(1)
 
 # First check that our __templateuser__ directory exits, if not create it
@@ -64,12 +66,14 @@ if not os.path.isdir(templateuserdir):
 
 # Generate manifest of files that differ between template user and staging
 if options.incremental:
-    print "Incremental Rebuild selected"
+    logging.info("incremental rebuild started")
     manifest = common.makeuser.generate_manifest(stagingdir, templateuserdir)
-    print "Generated change manifest"
-    print "Adding/Updating: %s\nRemoving: %s" % manifest
+    logging.debug("generated change manifest")
+    logging.debug("  adding/updating: %s" % manifest[0])
+    logging.debug("  removing: %s" % manifest[1])
 else:
     # Force a full rebuild
+    logging.info("full rebuild started")
     manifest = None
 
 list.sort(key=lambda user: user.login)
@@ -82,21 +86,21 @@ for user in list:
         try:
             uid = uids[login]
         except KeyError:
-            raise Exception("User %s does not have a unixid in the database"
+            raise Exception("user %s does not have a unixid in the database"
                 % login)
         # Remake the user's jail
         common.makeuser.make_jail(login, uid, manifest=manifest)
     except Exception, message:
-        print "Error: " + str(message)
+        logging.warning(str(message))
         continue
 
-    print "Successfully recreated user %s's jail." % login
+    logging.debug("recreated user %s's jail." % login)
     
 # Update the template user directory
-print "Updating templateuser directory"
+logging.debug("updating templateuser directory")
 shutil.rmtree(templateuserdir)
 #common.makeuser.linktree(stagingdir, templateuserdir)
 common.makeuser.make_jail('__templateuser__', 0, manifest=manifest)
 shutil.rmtree(os.path.join(templateuserdir, 'home'))
 
-print "Done!"
+logging.info("rebuild completed successfully")
