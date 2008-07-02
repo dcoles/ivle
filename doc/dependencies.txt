@@ -13,18 +13,21 @@ The setup program also requires:
 
 * GCC
 * Make
+* Debootstrap
 
 Note: While the developers have made every effort to ensure IVLE is compatible
 with all POSIX-compliant operating systems, our setup procedure is currently
-tailored to Ubuntu Linux. In particular, it pulls shared libraries out of
-known places.
+tailored to Ubuntu Linux. The default install builds a jail based on the Ubuntu 
+APT system, but this could be fairly easily modified to work with other APT 
+systems which support debootstrap.
 
-Getting IVLE running on another Unix system would require manually retrieving
-all of the packages in this document, as well as changing the setup script to
-get the shared library files from the correct places on that system.
+Getting IVLE running on another Unix system that doesn't support APT would 
+require getting the equivilent packages using the local package system and 
+modifying buildjail.sh to bootstrap a new jail.
 
-At this stage we can only officially recommend Ubuntu 7.04 or later. (Has been
-tested on 7.04 and 7.10).
+At this stage we can only officially recommend Ubuntu 8.04 or later.  
+(Previously supported 7.04 and 7.10, but the APT repositoryies lack important 
+packages which had to be manually installed).
 
 Ubuntu Install Procedure
 ------------------------

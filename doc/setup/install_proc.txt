@@ -21,7 +21,7 @@
 ##########################################################################
 
 sudo apt-get install subversion
-sudo apt-get install gcc libc6 libc6-dev make
+sudo apt-get install gcc libc6 libc6-dev make debootstrap
 sudo apt-get install apache2 libapache2-mod-python libapache2-svn
 sudo apt-get install python2.5-dev python-svn python-webpy
 sudo apt-get install postgresql python-pygresql python-ldap
