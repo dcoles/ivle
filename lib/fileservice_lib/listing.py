@@ -220,19 +220,19 @@ def get_dirlisting(req, svnclient, path):
             ls_list = svnclient.list(path, revision=revision, recurse=False)
             for ls in ls_list:
                 filename, attrs = PysvnList_tofileinfo(path, ls)
-                listing[filename] = attrs
+                listing[filename.decode('utf-8')] = attrs
         else:
             status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
             for status in status_list:
                 filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename] = attrs
+                listing[filename.decode('utf-8')] = attrs
     except pysvn.ClientError:
         # Presumably the directory is not under version control.
         # Fallback to just an OS file listing.
         try:
             for filename in os.listdir(path):
-                listing[filename] = file_to_fileinfo(path, filename)
+                listing[filename.decode('utf-8')] = file_to_fileinfo(path, filename)
         except OSError:
             # Non-directories will error - that's OK, we just want the "."
             pass
