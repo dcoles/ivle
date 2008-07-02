@@ -35,13 +35,13 @@ JAIL=jail
 SYSTEMPACKAGES="python-cjson python-svn"
 STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
     python-beautifulsoup python-lxml python-imaging \
-    python-simpletal" #nltk, elementtree-1.3beta (needs tidy)
+    python-simpletal python-nltk" # elementtree-1.3beta (needs tidy)
 
 # FIXME: [nasty-hack] Override the default mirror to the local AARNET one.  
 # This should really be a local configuration option, but unfortunately 
 # setup.py is a bit of a mess and needs a clean up to support this. For the 
 # mean time we'll override it here.
-MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/achive/
+MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
 # [/nasty-hack]
 
 if [ "x$MIRROR" = "x" ]; then
@@ -58,6 +58,7 @@ sudo debootstrap --components=`echo $SECTIONS | tr ' ' ','` \
 echo "Updating package sources..."
 sudo tee $JAIL/etc/apt/sources.list > /dev/null <<SOURCES
 # APT Mirrors
+deb http://apt.qeuni.net/ivle $RELEASE nltk matplotlib
 deb $MIRROR $RELEASE main $SECTIONS
 deb $MIRROR $RELEASE-security $SECTIONS
 deb $MIRROR $RELEASE-updates $SECTIONS"
@@ -65,8 +66,8 @@ SOURCES
 
 echo "Adding packages..."
 sudo chroot $JAIL /bin/sh -c "apt-get -y update"
-sudo chroot $JAIL /bin/sh -c "apt-get -y install $SYSTEMPACKAGES \
-    $STUDENTPACKAGES"
+sudo chroot $JAIL /bin/sh -c "apt-get -y --allow-unauthenticated install \
+    $SYSTEMPACKAGES $STUDENTPACKAGES"
 sudo chroot $JAIL /bin/sh -c "apt-get -y upgrade"
 sudo chroot $JAIL /bin/sh -c "apt-get -y clean"
 
