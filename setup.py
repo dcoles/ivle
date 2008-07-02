@@ -82,123 +82,6 @@ import common.makeuser
 # Just get the first 3 characters of sys.version.
 PYTHON_VERSION = sys.version[0:3]
 
-# Operating system files to copy over into the jail.
-# These will be copied from the given place on the OS file system into the
-# same place within the jail.
-JAIL_FILES = [
-    '/lib/ld-linux.so.2',
-    '/lib/tls/i686/cmov/libc.so.6',
-    '/lib/tls/i686/cmov/libdl.so.2',
-    '/lib/tls/i686/cmov/libm.so.6',
-    '/lib/tls/i686/cmov/libpthread.so.0',
-    '/lib/tls/i686/cmov/libutil.so.1',
-    '/etc/ld.so.conf',
-    '/etc/ld.so.cache',
-    # These 2 files do not exist in Ubuntu
-    #'/etc/ld.so.preload',
-    #'/etc/ld.so.nohwcap',
-    # UNIX commands
-    '/usr/bin/strace',
-    '/bin/ls',
-    '/bin/echo',
-    # Needed by python
-    '/usr/bin/python%s' % PYTHON_VERSION,
-    # Needed by fileservice
-    '/lib/libcom_err.so.2',
-    '/lib/libcrypt.so.1',
-    '/lib/libkeyutils.so.1',
-    '/lib/libresolv.so.2',
-    '/lib/librt.so.1',
-    '/lib/libuuid.so.1',
-    '/usr/lib/libapr-1.so.0',
-    '/usr/lib/libaprutil-1.so.0',
-    '/usr/lib/libapt-pkg-libc6.6-6.so.4.5',
-    '/usr/lib/libdb-4.6.so',
-    '/usr/lib/libexpat.so.1',
-    '/usr/lib/libgcrypt.so.11',
-    '/usr/lib/libgnutls.so.13',
-    '/usr/lib/libgpg-error.so.0',
-    '/usr/lib/libgssapi_krb5.so.2',
-    '/usr/lib/libk5crypto.so.3',
-    '/usr/lib/libkrb5.so.3',
-    '/usr/lib/libkrb5support.so.0',
-    '/usr/lib/liblber.so.2',
-    '/usr/lib/liblber-2.4.so.2',
-    '/usr/lib/libldap_r.so.2',
-    '/usr/lib/libldap_r-2.4.so.2',
-    '/usr/lib/libneon.so.27',
-    '/usr/lib/libpq.so.5',
-    '/usr/lib/libsasl2.so.2',
-    '/usr/lib/libsqlite3.so.0',
-    '/usr/lib/libsvn_client-1.so.1',
-    '/usr/lib/libsvn_delta-1.so.1',
-    '/usr/lib/libsvn_diff-1.so.1',
-    '/usr/lib/libsvn_fs-1.so.1',
-    '/usr/lib/libsvn_fs_base-1.so.1',
-    '/usr/lib/libsvn_fs_fs-1.so.1',
-    '/usr/lib/libsvn_ra-1.so.1',
-    '/usr/lib/libsvn_ra_dav-1.so.1',
-    '/usr/lib/libsvn_ra_local-1.so.1',
-    '/usr/lib/libsvn_ra_svn-1.so.1',
-    '/usr/lib/libsvn_repos-1.so.1',
-    '/usr/lib/libsvn_subr-1.so.1',
-    '/usr/lib/libsvn_wc-1.so.1',
-    '/usr/lib/libtasn1.so.3',
-    '/usr/lib/libxml2.so.2',
-    # Needed by matplotlib
-    '/usr/lib/i686/cmov/libssl.so.0.9.8',
-    '/usr/lib/i686/cmov/libcrypto.so.0.9.8',
-    '/lib/tls/i686/cmov/libnsl.so.1',
-    '/usr/lib/libz.so.1',
-    '/usr/lib/atlas/liblapack.so.3',
-    '/usr/lib/atlas/libblas.so.3',
-    '/usr/lib/libg2c.so.0',
-    '/usr/lib/libstdc++.so.6',
-    '/usr/lib/libfreetype.so.6',
-    '/usr/lib/libpng12.so.0',
-    '/usr/lib/libBLT.2.4.so.8.4',
-    '/usr/lib/libtk8.4.so.0',
-    '/usr/lib/libtcl8.4.so.0',
-    '/usr/lib/tcl8.4/init.tcl',
-    '/usr/lib/libX11.so.6',
-    '/usr/lib/libXau.so.6',
-    '/usr/lib/libXdmcp.so.6',
-    '/lib/libgcc_s.so.1',
-    '/etc/matplotlibrc',
-    # Needed for resolv
-    '/lib/libnss_dns.so.2',
-    '/lib/libnss_mdns4_minimal.so.2',
-    '/etc/hosts',
-    '/etc/resolv.conf',
-    #'/etc/hosts.conf',
-    #'/etc/hostname',
-    '/etc/nsswitch.conf',
-    '/lib/libnss_files.so.2',
-    # Needed for PIL
-    '/usr/lib/libjpeg.so.62',
-    # Needed by lxml
-    '/usr/lib/libxslt.so.1',
-    '/usr/lib/libexslt.so.0',
-    # Needed by elementtree
-    '/usr/lib/libtidy-0.99.so.0',
-]
-# Symlinks to make within the jail. Src mapped to dst.
-JAIL_LINKS = {
-    'python%s' % PYTHON_VERSION: 'jail/usr/bin/python',
-}
-# Trees to copy. Src mapped to dst (these will be passed to action_copytree).
-JAIL_COPYTREES = {
-    '/usr/lib/python%s' % PYTHON_VERSION:
-        'jail/usr/lib/python%s' % PYTHON_VERSION,
-    '/var/lib/python-support/python%s' % PYTHON_VERSION:
-        'jail/var/lib/python-support/python%s' %PYTHON_VERSION,
-    '/usr/share/matplotlib': 'jail/usr/share/matplotlib',
-    '/etc/ld.so.conf.d': 'jail/etc/ld.so.conf.d',
-    '/usr/share/pycentral': 'jail/usr/share/pycentral',
-    '/usr/share/pycentral-data': 'jail/usr/share/pycentral-data',
-    '/usr/share/nltk': 'jail/usr/share/nltk',
-}
-
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
     def __init__(self, option_name, default, prompt, comment):
@@ -442,7 +325,8 @@ IVLE Setup
         return 1
 
     # Disallow run as root unless installing
-    if (operation != 'install' and operation != 'updatejails'
+    if (operation != 'install' and operation != 'updatejails' and operation != 
+    'build'
         and os.geteuid() == 0):
         print >>sys.stderr, "I do not want to run this stage as root."
         print >>sys.stderr, "Please run as a normal user."
@@ -1048,6 +932,11 @@ def build(args):
     if dry:
         print "Dry run (no actions will be executed\n"
     
+    if not dry and os.geteuid() != 0:
+        print >>sys.stderr, "Must be root to run build"
+        print >>sys.stderr, "(I need to chroot)."
+        return 1
+    
     # Find out the revison number
     revnum = get_svn_revision()
     print "Building Revision %s"%str(revnum)
@@ -1064,16 +953,10 @@ def build(args):
 
     # Create the jail and its subdirectories
     # Note: Other subdirs will be made by copying files
-    action_mkdir('jail', dry)
-    action_mkdir('jail/home', dry)
-    action_mkdir('jail/tmp', dry)
-
-    # Chmod the tmp directory to world writable
-    action_chmod_w('jail/tmp', dry)
+    action_runprog('./buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail
     action_copylist(install_list.list_scripts, 'jail/opt/ivle', dry)
-    copy_os_files_jail(dry)
     # Chmod the python console
     action_chmod_x('jail/opt/ivle/scripts/python-console', dry)
     action_chmod_x('jail/opt/ivle/scripts/fileservice', dry)
@@ -1105,17 +988,6 @@ def build(args):
     f.close()
 
     return 0
-
-def copy_os_files_jail(dry):
-    """Copies necessary Operating System files from their usual locations
-    into the jail/ directory of the cwd."""
-    # Currently source paths are configured for Ubuntu.
-    for filename in JAIL_FILES:
-        copy_file_to_jail(filename, dry)
-    for src, dst in JAIL_LINKS.items():
-        action_symlink(src, dst, dry)
-    for src, dst in JAIL_COPYTREES.items():
-        action_copytree(src, dst, dry)
 
 def copy_file_to_jail(src, dry):
     """Copies a single file from an absolute location into the same location
@@ -1420,15 +1292,6 @@ def action_chmod_x(file, dry):
     if not dry:
         os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
             | stat.S_IXGRP | stat.S_IRGRP | stat.S_IXOTH | stat.S_IROTH)
-
-
-def action_chmod_w(file, dry):
-    """Chmod 777 a file (sets permissions to rwxrwxrwx)."""
-    print "chmod 777", file
-    if not dry:
-        os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
-            | stat.S_IXGRP | stat.S_IWGRP | stat.S_IRGRP | stat.S_IXOTH
-            | stat.S_IWOTH | stat.S_IROTH)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.

@@ -1,7 +1,7 @@
 # Installation Procedure for IVLE
 # ===============================
 
-# Target Platform: Ubuntu 7.10
+# Target Platform: Ubuntu 8.04
 #
 # IMPORTANT: This is NOT a shell script. It has interactive sections and
 # things that need to be customized.
@@ -16,111 +16,17 @@
 # Author: Matt Giuca
 # Date: 29/1/2008
 
-sudo vim /etc/apt/sources.list
-
-# Gutsy by default had the CD-ROM packages selected, and the Internet packages
-# commented out. (A comment in the apt sources list said it was because it
-# failed to verify - IMPORTANT?? Probably not.)
-# Comment out line 4 (deb cdrom:...)
-
-# Uncomment ALL the lines for main, restricted and universe
-# (deb http:...gutsy main restricted, deb-src ... main restricted
-# deb http:...gutsy universe)
-# Universe is important for pysvn (python-svn) later on
-# :wq
-
 ##########################################################################
 # Apt packages
 ##########################################################################
 
-sudo apt-get update
 sudo apt-get install subversion
 sudo apt-get install gcc libc6 libc6-dev make
 sudo apt-get install apache2 libapache2-mod-python libapache2-svn
 sudo apt-get install python2.5-dev python-svn python-webpy
-sudo apt-get install python-numpy python-matplotlib
 sudo apt-get install postgresql python-pygresql python-ldap
 sudo apt-get install php5 php5-pgsql
-
-# Note: I had a lot of trouble with the python-svn package.
-# After playing around a bit it started working.
-# python -c 'import pysvn'
-# to test if it worked.
-# Do Not install python-svn-dbg.
-
-##########################################################################
-# Python packages needed by IVLE or student code
-##########################################################################
-#
-# See trunk/doc/dependencies.txt
-
-# CJSON
-# Note: apt-get install python-cjson puts it in an unexpected place.
-# Setup doesn't handle this correctly, so just install by hand:
-
-wget 'http://pypi.python.org/packages/source/p/python-cjson/python-cjson-1.0.5.tar.gz'
-tar -zxvf python-cjson-1.0.5.tar.gz
-
-cd python-cjson-1.0.5
-./setup.py build
-sudo ./setup.py install
-cd ..
-
-
-# NLTK for student code
-wget 'http://prdownloads.sourceforge.net/nltk/nltk-0.9.2.tar.gz'
-tar -xzvf nltk-0.9.2.tar.gz
-wget 'http://prdownloads.sourceforge.net/nltk/nltk-data-0.9.2.zip'
-unzip nltk-data-0.9.2.zip
-
-cd nltk-0.9.2
-sudo python setup.py install
-cd ..
-sudo mkdir /usr/share/nltk
-sudo mv data /usr/share/nltk/
-sudo chmod -R g+r /usr/share/nltk/data
-
-# Beautiful Soup for student code
-# via apt-get
-sudo apt-get install python-beautifulsoup
-# or
-wget 'http://www.crummy.com/software/BeautifulSoup/download/BeautifulSoup.tar.gz'
-tar -xzvf BeautifulSoup.tar.gz
-
-cd BeautifulSoup*
-sudo python setup.py install
-cd ..
-
-# LXML for student code
-sudo apt-get install python-lxml
-
-# Python Imaging Library for student code
-sudo apt-get install python-imaging
-
-# Elementtree 1.3a for student code
-# Needs libtidy for 'TidyHTML' parts
-sudo apt-get install libtidy-0.99-0 
-
-svn co http://svn.effbot.org/public/tags/elementtree-1.3a3-20070912/ elementtree1.3
-cd elementtree1.3
-sudo python setup.py install
-cd ..
-
-# SimpleTAL for student code
-sudo apt-get install python-simpletal
-
-# SciPy for student code
-sudo apt-get install python-scipy
-
-# Documentation packages needed for tutorial system: Docutils, Epydoc
-# wget each of these, untar them, and then do: sudo python ./setup.py install
-
-http://docutils.sourceforge.net/docutils-snapshot.tgz
-http://downloads.sourceforge.net/epydoc/epydoc-3.0.1.tar.gz?use_mirror=optusnet
-
-# Or using apt-get
-# (Note: epydoc doesn't work on Fiesty using apt-get)
-
+sudo apt-get install python-cjson
 sudo apt-get install python-docutils python-epydoc
 
 ##########################################################################
