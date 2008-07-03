@@ -71,4 +71,4 @@ sudo chroot $JAIL /bin/sh -c "apt-get -y upgrade"
 sudo chroot $JAIL /bin/sh -c "apt-get -y clean"
 
 echo "Pruning unwanted files from Jail..."
-sudo rm -rf $JAIL/dev/ $JAIL/sys/ $JAIL/proc/ $JAIL/boot/
+sudo rm -rf $JAIL/dev/ $JAIL/sys/ $JAIL/proc/ $JAIL/boot/ $JAIL/var/lib/dpkg/ $JAIL/usr/share/perl* $JAIL/usr/share/doc $JAIL/usr/share/i18n $JAIL/usr/share/locale $JAIL/usr/share/man $JAIL/usr/share/zoneinfo
