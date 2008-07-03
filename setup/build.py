@@ -61,7 +61,7 @@ Generates .pyc or .pyo files for all the IVLE .py files."""
     # Call the real function
     __build(options.dry, options.apt_mirror)
 
-def __build(dry=False,apt_mirror="http://archive.ubuntu.com/ubuntu/"):
+def __build(dry=False,apt_mirror=None):
     # Importing configuration is a little tricky
     sys.path.append(os.pardir)
     import install_list
@@ -91,6 +91,8 @@ def __build(dry=False,apt_mirror="http://archive.ubuntu.com/ubuntu/"):
 
     # Create the jail and its subdirectories
     # Note: Other subdirs will be made by copying files
+    if apt_mirror != None:
+        os.environ['MIRROR'] = apt_mirror
     action_runprog('./buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail

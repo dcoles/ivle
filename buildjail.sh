@@ -37,15 +37,14 @@ STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
     python-beautifulsoup python-lxml python-imaging \
     python-simpletal python-nltk" # elementtree-1.3beta (needs tidy)
 
-# FIXME: [nasty-hack] Override the default mirror to the local AARNET one.  
-# This should really be a local configuration option, but unfortunately 
-# setup.py is a bit of a mess and needs a clean up to support this. For the 
-# mean time we'll override it here.
-MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
-# [/nasty-hack]
+# FIXME: [hack] Override the default mirror to the local AARNET one.  This 
+# should really be a local configuration option, but unfortunately setup.py is 
+# a bit of a mess and needs a clean up to support this. For the mean time we'll 
+# override it here.
 
 if [ "x$MIRROR" = "x" ]; then
-    MIRROR=http://archive.ubuntu.com/ubuntu/
+    MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
+    #MIRROR=http://archive.ubuntu.com/ubuntu/ # Default Mirror
 fi
 echo "Using Mirror: $MIRROR"
 
