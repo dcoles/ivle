@@ -21,33 +21,12 @@ function edit_text()
     savebutton.removeAttribute("disabled");
 }
 
-/** Presents the "editor heading" (the part with the save box)
- * inserting it into a given element at the front.
+/** Presents the "editor heading" inserting it into a given element at
+ *  the front. Note that the save widget is handled by the Python.
  */
 function present_editorhead(elem, path, handler_type)
 {
     var div = document.getElementById("actions2");
-
-    /* Set up minimal interface */
-    var p = dom_make_text_elem("p", "Save as: ");
-    var pathname = document.createElement("input");
-    pathname.setAttribute("type", "text");
-    pathname.setAttribute("size", "30");
-    pathname.setAttribute("id", "save_filename");
-    pathname.setAttribute("value", path);
-    p.appendChild(pathname);
-    var savebutton = document.createElement("input");
-    savebutton.setAttribute("id", "save_button");
-    savebutton.setAttribute("type", "button");
-    savebutton.setAttribute("value", "Saved");
-    // XXX Do not disable for now; there is a problem getting the callback
-    // to edit_text.
-    //savebutton.setAttribute("disabled", "disabled");
-    savebutton.setAttribute("onclick", "save_file()");
-    p.appendChild(savebutton);
-    var t = document.createTextNode(" ");
-    p.appendChild(t);
-    div.appendChild(p);
 
     /* Print a warning message if this is not actually a text file.
      */
