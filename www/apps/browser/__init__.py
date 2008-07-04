@@ -239,4 +239,4 @@ def present_actions2(req, isdir):
       <input type="text" size="30" id="save_filename" value="%s" />
       <input type="button" id="save_button" value="Saved" onclick="save_file()" />
     </p>
-""" % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))
+""" % cgi.escape(req.path))
