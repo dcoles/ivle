@@ -162,7 +162,7 @@ def __install(dry=False,nojail=False,nosubjects=False):
             print "IO error(%s): %s" % (errno, strerror)
             sys.exit(1)
 
-        os.system("svn status -v .. >> %s" % ivle_revision_record_file)
+        os.system("svn status -v . >> %s" % ivle_revision_record_file)
 
     print "Wrote IVLE code revision status to %s" % ivle_revision_record_file
 
