@@ -54,15 +54,18 @@ Generates .pyc or .pyo files for all the IVLE .py files."""
     parser.add_option("-n", "--dry",
         action="store_true", dest="dry",
         help="Print out the actions but don't do anything.")
+    parser.add_option("-J", "--norebuildjail",
+        action="store_true", dest="norebuildjail",
+        help="Don't recreate jail/ - just update its IVLE code.")
     parser.add_option("-m", "--mirror",
         action="store", dest="apt_mirror",
         help="Sets the APT mirror used to build the jail.")
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    __build(options.dry, options.apt_mirror)
+    __build(options.dry, options.norebuildjail, options.apt_mirror)
 
-def __build(dry=False,apt_mirror=None):
+def __build(dry=False,norebuildjail=False,apt_mirror=None):
     # Importing configuration is a little tricky
     sys.path.append(os.pardir)
     import install_list
@@ -96,11 +99,12 @@ def __build(dry=False,apt_mirror=None):
     action_runprog('make', [], dry)
     os.chdir(curdir)
 
-    # Create the jail and its subdirectories
-    # Note: Other subdirs will be made by copying files
-    if apt_mirror != None:
-        os.environ['MIRROR'] = apt_mirror
-    action_runprog('./buildjail.sh', [], dry)
+    if not norebuildjail:
+        # Create the jail and its subdirectories
+        # Note: Other subdirs will be made by copying files
+        if apt_mirror != None:
+            os.environ['MIRROR'] = apt_mirror
+        action_runprog('./buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail
     action_copylist(install_list.list_scripts, 'jail/opt/ivle', dry)
