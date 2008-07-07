@@ -28,6 +28,7 @@
 import optparse
 import getopt
 import os
+import sys
 import hashlib
 import uuid
 from setup.setuputil import query_user
@@ -190,6 +191,15 @@ config_options.append(ConfigOption("ldap_format_string",
     """
 # Format string for LDAP auth request
 # (Must contain a single "%s" for the user's login name)"""))
+config_options.append(ConfigOption("subject_pulldown_modules", "",
+    """Comma-separated list of subject pulldown modules.
+Add proprietary modules to automatically enrol students in subjects.""",
+    """
+# Comma-separated list of subject pulldown modules.
+# These refer to importable Python modules in the lib/pulldown_subj directory.
+# No modules are available in the source tree, but
+# other modules may be plugged in to pulldown against organisation-specific
+# pulldown backends."""))
 config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
     """Subversion config
 =================
