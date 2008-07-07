@@ -23,15 +23,15 @@ CREATE TABLE subject (
     subjectid       SERIAL PRIMARY KEY NOT NULL,
     subj_code       VARCHAR UNIQUE NOT NULL,
     subj_name       VARCHAR NOT NULL,
-    subj_short_name VARCHAR     -- may be null
+    subj_short_name VARCHAR,    -- may be null
+    url             VARCHAR
 );
 
 CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
     subject     INT4 REFERENCES subject (subjectid) NOT NULL,
     year        CHAR(4) NOT NULL,
-    semester    CHAR(1) NOT NULL,
-    url         VARCHAR
+    semester    CHAR(1) NOT NULL
 );
 
 CREATE TABLE project (
