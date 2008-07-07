@@ -42,15 +42,25 @@ STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
 # a bit of a mess and needs a clean up to support this. For the mean time we'll 
 # override it here.
 
-if [ "x$MIRROR" = "x" ]; then
+if [ -z "$MIRROR" ]; then
     MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
     #MIRROR=http://archive.ubuntu.com/ubuntu/ # Default Mirror
 fi
 echo "Using Mirror: $MIRROR"
 
+# Do we have debootstrap? 
+if [ -x /usr/sbin/debootstrap ]; then
+    DEBOOTSTRAP="/usr/sbin/debootstrap"
+fi
+
+if [ -z "$DEBOOTSTRAP" ]; then
+    echo "Error: Debootstrap not found. Is it installed?"
+    return 1
+fi
+
 echo "Building minimal Jail..."
 sudo rm -rf $JAIL
-sudo debootstrap --components=`echo $SECTIONS | tr ' ' ','` \
+sudo $DEBOOTSTRAP --components=`echo $SECTIONS | tr ' ' ','` \
     --include=ubuntu-keyring \
     --variant=minbase $RELEASE $JAIL $MIRROR
 
