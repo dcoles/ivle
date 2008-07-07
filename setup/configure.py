@@ -64,14 +64,30 @@ config_options.append(ConfigOption("ivle_install_dir", "/opt/ivle",
 # In the local file system, where IVLE is actually installed.
 # This directory should contain the "www" and "bin" directories."""))
 config_options.append(ConfigOption("jail_base", "/home/informatics/jails",
-    """Location of Directories
-=======================
-Root directory where the jails (containing user files) are stored
-(on the local file system):""",
+    """Location of jail mountpoints
+============================
+Root directory where the user jails will be mounted, and the non-user
+components of the jails will be stored (on the local file system):""",
+    """
+# In the local file system, where the student/user jails will be mounted.
+# Only a single copy of the jail's system components will be stored here -
+# all user jails will be virtually mounted here."""))
+config_options.append(ConfigOption("jail_system", "/home/informatics/jails/__base__",
+    """Location of system jail components
+==================================
+Directory where the template system jail will be stored.""",
+    """
+# In the local file system, where the template system jail will be stored."""))
+config_options.append(ConfigOption("jail_src_base", "/home/informatics/jailssrc",
+    """Location of user jail components
+================================
+Root directory where the user components of the jails will be stored (on the
+local file system):""",
     """
 # In the local file system, where are the student/user file spaces located.
 # The user jails are expected to be located immediately in subdirectories of
-# this location."""))
+# this location. Note that no complete jails reside here - only user
+# modifications."""))
 config_options.append(ConfigOption("subjects_base",
     "/home/informatics/subjects",
     """Root directory where the subject directories (containing worksheets
@@ -408,18 +424,23 @@ public_host = %s
  * to take effect.
  */
 
+#define IVLE_AUFS_JAILS
+
 /* In the local file system, where are the jails located.
  * The trampoline does not allow the creation of a jail anywhere besides
  * jail_base or a subdirectory of jail_base.
  */
 static const char* jail_base = "%s";
+static const char* jail_src_base = "%s";
+static const char* jail_system = "%s";
 
 /* Which user IDs are allowed to run the trampoline.
  * This list should be limited to the web server user.
  * (Note that root is an implicit member of this list).
  */
 static const int allowed_uids[] = { %s };
-""" % (repr(jail_base)[1:-1], repr(allowed_uids_list)[1:-1]))
+""" % (repr(jail_base)[1:-1], repr(jail_src_base)[1:-1],
+       repr(jail_system)[1:-1], repr(allowed_uids_list)[1:-1]))
     # Note: The above uses PYTHON reprs, not C reprs
     # However they should be the same with the exception of the outer
     # characters, which are stripped off and replaced

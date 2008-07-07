@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <syslog.h>
+#include <sys/mount.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -47,6 +49,8 @@
  * It defines jail_base.
  */
 #include "conf.h"
+
+#include "norm.h"
 
 /* Returns TRUE if the given uid is allowed to execute trampoline.
  * Only root or the web server should be allowed to execute.
@@ -117,6 +121,83 @@ static void usage(const char* nm)
         "usage: %s [-d] [-u] <uid> <jail> <cwd> <program> [args...]\n", nm);
     exit(1);
 }
+
+#ifdef IVLE_AUFS_JAILS
+/* Die more pleasantly if mallocs fail. */
+void *die_if_null(void *ptr)
+{
+    if (ptr == NULL)
+    {
+        perror("not enough memory");
+        exit(1);
+    }
+    return ptr;
+}
+
+/* Find the path of the user components of a jail, given a mountpoint. */
+char *jail_src(const char* jailpath)
+{
+    char* src;
+    int srclen;
+    int dstlen;
+
+    srclen = strlen(jail_src_base);
+    dstlen = strlen(jail_base);
+    
+    src = die_if_null(malloc(strlen(jailpath) + (srclen - dstlen) + 1));
+    strcpy(src, jail_src_base);
+    strcat(src, jailpath+dstlen);
+
+    return src;
+}
+
+/* Check for the validity of a jail in the given path, mounting it if it looks
+ * empty.
+ * TODO: Updating /etc/mtab would be nice. */
+void mount_if_needed(const char* jailpath)
+{
+    char *jailsrc;
+    char *jaillib;
+    char *mountdata;
+
+    /* Check if there is something useful in the jail. If not, it's probably
+     * not mounted. */
+    jaillib = die_if_null(malloc(strlen(jailpath) + 5));
+    sprintf(jaillib, "%s/lib", jailpath);
+
+    if (access(jaillib, F_OK))
+    {
+        /* No /lib? Mustn't be mounted. Mount it, creating the dir if needed. */
+        if (access(jailpath, F_OK))
+        {
+             if(mkdir(jailpath, 0755))
+             {
+                 syslog(LOG_ERR, "could not create mountpoint %s\n", jailpath);
+                 perror("could not create jail mountpoint");
+                 exit(1);
+             }
+             syslog(LOG_NOTICE, "created mountpoint %s\n", jailpath);
+        }
+       
+        jailsrc = jail_src(jailpath);
+        mountdata = die_if_null(malloc(3 + strlen(jailsrc) + 4 + strlen(jail_system) + 3 + 1));
+        sprintf(mountdata, "br:%s=rw:%s=ro", jailsrc, jail_system);
+        if (mount("none", jailpath, "aufs", 0, mountdata))
+        {
+            syslog(LOG_ERR, "could not mount %s\n", jailpath);
+            perror("could not mount");
+            exit(1);
+        } 
+
+        syslog(LOG_INFO, "mounted %s\n", jailpath);
+
+        free(jailsrc);
+        free(mountdata);
+    }
+
+    free(jaillib);
+}
+#endif /* IVLE_AUFS_JAILS */
 
 int main(int argc, char* const argv[])
 {
@@ -189,11 +270,19 @@ int main(int argc, char* const argv[])
         exit(1);
     }
 
+    openlog("trampoline", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
+    #ifdef IVLE_AUFS_JAILS
+    mount_if_needed(canonical_jailpath);
+    #endif /* IVLE_AUFS_JAILS */
+
     /* chroot into the jail.
      * Henceforth this process, and its children, cannot see anything above
      * canoncial_jailpath. */
     if (chroot(canonical_jailpath))
     {
+        syslog(LOG_ERR, "chroot to %s failed\n", canonical_jailpath);
+
         perror("could not chroot");
         exit(1);
     }
@@ -272,8 +361,10 @@ int main(int argc, char* const argv[])
      * and the first argument will be the script. */
     execv(prog, args);
 
-    /* XXX if (daemon_mode) use syslog? */
     /* nb exec won't return unless there was an error */
+    syslog(LOG_ERR, "exec of %s in %s failed", prog, canonical_jailpath);
+
     perror("could not exec");
+    closelog();
     return 1;
 }

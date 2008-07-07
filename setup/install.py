@@ -40,9 +40,10 @@ def install(args):
 Create target install directory ($target).
 Create $target/bin.
 Copy trampoline/trampoline to $target/bin.
+Copy timount/timount to $target/bin.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
-Copy jail/ to jails __staging__ directory (unless --nojail specified).
+Copy jail/ to jail_system directory (unless --nojail specified).
 Copy subjects/ to subjects directory (unless --nosubjects specified).
 """
 
@@ -53,7 +54,7 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
         help="Print out the actions but don't do anything.")
     parser.add_option("-J", "--nojail",
         action="store_true", dest="nojail",
-        help="Don't copy jail/ to jail __staging__ directory")
+        help="Don't copy jail/ to jail_system directory")
     parser.add_option("-S", "--nosubjects",
         action="store_true", dest="nosubjects",
         help="Don't copy subject/ to subjects directory.")
@@ -72,6 +73,7 @@ def __install(dry=False,nojail=False,nosubjects=False):
     # Pull the required varibles out of the config
     ivle_install_dir = conf.conf.ivle_install_dir
     jail_base = conf.conf.jail_base
+    jail_system = conf.conf.jail_system
     subjects_base = conf.conf.subjects_base
     exercises_base = conf.conf.exercises_base
 
@@ -94,6 +96,9 @@ def __install(dry=False,nojail=False,nosubjects=False):
     # chown trampoline to root and set setuid bit
     action_chown_setuid(tramppath, dry)
 
+    timountpath = os.path.join(ivle_install_dir, 'bin/timount')
+    action_copyfile('timount/timount', timountpath, dry)
+
     # Create a scripts directory to put the usrmgt-server in.
     action_mkdir(os.path.join(ivle_install_dir, 'scripts'), dry)
     usrmgtpath = os.path.join(ivle_install_dir, 'scripts/usrmgt-server')
@@ -114,9 +119,9 @@ def __install(dry=False,nojail=False,nosubjects=False):
 
     if not nojail:
         # Copy the local jail directory built by the build action
-        # to the jails __staging__ directory (it will be used to help build
+        # to the jail_system directory (it will be used to help build
         # all the students' jails).
-        action_copytree('jail', os.path.join(jail_base, '__staging__'), dry)
+        action_copytree('jail', jail_system, dry)
     if not nosubjects:
         # Copy the subjects and exercises directories across
         action_copylist(install_list.list_subjects, subjects_base, dry,

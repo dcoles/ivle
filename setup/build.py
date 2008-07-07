@@ -42,6 +42,7 @@ Compiles all files and sets up a jail template in the source directory.
 -O is recommended to cause compilation to be optimised.
 Details:
 Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
+Compiles (GCC) timount/timount.c to timount/timount.
 Creates jail with system and student packages installed from MIRROR.
 Copies console/ to a location within the jail.
 Copies OS programs and files to corresponding locations within the jail
@@ -86,6 +87,12 @@ def __build(dry=False,apt_mirror=None):
     # Compile the trampoline
     curdir = os.getcwd()
     os.chdir('trampoline')
+    action_runprog('make', [], dry)
+    os.chdir(curdir)
+
+    # Compile timount
+    curdir = os.getcwd()
+    os.chdir('timount')
     action_runprog('make', [], dry)
     os.chdir(curdir)
 

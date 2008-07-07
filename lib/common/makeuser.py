@@ -43,6 +43,7 @@ import time
 import uuid
 import warnings
 import filecmp
+import logging
 import conf
 import db
 
@@ -170,14 +171,12 @@ def generate_manifest(basedir, targetdir, parent=''):
     return (to_add, to_remove)
 
 
-def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
+def make_jail(username, uid, force=True, svn_pass=None):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
-    This expects there to be a "staging" directory within the jail root which
-    contains all the files for a sample student jail. It creates the student's
-    directory in the jail root, by making a hard-link copy of every file in the
-    staging directory, recursively.
+    This only creates things within /home - everything else is expected to be
+    part of another UnionFS branch.
 
     Returns the path to the user's home directory.
 
@@ -191,9 +190,6 @@ def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
 
-    manifest: If provided this will be a pair (to_add, to_remove) of files or
-    directories to add or remove from the jail.
-
     svn_pass: If provided this will be a string, the randomly-generated
     Subversion password for this user (if you happen to already have it).
     If not provided, it will be read from the database.
@@ -202,10 +198,6 @@ def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
     if os.getuid() != 0:
         raise Exception("Must run make_jail as root")
     
-    stagingdir = os.path.join(conf.jail_base, '__staging__')
-    if not os.path.isdir(stagingdir):
-        raise Exception("Staging jail directory does not exist: " +
-            stagingdir)
     # tempdir is for putting backup homes in
     tempdir = os.path.join(conf.jail_base, '__temp__')
     if not os.path.exists(tempdir):
@@ -213,14 +205,16 @@ def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
     elif not os.path.isdir(tempdir):
         os.unlink(tempdir)
         os.mkdir(tempdir)
-    userdir = os.path.join(conf.jail_base, username)
+    userdir = os.path.join(conf.jail_src_base, username)
     homedir = os.path.join(userdir, 'home')
+    userhomedir = os.path.join(homedir, username)   # Return value
 
     if os.path.exists(userdir):
         if not force:
             raise Exception("User's jail already exists")
         # User jail already exists. Blow it away but preserve their home
-        # directory.
+        # directory. It should be all that is there anyway, but you never
+        # know!
         # Ignore warnings about the use of tmpnam
         warnings.simplefilter('ignore')
         homebackup = os.tempnam(tempdir)
@@ -229,78 +223,30 @@ def make_jail(username, uid, force=True, manifest=None, svn_pass=None):
         # into a directory if it already exists, just fails. Therefore it is
         # not susceptible to tmpnam symlink attack.
         shutil.move(homedir, homebackup)
-        try:
-            # Any errors that occur after making the backup will be caught and
-            # the backup will be un-made.
-            # XXX This will still leave the user's jail in an unusable state,
-            # but at least they won't lose their files.
-            if manifest:
-                (to_add, to_remove) = manifest
-                # Remove redundant files and directories
-                for d in to_remove:
-                    dst = os.path.join(userdir, d)
-                    src = os.path.join(stagingdir, d)
-                    if os.path.isdir(dst):
-                        shutil.rmtree(dst)
-                    elif os.path.isfile(dst):
-                        os.remove(dst)
-                # Add new files
-                for d in to_add:
-                    dst = os.path.join(userdir, d)
-                    src = os.path.join(stagingdir, d)
-                    # Clear the previous file/dir
-                    if os.path.isdir(dst):
-                        shutil.rmtree(dst)
-                    elif os.path.isfile(dst):
-                        os.remove(dst)
-                    # Link the file/dirs
-                    if os.path.isdir(src):
-                        linktree(src, dst)
-                    elif os.path.isfile(src):
-                        os.link(src, dst)
-                    
-            else:
-                # No manifest, do a full rebuild
-                shutil.rmtree(userdir)
-                # Hard-link (copy aliasing) the entire tree over
-                linktree(stagingdir, userdir)
-        finally:
-            # Set up the user's home directory (restore backup)
-            # First make sure the directory is empty and its parent exists
-            try:
-                shutil.rmtree(homedir)
-            except:
-                pass
-            # XXX If this fails the user's directory will be lost (in the temp
-            # directory). But it shouldn't fail as homedir should not exist.
-            os.makedirs(homedir)
-            shutil.move(homebackup, homedir)
-        userhomedir = os.path.join(homedir, username)   # Return value
+        shutil.rmtree(userdir)
+        os.makedirs(homedir)
+        shutil.move(homebackup, homedir)
     else:
         # No user jail exists
-        # Hard-link (copy aliasing) the entire tree over
-        linktree(stagingdir, userdir)
-
         # Set up the user's home directory
-        userhomedir = os.path.join(homedir, username)
-        os.mkdir(userhomedir)
+        os.makedirs(userhomedir)
         # Chown (and set the GID to the same as the UID).
         os.chown(userhomedir, uid, uid)
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    # There is 1 special file which should not be hard-linked, but instead
-    # generated specific to this user: /opt/ivle/lib/conf/conf.py.
+    # There is 1 special file which needs to be generated specific to this
+    # user: /opt/ivle/lib/conf/conf.py.
     # "__" username "__" users are exempt (special)
     if not (username.startswith("__") and username.endswith("__")):
-        make_conf_py(username, userdir, stagingdir, svn_pass)
+        make_conf_py(username, userdir, conf.jail_system, svn_pass)
 
     return userhomedir
 
 def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     """
-    Creates (overwriting any existing file) a file /opt/ivle/lib/conf/conf.py
-    in a given user's jail.
+    Creates (overwriting any existing file, and creating directories) a
+    file /opt/ivle/lib/conf/conf.py in a given user's jail.
     username: Username.
     user_jail_dir: User's jail dir, ie. conf.jail_base + username
     staging_dir: The dir with the staging copy of the jail. (With the
@@ -308,14 +254,9 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     svn_pass: As with make_jail. User's SVN password, but if not supplied,
         will look up in the DB.
     """
-    # Note: It is important to delete this file and recreate it (somewhat
-    # ironically beginning by pasting the same contents in again), rather than
-    # simply appending.
-    # Note that all files initially are aliased, so appending would result
-    # in a massive aliasing problem. Deleting and recreating ensures that
-    # the conf.py files are unique to each jail.
     template_conf_path = os.path.join(staging_dir,"opt/ivle/lib/conf/conf.py")
     conf_path = os.path.join(user_jail_dir, "opt/ivle/lib/conf/conf.py")
+    os.makedirs(os.path.dirname(conf_path))
 
     # If svn_pass isn't supplied, grab it from the DB
     if svn_pass is None:
@@ -334,11 +275,6 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
         template_conf_data = ("# Warning: Problem building config script.\n"
                               "# Could not find template conf.py file.\n")
 
-    # Remove the target conf file if it exists
-    try:
-        os.remove(conf_path)
-    except OSError:
-        pass
     conf_file = open(conf_path, "w")
     conf_file.write(template_conf_data)
     conf_file.write("\n# The login name for the owner of the jail\n")
@@ -421,3 +357,19 @@ def make_user_db(throw_on_error = True, **kwargs):
     # Make sure the file is owned by the web server
     if create == "c":
         chown_to_webserver(conf.svn_auth_local)
+
+def mount_jail(login):
+    # This is where we'll mount to...
+    destdir = os.path.join(conf.jail_base, login)
+    # ... and this is where we'll get the user bits.
+    srcdir = os.path.join(conf.jail_src_base, login)
+    try:
+        if not os.path.exists(destdir):
+            os.mkdir(destdir)
+        if os.system('/bin/mount -t aufs -o dirs=%s:%s=ro none %s'
+                     % (srcdir, conf.jail_system, destdir)) == 0:
+            logging.info("mounted user %s's jail." % login)
+        else:
+            logging.error("failed to mount user %s's jail!" % login)
+    except Exception, message:
+        logging.warning(str(message))

@@ -130,6 +130,8 @@ def activate_user(props):
        Return Value: None
     """
 
+    os.umask(0022) # Bad, but start_server sets it worse.
+
     login = props['login']
 
     db = common.db.DB()
@@ -180,6 +182,8 @@ def activate_user(props):
         logging.debug("Creating jail")
         common.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
 
+        common.makeuser.mount_jail(login)
+
         do_checkout(props, svn_pass=passwd)
 
         # FIXME: should this be nicer?
@@ -207,12 +211,12 @@ def do_checkout(props, svn_pass=None):
     """
     login = props['login']
 
+    db = common.db.DB()
+    user = db.get_user(login)
     # If svn_pass isn't supplied, grab it from the DB
     if svn_pass is None:
-        db = common.db.DB()
-        user = db.get_user(login)
         svn_pass = user.svn_pass
-        db.close()
+    db.close()
 
     svn = pysvn.Client()
     svn.callback_get_login = partial(get_login, login, svn_pass)
