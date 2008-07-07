@@ -64,7 +64,10 @@ function handle_text(path, text, handler_type)
         text.toString())
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
-    txt_elem.className = "codepress python";
+    language = language_from_mime(current_file.type)
+
+    // Assume plaintext if no type can be determined.
+    txt_elem.className = "codepress " + (language ? language : 'text');
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "35");
@@ -78,3 +81,12 @@ function handle_text(path, text, handler_type)
                                  disable_save_if_safe(); };
 }
 
+function language_from_mime(mime)
+{
+    return {'text/x-python': 'python',
+            'application/javascript': 'javascript',
+            'text/css': 'css',
+            'text/plain': 'text',
+            'text/html': 'html',
+            'application/xhtml+xml': 'html'}[mime];
+}
