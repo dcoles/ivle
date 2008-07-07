@@ -32,7 +32,7 @@ import stat
 
 # Import modules from the website is tricky since they're in the www
 # directory.
-sys.path.append('../lib')
+sys.path.append('lib')
 import common.makeuser
 
 # Determine which Python version (2.4 or 2.5, for example) we are running,
