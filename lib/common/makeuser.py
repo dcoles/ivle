@@ -235,11 +235,12 @@ def make_jail(username, uid, force=True, svn_pass=None):
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    # There is 1 special file which needs to be generated specific to this
-    # user: /opt/ivle/lib/conf/conf.py.
+    # There are 2 special files which need to be generated specific to this
+    # user: /opt/ivle/lib/conf/conf.py and /etc/passwd.
     # "__" username "__" users are exempt (special)
     if not (username.startswith("__") and username.endswith("__")):
         make_conf_py(username, userdir, conf.jail_system, svn_pass)
+        make_etc_passwd(username, userdir, conf.jail_system, uid)
 
     return userhomedir
 
@@ -289,6 +290,22 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     # (chmod 644 conf_path)
     os.chmod(conf_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP
                         | stat.S_IROTH)
+
+def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
+    """
+    Creates /etc/passwd in the given user's jail. This will be identical to
+    that in the template jail, except for the added entry for this user.
+    """
+    template_passwd_path = os.path.join(template_dir, "etc/passwd")
+    passwd_path = os.path.join(user_jail_dir, "etc/passwd")
+    passwd_dir = os.path.dirname(passwd_path)
+    if not os.path.exists(passwd_dir):
+        os.makedirs(passwd_dir)
+    shutil.copy(template_passwd_path, passwd_path)
+    passwd_file = open(passwd_path, 'a')
+    passwd_file.write('%s:x:%d:%d::/home/%s:/bin/bash'
+                      % (username, unixid, unixid, username))
+    passwd_file.close()
 
 def linktree(src, dst):
     """Recursively hard-link a directory tree using os.link().
