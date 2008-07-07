@@ -53,7 +53,7 @@ def handle(req):
     ]
     req.scripts = [
         "media/common/json2.js",
-        "media/common/edit_area/edit_area_full.js",
+        "media/common/codepress/codepress.js",
         "media/common/util.js",
         "media/browser/browser.js",
         "media/browser/listing.js",
@@ -237,6 +237,6 @@ def present_actions2(req, isdir):
     else:
         req.write("""    <p>Save as: 
       <input type="text" size="30" id="save_filename" value="%s" />
-      <input type="button" id="save_button" value="Saved" onclick="save_file()" />
+      <input type="button" id="save_button" value="Save" onclick="save_file()" />
     </p>
 """ % cgi.escape(req.path))

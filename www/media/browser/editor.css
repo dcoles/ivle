@@ -6,16 +6,17 @@
  * License version 2 or later.
  */
 
-/* The EditArea iframe
+/* The editor iframe
  * Have it fill its entire containing box
  */
-#frame_editbox {
+/* TODO: Make this more specific! */
+iframe {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
-    /* Override EditArea's specified width and height */
+    /* Override the specified width and height */
     width: 100% ! important;
     /* FIXME: This is not quite right, but a better approximation of 'right' 
      * for the time being (Something is very odd with the spacing) */
