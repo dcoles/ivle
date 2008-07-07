@@ -197,7 +197,7 @@ Add proprietary modules to automatically enrol students in subjects.""",
     """
 # Comma-separated list of subject pulldown modules.
 # These refer to importable Python modules in the lib/pulldown_subj directory.
-# No modules are available in the source tree, but
+# Only "dummy_subj" is available in the source tree (an example), but
 # other modules may be plugged in to pulldown against organisation-specific
 # pulldown backends."""))
 config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
