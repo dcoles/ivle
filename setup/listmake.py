@@ -29,6 +29,7 @@
 import optparse
 import os
 import mimetypes
+import sys
 from setuputil import filter_mutate
 
 # Mime types which will automatically be placed in the list by listmake.

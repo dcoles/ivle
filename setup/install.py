@@ -65,8 +65,7 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
 
 def __install(dry=False,nojail=False,nosubjects=False):
     # Importing configuration is a little tricky
-    sys.path.append(os.path.join(os.pardir, 'lib'))
-    sys.path.append(os.pardir)
+    sys.path.append('lib')
     import conf.conf
     import install_list
 
