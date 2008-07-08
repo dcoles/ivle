@@ -25,9 +25,8 @@
 # run from the trampoline by the Diff application.
 
 from common import cgirequest
-from cgi import parse_qs
 import cgi
-from os import path
+import os.path
 import pysvn
 import re
 
@@ -76,39 +75,25 @@ req.content_type = "text/html"
 req.write('<div id="ivle_padding">\n')
 req.write('<h1>Diff</h1>\n')
 
-# Work out the revisions from query
+# Default revisions
+revs = [pysvn.Revision(x) for x in [pysvn.opt_revision_kind.base,
+                                    pysvn.opt_revision_kind.working]]
+# Override revisions from query string
 fields = req.get_fieldstorage()
 field_r = fields.getlist("r")
-# Default revisions
-rev1=pysvn.Revision( pysvn.opt_revision_kind.base )
-rev2=pysvn.Revision( pysvn.opt_revision_kind.working )
-# Override revisions from query string
-if len(field_r) >= 1:
-    r1 = get_revision(field_r[0])
-    if r1 != None:
-        rev1 = r1
-    if len(field_r) >= 2:
-        r2 = get_revision(field_r[1])
-        if r2 != None:
-            rev2 = r2
+for ri in range(len(field_r)):
+    r = get_revision(field_r[ri])
+    if r is not None:
+        revs[ri] = r
 
 # Attempt to get the diff for these revisons
 try:
     svnclient = pysvn.Client()
     diff = svnclient.diff
     diff_text = diff( '/tmp/svndiff',
-        path.join('/home/', req.path),
-        revision1=rev1,
-        #revision1=pysvn.Revision( pysvn.opt_revision_kind.base ),
-        #url_or_path2=url_or_path,
-        revision2=rev2,
-        #revision2=pysvn.Revision( opt_revision_kind.working ),
-        #recurse=True,
-        #ignore_ancestry=False,
-        #diff_deleted=True,
-        #ignore_content_type=False,
-        #header_encoding="",
-        #diff_options=[]
+        os.path.join('/home', req.path),
+        revision1=revs[0],
+        revision2=revs[1]
     )
 
     # Split up the udiff into individual files
