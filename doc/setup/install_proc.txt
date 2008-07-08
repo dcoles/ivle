@@ -10,7 +10,7 @@
 
 # While other install guides in this package are generic, this one is very
 # specific to our intended configuration. It will be very helpful if trying to
-# set up IVLE on Ubuntu 7.06 or higher; less helpful for other platforms.
+# set up IVLE on Ubuntu 8.04 or higher; less helpful for other platforms.
 # This refers to ivle.conf, also included.
 #
 # Author: Matt Giuca
@@ -20,26 +20,19 @@
 # Apt packages
 ##########################################################################
 
-sudo apt-get install subversion
-sudo apt-get install gcc libc6 libc6-dev make debootstrap
-sudo apt-get install apache2 libapache2-mod-python libapache2-svn
-sudo apt-get install python2.5-dev python-svn python-webpy
-sudo apt-get install postgresql python-pygresql python-ldap
-sudo apt-get install php5 php5-pgsql
-sudo apt-get install python-cjson
-sudo apt-get install python-docutils python-epydoc
+sudo apt-get install subversion build-essential debootstrap             \
+                     apache2 libapache2-mod-python libapache2-svn       \
+                     python2.5-dev python-svn python-webpy python-cjson \
+                     postgresql python-pygresql php5 php5-pgsql         \
+                     python-docutils python-epydoc python-ldap
 
 ##########################################################################
 # Configure postgres
 ##########################################################################
-#
-# Some of these instructions follow
-#     https://help.ubuntu.com/community/PostgreSQL
-# 1. install the base packages
 
 # Set the postgres user's postgres password
 sudo -u postgres psql template1
-# At the prompt type (substituting <***password***> with a real one.
+# At the prompt type (substituting <***password***> with a real one).
 ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
 \q
 
@@ -49,9 +42,8 @@ ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
 #
 # Check out the IVLE trunk
 
-export IVLE_SVN=ivle_svn
-svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk $IVLE_SVN
-cd $IVLE_SVN
+svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
+cd ivle_svn
 
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
@@ -68,7 +60,7 @@ sudo -u postgres psql -d ivle < userdb/users.sql
 # Leave others default.
 # Note: This will cause IVLE to get installed to /opt/ivle
 
-./setup.py build
+sudo ./setup.py build
 sudo ./setup.py install
 
 # Make the directory containing the svn auth.
@@ -87,7 +79,7 @@ sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
 # role = guest/student/tutor/lecturer/admin
 
 # Configure the Apache HTTP server
-sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle.conf
+sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle
 # MODIFY the first few lines so it is specific to your server.
 # * Change ServerAdmin and ServerName (for error reporting).
 # * Inside the first VirtualHost block, there are two ServerNames
@@ -97,20 +89,19 @@ sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle.conf
 #   (svn.localhost). You must change this to the domain for svn access.
 # * Change all paths beginning with /opt/ivle or /home/informatics to the
 #   locations you have installed things in.
-vim /etc/apache2/sites-available/ivle.conf
+vim /etc/apache2/sites-available/ivle
 
-# Replace the existing config link with the ivle one
-cd /etc/apache2/sites-enabled/
-sudo ln -fs /etc/apache2/sites-available/ivle.conf 000-default
+# Replace the default with the IVLE site.
+sudo a2dissite default
+sudo a2ensite ivle
+
+# Restart Apache.
+sudo /etc/init.d/apache2 restart
 
 # Make sure the 3 domains given in Apache conf all lookup to your server.
 # (By default these are localhost, public.localhost and svn.localhost).
 # For testing purposes, this can be done by editing /etc/hosts, for example:
-127.0.0.1	public.localhost
-127.0.0.1	svn.localhost
-
-# Restart the server
-sudo apache2ctl -k restart
+127.0.0.1	svn.localhost public.localhost
 
 ##########################################################################
 # User management server: usrmgt-server
