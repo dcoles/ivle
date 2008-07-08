@@ -724,11 +724,13 @@ function update_actions()
     }
 
     /* Subversion actions */
-    /* TODO: Work out when these are appropriate */
     var svnadd = document.getElementById("act_svnadd");
+    var svndiff = document.getElementById("act_svndiff");
     var svnrevert = document.getElementById("act_svnrevert");
     var svncommit = document.getElementById("act_svncommit");
-    if (true)
+    /* These are only useful if we are in a versioned directory and have some
+     * files selected. */
+    if (numsel >= 1 && current_file.svnstatus)
     {
         svnadd.setAttribute("class", "choice");
         svnadd.removeAttribute("disabled");
@@ -737,6 +739,35 @@ function update_actions()
         svncommit.setAttribute("class", "choice");
         svncommit.removeAttribute("disabled");
     }
+    else
+    {
+        svnadd.setAttribute("class", "disabled");
+        svnadd.setAttribute("disabled", "disabled");
+        svnrevert.setAttribute("class", "disabled");
+        svnrevert.setAttribute("disabled", "disabled");
+        svncommit.setAttribute("class", "disabled");
+        svncommit.setAttribute("disabled", "disabled");
+    }
+
+    /* Diff only supports one path at the moment. */
+    if (numsel == 1)
+    {
+        svnst = file_listing[selected_files[0]].svnstatus;
+
+        /* Diff also doesn't like unversioned paths, and diffs on unchanged
+         * files are pointless. */
+        if (svnst && svnst != "unversioned" && svnst != "normal")
+        {
+            svndiff.setAttribute("class", "choice");
+            svndiff.removeAttribute("disabled");
+        }
+    }
+    else
+    {
+        svndiff.setAttribute("class", "disabled");
+        svndiff.setAttribute("disabled", "disabled");
+    }
+
     var svncheckout = document.getElementById("act_svncheckout");
     /* current_path == username: We are at the top level */
     if (current_path == username)
@@ -831,6 +862,9 @@ function handle_moreactions()
         break;
     case "svnrevert":
         action_revert(selected_files);
+        break;
+    case "svndiff":
+        window.location = path_join(app_path('diff'), current_path, selected_files[0]);
         break;
     case "svncommit":
         action_commit(selected_files);

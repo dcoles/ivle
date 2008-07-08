@@ -191,6 +191,9 @@ def present_actions1(req):
       <option id="act_svnadd" class="disabled" disabled="disabled"
         title="Schedule the selected temporary files to be added permanently"
         value="svnadd">Add</option>
+      <option id="act_svndiff" class="disabled" disabled="disabled"
+        title="View any changes to the selected file since its last committed state"
+        value="svndiff">Diff</option>
       <option id="act_svnrevert" class="disabled" disabled="disabled"
         title="Restore the selected files back to their last committed state"
         value="svnrevert">Revert</option>
