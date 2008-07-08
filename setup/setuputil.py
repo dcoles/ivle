@@ -40,6 +40,9 @@ import common.makeuser
 # Just get the first 3 characters of sys.version.
 PYTHON_VERSION = sys.version[0:3]
 
+# Location of standard programs
+RSYNC = '/usr/bin/rsync'
+
 def copy_file_to_jail(src, dry):
     """Copies a single file from an absolute location into the same location
     within the jail. src must begin with a '/'. The jail will be located
@@ -66,12 +69,13 @@ def action_runprog(prog, args, dry):
     if the program did not return 0.
 
     prog: String. Name of the program. (No path required, if in $PATH).
-    args: [String]. Arguments to the program.
+    args: [String]. Arguments to the program. (Note, this does not allow you to
+        set argv[0]; it will always be prog.)
     dry: Bool. If True, prints but does not execute.
     """
     print prog, string.join(args, ' ')
     if dry: return
-    ret = os.spawnvp(os.P_WAIT, prog, args)
+    ret = os.spawnvp(os.P_WAIT, prog, [prog] + args)
     if ret != 0:
         raise RunError(prog, ret)
 
@@ -118,10 +122,15 @@ def action_copytree(src, dst, dry):
     if (os.path.normpath(os.path.join(os.getcwd(),src)) ==
         os.path.normpath(os.path.join(os.getcwd(),dst))):
         return
-    action_remove(dst, dry)
-    print "cp -r", src, dst
-    if dry: return
-    shutil.copytree(src, dst, True)
+    
+    # Try to do the copy with rsync, if that fails just copy
+    try:
+        action_runprog(RSYNC, ['-a','--delete',src,dst], dry)
+    except RunError:
+        print "cp -r", src, dst
+        if dry: return
+        action_remove(dst, dry)
+        shutil.copytree(src, dst, True)
 
 def action_linktree(src, dst, dry):
     """Hard-links an entire directory tree. Same as copytree but the created
