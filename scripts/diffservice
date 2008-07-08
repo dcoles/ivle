@@ -127,6 +127,6 @@ try:
 
 except pysvn._pysvn_2_5.ClientError, e:
     req.write('<p><b>Error:</b></p>\n')
-    req.write('<pre class="diff">%s</pre>\n' % cgi.escape(e))
+    req.write('<pre class="diff">%s</pre>\n' % cgi.escape(str(e)))
 
 req.write('</div>\n')
