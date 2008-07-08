@@ -1,0 +1,13 @@
+.svnlogentry {
+	margin: 1em;
+	padding: 5px;
+	border: 1px solid black;
+}
+
+.svnloginfo {
+	background: #eee;
+}
+
+.svnlogentry h2 {
+	font-size: smaller;
+}

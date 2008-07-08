@@ -133,6 +133,11 @@ app_diff = App(dir = "diff",
                     requireauth = True,
                     hashelp = False)
 
+app_svnlog = App(dir = "svnlog",
+                    name = "Subversion Log",
+                    requireauth = True,
+                    hashelp = False)
+
 app_subjects = App(dir = "subjects",
                     name = "Subjects",
                     desc = "Announcements and information about the subjects "
@@ -165,6 +170,7 @@ app_url = {
     "settings" : app_settings,
     "userservice" : app_userservice,
     "diff" : app_diff,
+    "svnlog" : app_svnlog,
     "subjects" : app_subjects,
     "home" : app_home,
 }
