@@ -83,11 +83,6 @@
 #       path:   The path to the file to be added. Can be specified multiple
 #               times.
 #
-# action=svndiff: Show differences between a file in the working copy and its
-#                   state as of the current revision
-#       path:   The path to the file to be diffed. Only one file may be
-#               specified.
-#
 # action=svnrevert: Revert a file(s) to its state as of the current revision
 #               / undo local edits.
 #       path:   The path to the file to be reverted. Can be specified multiple
@@ -561,15 +556,6 @@ def action_svnupdate(req, fields):
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
-def action_svndiff(req, fields):
-    """Redirects to a diff of the file specified.
-
-    Reads fields: 'path'
-    """
-    paths = fields.getlist('path')
-
-    raise ActionError(paths[0])
-
 def action_svnrevert(req, fields):
     """Performs a "svn revert" to each file specified.
 
@@ -669,7 +655,6 @@ actions_table = {
 
     "svnadd" : action_svnadd,
     "svnupdate" : action_svnupdate,
-    "svndiff" : action_svndiff,
     "svnrevert" : action_svnrevert,
     "svnpublish" : action_svnpublish,
     "svnunpublish" : action_svnunpublish,
