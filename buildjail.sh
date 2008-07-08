@@ -32,7 +32,7 @@
 RELEASE=hardy
 SECTIONS="main universe"
 JAIL=jail
-SYSTEMPACKAGES="python-cjson python-svn"
+SYSTEMPACKAGES="python2.5 python-cjson python-svn"
 STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
     python-beautifulsoup python-lxml python-imaging \
     python-simpletal python-nltk" # elementtree-1.3beta (needs tidy)
@@ -59,7 +59,7 @@ if [ -z "$DEBOOTSTRAP" ]; then
 fi
 
 echo "Building minimal Jail..."
-sudo rm -rf $JAIL
+sudo rm -rf --one-file-system $JAIL
 sudo $DEBOOTSTRAP --components=`echo $SECTIONS | tr ' ' ','` \
     --include=ubuntu-keyring \
     --variant=minbase $RELEASE $JAIL $MIRROR
