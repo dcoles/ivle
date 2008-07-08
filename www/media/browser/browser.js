@@ -728,6 +728,7 @@ function update_actions()
     var svndiff = document.getElementById("act_svndiff");
     var svnrevert = document.getElementById("act_svnrevert");
     var svncommit = document.getElementById("act_svncommit");
+    var svnlog = document.getElementById("act_svnlog");
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
     if (numsel >= 1 && current_file.svnstatus)
@@ -749,23 +750,36 @@ function update_actions()
         svncommit.setAttribute("disabled", "disabled");
     }
 
-    /* Diff only supports one path at the moment. */
+    /* Diff and log only support one path at the moment. */
     if (numsel == 1)
     {
         svnst = file_listing[selected_files[0]].svnstatus;
 
-        /* Diff also doesn't like unversioned paths, and diffs on unchanged
+        /* Diff and log also don't like unversioned paths, and diffs on unchanged
          * files are pointless. */
-        if (svnst && svnst != "unversioned" && svnst != "normal")
+        if (svnst && svnst != "unversioned")
         {
-            svndiff.setAttribute("class", "choice");
-            svndiff.removeAttribute("disabled");
+            if (svnst != "normal")
+            {
+                svndiff.setAttribute("class", "choice");
+                svndiff.removeAttribute("disabled");
+            }
+            else
+            {
+                svndiff.setAttribute("class", "disabled");
+                svndiff.setAttribute("disabled", "disabled");
+            }
+        
+            svnlog.setAttribute("class", "choice");
+            svnlog.removeAttribute("disabled");
         }
     }
     else
     {
         svndiff.setAttribute("class", "disabled");
         svndiff.setAttribute("disabled", "disabled");
+        svnlog.setAttribute("class", "disabled");
+        svnlog.setAttribute("disabled", "disabled");
     }
 
     var svncheckout = document.getElementById("act_svncheckout");
@@ -868,6 +882,9 @@ function handle_moreactions()
         break;
     case "svncommit":
         action_commit(selected_files);
+        break;
+    case "svnlog":
+        window.location = path_join(app_path('svnlog'), current_path, selected_files[0]);
         break;
     case "svncheckout":
         action_checkout();
