@@ -33,21 +33,22 @@ import re
 def htmlfy_diff(difftext):
     """Adds HTML markup to a udiff string"""
     output = cgi.escape(difftext)
-    match_file = re.compile(r'^([\+\-]{3})\s(\S+)\s\((.+)\)$',re.MULTILINE)
-    match_range = re.compile(r'^\@\@ (.*) \@\@$',re.MULTILINE)
-    match_add = re.compile(r'^\+(.*)$',re.MULTILINE)
-    match_sub = re.compile(r'^\-(.*)$',re.MULTILINE)
-    match_special = re.compile(r'^\\(.*)$',re.MULTILINE)
-    output = match_file.sub(
-        r'<span class="diff-files">\1 \2 <em>(\3)</em></span>', output)
-    output = match_range.sub(
-        r'<span class="diff-range">@@ \1 @@</span>', output)
-    output = match_add.sub(
-        r'<span class="diff-add">+\1</span>', output)
-    output = match_sub.sub(
-        r'<span class="diff-sub">-\1</span>', output)
-    output = match_special.sub(
-        r'<span class="diff-special">\\\1</span>', output)
+    subs = {
+     r'^([\+\-]{3})\s(\S+)\s\((.+)\)$':
+         r'<span class="diff-files">\1 \2 <em>(\3)</em></span>',
+     r'^\@\@ (.*) \@\@$':
+         r'<span class="diff-range">@@ \1 @@</span>',
+     r'^\+(.*)$':
+         r'<span class="diff-add">+\1</span>',
+     r'^\-(.*)$':
+         r'<span class="diff-sub">-\1</span>',
+     r'^\\(.*)$':
+         r'<span class="diff-special">\\\1</span>'
+    }
+
+    for match in subs:
+        output = re.compile(match, re.MULTILINE).sub(subs[match], output)
+
     return output
 
 def get_revision(r_str):
