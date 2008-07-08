@@ -19,7 +19,7 @@
 ##########################################################################
 # Apt packages
 ##########################################################################
-
+sudo apt-get update
 sudo apt-get install subversion build-essential debootstrap             \
                      apache2 libapache2-mod-python libapache2-svn       \
                      python2.5-dev python-svn python-webpy python-cjson \
@@ -73,6 +73,7 @@ sudo chown -R www-data:www-data /opt/ivle/svn
 cd /home/informatics
 sudo mkdir repositories sessions
 sudo chown -R www-data:www-data repositories sessions
+cd $IVLE_SVN
 
 # Create a user
 sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
@@ -89,7 +90,7 @@ sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle
 #   (svn.localhost). You must change this to the domain for svn access.
 # * Change all paths beginning with /opt/ivle or /home/informatics to the
 #   locations you have installed things in.
-vim /etc/apache2/sites-available/ivle
+sudo vim /etc/apache2/sites-available/ivle
 
 # Replace the default with the IVLE site.
 sudo a2dissite default
@@ -101,7 +102,11 @@ sudo /etc/init.d/apache2 restart
 # Make sure the 3 domains given in Apache conf all lookup to your server.
 # (By default these are localhost, public.localhost and svn.localhost).
 # For testing purposes, this can be done by editing /etc/hosts, for example:
-127.0.0.1	svn.localhost public.localhost
+# 127.0.0.1	public.localhost public.localhost
+sudo vim /etc/hosts
+
+# Restart the server
+sudo /etc/init.d/apache2 restart
 
 ##########################################################################
 # User management server: usrmgt-server
