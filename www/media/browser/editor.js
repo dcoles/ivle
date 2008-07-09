@@ -22,9 +22,19 @@ function save_file(filename)
 
 function save_file_as(default_filename)
 {
-    filename = prompt('Path to save to:', default_filename);
-    /* TODO: Confirm overwriting. */
-    save_file(filename);
+    filename = prompt("Path to save to:", default_filename);
+    if (!filename) return;
+
+    /* The filename will be path_joined with the app name, so needs to not
+     * be absolute, lest it clobber the app name. */
+    if (filename.charAt(0) == "/") filename = filename.substring(1);
+    ajax_call(save_file_as_callback, "fileservice", filename, {}, "POST");
+}
+
+function save_file_as_callback(response)
+{
+    if (response.status == 404 || confirm("Are you sure you want to overwrite " + filename + "?"))
+        save_file(filename);
 }
 
 function edit_text()
