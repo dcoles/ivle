@@ -87,6 +87,11 @@
     color: #aaa;
 }
 
+/* One of these two is shown at runtime, depending on the context. */
+#actions2 #actions2_file, #actions2 #actions2_directory {
+    display: none;
+}
+
 /* Everything under the top bar */
 
 #filesbody {

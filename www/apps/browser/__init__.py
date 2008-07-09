@@ -213,10 +213,10 @@ def present_actions2(req, isdir):
     """
     Presents a set of links/buttons for the "actions2" row of the top bar.
     This depends on whether it is a directory (listing) or normal file
-    (editor).
+    (editor), but we'll let the JavaScript decide which.
     """
-    if isdir:
-        req.write("""    <form target="upload_iframe"
+    req.write("""    <form id="actions2_directory"
+          target="upload_iframe"
           action="%s"
           enctype="multipart/form-data" method="post">
       Select:
@@ -240,8 +240,8 @@ def present_actions2(req, isdir):
           name="upload_iframe" id="upload_iframe"></iframe>
     </form>
 """ % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))
-    else:
-        req.write("""    <p>Save as: 
+
+    req.write("""    <p id="actions2_file">Save as: 
       <input type="text" size="30" id="save_filename" value="%s" />
       <input type="button" id="save_button" value="Save" onclick="save_file()" />
     </p>

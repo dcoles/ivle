@@ -799,9 +799,18 @@ function update_actions()
      * when the current file is not a directory. Hence, just remove
      * it entirely.
      * (This makes some of the above decisions somewhat redundant).
+     * We also take this opportunity to show the appropriate actions2
+     * bar for this path. It should either be a save or upload widget.
      */
-    if (!(current_file.isdir))
+    if (current_file.isdir)
     {
+        var actions2_directory = document.getElementById("actions2_directory");
+        actions2_directory.setAttribute("style", "display: inline;");
+    }
+    else
+    {
+        var actions2_file = document.getElementById("actions2_file");
+        actions2_file.setAttribute("style", "display: inline;");
         var moreactions = document.getElementById("moreactions_area");
         moreactions.setAttribute("style", "display: none;");
     }
