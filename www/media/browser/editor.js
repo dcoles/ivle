@@ -52,6 +52,11 @@ function present_editorhead(elem, path, handler_type)
     }
 }
 
+function highlighting_changed(select)
+{
+    editbox.edit(editbox.getCode(), select.value);
+}
+
 /** Presents the text editor.
  */
 function handle_text(path, text, handler_type)
@@ -70,10 +75,13 @@ function handle_text(path, text, handler_type)
         text.toString())
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
-    language = language_from_mime(current_file.type)
+    language = language_from_mime(current_file.type);
 
     // Assume plaintext if no type can be determined.
-    txt_elem.className = "codepress " + (language ? language : 'text');
+    language = language ? language : "text";
+    document.getElementById("highlighting_select").value = language;
+
+    txt_elem.className = "codepress " + language;
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "35");

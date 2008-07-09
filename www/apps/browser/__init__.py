@@ -247,5 +247,12 @@ def present_actions2(req):
     req.write("""    <p id="actions2_file">
       <input type="button" id="save_button" value="Save" onclick="save_file('%s')" />
       <input type="button" id="saveas_button" value="Save As..." onclick="save_file_as('%s')" />
+      <select id="highlighting_select" onchange="highlighting_changed(this)">
+          <option value="text">Text</option>
+          <option value="python">Python</option>
+          <option value="html">HTML</option>
+          <option value="javascript">JavaScript</option>
+          <option value="css">CSS</option>
+      </select>
     </p>
 """ % ((cgi.escape(req.path),) * 2))
