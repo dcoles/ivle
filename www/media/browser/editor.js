@@ -9,9 +9,8 @@ function disable_save_if_safe()
     }
 }
 
-function save_file()
+function save_file(filename)
 {
-    var filename = document.getElementById("save_filename").value;
     data = editbox.getCode();
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
@@ -19,6 +18,13 @@ function save_file()
               {"path":".", "data":data, "overwrite":"true"},
               "multipart/form-data", true);
     disable_save_if_safe();
+}
+
+function save_file_as(default_filename)
+{
+    filename = prompt('Path to save to:', default_filename);
+    /* TODO: Confirm overwriting. */
+    save_file(filename);
 }
 
 function edit_text()

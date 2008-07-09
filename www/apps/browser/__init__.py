@@ -244,8 +244,8 @@ def present_actions2(req):
     </form>
 """ % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))
 
-    req.write("""    <p id="actions2_file">Save as: 
-      <input type="text" size="30" id="save_filename" value="%s" />
-      <input type="button" id="save_button" value="Save" onclick="save_file()" />
+    req.write("""    <p id="actions2_file">
+      <input type="button" id="save_button" value="Save" onclick="save_file('%s')" />
+      <input type="button" id="saveas_button" value="Save As..." onclick="save_file_as('%s')" />
     </p>
-""" % cgi.escape(req.path))
+""" % ((cgi.escape(req.path),) * 2))
