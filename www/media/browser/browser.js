@@ -358,7 +358,10 @@ function upload_callback()
      */
     upload_callback_count++;
     if (upload_callback_count >= 2)
+    {
+        document.getElementsByName('data')[0].value = '';
         refresh();
+    }
 }
 
 /** Deletes all "dynamic" content on the page.
