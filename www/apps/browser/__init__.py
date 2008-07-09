@@ -78,6 +78,9 @@ def handle(req):
 <div id="topbar">
   <div id="path">
     """)
+    # FIXME: This isn't completely reliable! We're not inside the jail, so we
+    # can't know the type for sure. This is now only used for adding a / to the
+    # end of displayed paths, so I'm leaving this although it will often break.
     isdir = os.path.isdir(localpath)
     presentpath(req, browsepath, isdir)
     req.write("""
@@ -88,7 +91,7 @@ def handle(req):
     req.write("""  </div>
   <div id="actions2">
 """)
-    present_actions2(req, isdir)
+    present_actions2(req)
     req.write("""  </div>
 </div>
 <!-- End topbar -->
@@ -209,7 +212,7 @@ def present_actions1(req):
     </select></span>
 """)
 
-def present_actions2(req, isdir):
+def present_actions2(req):
     """
     Presents a set of links/buttons for the "actions2" row of the top bar.
     This depends on whether it is a directory (listing) or normal file
