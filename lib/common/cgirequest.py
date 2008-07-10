@@ -254,10 +254,11 @@ class CGIRequest:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
-        self.status = 200
-        self.headers_out['X-IVLE-CGI-Error'] = httpcode
+        self.status = 500
+        self.headers_out['X-IVLE-Error-Code'] = httpcode
+        self.headers_out['X-IVLE-Error-Message'] = message
         self.ensure_headers_written()
-        self.write(message)
+        self.write('An internal IVLE error has occurred.')
         self.flush()
         sys.exit(self.status)
 
