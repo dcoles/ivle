@@ -125,7 +125,7 @@ def action_copytree(src, dst, dry):
     
     # Try to do the copy with rsync, if that fails just copy
     try:
-        action_runprog(RSYNC, ['-a','--delete',src,dst], dry)
+        action_runprog(RSYNC, ['-a','--delete',src + '/',dst], dry)
     except RunError:
         print "cp -r", src, dst
         if dry: return
