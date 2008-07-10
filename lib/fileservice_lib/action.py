@@ -353,8 +353,8 @@ def action_putfile(req, fields):
         dest = open(path, 'wb')
         if data is not None:
             shutil.copyfileobj(data, dest)
-    except OSError:
-        raise ActionError("Could not write to target file")
+    except (IOError, OSError), e:
+        raise ActionError("Could not write to target file: %s" % e.strerror)
 
 def action_putfiles(req, fields):
     """Writes data to one or more files in a directory, overwriting them if
