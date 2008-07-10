@@ -77,6 +77,10 @@ def write_html_head(req):
     for script in req.scripts:
         req.write('  <script type="text/javascript" src="%s"></script>\n'
             % cgi.escape(util.make_path(script)))
+    req.write('  <script type="text/javascript">\n    /* Init Functions */\n')
+    for init in req.scripts_init:
+        req.write('    window.addEventListener("load", %s, false);\n'%init)
+    req.write('  </script>\n')
 
     req.write("</head>\n\n")
 

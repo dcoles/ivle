@@ -80,6 +80,12 @@ class Request:
             in the head, if write_html_head_foot is True.
             URLs should be relative to the IVLE root; they will be fixed up
             to be site-relative.
+        scripts_init (write)
+            List of strings. Write a list of JS function names, and they
+            will be added as window.addListener('load', ..., false); calls
+            in the head, if write_html_head_foot is True.
+            This is the propper way to specify functions that need to run at 
+            page load time.
         write_html_head_foot (write)
             Boolean. If True, dispatch assumes that this is an XHTML page, and
             will immediately write a full HTML head, open the body element,
@@ -195,6 +201,7 @@ class Request:
         self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
+        self.scripts_init = []
         self.write_html_head_foot = False
         self.got_common_vars = False
 
