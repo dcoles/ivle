@@ -11,6 +11,7 @@ import Queue
 import signal
 import socket
 import sys
+import traceback
 from threading import Thread
 from functools import partial
 
@@ -133,10 +134,10 @@ class PythonRunner(Thread):
             self.webio.flush()
             self.cmdQ.put({"okay":res})
             self.curr_cmd = ''
-        except Exception, exc:
+        except:
+            tb = format_exc_start(start=1)
             self.webio.flush()
-            exc_classname = exc.__class__.__name__
-            self.cmdQ.put({"exc": exc_classname + ": " + str(exc)})
+            self.cmdQ.put({"exc": ''.join(tb)})
             self.curr_cmd = ''
 
     def run(self):
@@ -161,18 +162,20 @@ class PythonRunner(Thread):
                         self.cmdQ.put({"more":None})
                     else:
                         self.execCmd(cmd)
-                except Exception, exc:
+                except:
+                    tb = format_exc_start(start=3)
+                    self.cmdQ.put({"exc": ''.join(tb)})
                     self.webio.flush()
-                    self.cmdQ.put({"exc":str(exc)})
                     self.curr_cmd = ''
             if 'block' in ln:
                 # throw away a partial command.
                 try:
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
-                except Exception, exc:
+                except:
+                    tb = format_exc_start()
                     self.webio.flush()
-                    self.cmdQ.put({"exc":str(exc)})
+                    self.cmdQ.put({"exc": ''.join(tb)})
                     self.curr_cmd = ''
 
 def daemonize():
@@ -204,6 +207,14 @@ def dispatch_msg(msg):
     expiry.ping()
     lineQ.put({msg['cmd']:msg['text']})
     return cmdQ.get()
+
+def format_exc_start(start=0):
+    etype, value, tb = sys.exc_info()
+    tbbits = traceback.extract_tb(tb)[start:]
+    list = ['Traceback (most recent call last):\n']
+    list = list + traceback.format_list(tbbits)
+    list = list + traceback.format_exception_only(etype, value)
+    return ''.join(list)
 
 if __name__ == "__main__":
     port = int(sys.argv[1])
