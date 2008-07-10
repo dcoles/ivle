@@ -29,6 +29,7 @@
 
 from common import studpath
 from common import db
+from common.util import IVLEError
 import conf
 import functools
 
@@ -230,6 +231,11 @@ def process_cgi_output(req, data, cgiflags):
             split = headers.split('\r\n', 1)
             if len(split) == 1:
                 split = headers.split('\n', 1)
+
+        # Is this an internal IVLE error condition?
+        if 'X-IVLE-Error-Code' in cgiflags.headers:
+            raise IVLEError(int(cgiflags.headers['X-IVLE-Error-Code']),
+                            cgiflags.headers['X-IVLE-Error-Message'])
 
         # Check to make sure the required headers were written
         if cgiflags.wrote_html_warning or not cgiflags.gentle:
