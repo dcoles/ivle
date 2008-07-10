@@ -175,16 +175,35 @@ def handle_activate_me(req, fields):
         }
         msg = {'activate_user': args}
 
-        response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
-            decode = False)
-        # Write to the user's session to allow them to be activated
-        req.user.state = "enabled"
+        # Try and contact the usrmgt server
+        try:
+            response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        except cjson.DecodeError:
+            # Gave back rubbish - set the response to failure
+            response = {'response': 'usrmgt-failure'}
+
+        # Get the staus of the users request
+        try:
+            status = response['response']
+        except KeyError:
+            status = 'failure'
+        
+        if status == 'okay':
+            req.user.state = "enabled"
+        else:
+            # Reset the user back to no agreement
+            req.user.state = "no_agreement"
+            db.update_user(req.user.login, state="no_agreement")
+
+
+        # Update the users state
         session = req.get_session()
         session['user'] = req.user
         session.save()
+
         # Write the response
         req.content_type = "text/plain"
-        req.write(response)
+        req.write(cjson.encode(response))
     finally:
         db.close()
 
