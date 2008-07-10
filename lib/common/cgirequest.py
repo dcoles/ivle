@@ -254,7 +254,12 @@ class CGIRequest:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
-        raise common.util.IVLEError(httpcode, message)
+        self.status = 200
+        self.headers_out['X-IVLE-CGI-Error'] = httpcode
+        self.ensure_headers_written()
+        self.write(message)
+        self.flush()
+        sys.exit(self.status)
 
     def throw_redirect(self, location):
         """Writes out an HTTP redirect to the specified URL. Exits the

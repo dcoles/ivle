@@ -61,7 +61,7 @@ def get_uid(login):
 
     return uids[login]
 
-def interpret_file(req, owner, jail_dir, filename, interpreter):
+def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     """Serves a file by interpreting it using one of IVLE's builtin
     interpreters. All interpreters are intended to run in the user's jail. The
     jail location is provided as an argument to the interpreter but it is up
@@ -98,11 +98,15 @@ def interpret_file(req, owner, jail_dir, filename, interpreter):
     # (Note that paths "relative" to the jail actually begin with a '/' as
     # they are absolute in the jailspace)
 
-    return interpreter(uid, jail_dir, working_dir, filename_abs, req)
+    return interpreter(uid, jail_dir, working_dir, filename_abs, req,
+                       gentle)
 
 class CGIFlags:
-    """Stores flags regarding the state of reading CGI output."""
-    def __init__(self):
+    """Stores flags regarding the state of reading CGI output.
+       If this is to be gentle, detection of invalid headers will result in an
+       HTML warning."""
+    def __init__(self, begentle=True):
+        self.gentle = begentle
         self.started_cgi_body = False
         self.got_cgi_headers = False
         self.wrote_html_warning = False
@@ -110,7 +114,7 @@ class CGIFlags:
         self.headers = {}       # Header names : values
 
 def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
-                script_path, req):
+                script_path, req, gentle):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
@@ -165,7 +169,7 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
     # process_cgi_line: Reads a single line of CGI output and processes it.
     # Prints to req, and also does fancy HTML warnings if Content-Type
     # omitted.
-    cgiflags = CGIFlags()
+    cgiflags = CGIFlags(gentle)
 
     # Read from the process's stdout into req
     data = pid.stdout.read(CGI_BLOCK_SIZE)
@@ -228,7 +232,7 @@ def process_cgi_output(req, data, cgiflags):
                 split = headers.split('\n', 1)
 
         # Check to make sure the required headers were written
-        if cgiflags.wrote_html_warning:
+        if cgiflags.wrote_html_warning or not cgiflags.gentle:
             # We already reported an error, that's enough
             pass
         elif "Content-Type" in cgiflags.headers:
@@ -261,6 +265,10 @@ def process_cgi_header_line(req, line, cgiflags):
     try:
         name, value = line.split(':', 1)
     except ValueError:
+        # If we are being gentle, we want to help the user understand what
+        # went wrong. Otherwise, we bail out.
+        if not cgiflags.gentle:
+            raise
         # No colon. The user did not write valid headers.
         if len(cgiflags.headers) == 0:
             # First line was not a header line. We can assume this is not
@@ -292,6 +300,10 @@ a blank line after the headers, before writing the page contents."""
         try:
             req.status = int(value.split(' ', 1)[0])
         except ValueError:
+            if not cgiflags.gentle:
+                # This isn't user code, so it should be good.
+                # Get us out of here!
+                raise
             message = """The "Status" CGI header was invalid. You need to
 print a number followed by a message, such as "302 Found"."""
             write_html_warning(req, message)

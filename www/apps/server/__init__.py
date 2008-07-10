@@ -128,7 +128,7 @@ def serve_file(req, owner, filename, download=False):
         interp_object = interpret.interpreter_objects["cgi-python"]
         user_jail_dir = os.path.join(conf.jail_base, owner)
         interpret.interpret_file(req, owner, user_jail_dir,
-            serveservice_path, interp_object)
+            serveservice_path, interp_object, gentle=False)
 
 def serve_file_direct(req, filename, type):
     """Serves a file by directly writing it out to the response.

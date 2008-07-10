@@ -58,4 +58,4 @@ def handle(req):
         interp_object = common.interpret.interpreter_objects["cgi-python"]
         user_jail_dir = os.path.join(conf.jail_base, req.user.login)
         common.interpret.interpret_file(req, req.user.login, user_jail_dir,
-            fileservice_path, interp_object)
+            fileservice_path, interp_object, gentle=False)
