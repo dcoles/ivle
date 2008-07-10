@@ -79,8 +79,31 @@ function handle_accept_response(xhr)
     /* TEMP */
     var tos_acceptbuttons = document.getElementById("tos_acceptbuttons");
     dom_removechildren(tos_acceptbuttons);
-    /* Refresh the page; as the user is now (apparently) logged in */
-    window.location.href = window.location.href;
+
+    try
+    {
+        response = JSON.parse(xhr.responseText);
+    }
+    catch (e)
+    {
+        response = {'response': 'parse-failure'};
+    }
+
+    if (response.response == 'usrmgt-failure')
+    {
+    tos_acceptbuttons.appendChild(dom_make_text_elem("p",
+        "Error connecting to User Management server. Please try again later.")); 
+    }
+    else if (response.response == 'parse-failure')
+    {
+    tos_acceptbuttons.appendChild(dom_make_text_elem("p",
+        "Error connecting to server. Please try again later. "));
+    }
+    else
+    {
+        /* Refresh the page; as the user is now (apparently) logged in */
+        window.location.href = window.location.href;
+    }
 }
 
 function decline_license()
