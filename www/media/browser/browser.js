@@ -920,7 +920,7 @@ function runfile(localpath)
 
 /** Called when the page loads initially.
  */
-window.onload = function()
+function browser_init()
 {
     /* Navigate (internally) to the path in the URL bar.
      * This causes the page to be populated with whatever is at that address,
@@ -949,7 +949,4 @@ window.onload = function()
     }
 
     navigate(path);
-
-    /* Set up the console plugin to display as a popup window */
-    console_init(true);
 }

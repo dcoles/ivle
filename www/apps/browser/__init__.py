@@ -59,6 +59,10 @@ def handle(req):
         "media/browser/listing.js",
         "media/browser/editor.js",
     ]
+    req.scripts_init = [
+        "browser_init",
+        "console_init",
+    ]
     # Let the console plugin insert its own styles and scripts
     plugins.console.insert_scripts_styles(req.scripts, req.styles)
 
