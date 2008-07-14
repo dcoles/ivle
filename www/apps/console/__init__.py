@@ -35,6 +35,8 @@ def handle(req):
 
     # Let the plugin mandate the scripts and styles to use
     req.scripts = [
+        "media/common/util.js",
+        "media/common/json2.js",
         "media/console/console.js",
         "media/console/console_app.js" ]
     req.styles = [
