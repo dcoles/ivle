@@ -32,6 +32,8 @@ from mod_python import apache
 import sys
 import os
 import os.path
+import urllib
+
 import conf
 import conf.apps
 import apps
@@ -226,20 +228,30 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         # If this is a non-4xx IVLEError, get the message and httpcode and
         # make the error message a bit nicer (but still include the
         # traceback).
-        try:
-            codename, msg = req.get_http_codename(httpcode)
-        except AttributeError:
-            codename, msg = None, None
-        # Override the default message with the supplied one,
-        # if available.
-        if hasattr(exc_value, 'message') and exc_value.message is not None:
-            msg = exc_value.message
-            # Prepend the exception type
-            if exc_type != util.IVLEError:
-                msg = exc_type.__name__ + ": " + msg
+        # We also need to special-case IVLEJailError, as we can get another
+        # almost-exception out of it.
 
-        tb = ''.join(traceback.format_exception(exc_type, exc_value,
-                                                exc_traceback))
+        codename, msg = None, None
+
+        if exc_type is util.IVLEJailError:
+            msg = exc_value.type_str + ": " + exc_value.message
+            tb = 'Exception information extracted from IVLEJailError:\n'
+            tb += urllib.unquote(exc_value.info)
+        else:
+            try:
+                codename, msg = req.get_http_codename(httpcode)
+            except AttributeError:
+                pass
+            # Override the default message with the supplied one,
+            # if available.
+            if hasattr(exc_value, 'message') and exc_value.message is not None:
+                msg = exc_value.message
+                # Prepend the exception type
+                if exc_type != util.IVLEError:
+                    msg = exc_type.__name__ + ": " + msg
+
+            tb = ''.join(traceback.format_exception(exc_type, exc_value,
+                                                    exc_traceback))
 
         req.write("""<html>
 <head><title>IVLE Internal Server Error</title></head>
