@@ -51,6 +51,9 @@ class StdinFromWeb(object):
             return ln['chat']
         if 'interrupt' in ln:
             raise Interrupt()
+        if 'terminate' in ln:
+            sys.exit(0)
+            
 
 class StdoutToWeb(object):
     def __init__(self, cmdQ, lineQ):
