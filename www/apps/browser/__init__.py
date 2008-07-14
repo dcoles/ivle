@@ -137,6 +137,36 @@ def present_actions1(req):
     Presents a set of links/buttons for the "actions1" row of the top bar.
     This is always exactly the same - the JavaScript will customize it later.
     """
+    # Set up our actions. The second field of each group is whether to disable
+    # the items by default.
+    moreactions = [
+      ('Publishing', True, [
+        ('publish', ['Publish',          'Make it so this directory can be seen by anyone on the web']),
+        ('share',   ['Share this file',  'Get a link to this published file, to give to friends']),
+        ('submit',  ['Submit this file', 'Submit the selected files for an assignment'])
+      ]),
+      ('File actions', True, [
+        ('rename',  ['Rename',           'Change the name of this file']),
+        ('delete',  ['Delete',           'Delete the selected files']),
+        ('copy',    ['Copy',             'Prepare to copy the selected files to another directory']),
+        ('cut',     ['Cut',              'Prepare to move the selected files to another directory'])
+      ]),
+      ('Directory actions', False, [
+        ('paste',   ['Paste',            'Paste the copied or cut files into the current directory']),
+        ('newfile', ['New File',         'Open a new file for editing in the current directory']),
+        ('mkdir',   ['New Directory',    'Make a new subdirectory in the current directory']),
+        ('upload',  ['Upload File',      'Upload a file to the current directory'])
+      ]),
+      ('Subversion', True, [
+        ('svnadd',      ['Add',          'Schedule the selected temporary files to be added permanently']),
+        ('svndiff',     ['Diff',         'View any changes to the selected file since its last committed state']),
+        ('svnrevert',   ['Revert',       'Restore the selected files back to their last committed state']),
+        ('svncommit',   ['Commit',       'Commit any changes to the permanent repository']),
+        ('svnlog',      ['View Log',     'View the log of commits of the selected file']),
+        ('svncheckout', ['Re-checkout',  'Re-checkout your default directories'])
+      ])
+    ]
+
     req.write("""    <a id="act_open" class="disabled">Open</a> :
     <a id="act_serve"
         title="View this file on the web, running your code if this is a CGI file"
@@ -150,69 +180,20 @@ def present_actions1(req):
         onblur="handle_moreactions()">
       <option class="moreactions" value="top"
         selected="selected">More actions...</option>
-
-      <optgroup label="Publishing">
-      <option id="act_publish" class="disabled" disabled="disabled"
-        title="Make it so this directory can be seen by anyone on the web"
-        value="publish">Publish</option>
-      <option id="act_share" class="disabled" disabled="disabled"
-        title="Get a link to this published file, to give to friends"
-        value="share">Share this file</option>
-      <option id="act_submit" class="disabled" disabled="disabled"
-        title="Submit the selected files for an assignment"
-        value="submit">Submit</option>
-      </optgroup>
-
-      <optgroup label="File actions">
-      <option id="act_rename" class="disabled" disabled="disabled"
-        title="Change the name of this file" value="rename">Rename</option>
-      <option id="act_delete" class="disabled" disabled="disabled"
-        title="Delete the selected files" value="delete">Delete</option>
-      <option id="act_copy" class="disabled" disabled="disabled"
-        title="Prepare to copy the selected files to another directory"
-        value="copy">Copy</option>
-      <option id="act_cut" class="disabled" disabled="disabled"
-        title="Prepare to move the selected files to another directory"
-        value="cut">Cut</option>
-      </optgroup>
-
-      <optgroup label="Directory actions">
-      <option id="act_paste" class="choice"
-        title="Paste the copied or cut files to the current directory"
-        value="paste">Paste</option>
-      <option id="act_newfile" class="choice"
-        title="Open a new file for editing in the current directory"
-        value="newfile">New File</option>
-      <option id="act_mkdir" class="choice"
-        title="Make a new subdirectory in the current directory"
-        value="mkdir">New Directory</option>
-      <option id="act_upload" class="choice"
-        title="Upload a file to the current directory"
-        value="upload">Upload File</option>
-      </optgroup>
-
-      <optgroup label="Subversion">
-      <option id="act_svnadd" class="disabled" disabled="disabled"
-        title="Schedule the selected temporary files to be added permanently"
-        value="svnadd">Add</option>
-      <option id="act_svndiff" class="disabled" disabled="disabled"
-        title="View any changes to the selected file since its last committed state"
-        value="svndiff">Diff</option>
-      <option id="act_svnrevert" class="disabled" disabled="disabled"
-        title="Restore the selected files back to their last committed state"
-        value="svnrevert">Revert</option>
-      <option id="act_svncommit" class="disabled" disabled="disabled"
-        title="Commit any changes to the permanent repository"
-        value="svncommit">Commit</option>
-      <option id="act_svnlog" class="disabled" disabled="disabled"
-        title="View the log of commits of the selected file"
-        value="svnlog">View Log</option>
-      <option id="act_svncheckout" class="disabled" disabled="disabled"
-        title="Re-check out your default directories"
-        value="svncheckout">Re-Checkout</option>
-      </optgroup>
-    </select></span>
 """)
+
+    for (name, disablement, group) in moreactions:
+        if disablement:
+            disable = 'class="disabled" disabled="disabled"'
+        else:
+            disable = ''
+        req.write('<optgroup label="%s">' % name)
+        for (id, bits) in group:
+            req.write('<option id="act_%s" %s title="%s" value="%s">%s</option>'
+                      % (id, disable, bits[1], id, bits[0]))
+        req.write('</optgroup>')
+
+    req.write('</select></span>')
 
 def present_actions2(req):
     """
