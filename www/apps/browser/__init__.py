@@ -143,7 +143,7 @@ def present_actions1(req):
       ('Publishing', True, [
         ('publish', ['Publish',          'Make it so this directory can be seen by anyone on the web']),
         ('share',   ['Share this file',  'Get a link to this published file, to give to friends']),
-        ('submit',  ['Submit this file', 'Submit the selected files for an assignment'])
+        ('submit',  ['Submit', 'Submit the selected files for an assignment'])
       ]),
       ('File actions', True, [
         ('rename',  ['Rename',           'Change the name of this file']),
