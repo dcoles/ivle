@@ -31,6 +31,8 @@
 import sys
 import os
 import cgi
+import urllib
+import traceback
 
 import conf
 import common
@@ -160,6 +162,11 @@ class CGIRequest:
         self.write_html_head_foot = False
         self.got_common_vars = False
 
+
+    def install_error_handler(self):
+        '''Install our exception handler as the default.'''
+        sys.excepthook = self.handle_unknown_exception
+
     def __writeheaders(self):
         """Writes out the HTTP and HTML headers before any real data is
         written."""
@@ -254,9 +261,22 @@ class CGIRequest:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
+        raise common.util.IVLEError(httpcode, message)
+
+    def handle_unknown_exception(self, exc_type, exc_value, exc_tb):
+        if exc_type is common.util.IVLEError:
+            self.headers_out['X-IVLE-Error-Code'] = exc_value.httpcode
+
+        self.headers_out['X-IVLE-Error-Type'] = exc_type.__name__
+
+        try:
+            self.headers_out['X-IVLE-Error-Message'] = exc_value.message
+        except AttributeError:
+            pass
+
+        self.headers_out['X-IVLE-Error-Info'] = urllib.quote(''.join(
+              traceback.format_exception(exc_type, exc_value, exc_tb)))
         self.status = 500
-        self.headers_out['X-IVLE-Error-Code'] = httpcode
-        self.headers_out['X-IVLE-Error-Message'] = message
         self.ensure_headers_written()
         self.write('An internal IVLE error has occurred.')
         self.flush()

@@ -33,6 +33,7 @@ from common import (cgirequest, studpath)
 from common import zip as zipmod
 
 req = cgirequest.CGIRequest()
+req.install_error_handler()
 
 # Work out the parts of the URL
 url = urlparse.urlparse(req.path)

@@ -47,6 +47,20 @@ class IVLEError(Exception):
         self.message = message
         self.args = (httpcode, message)
 
+class IVLEJailError(Exception):
+    """
+    This exception indicates an error that occurred inside an IVLE CGI script
+    inside the jail. It should never be raised directly - only by the 
+    interpreter.
+
+    Information will be retrieved from it, and then treated as a normal
+    error.
+    """
+    def __init__(self, type_str, message, info):
+        self.type_str = type_str
+        self.message = message
+        self.info = info
+
 def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
     site root using conf.root_dir. This path can be used in URLs sent to the
