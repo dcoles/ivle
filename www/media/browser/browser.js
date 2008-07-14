@@ -181,7 +181,8 @@ function navigate(path)
  */
 function refresh()
 {
-    navigate(current_path);
+    if (maybe_save('All changes since the last save will be lost!'))
+        navigate(current_path);
 }
 
 /** Determines the "handler type" from a MIME type.
@@ -373,6 +374,20 @@ function clearpage()
     dom_removechildren(document.getElementById("filesbody"));
 }
 
+/* Checks if a file needs to be saved. If it does, the user will be asked
+ * if they want to continue anyway. The caller must specify a warning
+ * sentence which indicates the consequences of continuing.
+ * Returns true if we should continue, and false if we should not.
+ */
+function maybe_save(warning)
+{
+    if (warning == null) warning = '';
+    if (current_file.isdir) return true;
+    if (document.getElementById("save_button").disabled) return true;
+    return confirm("This file has unsaved changes. " + warning +
+                   "\nAre you sure you wish to continue?");
+}
+
 /** Deletes all "dynamic" content on the page necessary to navigate from
  * one directory listing to another (does not clear as much as clearpage
  * does).
@@ -550,6 +565,8 @@ function update_actions()
     if (numsel <= 1 && !file.isdir)
     {
         serve.setAttribute("class", "choice");
+        serve.setAttribute("onclick",
+              "return maybe_save('The last saved version will be served.')");
         if (numsel == 0)
             serve.setAttribute("href",
                 app_path(serve_app, current_path));
@@ -561,6 +578,7 @@ function update_actions()
     {
         serve.setAttribute("class", "disabled");
         serve.removeAttribute("href");
+        serve.removeAttribute("onclick");
     }
 
     /* Run */
@@ -806,6 +824,8 @@ function handle_moreactions()
  */
 function runfile(localpath)
 {
+    if (!maybe_save('The last saved version will be run.')) return false;
+
     /* Dump the entire file to the console */
     var callback = function()
     {
