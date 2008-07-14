@@ -6,6 +6,7 @@ function disable_save_if_safe()
     {
         var savebutton = document.getElementById("save_button");
         savebutton.disabled = true;
+        window.onbeforeunload = null;
     }
 }
 
@@ -37,10 +38,16 @@ function save_file_as_callback(response)
         save_file(filename);
 }
 
+/* Return a warning to be used in window.onbeforeunload. */
+function confirm_beforeunload() {
+    return 'If you continue, any unsaved changes to the current file will be lost.';
+}
+
 function edit_text()
 {
     var savebutton = document.getElementById("save_button");
     savebutton.disabled = false;
+    window.onbeforeunload = confirm_beforeunload;
 }
 
 /** Presents the "editor heading" inserting it into a given element at
@@ -96,6 +103,8 @@ function handle_text(path, text, handler_type)
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "35");
     CodePress.run();
+
+    window.onbeforeunload = confirm_beforeunload;
 
     /* And set a callback so we know that the editor iframe is loaded so we
      * can set a callback so we know when to enable the save button.
