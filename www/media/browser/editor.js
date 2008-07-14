@@ -74,6 +74,21 @@ function highlighting_changed(select)
     editbox.edit(editbox.getCode(), select.value);
 }
 
+function initialise_codepress()
+{
+    editbox.addChangeHandler(edit_text);
+     
+    /* We can only safely disable the save button on the first load.
+     * Syntax highlighting changes will also get this function called.
+     * We unfortunately need the change handler added each time.
+     */
+    if (!initialise_codepress.already)
+    {
+        disable_save_if_safe();
+        initialise_codepress.already = true;
+    }
+}
+
 /** Presents the text editor.
  */
 function handle_text(path, text, handler_type)
@@ -110,8 +125,7 @@ function handle_text(path, text, handler_type)
      * can set a callback so we know when to enable the save button.
      * We also take this opportunity to disable the save button, if
      * the browser is likely to reenable it as needed. */
-    editbox.onload = function() {editbox.addChangeHandler(edit_text);
-                                 disable_save_if_safe(); };
+    editbox.onload = initialise_codepress
 }
 
 function language_from_mime(mime)
