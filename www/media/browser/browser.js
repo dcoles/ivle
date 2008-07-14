@@ -475,21 +475,27 @@ function handle_binary(path)
     div.appendChild(par2);
 }
 
-/* Enable or disable an actions1 moreactions action. */
-function set_action_state(name, which)
+/* Enable or disable actions1 moreactions actions. Takes either a single
+ * name, or an array of them.*/
+function set_action_state(names, which)
 {
-    element = document.getElementById('act_' + name);
-    if (which)
+    if (!(names instanceof Array)) names = Array(names);
+
+    for (var i=0; i < names.length; i++)
     {
-        /* Enabling */
-        element.setAttribute("class", "choice");
-        element.removeAttribute("disabled");
-    }
-    else
-    {
-        /* Disabling */
-        element.setAttribute("class", "disabled");
-        element.setAttribute("disabled", "disabled");
+        element = document.getElementById('act_' + names[i]);
+        if (which)
+        {
+            /* Enabling */
+            element.setAttribute("class", "choice");
+            element.removeAttribute("disabled");
+        }
+        else
+        {
+            /* Disabling */
+            element.setAttribute("class", "disabled");
+            element.setAttribute("disabled", "disabled");
+        }
     }
 }
 
@@ -653,8 +659,7 @@ function update_actions()
             publish.textContent = "Publish";
         }
     }
-    set_action_state("publish", pubcond);
-    set_action_state("submit", pubcond);
+    set_action_state(["publish", "submit"], pubcond);
 
     /* Share */
     /* If exactly 1 non-directory file is selected, and its parent
@@ -669,25 +674,16 @@ function update_actions()
 
     /* Delete, cut, copy */
     /* If >= 1 file is selected */
-    set_action_state("delete", numsel >= 1);
-    set_action_state("cut", numsel >= 1);
-    set_action_state("copy", numsel >= 1);
+    set_action_state(["delete", "cut", "copy"], numsel >= 1);
 
     /* Paste, new file, new directory, upload */
     /* Disable if the current file is not a directory */
-    set_action_state("paste", current_file.isdir);
-    set_action_state("newfile", current_file.isdir);
-    set_action_state("mkdir", current_file.isdir);
-    set_action_state("upload", current_file.isdir);
+    set_action_state(["paste", "newfile", "mkdir", "upload"], current_file.isdir);
 
     /* Subversion actions */
-    var svndiff = document.getElementById("act_svndiff");
-    var svnlog = document.getElementById("act_svnlog");
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state("svnadd", numsel >= 1 && current_file.svnstatus);
-    set_action_state("svnrevert", numsel >= 1 && current_file.svnstatus);
-    set_action_state("svncommit", numsel >= 1 && current_file.svnstatus);
+    set_action_state(["svnadd", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
 
     /* Diff and log only support one path at the moment. */
     single_versioned_path = (numsel == 1 &&
