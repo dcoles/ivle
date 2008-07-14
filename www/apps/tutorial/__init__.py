@@ -41,7 +41,6 @@ import cjson
 
 from common import util
 import conf
-import plugins.console
 import common.db
 
 from rst import rst
@@ -87,8 +86,6 @@ def handle(req):
     req.styles = [
         "media/tutorial/tutorial.css",
     ]
-    # Let the console plugin insert its own styles and scripts
-    plugins.console.insert_scripts_styles(req.scripts, req.styles)
     # Note: Don't print write_html_head_foot just yet
     # If we encounter errors later we do not want this
 
@@ -114,7 +111,6 @@ def handle(req):
         handle_subject_menu(req, subject)
     else:
         handle_worksheet(req, subject, worksheet)
-        plugins.console.present(req, windowpane=True)
 
 def handle_media_path(req):
     """

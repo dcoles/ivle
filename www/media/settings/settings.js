@@ -22,11 +22,6 @@
 
 var user_data;
 
-function onload()
-{
-    revert_settings();
-}
-
 /* Fetch the user's details from the server, and populate the page.
  * Returns false. */
 function revert_settings()

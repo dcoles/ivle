@@ -29,7 +29,7 @@
 from common import util
 import cgi
 
-def insert_scripts_styles(scripts, styles):
+def insert_scripts_styles(scripts, styles, scripts_init):
     """Given 2 lists of strings: scripts and styles. These lists are lists of
     pathnames, as expected on the "scripts" and "styles" attributes of a
     Request object.
@@ -43,6 +43,8 @@ def insert_scripts_styles(scripts, styles):
         "media/console/console.js")
     _append_if_absent(styles,
         "media/console/console.css")
+    _append_if_absent(scripts_init,
+        "console_init")
 
 def present(req, windowpane=False):
     """Writes the HTML for this plugin into a request stream.

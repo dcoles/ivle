@@ -27,7 +27,6 @@
 
 import os.path
 import cgi
-import plugins.console
 
 from common import (util, studpath)
 
@@ -61,10 +60,7 @@ def handle(req):
     ]
     req.scripts_init = [
         "browser_init",
-        "console_init",
     ]
-    # Let the console plugin insert its own styles and scripts
-    plugins.console.insert_scripts_styles(req.scripts, req.styles)
 
     req.write_html_head_foot = True     # Have dispatch print head and foot
     # The page title should contain the name of the file being browsed
@@ -105,8 +101,6 @@ def handle(req):
 </div>
 <!-- End body -->
 """)
-    # Console
-    plugins.console.present(req, windowpane=True)
 
 def presentpath(req, path, isdir):
     """

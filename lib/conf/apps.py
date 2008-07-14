@@ -14,11 +14,12 @@ enable_debuginfo = False
 # app_icon_dir, defined below.
 class App:
     def __init__(self, dir, name, desc=None, icon = None,
-        requireauth = True, hashelp = False):
+        useconsole = False, requireauth = True, hashelp = False):
         self.dir = dir
         self.name = name
         self.desc = desc
         self.icon = icon
+        self.useconsole = useconsole
         self.requireauth = requireauth
         self.hashelp = hashelp
     def __repr__(self):
@@ -48,6 +49,7 @@ app_browser =   App(dir = "browser",
                     desc = "Gives you access to all of your files and lets "
                            "you download, upload, edit and run them.",
                     icon = "browser.png",
+                    useconsole = True,
                     requireauth = True,
                     hashelp = True)
 
@@ -61,6 +63,7 @@ app_console =     App(dir = "console",
                     desc = "A Python console where you can try out code "
                            "without having to save and run it.",
                     icon = "console.png",
+                    useconsole = False, # We use a full console in this app
                     requireauth = True,
                     hashelp = True)
 
@@ -73,6 +76,7 @@ app_tutorial =     App(dir = "tutorial",
                     name = "Worksheets",
                     desc = "Online tutorials and exercises for lab work.",
                     icon = "tutorial.png",
+                    useconsole = True,
                     requireauth = True,
                     hashelp = True)
 

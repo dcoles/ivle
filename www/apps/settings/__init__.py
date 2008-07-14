@@ -39,6 +39,9 @@ def handle(req):
         "media/common/json2.js",
         "media/common/util.js",
     ]
+    req.scripts_init = [
+        "revert_settings"
+    ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Start writing data

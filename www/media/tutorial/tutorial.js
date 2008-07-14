@@ -20,13 +20,6 @@
  * Date: 25/1/2008
  */
 
-/* Runs at startup. */
-function onload()
-{
-    /* Set up the console plugin to display as a popup window */
-    console_init(true);
-}
-
 /** User clicks "Run" button. Do an Ajax call and print the test output.
  */
 function runexercise(exerciseid, filename)

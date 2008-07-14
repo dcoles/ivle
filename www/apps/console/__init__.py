@@ -34,9 +34,14 @@ def handle(req):
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Let the plugin mandate the scripts and styles to use
-    req.scripts = ["media/console/console_app.js"]
-    req.styles = ["media/console/console_app.css"]
-    plugins.console.insert_scripts_styles(req.scripts, req.styles)
+    req.scripts = [
+        "media/console/console.js",
+        "media/console/console_app.js" ]
+    req.styles = [
+        "media/console/console.css",
+        "media/console/console_app.css" ]
+    req.scripts_init = [
+        "consoleapp_init" ]
 
     # Let the plugin write the HTML body
     plugins.console.present(req)
