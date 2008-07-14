@@ -42,7 +42,6 @@ import cgi
 import login
 from common import (util, forumutil)
 import traceback
-import cStringIO
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -239,6 +238,9 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             if exc_type != util.IVLEError:
                 msg = exc_type.__name__ + ": " + msg
 
+        tb = ''.join(traceback.format_exception(exc_type, exc_value,
+                                                exc_traceback))
+
         req.write("""<html>
 <head><title>IVLE Internal Server Error</title></head>
 <body>
@@ -259,9 +261,6 @@ administration.</p>
 administrator). Include the following information:</p>
 """ % (cgi.escape(admin_email), cgi.escape(admin_email)))
 
-        tb_print = cStringIO.StringIO()
-        traceback.print_exception(exc_type, exc_value, exc_traceback,
-            file=tb_print)
         req.write("<pre>\n")
-        req.write(cgi.escape(tb_print.getvalue()))
+        req.write(cgi.escape(tb))
         req.write("</pre>\n</body>\n")
