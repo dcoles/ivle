@@ -475,6 +475,24 @@ function handle_binary(path)
     div.appendChild(par2);
 }
 
+/* Enable or disable an actions1 moreactions action. */
+function set_action_state(name, which)
+{
+    element = document.getElementById('act_' + name);
+    if (which)
+    {
+        /* Enabling */
+        element.setAttribute("class", "choice");
+        element.removeAttribute("disabled");
+    }
+    else
+    {
+        /* Disabling */
+        element.setAttribute("class", "disabled");
+        element.setAttribute("disabled", "disabled");
+    }
+}
+
 function update_actions()
 {
     var file;
@@ -617,11 +635,10 @@ function update_actions()
      * directory. */
     var publish = document.getElementById("act_publish");
     var submit = document.getElementById("act_submit");
-    if (numsel <= 1 && file.isdir)
+    var pubcond = numsel <= 1 && file.isdir;
+    if (pubcond)
     {
         /* TODO: Work out of file is svn'd */
-        publish.setAttribute("class", "choice");
-        publish.removeAttribute("disabled");
         /* If this dir is already published, call it "Unpublish" */
         if (file.published)
         {
@@ -635,168 +652,52 @@ function update_actions()
                 + "can be seen by anyone on the web");
             publish.textContent = "Publish";
         }
-        submit.setAttribute("class", "choice");
-        submit.removeAttribute("disabled");
     }
-    else
-    {
-        publish.setAttribute("class", "disabled");
-        publish.setAttribute("disabled", "disabled");
-        submit.setAttribute("class", "disabled");
-        submit.setAttribute("disabled", "disabled");
-    }
+    set_action_state("publish", pubcond);
+    set_action_state("submit", pubcond);
 
     /* Share */
-    /* If exactly 1 non-directory file is selected/opened, and its parent
+    /* If exactly 1 non-directory file is selected, and its parent
      * directory is published.
      */
-    var share = document.getElementById("act_share");
-    if (numsel <= 1 && !file.isdir)
-    {
-        /* Work out if parent dir is published */
-        parentdir = current_file;
-        if (parentdir.published)
-        {
-            share.setAttribute("class", "choice");
-            share.removeAttribute("disabled");
-        } else {
-            share.setAttribute("class", "disabled");
-            share.setAttribute("disabled", "disabled");
-        }
-    }
-    else
-    {
-        share.setAttribute("class", "disabled");
-        share.setAttribute("disabled", "disabled");
-    }
+    set_action_state("share", numsel == 1 && !file.isdir &&
+                     current_file.published);
 
     /* Rename */
     /* If exactly 1 file is selected */
-    var rename = document.getElementById("act_rename");
-    if (numsel == 1)
-    {
-        rename.setAttribute("class", "choice");
-        rename.removeAttribute("disabled");
-    }
-    else
-    {
-        rename.setAttribute("class", "disabled");
-        rename.setAttribute("disabled", "disabled");
-    }
+    set_action_state("rename", numsel == 1);
 
     /* Delete, cut, copy */
     /* If >= 1 file is selected */
-    var act_delete = document.getElementById("act_delete");
-    var cut = document.getElementById("act_cut");
-    var copy = document.getElementById("act_copy");
-    if (numsel >= 1)
-    {
-        act_delete.setAttribute("class", "choice");
-        act_delete.removeAttribute("disabled");
-        cut.setAttribute("class", "choice");
-        cut.removeAttribute("disabled");
-        copy.setAttribute("class", "choice");
-        copy.removeAttribute("disabled");
-    }
-    else
-    {
-        act_delete.setAttribute("class", "disabled");
-        act_delete.setAttribute("disabled", "disabled");
-        cut.setAttribute("class", "disabled");
-        cut.setAttribute("disabled", "disabled");
-        copy.setAttribute("class", "disabled");
-        copy.setAttribute("disabled", "disabled");
-    }
+    set_action_state("delete", numsel >= 1);
+    set_action_state("cut", numsel >= 1);
+    set_action_state("copy", numsel >= 1);
 
     /* Paste, new file, new directory, upload */
     /* Disable if the current file is not a directory */
-    if (!current_file.isdir)
-    {
-        var paste = document.getElementById("act_paste");
-        var newfile = document.getElementById("act_newfile");
-        var mkdir = document.getElementById("act_mkdir");
-        var upload = document.getElementById("act_upload");
-        paste.setAttribute("class", "disabled");
-        paste.setAttribute("disabled", "disabled");
-        newfile.setAttribute("class", "disabled");
-        newfile.setAttribute("disabled", "disabled");
-        mkdir.setAttribute("class", "disabled");
-        mkdir.setAttribute("disabled", "disabled");
-        upload.setAttribute("class", "disabled");
-        upload.setAttribute("disabled", "disabled");
-    }
+    set_action_state("paste", current_file.isdir);
+    set_action_state("newfile", current_file.isdir);
+    set_action_state("mkdir", current_file.isdir);
+    set_action_state("upload", current_file.isdir);
 
     /* Subversion actions */
-    var svnadd = document.getElementById("act_svnadd");
     var svndiff = document.getElementById("act_svndiff");
-    var svnrevert = document.getElementById("act_svnrevert");
-    var svncommit = document.getElementById("act_svncommit");
     var svnlog = document.getElementById("act_svnlog");
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    if (numsel >= 1 && current_file.svnstatus)
-    {
-        svnadd.setAttribute("class", "choice");
-        svnadd.removeAttribute("disabled");
-        svnrevert.setAttribute("class", "choice");
-        svnrevert.removeAttribute("disabled");
-        svncommit.setAttribute("class", "choice");
-        svncommit.removeAttribute("disabled");
-    }
-    else
-    {
-        svnadd.setAttribute("class", "disabled");
-        svnadd.setAttribute("disabled", "disabled");
-        svnrevert.setAttribute("class", "disabled");
-        svnrevert.setAttribute("disabled", "disabled");
-        svncommit.setAttribute("class", "disabled");
-        svncommit.setAttribute("disabled", "disabled");
-    }
+    set_action_state("svnadd", numsel >= 1 && current_file.svnstatus);
+    set_action_state("svnrevert", numsel >= 1 && current_file.svnstatus);
+    set_action_state("svncommit", numsel >= 1 && current_file.svnstatus);
 
     /* Diff and log only support one path at the moment. */
-    if (numsel == 1)
-    {
-        svnst = file_listing[selected_files[0]].svnstatus;
+    single_versioned_path = (numsel == 1 &&
+                             (svnst = file_listing[selected_files[0]].svnstatus) &&
+                             svnst != "unversioned");
+    set_action_state("svnlog", single_versioned_path);
+    set_action_state("svndiff", single_versioned_path && svnst != "normal");
 
-        /* Diff and log also don't like unversioned paths, and diffs on unchanged
-         * files are pointless. */
-        if (svnst && svnst != "unversioned")
-        {
-            if (svnst != "normal")
-            {
-                svndiff.setAttribute("class", "choice");
-                svndiff.removeAttribute("disabled");
-            }
-            else
-            {
-                svndiff.setAttribute("class", "disabled");
-                svndiff.setAttribute("disabled", "disabled");
-            }
-        
-            svnlog.setAttribute("class", "choice");
-            svnlog.removeAttribute("disabled");
-        }
-    }
-    else
-    {
-        svndiff.setAttribute("class", "disabled");
-        svndiff.setAttribute("disabled", "disabled");
-        svnlog.setAttribute("class", "disabled");
-        svnlog.setAttribute("disabled", "disabled");
-    }
-
-    var svncheckout = document.getElementById("act_svncheckout");
     /* current_path == username: We are at the top level */
-    if (current_path == username)
-    {
-        svncheckout.setAttribute("class", "choice");
-        svncheckout.removeAttribute("disabled");
-    }
-    else
-    {
-        svncheckout.setAttribute("class", "disabled");
-        svncheckout.setAttribute("disabled", "disabled");
-    }
+    set_action_state("svncheckout", current_path == username);
 
     /* There is currently nothing on the More Actions menu of use
      * when the current file is not a directory. Hence, just remove
