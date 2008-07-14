@@ -151,7 +151,7 @@ def present_actions1(req):
       <option class="moreactions" value="top"
         selected="selected">More actions...</option>
 
-      <option class="heading" disabled="disabled">Publishing</option>
+      <optgroup label="Publishing">
       <option id="act_publish" class="disabled" disabled="disabled"
         title="Make it so this directory can be seen by anyone on the web"
         value="publish">Publish</option>
@@ -161,8 +161,9 @@ def present_actions1(req):
       <option id="act_submit" class="disabled" disabled="disabled"
         title="Submit the selected files for an assignment"
         value="submit">Submit</option>
+      </optgroup>
 
-      <option class="heading" disabled="disabled">File actions</option>
+      <optgroup label="File actions">
       <option id="act_rename" class="disabled" disabled="disabled"
         title="Change the name of this file" value="rename">Rename</option>
       <option id="act_delete" class="disabled" disabled="disabled"
@@ -173,8 +174,9 @@ def present_actions1(req):
       <option id="act_cut" class="disabled" disabled="disabled"
         title="Prepare to move the selected files to another directory"
         value="cut">Cut</option>
+      </optgroup>
 
-      <option class="heading" disabled="disabled">Directory actions</option>
+      <optgroup label="Directory actions">
       <option id="act_paste" class="choice"
         title="Paste the copied or cut files to the current directory"
         value="paste">Paste</option>
@@ -187,8 +189,9 @@ def present_actions1(req):
       <option id="act_upload" class="choice"
         title="Upload a file to the current directory"
         value="upload">Upload File</option>
+      </optgroup>
 
-      <option class="heading" disabled="disabled">Subversion</option>
+      <optgroup label="Subversion">
       <option id="act_svnadd" class="disabled" disabled="disabled"
         title="Schedule the selected temporary files to be added permanently"
         value="svnadd">Add</option>
@@ -207,6 +210,7 @@ def present_actions1(req):
       <option id="act_svncheckout" class="disabled" disabled="disabled"
         title="Re-check out your default directories"
         value="svncheckout">Re-Checkout</option>
+      </optgroup>
     </select></span>
 """)
 

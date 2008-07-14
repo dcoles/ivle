@@ -69,21 +69,7 @@
     text-decoration: none;
 }
 /* Drop-down actions and headings */
-#actions1 option {
-    color: black;
-    font-weight: normal;
-}
-#actions1 option.moreactions {
-    color: #aaa;
-}
-#actions1 option.heading {
-    font-weight: bold;
-}
-#actions1 option.choice {
-    padding-left: 20px;
-}
-#actions1 option.disabled {
-    padding-left: 20px;
+#actions1 option.moreactions, #actions1 option.disabled {
     color: #aaa;
 }
 
