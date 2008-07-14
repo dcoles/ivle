@@ -40,7 +40,8 @@ def write_html_head(req):
 
     # Let the console plugin insert its own styles and scripts if an app
     # requests it
-    if req.app is not None and conf.apps.app_url[req.app].useconsole:
+    if req.app is not None and (req.app in conf.apps.app_url and
+                                conf.apps.app_url[req.app].useconsole):
         plugins.console.insert_scripts_styles(req.scripts, req.styles, \
             req.scripts_init)
 
@@ -140,7 +141,8 @@ def write_html_foot(req):
     """
     
     # Write the console html if the app requests it
-    if req.app is not None and conf.apps.app_url[req.app].useconsole:
+    if req.app is not None and (req.app in conf.apps.app_url and
+                                conf.apps.app_url[req.app].useconsole):
         plugins.console.present(req, windowpane=True)
 
     req.write("</div>\n</body>\n</html>\n")
