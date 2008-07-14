@@ -30,6 +30,7 @@ import pysvn
 from common import cgirequest
 
 req = cgirequest.CGIRequest()
+req.install_error_handler()
 req.content_type = "text/html"
 
 req.write('<h1>Subversion Log</h1>\n')

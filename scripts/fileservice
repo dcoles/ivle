@@ -35,4 +35,5 @@ import fileservice_lib
 # IVLE app.
 
 req = cgirequest.CGIRequest()
+req.install_error_handler()
 fileservice_lib.handle(req)

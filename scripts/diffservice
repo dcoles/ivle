@@ -70,6 +70,7 @@ def get_revision(r_str):
 # IVLE handler environment.
 
 req = cgirequest.CGIRequest()
+req.install_error_handler()
 req.content_type = "text/html"
 
 # Beginning of the page
