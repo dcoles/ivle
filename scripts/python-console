@@ -176,7 +176,7 @@ class PythonRunner(Thread):
                     cmd = compile(ln['block'], "<web session>", 'exec');
                     self.execCmd(cmd)
                 except:
-                    tb = format_exc_start()
+                    tb = format_exc_start(start=1)
                     self.webio.flush()
                     self.cmdQ.put({"exc": ''.join(tb)})
                     self.curr_cmd = ''
