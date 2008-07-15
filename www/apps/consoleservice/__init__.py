@@ -94,7 +94,7 @@ def handle_chat(req, kind = "chat"):
         req.throw_error(req.HTTP_BAD_REQUEST)
     # If text is None, it was probably just an empty line
     try:
-        text = fields.getfirst("text").value
+        text = fields.getfirst("text").value.decode('utf-8')
     except AttributeError:
         text = ""
 
