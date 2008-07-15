@@ -31,6 +31,7 @@ import sys
 
 from subjecterror import SubjectError
 import conf
+import common.db
 
 def get_subjects(login):
     """
@@ -43,6 +44,28 @@ def get_subjects(login):
         if result is not None:
             return result
     return []
+
+def enrol_user(login, year=None):
+    """
+    Looks up the student in whatever modules are available.
+    The pulldown does not tell us what year to enrol the student for, so the
+    year may be specified (as a string). If unspecified, will enrol in the
+    current year according to the system clock.
+    If successful, enrols the student (in the database) in all subjects in the
+    system. Subjects which the pulldown tells us the student is in, but which
+    are not in the system are ignored.
+    Does not unenrol the student from any subjects.
+    Does not complain if the student is already enrolled in any subjects.
+    Raises a SubjectError if the pulldown module says so.
+
+    Returns the number of subjects the user was enrolled in (not including
+    subjects outside the system, or subjects already enrolled).
+    """
+    count = 0
+    db = common.db.DB()
+    for subject, semester in get_subjects(login):
+        count += db.add_enrolment(login, subject, semester, year)
+    return count
 
 # Allow imports to get files from this directory.
 # Get the directory that this module (authenticate) is in
