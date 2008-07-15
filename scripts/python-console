@@ -133,9 +133,10 @@ class PythonRunner(Thread):
             sys.stdin = self.webio
             sys.stdout = self.webio
             sys.stderr = self.webio
-            res = eval(cmd, self.globs)
+            # We don't expect a return value - 'single' symbol prints it.
+            eval(cmd, self.globs)
             self.webio.flush()
-            self.cmdQ.put({"okay":res})
+            self.cmdQ.put({"okay": None})
             self.curr_cmd = ''
         except:
             tb = format_exc_start(start=1)
@@ -147,7 +148,6 @@ class PythonRunner(Thread):
         self.globs = {}
         self.globs['__builtins__'] = globals()['__builtins__']
         self.curr_cmd = ''
-        compiler = codeop.CommandCompiler()
 
         while True:
             ln = self.lineQ.get()
@@ -157,7 +157,7 @@ class PythonRunner(Thread):
                 else:
                     self.curr_cmd = self.curr_cmd + '\n' + ln['chat']
                 try:
-                    cmd = compiler(self.curr_cmd)
+                    cmd = codeop.compile_command(self.curr_cmd, '<web session>')
                     if cmd is None:
                         # The command was incomplete,
                         # so send back a None, so the

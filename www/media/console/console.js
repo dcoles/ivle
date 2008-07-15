@@ -279,12 +279,6 @@ function console_response(inputbox, graytimer, inputline, responseText)
     var output = document.getElementById("console_output");
     if (res.hasOwnProperty('okay'))
     {
-        // Success!
-        if (res.okay)
-        {
-            output.appendChild(document.createTextNode(res.okay + "\n"));
-            output.appendChild(span);
-        }
         // set the prompt to >>>
         var prompt = document.getElementById("console_prompt");
         prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
