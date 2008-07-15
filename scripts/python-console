@@ -219,6 +219,85 @@ def format_exc_start(start=0):
     list = list + traceback.format_exception_only(etype, value)
     return ''.join(list)
 
+def incomplete_utf8_sequence(byteseq):
+    """
+    str -> int
+    Given a UTF-8-encoded byte sequence (str), returns the number of bytes at
+    the end of the string which comprise an incomplete UTF-8 character
+    sequence.
+
+    If the string is empty or ends with a complete character OR INVALID
+    sequence, returns 0.
+    Otherwise, returns 1-3 indicating the number of bytes in the final
+    incomplete (but valid) character sequence.
+
+    Does not check any bytes before the final sequence for correctness.
+
+    >>> incomplete_utf8_sequence("")
+    0
+    >>> incomplete_utf8_sequence("xy")
+    0
+    >>> incomplete_utf8_sequence("xy\xc3\xbc")
+    0
+    >>> incomplete_utf8_sequence("\xc3")
+    1
+    >>> incomplete_utf8_sequence("\xbc\xc3")
+    1
+    >>> incomplete_utf8_sequence("xy\xbc\xc3")
+    1
+    >>> incomplete_utf8_sequence("xy\xe0\xa0")
+    2
+    >>> incomplete_utf8_sequence("xy\xf4")
+    1
+    >>> incomplete_utf8_sequence("xy\xf4\x8f")
+    2
+    >>> incomplete_utf8_sequence("xy\xf4\x8f\xa0")
+    3
+    """
+    count = 0
+    expect = None
+    for b in byteseq[::-1]:
+        b = ord(b)
+        count += 1
+        if b & 0x80 == 0x0:
+            # 0xxxxxxx (single-byte character)
+            expect = 1
+            break
+        elif b & 0xc0 == 0x80:
+            # 10xxxxxx (subsequent byte)
+            pass
+        elif b & 0xe0 == 0xc0:
+            # 110xxxxx (start of 2-byte sequence)
+            expect = 2
+            break
+        elif b & 0xf0 == 0xe0:
+            # 1110xxxx (start of 3-byte sequence)
+            expect = 3
+            break
+        elif b & 0xf8 == 0xf0:
+            # 11110xxx (start of 4-byte sequence)
+            expect = 4
+            break
+        else:
+            # Invalid byte
+            return 0
+
+        if count >= 4:
+            # Seen too many "subsequent bytes", invalid
+            return 0
+
+    if expect is None:
+        # We never saw a "first byte", invalid
+        return 0
+
+    # We now know expect and count
+    if count >= expect:
+        # Complete, or we saw an invalid sequence
+        return 0
+    elif count < expect:
+        # Incomplete
+        return count
+
 if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
