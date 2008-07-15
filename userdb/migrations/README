@@ -1,0 +1,6 @@
+This directory contains scripts for updating the database in sequential
+revisions. Files are named yyyymmdd-rr where rr is the migration number per
+day.
+
+Scripts should be run in order from the date the database was last updated, to
+make it compatible with the current schema.

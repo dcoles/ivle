@@ -31,7 +31,8 @@ CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
     subject     INT4 REFERENCES subject (subjectid) NOT NULL,
     year        CHAR(4) NOT NULL,
-    semester    CHAR(1) NOT NULL
+    semester    CHAR(1) NOT NULL,
+    UNIQUE (subject, year, semester)
 );
 
 CREATE TABLE project (
