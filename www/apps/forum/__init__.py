@@ -39,14 +39,10 @@ def handle(req):
     # Settings
 
     forum_base = "php/phpBB3"
-    #forum_base = "/phpBB3"
 
     # Set request attributes
 
-    # These files don't really exist - just a test of our linking
-    # capabilities
-    #req.styles = ["media/dummy/dummy.css"]
-    #req.scripts = ["media/dummy/dummy.js", "media/dummy/hello.js"]
+    req.styles = ["media/forum/forum.css"]
     
     # Process URL for special directives
     url = urlparse.urlparse(req.path)
@@ -64,10 +60,7 @@ def handle(req):
     if topic:
         framequery += 't=' + topic.group(1)
         forum_page = "viewtopic.php"
-
-    
-    #req.write(framequery + '\n')
-
+   
     # If the tail of the forum url is empty or a known special request
     # then wrap the page in the headers and footer and load the default or
     # special page in the ivlebody frame
@@ -78,41 +71,5 @@ def handle(req):
     frameurl = util.make_path(path.join(forum_base,location))
     req.content_type = "text/html"
     req.write_html_head_foot = True
-    req.write('<object' +
-              ' id="forumwindow"' +
-              ' style="top:0;width:100%;height:100%;position:absolute"' +
-              ' type="text/html"' +
-              ' data="' + frameurl + framequery + '"' +
-              '/>\n'
-    )
-    # Otherwise serve the page without the wrapper
-    #else:
-    #    req.write(req.path)
-    #    req.throw_error(req.HTTP_BAD_REQUEST)
-
-
-
-        # Let the Server determine the MIME type
-    #    req.content_type = ""
-
-        # Don't write header or footer - we can't tell if it's HTML or 
-        # something else like an image
-    #    req.write_html_head_foot = False
-
-        # Do some basic dispatch, if it ends in .php interpret with php-cgi
-    #    if re.search('\.php$',hierarchical_part,re.IGNORECASE):
-    #        interpret.execute_cgi(
-    #            ['/usr/bin/php5-cgi'],
-    #            forum_base,
-    #            req
-    #        )
-        # Otherwise just ship the file directly
-    #    else:
-            #req.content_type = "application/x-httpd-php"
-    #        file_path = os.path.join(forum_base, req.path)
-    #        if os.access(file_path,os.R_OK):
-    #            req.sendfile(path.join(forum_base, req.path))
-            # If we can't read the file, throw HTTP Error
-    #        else:
-    #            req.throw_error(req.HTTP_BAD_REQUEST)
-   
+    req.write('<object class="fullscreen" type="text/html" data="%s">'%
+        (frameurl + framequery))

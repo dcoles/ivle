@@ -70,5 +70,5 @@ def handle_subject_page(req, path):
 
     # Just make the iframe pointing to media/subjects
     serve_loc = util.make_path(os.path.join('media', 'subjects', path))
-    req.write('<iframe src="%s"></iframe>'
-        % urllib.quote(serve_loc))
+    req.write('<object class="fullscreen" type="text/html" \
+data="%s"></iframe>'% urllib.quote(serve_loc))
