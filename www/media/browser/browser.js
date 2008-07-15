@@ -587,18 +587,19 @@ function update_actions()
      */
     var run = document.getElementById("act_run");
      
-    if (numsel == 0 && !file.isdir && file.type == "text/x-python")
+    if (!file.isdir && file.type == "text/x-python" && numsel <= 1)
     {
-        // In the edit window
+        if (numsel == 0)
+        {
+            // In the edit window
+            var localpath = path_join('/home', current_path);
+        }
+        else
+        {
+            // In the browser window
+            var localpath = path_join('/home', current_path, filename);
+        }
         run.setAttribute("class", "choice");
-        localpath = app_path('home',current_path);
-        run.setAttribute("onclick", "runfile('" + localpath + "')");
-    }
-    else if (numsel == 1 && !file.isdir && file.type == "text/x-python")
-    {
-        // In the browser window
-        run.setAttribute("class", "choice");
-        localpath = app_path('home',current_path,filename);
         run.setAttribute("onclick", "runfile('" + localpath + "')");
     }
     else
