@@ -63,7 +63,31 @@ function start_server(callback)
             if (callback != null)
                 callback();
         }
-    ajax_call(callback1, "consoleservice", "start", {}, "POST");
+
+    //var current_path;
+    if(typeof(current_path) != 'undefined')
+    {
+        // We have a current_path - give a suggestion to the server
+        var path;
+        if (current_file.isdir)
+        {
+            // Browser
+            path = path_join("/home", current_path);
+        }
+        else
+        {
+            // Editor - need to chop off filename
+            var tmp_path = current_path.split('/');
+            tmp_path.pop();
+            path = path_join("/home", tmp_path.join('/'));
+        }
+        ajax_call(callback1, "consoleservice", "start", {"startdir": path}, "POST");
+    }
+    else
+    {
+        // No current_path - let the server decide
+        ajax_call(callback1, "consoleservice", "start", {}, "POST");
+    }
 }
 
 /** Initialises the console. All apps which import console are required to

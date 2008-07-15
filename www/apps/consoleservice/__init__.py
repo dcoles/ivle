@@ -57,8 +57,17 @@ def handle(req):
         req.throw_error(req.HTTP_BAD_REQUEST)
 
 def handle_start(req):
-    jail_path = os.path.join(conf.jail_base, req.user.login)
-    working_dir = os.path.join("/home", req.user.login)   # Within jail
+    # Changes the state on the server - must be POST
+    if req.method != "POST":
+        req.throw_error(req.HTTP_BAD_REQUEST)
+    
+    # See if we have been given extra params
+    fields = req.get_fieldstorage()
+    try:
+        startdir = fields.getfirst("startdir").value
+        working_dir = os.path.join("/home", req.user.login, startdir)
+    except AttributeError:
+        working_dir = os.path.join("/home", req.user.login)
 
     # Get the UID of the logged-in user
     uid = req.user.unixid
@@ -68,6 +77,7 @@ def handle_start(req):
     req.write_html_head_foot = False
 
     # Start the server
+    jail_path = os.path.join(conf.jail_base, req.user.login)
     (host, port, magic) = start_console(uid, jail_path, working_dir)
 
     # Assemble the key and return it.
