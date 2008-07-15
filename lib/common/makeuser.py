@@ -46,6 +46,7 @@ import filecmp
 import logging
 import conf
 import db
+import pulldown_subj
 
 def chown_to_webserver(filename):
     """
@@ -353,6 +354,8 @@ def make_user_db(throw_on_error = True, **kwargs):
     "password" argument, which will be hashed internally.
     Also do not supply a state. All users are created in the "no_agreement"
     state.
+    Also pulls the user's subjects using the configured subject pulldown
+    module, and adds enrolments to the DB.
     Throws an exception if the user already exists.
     """
     dbconn = db.DB()
@@ -374,6 +377,9 @@ def make_user_db(throw_on_error = True, **kwargs):
     # Make sure the file is owned by the web server
     if create == "c":
         chown_to_webserver(conf.svn_auth_local)
+
+    # Pulldown subjects and add enrolments
+    pulldown_subj.enrol_user(kwargs['login'])
 
 def mount_jail(login):
     # This is where we'll mount to...
