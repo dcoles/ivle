@@ -810,6 +810,38 @@ class DB:
             raise
         return mand_done, mand_total, opt_done, opt_total
 
+    def add_enrolment(self, login, subj_code, semester, year=None, dry=False):
+        """
+        Enrol a student in the given offering of a subject.
+        Returns True on success, False on failure (which usually means either
+        the student is already enrolled in the subject, the student was not
+        found, or no offering existed with the given details).
+        The return value can usually be ignored.
+        """
+        subj_code = str(subj_code)
+        semester = str(semester)
+        if year is None:
+            year = str(time.gmtime().tm_year)
+        else:
+            year = str(year)
+        query = """\
+INSERT INTO enrolment (loginid, offeringid)
+    VALUES (
+        (SELECT loginid FROM login WHERE login=%s),
+        (SELECT offeringid
+            FROM (offering INNER JOIN subject
+                ON subject.subjectid = offering.subject)
+            WHERE subj_code=%s AND semester=%s AND year=%s)
+        );""" % (_escape(login), _escape(subj_code), _escape(semester),
+                 _escape(year))
+        if dry:
+            return query
+        try:
+            result = self.db.query(query)
+        except pg.ProgrammingError:
+            return False
+        return True
+
     def close(self):
         """Close the DB connection. Do not call any other functions after
         this. (The behaviour of doing so is undefined).
