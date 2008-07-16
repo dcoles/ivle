@@ -129,7 +129,7 @@ else:
 # Mime types
 # application/json is the "best" content type but is not good for
 # debugging because Firefox just tries to download it
-mime_dirlisting = "text/html"
+mime_dirlisting = "text/plain"
 #mime_dirlisting = "application/json"
 
 def handle_return(req, return_contents):
