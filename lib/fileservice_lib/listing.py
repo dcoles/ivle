@@ -101,7 +101,6 @@
 import os
 import sys
 import stat
-import time
 import mimetypes
 import urlparse
 from cgi import parse_qs
@@ -110,6 +109,7 @@ import cjson
 import pysvn
 
 import common.svn
+import common.date
 from common import (util, studpath)
 import conf.mimetypes
 
@@ -119,13 +119,6 @@ svnclient = pysvn.Client()
 # Whether or not to ignore dot files.
 # TODO check settings!
 ignore_dot_files = True
-
-# For time calculations
-seconds_per_day = 86400 # 60 * 60 * 24
-if time.daylight:
-    timezone_offset = time.altzone
-else:
-    timezone_offset = time.timezone
 
 # Mime types
 # application/json is the "best" content type but is not good for
@@ -277,8 +270,8 @@ def _stat_fileinfo(fullpath, file_stat):
         d["type"] = type
         d["type_nice"] = util.nice_filetype(fullpath)
     d["mtime"] = file_stat.st_mtime
-    d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
-    d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
+    d["mtime_nice"] = common.date.make_date_nice(file_stat.st_mtime)
+    d["mtime_short"] = common.date.make_date_nice_short(file_stat.st_mtime)
     return d
 
 def file_to_fileinfo(path, filename):
@@ -341,37 +334,3 @@ def PysvnList_tofileinfo(path, list):
     d.update(_stat_fileinfo(fullpath, wrapped))
 
     return filename, d
-
-def make_date_nice(seconds_since_epoch):
-    """Given a number of seconds elapsed since the epoch,
-    generates a string representing the date/time in human-readable form.
-    "ddd mmm dd, yyyy h:m a"
-    """
-    #return time.ctime(seconds_since_epoch)
-    return time.strftime("%a %b %d %Y, %I:%M %p",
-        time.localtime(seconds_since_epoch))
-
-def make_date_nice_short(seconds_since_epoch):
-    """Given a number of seconds elapsed since the epoch,
-    generates a string representing the date in human-readable form.
-    Does not include the time.
-    This function generates a very compact representation."""
-    # Use a "naturalisation" algorithm.
-    days_ago = (int(time.time() - timezone_offset) / seconds_per_day
-        - int(seconds_since_epoch - timezone_offset) / seconds_per_day)
-    if days_ago <= 5:
-        # Dates today or yesterday, return "today" or "yesterday".
-        if days_ago == 0:
-            return "Today"
-        elif days_ago == 1:
-            return "Yesterday"
-        else:
-            return str(days_ago) + " days ago"
-        # Dates in the last 5 days, return "n days ago".
-    # Other dates, return a short date format.
-    # If within the same year, omit the year (mmm dd)
-    if time.localtime(seconds_since_epoch).tm_year==time.localtime().tm_year:
-        return time.strftime("%b %d", time.localtime(seconds_since_epoch))
-    # Else, include the year (mmm dd, yyyy)
-    else:
-        return time.strftime("%b %d, %Y", time.localtime(seconds_since_epoch))

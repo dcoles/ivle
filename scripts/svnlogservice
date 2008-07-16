@@ -29,6 +29,7 @@ import pysvn
 
 import common.cgirequest
 import common.util
+import common.date
 
 req = common.cgirequest.CGIRequest()
 req.install_error_handler()
@@ -36,9 +37,6 @@ req.content_type = "text/html"
 
 req.write('<h1>Subversion Log</h1>\n')
 
-
-def pretty_time(epochtime):
-    return time.asctime(time.localtime(epochtime))
 
 def pretty_path(cpath, revno=None):
     path = cpath['path']
@@ -74,7 +72,7 @@ def pretty_log(log):
         </div>
 </div>''' % (common.util.make_path(os.path.join('files', req.path)),
              log.revision.number, log.revision.number, log.author,
-             pretty_time(log.date), log.message,
+             common.date.make_date_nice(log.date), log.message,
              pretty_paths(log.changed_paths, log.revision.number))
 
 try:
