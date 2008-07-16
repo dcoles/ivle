@@ -246,12 +246,8 @@ def get_dirlisting(req, svnclient, path):
     
     return listing
 
-def file_to_fileinfo(path, filename):
-    """Given a filename (relative to a given path), gets all the info "ls"
-    needs to display about the filename. Returns a dict containing a number
-    of fields related to the file (excluding the filename itself)."""
-    fullpath = path if len(filename) == 0 else os.path.join(path, filename)
-    d = {}
+def _fullpath_stat_fileinfo(fullpath, ind):
+    d = ind.copy()
     file_stat = os.stat(fullpath)
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
@@ -270,6 +266,13 @@ def file_to_fileinfo(path, filename):
     d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
     d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
     return d
+
+def file_to_fileinfo(path, filename):
+    """Given a filename (relative to a given path), gets all the info "ls"
+    needs to display about the filename. Returns a dict containing a number
+    of fields related to the file (excluding the filename itself)."""
+    fullpath = path if len(filename) == 0 else os.path.join(path, filename)
+    return _fullpath_stat_fileinfo(fullpath, {})
 
 def PysvnStatus_to_fileinfo(path, status):
     """Given a PysvnStatus object, gets all the info "ls"
@@ -293,23 +296,7 @@ def PysvnStatus_to_fileinfo(path, status):
     text_status = status.text_status
     d["svnstatus"] = str(text_status)
     try:
-        file_stat = os.stat(fullpath)
-        if stat.S_ISDIR(file_stat.st_mode):
-            d["isdir"] = True
-            d["type_nice"] = util.nice_filetype("/")
-            # Only directories can be published
-            d["published"] = studpath.published(fullpath)
-        else:
-            d["isdir"] = False
-            d["size"] = file_stat.st_size
-            (type, _) = mimetypes.guess_type(fullpath)
-            if type is None:
-                type = conf.mimetypes.default_mimetype
-            d["type"] = type
-            d["type_nice"] = util.nice_filetype(filename)
-        d["mtime"] = file_stat.st_mtime
-        d["mtime_nice"] = make_date_nice(file_stat.st_mtime)
-        d["mtime_short"] = make_date_nice_short(file_stat.st_mtime)
+        d = _fullpath_stat_fileinfo(fullpath, d)
     except OSError:
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d
