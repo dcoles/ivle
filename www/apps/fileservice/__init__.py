@@ -35,6 +35,7 @@ import conf
 import fileservice_lib
 import common
 import common.interpret
+import common.util
 
 # handle_with_trampoline controls the way in which fileservice_lib is invoked.
 # If False, it will simply be called directly by this handler.
@@ -52,6 +53,10 @@ fileservice_path = "/opt/ivle/scripts/fileservice"   # Within jail
 
 def handle(req):
     """Handler for the File Services application."""
+    if len(req.path) == 0:
+        # If no path specified, default to the user's home directory
+        req.throw_redirect(common.util.make_path(os.path.join('fileservice',
+                                                       req.user.login)))
     if not HANDLE_WITH_TRAMPOLINE:
         fileservice_lib.handle(req)
     else:
