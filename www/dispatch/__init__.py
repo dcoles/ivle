@@ -36,6 +36,7 @@ import urllib
 
 import conf
 import conf.apps
+import conf.conf
 import apps
 
 from request import Request
@@ -45,6 +46,8 @@ import login
 from common import (util, forumutil)
 import traceback
 import plugins.console
+import logging
+import socket
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -177,6 +180,8 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     the IVLE request is created.
     """
     req.content_type = "text/html"
+    logfile = os.path.join(conf.conf.log_path, 'ivle_error.log')
+    logfail = False
     # For some reason, some versions of mod_python have "_server" instead of
     # "main_server". So we check for both.
     try:
@@ -192,6 +197,25 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     except AttributeError:
         httpcode = None
         req.status = apache.HTTP_INTERNAL_SERVER_ERROR
+    try:
+        login = req.user.login
+    except AttributeError:
+        login = None
+
+    # Log File
+    try:
+        logging.basicConfig(level=logging.INFO,
+            format='%(asctime)s %(levelname)s: ' +
+                '(HTTP: ' + str(req.status) +
+                ', Ref: ' + str(login) + '@' +
+                str(socket.gethostname()) + str(req.uri) +
+                ') %(message)s',
+            filename=logfile,
+            filemode='a')
+    except IOError:
+        logfail = True
+    logging.debug('Logging Unhandled Exception')
+
     # We handle 3 types of error.
     # IVLEErrors with 4xx response codes (client error).
     # IVLEErrors with 5xx response codes (handled server error).
@@ -205,6 +229,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         # IVLEErrors with 4xx response codes are client errors.
         # Therefore, these have a "nice" response (we even coat it in the IVLE
         # HTML wrappers).
+        
         req.write_html_head_foot = True
         req.write('<div id="ivle_padding">\n')
         try:
@@ -223,7 +248,14 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             req.write("<p>%s</p>\n" % cgi.escape(msg))
         else:
             req.write("<p>An unknown error occured.</p>\n")
+        
+        # Logging
+        logging.info(str(msg))
+        
         req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
+        if logfail:
+            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
+                %cgi.escape(logfile))
         req.write('</div>\n')
     else:
         # A "bad" error message. We shouldn't get here unless IVLE
@@ -258,6 +290,9 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             tb = ''.join(traceback.format_exception(exc_type, exc_value,
                                                     exc_traceback))
 
+        # Logging
+        logging.error('%s\n%s'%(str(msg), tb))
+
         req.write("""<html>
 <head><title>IVLE Internal Server Error</title></head>
 <body>
@@ -278,6 +313,8 @@ administration.</p>
 administrator). Include the following information:</p>
 """ % (cgi.escape(admin_email), cgi.escape(admin_email)))
 
-        req.write("<pre>\n")
-        req.write(cgi.escape(tb))
-        req.write("</pre>\n</body>\n")
+        req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
+        if logfail:
+            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
+                %cgi.escape(logfile))
+        req.write("</body>")

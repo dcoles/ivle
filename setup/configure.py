@@ -119,6 +119,13 @@ config_options.append(ConfigOption("motd_path",
 # In the local file system, where is the Message of the Day document
 # located. This is an HTML file (just the body fragment), which will
 # be displayed on the login page. It is optional."""))
+config_options.append(ConfigOption("log_path",
+    "/home/informatics/logs/",
+    """Directory where IVLE log files are stored (on the local
+    file system). Note - this must be writable by the user the IVLE server 
+    process runs as (usually www-data).:""",
+    """
+# In the local file system, where is the Terms of Service document located."""))
 config_options.append(ConfigOption("public_host", "public.localhost",
     """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""",

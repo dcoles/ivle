@@ -67,11 +67,11 @@ sudo ./setup.py install
 sudo mkdir /opt/ivle/svn
 sudo chown -R www-data:www-data /opt/ivle/svn
 
-# Make the "repositories" and "sessions" directories in the home.
+# Make the "repositories", "sessions" and "logs" directories in the home.
 # Make sure they are owned by www-data.
 cd /home/informatics
-sudo mkdir repositories sessions
-sudo chown -R www-data:www-data repositories sessions
+sudo mkdir repositories sessions logs
+sudo chown -R www-data:www-data repositories sessions logs
 
 cd /home/informatics/ivle_svn
 
