@@ -38,13 +38,6 @@ def write_html_head(req):
     req: An IVLE request object. Reads attributes such as title. Also used to
     write to."""
 
-    # Let the console plugin insert its own styles and scripts if an app
-    # requests it
-    if req.app is not None and (req.app in conf.apps.app_url and
-                                conf.apps.app_url[req.app].useconsole):
-        plugins.console.insert_scripts_styles(req.scripts, req.styles, \
-            req.scripts_init)
-
     # Write the XHTML opening and head element
     # Note the inline JavaScript, which provides the client with constants
     # derived from the server configuration.
@@ -139,12 +132,6 @@ def write_html_foot(req):
 
     req: An IVLE request object. Written to.
     """
-    
-    # Write the console html if the app requests it
-    if req.app is not None and (req.app in conf.apps.app_url and
-                                conf.apps.app_url[req.app].useconsole):
-        plugins.console.present(req, windowpane=True)
-
     req.write("</div>\n</body>\n</html>\n")
 
 def get_help_url(req):

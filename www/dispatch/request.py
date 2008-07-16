@@ -27,6 +27,7 @@ import common.util
 import mod_python
 from mod_python import (util, Session, Cookie)
 import conf
+import plugins.console
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -209,6 +210,18 @@ class Request:
         """Writes out the HTTP and HTML headers before any real data is
         written."""
         self.headers_written = True
+        
+        # app is the App object for the chosen app
+        if self.app is None:
+            app = conf.apps.app_url[conf.apps.default_app]
+        else:
+            app = conf.apps.app_url[self.app]
+
+        # Write any final modifications to header content
+        if app.useconsole and self.user:
+            plugins.console.insert_scripts_styles(self.scripts, self.styles, \
+                self.scripts_init)
+
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:
             self.apache_req.content_type = self.content_type

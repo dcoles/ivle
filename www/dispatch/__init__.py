@@ -44,6 +44,7 @@ import cgi
 import login
 from common import (util, forumutil)
 import traceback
+import plugins.console
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -145,6 +146,10 @@ def handler_(req, apachereq):
 
     # When done, write out the HTML footer if the app has requested it
     if req.write_html_head_foot:
+        # Show the console if required
+        if logged_in and app.useconsole:
+            req.write('<!-- USE CONSOLE!!! -->\n')
+            plugins.console.present(req, windowpane=True)
         html.write_html_foot(req)
 
     # Note: Apache will not write custom HTML error messages here.
