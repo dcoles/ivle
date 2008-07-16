@@ -193,40 +193,40 @@ def get_dirlisting(req, svnclient, path):
     """
     # Are we in 'revision mode' - has someone sent the 'r' query
     # Work out the revisions from query
-    revision = None
-
     r_str = req.get_fieldstorage().getfirst("r")
     revision = common.svn.revision_from_string(r_str)
 
+    # Now we need to get a directory listing (ls). We also need a function (fn)
+    # that will give us a (filename, attributes) pair for each type.
     # Start by trying to do an SVN status, so we can report file version
     # status
-    listing = {}
     try:
         if revision:
-            ls_list = svnclient.list(path, revision=revision, recurse=False)
-            for ls in ls_list:
-                filename, attrs = PysvnList_tofileinfo(path, ls)
-                listing[filename.decode('utf-8')] = attrs
+            ls = svnclient.list(path, revision=revision, recurse=False)
+            fn = PysvnList_tofileinfo
         else:
-            status_list = svnclient.status(path, recurse=False, get_all=True,
+            ls = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
-            for status in status_list:
-                filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename.decode('utf-8')] = attrs
+            fn = PysvnStatus_to_fileinfo
     except pysvn.ClientError:
         # Presumably the directory is not under version control.
         # Fallback to just an OS file listing.
+        ls = []
+        fn = file_to_fileinfo
         try:
-            for filename in os.listdir(path):
-                listing[filename.decode('utf-8')] = file_to_fileinfo(path, filename)
+            ls = os.listdir(path)
         except OSError:
             # Non-directories will error - that's OK, we just want the "."
             pass
         # The subversion one includes "." while the OS one does not.
         # Add "." to the output, so the caller can see we are
         # unversioned.
-        mtime = os.path.getmtime(path)
-        listing["."] = file_to_fileinfo(path, "")
+        ls.append('.')
+
+    listing = {}
+    for bit in ls:
+        filename, attrs = fn(path, bit)
+        listing[filename.decode('utf-8')] = attrs
 
     if ignore_dot_files:
         for fn in listing.keys():
@@ -272,10 +272,10 @@ def _stat_fileinfo(fullpath, file_stat):
 
 def file_to_fileinfo(path, filename):
     """Given a filename (relative to a given path), gets all the info "ls"
-    needs to display about the filename. Returns a dict containing a number
-    of fields related to the file (excluding the filename itself)."""
-    fullpath = path if len(filename) == 0 else os.path.join(path, filename)
-    return _fullpath_stat_fileinfo(fullpath)
+    needs to display about the filename. Returns pair mapping filename to
+    a dict containing a number of other fields."""
+    fullpath = path if filename in ('', '.') else os.path.join(path, filename)
+    return filename, _fullpath_stat_fileinfo(fullpath)
 
 def PysvnStatus_to_fileinfo(path, status):
     """Given a PysvnStatus object, gets all the info "ls"
