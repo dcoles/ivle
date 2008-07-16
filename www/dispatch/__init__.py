@@ -84,6 +84,10 @@ def handler_(req, apachereq):
     just used to catch exceptions.
     Takes both an IVLE request and an Apache req.
     """
+    # Hack? Try and get the user login early just in case we throw an error
+    # (most likely 404) to stop us seeing not logged in even when we are.
+    req.user = login.get_user_details(req)
+
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in conf.apps.app_url:
         # Maybe it is a special app!

@@ -142,7 +142,8 @@ def get_help_url(req):
         # We're already in help. Link to the exact current page
         # instead of the generic help page.
         return req.uri
-    if reqapp is not None and conf.apps.app_url[reqapp].hashelp:
+    if reqapp is not None and reqapp in conf.apps.app_url and \
+        conf.apps.app_url[reqapp].hashelp:
         help_path = os.path.join('help', reqapp)
     else:
         help_path = 'help'
