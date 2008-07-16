@@ -704,12 +704,14 @@ function update_actions()
      * files selected. */
     set_action_state(["svnadd", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
 
-    /* Diff and log only support one path at the moment. */
-    single_versioned_path = (numsel == 1 &&
-                             (svnst = file_listing[selected_files[0]].svnstatus) &&
-                             svnst != "unversioned");
-    set_action_state("svnlog", single_versioned_path);
-    set_action_state("svndiff", single_versioned_path && svnst != "normal");
+    /* Diff and log only support one path at the moment, so we must have 0 or 1
+     * versioned files selected. If 0, the directory must be versioned. */
+    single_versioned_path = (
+         (
+          (numsel == 1 && (svnst = file_listing[selected_files[0]].svnstatus)) ||
+          (numsel == 0 && (svnst = current_file.svnstatus))
+         ) && svnst != "unversioned");
+    set_action_state(["svnlog", "svndiff"], single_versioned_path);
 
     /* current_path == username: We are at the top level */
     set_action_state("svncheckout", current_path == username);
@@ -806,13 +808,13 @@ function handle_moreactions()
         action_revert(selected_files);
         break;
     case "svndiff":
-        window.location = path_join(app_path('diff'), current_path, selected_files[0]);
+        window.location = path_join(app_path('diff'), current_path, selected_files[0] || '');
         break;
     case "svncommit":
         action_commit(selected_files);
         break;
     case "svnlog":
-        window.location = path_join(app_path('svnlog'), current_path, selected_files[0]);
+        window.location = path_join(app_path('svnlog'), current_path, selected_files[0] || '');
         break;
     case "svncheckout":
         action_checkout();
