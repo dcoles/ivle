@@ -99,6 +99,7 @@
 #   which were supplied during the last copy or cut request.
 
 import os
+import sys
 import stat
 import time
 import mimetypes
@@ -195,6 +196,16 @@ def get_dirlisting(req, svnclient, path):
     # Work out the revisions from query
     r_str = req.get_fieldstorage().getfirst("r")
     revision = common.svn.revision_from_string(r_str)
+
+    # Was some revision specified AND (it didn't resolve OR it was nonexistent)
+    if r_str and not (revision and
+                      common.svn.revision_exists(svnclient, path, revision)):
+        req.status = req.HTTP_NOT_FOUND
+        req.headers_out['X-IVLE-Return-Error'] = 'Revision not found'
+        req.ensure_headers_written()
+        req.write('Revision not found')
+        req.flush()
+        sys.exit()
 
     # Now we need to get a directory listing (ls). We also need a function (fn)
     # that will give us a (filename, attributes) pair for each type.

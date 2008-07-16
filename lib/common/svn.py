@@ -41,6 +41,13 @@ def revision_from_string(r_str):
             pass
     return None
 
+def revision_exists(client, path, revision):
+    try:
+        client.list(path, revision=revision)
+        return True
+    except pysvn.ClientError:
+        return False
+
 class PysvnListStatWrapper:
     '''Wrap a pysvn listing object to look somewhat like a result of
        os.stat.
