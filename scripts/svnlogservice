@@ -40,13 +40,22 @@ req.write('<h1>Subversion Log</h1>\n')
 def pretty_time(epochtime):
     return time.asctime(time.localtime(epochtime))
 
-def pretty_path(path):
-    return '%s %s' % (path['action'], path['path'])
+def pretty_path(cpath, revno=None):
+    path = cpath['path']
+    # XXX: We can't assume that the repository root is always equivalent to
+    #      the current user's home directory, although it does work for our
+    #      current setup.
+    url = common.util.make_path(os.path.join('files',
+                                    common.util.split_path(req.path)[0],
+                                    path[1:]))
+    if revno:
+        url += '?r=%d' % revno
+    return '%s <a href="%s">%s</a>' % (cpath['action'], url, path)
 
-def pretty_paths(paths):
+def pretty_paths(paths, revno=None):
     output = '<ul>'
     for path in paths:
-        output += '<li>' + pretty_path(path) + '</li>'
+        output += '<li>' + pretty_path(path, revno) + '</li>'
     output += '</ul>'
     return output
 
@@ -54,7 +63,8 @@ def pretty_log(log):
     return '''
 <div class="svnlogentry">
 	<div class="svnloginfo">
-		Revision <a href="%s?r=%d" style="font-weight: bold">%d</a> by <strong>%s</strong> on <strong>%s</strong>
+		Revision <a href="%s?r=%d" style="font-weight: bold">%d</a>
+		by <strong>%s</strong> on <strong>%s</strong>
 	</div>
 	<pre>%s</pre>
         <hr size="1"/>
@@ -65,7 +75,7 @@ def pretty_log(log):
 </div>''' % (common.util.make_path(os.path.join('files', req.path)),
              log.revision.number, log.revision.number, log.author,
              pretty_time(log.date), log.message,
-             pretty_paths(log.changed_paths))
+             pretty_paths(log.changed_paths, log.revision.number))
 
 try:
     client = pysvn.Client()
