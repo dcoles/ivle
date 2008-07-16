@@ -19,6 +19,8 @@
 # Author: William Grant
 # Date:   16/07/2008
 
+import stat
+
 import pysvn
 
 def revision_from_string(r_str):
@@ -38,3 +40,26 @@ def revision_from_string(r_str):
         except:
             pass
     return None
+
+class PysvnListStatWrapper:
+    '''Wrap a pysvn listing object to look somewhat like a result of
+       os.stat.
+    '''
+    def __init__(self, pysvn_list):
+        self.pysvn_list = pysvn_list
+
+    def __getattr__(self, name):
+        try:
+            if name == 'st_mode':
+                # Special magic needed.
+                if self.pysvn_list.kind == pysvn.node_kind.dir:
+                    return stat.S_IFDIR
+                else:
+		    return stat.S_IFREG
+                return value
+            return getattr(self.pysvn_list,
+                           {'st_mtime': 'time',
+                            'st_size': 'size',
+                           }[name])
+        except AttributeError, KeyError:
+            raise AttributeError, name

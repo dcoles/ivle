@@ -247,8 +247,11 @@ def get_dirlisting(req, svnclient, path):
     return listing
 
 def _fullpath_stat_fileinfo(fullpath, ind):
-    d = ind.copy()
     file_stat = os.stat(fullpath)
+    return _stat_fileinfo(fullpath, file_stat, ind)
+
+def _stat_fileinfo(fullpath, file_stat, ind):
+    d = ind.copy()
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
         d["type_nice"] = util.nice_filetype("/")
@@ -325,22 +328,8 @@ def PysvnList_tofileinfo(path, list):
     d = {}
     d["svnstatus"] = "revision" # A special status
 
-    if pysvnlist.kind == pysvn.node_kind.dir:
-        d["isdir"] = True
-        d["type_nice"] = util.nice_filetype("/")
-        # Only directories can be published
-        d["published"] = studpath.published(fullpath)
-    else:
-        d["isdir"] = False
-        d["size"] = pysvnlist.size
-        (type, _) = mimetypes.guess_type(fullpath)
-        if type is None:
-            type = conf.mimetypes.default_mimetype
-        d["type"] = type
-        d["type_nice"] = util.nice_filetype(filename)
-        d["mtime"] = pysvnlist.time
-        d["mtime_nice"] = make_date_nice(pysvnlist.time)
-        d["mtime_short"] = make_date_nice_short(pysvnlist.time)
+    wrapped = common.svn.PysvnListStatWrapper(pysvnlist)
+    d.update(_stat_fileinfo(fullpath, wrapped, {}))
 
     return filename, d
 
