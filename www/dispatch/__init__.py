@@ -151,7 +151,6 @@ def handler_(req, apachereq):
     if req.write_html_head_foot:
         # Show the console if required
         if logged_in and app.useconsole:
-            req.write('<!-- USE CONSOLE!!! -->\n')
             plugins.console.present(req, windowpane=True)
         html.write_html_foot(req)
 
