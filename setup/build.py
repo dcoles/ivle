@@ -54,8 +54,8 @@ Generates .pyc or .pyo files for all the IVLE .py files."""
     parser.add_option("-n", "--dry",
         action="store_true", dest="dry",
         help="Print out the actions but don't do anything.")
-    parser.add_option("-J", "--norebuildjail",
-        action="store_true", dest="norebuildjail",
+    parser.add_option("-j", "--rebuildjail",
+        action="store_true", dest="rebuildjail",
         help="Don't recreate jail/ - just update its IVLE code.")
     parser.add_option("-m", "--mirror",
         action="store", dest="apt_mirror",
@@ -63,9 +63,9 @@ Generates .pyc or .pyo files for all the IVLE .py files."""
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    __build(options.dry, options.norebuildjail, options.apt_mirror)
+    __build(options.dry, options.rebuildjail, options.apt_mirror)
 
-def __build(dry=False,norebuildjail=False,apt_mirror=None):
+def __build(dry=False,rebuildjail=False,apt_mirror=None):
     # Importing configuration is a little tricky
     sys.path.append(os.pardir)
     import install_list
@@ -99,7 +99,7 @@ def __build(dry=False,norebuildjail=False,apt_mirror=None):
     action_runprog('make', [], dry)
     os.chdir(curdir)
 
-    if not norebuildjail:
+    if rebuildjail:
         # Create the jail and its subdirectories
         # Note: Other subdirs will be made by copying files
         if apt_mirror != None:
