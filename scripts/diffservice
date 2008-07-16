@@ -25,6 +25,7 @@
 # run from the trampoline by the Diff application.
 
 from common import cgirequest
+import common.svn
 import cgi
 import os.path
 import pysvn
@@ -51,21 +52,6 @@ def htmlfy_diff(difftext):
 
     return output
 
-def get_revision(r_str):
-    """ Returns a Revison object for pysvn from a r query string """
-    if r_str == "HEAD":
-        return pysvn.Revision( pysvn.opt_revision_kind.head )
-    elif r_str == "WORKING":
-        return pysvn.Revision( pysvn.opt_revision_kind.working )
-    elif r_str == "BASE":
-        return pysvn.Revision( pysvn.opt_revision_kind.base )
-    else:
-        try:
-            r = int(r_str)
-            return pysvn.Revision( pysvn.opt_revision_kind.number, r)
-        except:
-            return None
-        
 # Use a CGIRequest object to make the CGI environment look like the normal
 # IVLE handler environment.
 
@@ -84,7 +70,7 @@ revs = [pysvn.Revision(x) for x in [pysvn.opt_revision_kind.base,
 fields = req.get_fieldstorage()
 field_r = fields.getlist("r")
 for ri in range(len(field_r)):
-    r = get_revision(field_r[ri])
+    r = common.svn.revision_from_string(field_r[ri])
     if r is not None:
         revs[ri] = r
 

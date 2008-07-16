@@ -108,6 +108,7 @@ from cgi import parse_qs
 import cjson
 import pysvn
 
+import common.svn
 from common import (util, studpath)
 import conf.mimetypes
 
@@ -195,22 +196,7 @@ def get_dirlisting(req, svnclient, path):
     revision = None
 
     r_str = req.get_fieldstorage().getfirst("r")
-
-    if r_str is None:
-        pass
-    elif r_str == "HEAD":
-        revision = pysvn.Revision( pysvn.opt_revision_kind.head )
-    elif r_str == "WORKING":
-        revision = pysvn.Revision( pysvn.opt_revision_kind.working )
-    elif r_str == "BASE":
-        revision = pysvn.Revision( pysvn.opt_revision_kind.base )
-    else:
-        # Is it a number?
-        try:
-            r = int(r_str)
-            revision = pysvn.Revision( pysvn.opt_revision_kind.number, r)
-        except:
-            pass
+    revision = common.svn.revision_from_string(r_str)
 
     # Start by trying to do an SVN status, so we can report file version
     # status
