@@ -246,12 +246,12 @@ def get_dirlisting(req, svnclient, path):
     
     return listing
 
-def _fullpath_stat_fileinfo(fullpath, ind):
+def _fullpath_stat_fileinfo(fullpath):
     file_stat = os.stat(fullpath)
-    return _stat_fileinfo(fullpath, file_stat, ind)
+    return _stat_fileinfo(fullpath, file_stat)
 
-def _stat_fileinfo(fullpath, file_stat, ind):
-    d = ind.copy()
+def _stat_fileinfo(fullpath, file_stat):
+    d = {}
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
         d["type_nice"] = util.nice_filetype("/")
@@ -275,7 +275,7 @@ def file_to_fileinfo(path, filename):
     needs to display about the filename. Returns a dict containing a number
     of fields related to the file (excluding the filename itself)."""
     fullpath = path if len(filename) == 0 else os.path.join(path, filename)
-    return _fullpath_stat_fileinfo(fullpath, {})
+    return _fullpath_stat_fileinfo(fullpath)
 
 def PysvnStatus_to_fileinfo(path, status):
     """Given a PysvnStatus object, gets all the info "ls"
@@ -295,11 +295,10 @@ def PysvnStatus_to_fileinfo(path, status):
         filename = "."
     else:
         filename = os.path.basename(fullpath)
-    d = {}
     text_status = status.text_status
-    d["svnstatus"] = str(text_status)
+    d = {'svnstatus': str(text_status)}
     try:
-        d = _fullpath_stat_fileinfo(fullpath, d)
+        d.update(_fullpath_stat_fileinfo(fullpath))
     except OSError:
         # Here if, eg, the file is missing.
         # Can't get any more information so just return d
@@ -325,11 +324,10 @@ def PysvnList_tofileinfo(path, list):
         filename = "."
     else:
         filename = os.path.basename(fullpath)
-    d = {}
-    d["svnstatus"] = "revision" # A special status
+    d = {'svnstatus': 'revision'} # A special status.
 
     wrapped = common.svn.PysvnListStatWrapper(pysvnlist)
-    d.update(_stat_fileinfo(fullpath, wrapped, {}))
+    d.update(_stat_fileinfo(fullpath, wrapped))
 
     return filename, d
 
