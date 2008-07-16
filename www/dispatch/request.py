@@ -212,13 +212,13 @@ class Request:
         self.headers_written = True
         
         # app is the App object for the chosen app
-        if self.app is None:
-            app = conf.apps.app_url[conf.apps.default_app]
-        else:
+        try:
             app = conf.apps.app_url[self.app]
+        except KeyError:
+            app = None
 
         # Write any final modifications to header content
-        if app.useconsole and self.user:
+        if app and app.useconsole and self.user:
             plugins.console.insert_scripts_styles(self.scripts, self.styles, \
                 self.scripts_init)
 
