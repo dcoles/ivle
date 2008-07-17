@@ -29,6 +29,7 @@ import os.path
 import cgi
 
 from common import (util, studpath)
+import common.svn
 
 # url path for this app
 THIS_APP = "files"
@@ -107,10 +108,20 @@ def presentpath(req, path, isdir):
     Presents a path list (address bar inside the page) for clicking.
     Writes to req, expecting to have just written the opening div containing
     the listing.
+    This will also have a revision indicator on the end, if we are viewing a
+    revision.
     """
     href_path = util.make_path(THIS_APP)
     nav_path = ""
 
+    revision = common.svn.revision_from_string(
+                     req.get_fieldstorage().getfirst('r'))
+
+    try: 
+        revno = revision.number
+    except:
+        revno = None
+       
     # Create all of the paths
     pathlist = path.split("/")
     segs_left = len(pathlist)
@@ -131,6 +142,9 @@ def presentpath(req, path, isdir):
         req.write(link)
         if add_slash:
             req.write('/')
+
+    if revno is not None:
+        req.write(' (revision %d)' % revno)
 
 def present_actions1(req):
     """
