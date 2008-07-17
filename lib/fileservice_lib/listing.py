@@ -200,37 +200,34 @@ def get_dirlisting(req, svnclient, path):
         req.flush()
         sys.exit()
 
-    # Now we need to get a directory listing (ls). We also need a function (fn)
-    # that will give us a (filename, attributes) pair for each type.
     # Start by trying to do an SVN status, so we can report file version
     # status
+    listing = {}
     try:
         if revision:
-            ls = svnclient.list(path, revision=revision, recurse=False)
-            fn = PysvnList_tofileinfo
+            ls_list = svnclient.list(path, revision=revision, recurse=False)
+            for ls in ls_list:
+                filename, attrs = PysvnList_to_fileinfo(path, ls)
+                listing[filename.decode('utf-8')] = attrs
         else:
-            ls = svnclient.status(path, recurse=False, get_all=True,
+            status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
-            fn = PysvnStatus_to_fileinfo
+            for status in status_list:
+                filename, attrs = PysvnStatus_to_fileinfo(path, status)
+                listing[filename.decode('utf-8')] = attrs
     except pysvn.ClientError:
         # Presumably the directory is not under version control.
         # Fallback to just an OS file listing.
-        ls = []
-        fn = file_to_fileinfo
         try:
-            ls = os.listdir(path)
+            for filename in os.listdir(path):
+                listing[filename.decode('utf-8')] = file_to_fileinfo(path, filename)[1]
         except OSError:
             # Non-directories will error - that's OK, we just want the "."
             pass
         # The subversion one includes "." while the OS one does not.
         # Add "." to the output, so the caller can see we are
         # unversioned.
-        ls.append('.')
-
-    listing = {}
-    for bit in ls:
-        filename, attrs = fn(path, bit)
-        listing[filename.decode('utf-8')] = attrs
+        listing["."] = file_to_fileinfo(path, "")[1]
 
     if ignore_dot_files:
         for fn in listing.keys():
@@ -309,7 +306,7 @@ def PysvnStatus_to_fileinfo(path, status):
         pass
     return filename, d
 
-def PysvnList_tofileinfo(path, list):
+def PysvnList_to_fileinfo(path, list):
     """Given a List object from pysvn.Client.list, gets all the info "ls"
     needs to display about the filename. Returns a pair mapping filename to
     a dict containing a number of other fields."""
