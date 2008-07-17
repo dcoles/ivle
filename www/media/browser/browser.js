@@ -759,13 +759,13 @@ function update_actions()
     {
         var actions2_directory = document.getElementById("actions2_directory");
         actions2_directory.setAttribute("style", "display: inline;");
+        var moreactions = document.getElementById("moreactions_area");
+        moreactions.setAttribute("style", "display: inline;");
     }
     else
     {
         var actions2_file = document.getElementById("actions2_file");
         actions2_file.setAttribute("style", "display: inline;");
-        var moreactions = document.getElementById("moreactions_area");
-        moreactions.setAttribute("style", "display: none;");
     }
 
     return;
