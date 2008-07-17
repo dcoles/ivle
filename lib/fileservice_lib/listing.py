@@ -176,16 +176,12 @@ def handle_return(req, return_contents):
         req.headers_out['X-IVLE-Return'] = 'File'
         req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
 
-def get_dirlisting(req, svnclient, path):
-    """Given a local absolute path, creates a directory listing object
-    ready to be JSONized and sent to the client.
-
-    req: Request object. Will not be mutated; just reads the session.
-    svnclient: Svn client object.
-    path: String. Absolute path on the local file system. Not checked,
-        must already be guaranteed safe. May be a file or a directory.
-    """
-    # Are we in 'revision mode' - has someone sent the 'r' query
+def _get_revision_or_die(req, svnclient, path):
+    '''Looks for a revision specification in req's URL, returning the revision
+       specified. Returns None if there was no revision specified. Errors and
+       terminates the request if the specification was bad, or it doesn't exist
+       for the given path.
+    '''
     # Work out the revisions from query
     r_str = req.get_fieldstorage().getfirst("r")
     revision = common.svn.revision_from_string(r_str)
@@ -199,6 +195,20 @@ def get_dirlisting(req, svnclient, path):
         req.write('Revision not found')
         req.flush()
         sys.exit()
+    return revision
+
+
+def get_dirlisting(req, svnclient, path):
+    """Given a local absolute path, creates a directory listing object
+    ready to be JSONized and sent to the client.
+
+    req: Request object. Will not be mutated; just reads the session.
+    svnclient: Svn client object.
+    path: String. Absolute path on the local file system. Not checked,
+        must already be guaranteed safe. May be a file or a directory.
+    """
+
+    revision = _get_revision_or_die(req, svnclient, path)
 
     # Start by trying to do an SVN status, so we can report file version
     # status
