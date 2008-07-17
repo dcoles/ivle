@@ -138,7 +138,8 @@ def presentpath(req, path, isdir):
         if add_slash:
             nav_path = nav_path + '/'
         link = '<a href="%s" title="Navigate to %s">%s</a>' % (
-            href_path, nav_path, path_seg)
+            href_path if revno is None else href_path + '?r=%d' % revno,
+            nav_path, path_seg)
         req.write(link)
         if add_slash:
             req.write('/')

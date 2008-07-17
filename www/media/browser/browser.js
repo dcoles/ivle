@@ -492,14 +492,15 @@ function handle_binary(path)
 
 /* Enable or disable actions1 moreactions actions. Takes either a single
  * name, or an array of them.*/
-function set_action_state(names, which)
+function set_action_state(names, which, allow_on_revision)
 {
     if (!(names instanceof Array)) names = Array(names);
 
     for (var i=0; i < names.length; i++)
     {
         element = document.getElementById('act_' + names[i]);
-        if (which)
+        if (which &&
+            !(current_file.svnstatus == 'revision' && !allow_on_revision))
         {
             /* Enabling */
             element.setAttribute("class", "choice");
@@ -562,7 +563,7 @@ function update_actions()
     /* Available if zero or one files are selected,
      * and only if this is a file, not a directory */
     var serve = document.getElementById("act_serve");
-    if (numsel <= 1 && !file.isdir)
+    if (numsel <= 1 && !file.isdir && current_file.svnstatus != 'revision')
     {
         serve.setAttribute("class", "choice");
         serve.setAttribute("onclick",
@@ -587,7 +588,8 @@ function update_actions()
      */
     var run = document.getElementById("act_run");
      
-    if (!file.isdir && file.type == "text/x-python" && numsel <= 1)
+    if (!file.isdir && file.type == "text/x-python" && numsel <= 1
+        && current_file.svnstatus != 'revision')
     {
         if (numsel == 0)
         {
@@ -609,15 +611,21 @@ function update_actions()
     }
 
     /* Download */
-    /* Always available.
+    /* Always available for current files.
      * If 0 files selected, download the current file or directory as a ZIP.
      * If 1 directory selected, download it as a ZIP.
      * If 1 non-directory selected, download it.
      * If >1 files selected, download them all as a ZIP.
      */
     var download = document.getElementById("act_download");
-    if (numsel <= 1)
+    if (current_file.svnstatus == 'revision')
     {
+        download.setAttribute("class", "disabled");
+        download.removeAttribute("onclick");
+    }
+    else if (numsel <= 1)
+    {
+        download.setAttribute("class", "choice")
         if (numsel == 0)
         {
             download.setAttribute("href",
@@ -648,6 +656,7 @@ function update_actions()
         for (var i=0; i<numsel; i++)
             dlpath += "path=" + encodeURIComponent(selected_files[i]) + "&";
         dlpath = dlpath.substr(0, dlpath.length-1);
+        download.setAttribute("class", "choice")
         download.setAttribute("href", dlpath);
         download.setAttribute("title",
             "Download the selected files as a ZIP file");
@@ -711,7 +720,10 @@ function update_actions()
           (numsel == 1 && (svnst = file_listing[selected_files[0]].svnstatus)) ||
           (numsel == 0 && (svnst = current_file.svnstatus))
          ) && svnst != "unversioned");
-    set_action_state(["svnlog", "svndiff"], single_versioned_path);
+    set_action_state("svndiff", single_versioned_path);
+
+    /* Log should be available for revisions as well. */
+    set_action_state("svnlog", single_versioned_path, true);
 
     /* current_path == username: We are at the top level */
     set_action_state("svncheckout", current_path == username);
