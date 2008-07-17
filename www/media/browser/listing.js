@@ -653,6 +653,7 @@ function handle_dir_listing(path, listing)
         row = document.createElement("tr");
         row.filename = filename;
         row.fileinfo = file;
+
         /* Column 1: Selection checkbox */
         row.setAttribute("class", "row" + row_toggle.toString())
         row_toggle = row_toggle == 1 ? 2 : 1;
@@ -665,61 +666,47 @@ function handle_dir_listing(path, listing)
         checkbox.checked = filename in sel_files_dict;
         td.appendChild(checkbox);
         row.appendChild(td);
+
+        /* Column 2: Filetype and subversion icons. */
+        td = document.createElement("td");
+        td.setAttribute("class", "thincol");
+        td.setAttribute("onclick", selection_string);
+        /* Directories don't really have a MIME type, so we fake one. */
+        if (file.isdir) file.type = "text/directory";
+        td.appendChild(dom_make_img(mime_type_to_icon(file.type),
+            icon_size, icon_size, file.type_nice));
+        row.appendChild(td);
+        td = document.createElement("td");
+        td.setAttribute("class", "thincol");
+        if (under_subversion)
+        {
+            var icon = svnstatus_to_icon(file.svnstatus);
+            if (icon)
+                td.appendChild(dom_make_img(icon, icon_size, icon_size,
+                    svnstatus_to_string(file.svnstatus)));
+        }
+        row.appendChild(td);
+
+        /* Column 3: Filename */
         if (file.isdir)
         {
-            /* Column 2: Filetype and subversion icons. */
-            td = document.createElement("td");
-            td.setAttribute("class", "thincol");
-            td.setAttribute("onclick", selection_string);
-            td.appendChild(dom_make_img(mime_type_to_icon("text/directory"),
-                icon_size, icon_size, file.type_nice));
-            row.appendChild(td);
-            td = document.createElement("td");
-            td.setAttribute("class", "thincol");
-            if (under_subversion)
-            {
-                var icon = svnstatus_to_icon(file.svnstatus);
-                if (icon)
-                    td.appendChild(dom_make_img(icon, icon_size, icon_size,
-                        svnstatus_to_string(file.svnstatus)));
-            }
-            row.appendChild(td);
-            /* Column 3: Filename */
             td = dom_make_link_elem("td", filename,
-                "Navigate to " + path_join(path, filename),
-                app_path(this_app, path, filename)/*,
-                "navigate(" + repr(path_join(path, filename)) + ")"*/);
-            td.setAttribute("onclick", selection_string);
-            row.appendChild(td);
+                 "Navigate to " + path_join(path, filename),
+                 app_path(this_app, path, filename));
         }
         else
         {
-            /* Column 2: Filetype and subversion icons. */
-            td = document.createElement("td");
-            td.setAttribute("class", "thincol");
-            td.appendChild(dom_make_img(mime_type_to_icon(file.type),
-                icon_size, icon_size, file.type_nice));
-            row.appendChild(td);
-            td = document.createElement("td");
-            td.setAttribute("class", "thincol");
-            if (under_subversion)
-            {
-                var icon = svnstatus_to_icon(file.svnstatus);
-                if (icon)
-                    td.appendChild(dom_make_img(icon, icon_size, icon_size,
-                        svnstatus_to_string(file.svnstatus)));
-            }
-            row.appendChild(td);
-            /* Column 3: Filename */
             td = dom_make_text_elem("td", filename);
-            td.setAttribute("onclick", selection_string);
-            row.appendChild(td);
         }
+        td.setAttribute("onclick", selection_string);
+        row.appendChild(td);
+
         /* Column 4: Size */
         td = dom_make_text_elem("td", nice_filesize(file.size));
         td.setAttribute("onclick", selection_string);
         row.appendChild(td);
-        /* Column 4: Date */
+
+        /* Column 5: Date */
         td = dom_make_text_elem("td", file.mtime_short, file.mtime_nice);
         td.setAttribute("onclick", selection_string);
         row.appendChild(td);
