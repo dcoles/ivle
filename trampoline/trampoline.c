@@ -321,9 +321,9 @@ int main(int argc, char* const argv[])
         /* Process size in virtual memory */
         l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
         l.rlim_max = 72 * 1024 * 1024; /* 64Mb */
-        if (setrlimit(RLIMIT_AS, &l))
+        if (setrlimit(RLIMIT_CORE, &l))
         {
-            perror("could not setrlimit/RLIMIT_AS");
+            perror("could not setrlimit/RLIMIT_CORE");
             exit(1);
         }
 
