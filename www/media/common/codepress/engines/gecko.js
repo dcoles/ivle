@@ -40,9 +40,13 @@ CodePress = {
     	keyCode = evt.keyCode;	
 		charCode = evt.charCode;
 		fromChar = String.fromCharCode(charCode);
-		for (var handler in this.changehandlers)
+		// Arrow keys, Pg{Up,Dn}, Home, End won't mutate the content.
+		if ([33, 34, 35, 36, 37, 38, 39, 40].indexOf(keyCode) == -1)
 		{
-			document.changehandlers[handler]();
+			for (var handler in this.changehandlers)
+			{
+				document.changehandlers[handler]();
+			}
 		}
 
 		if((evt.ctrlKey || evt.metaKey) && evt.shiftKey && charCode!=90)  { // shortcuts = ctrl||appleKey+shift+key!=z(undo) 
