@@ -169,7 +169,7 @@ def handle_return(req, return_contents):
         req.content_type = type
         req.headers_out['X-IVLE-Return'] = 'File'
 
-        req.sendfile(path)
+        send_file(req, svnclient, path)
     else:
         # It's a file. Return a "fake directory listing" with just this file.
         req.content_type = mime_dirlisting
@@ -197,6 +197,12 @@ def _get_revision_or_die(req, svnclient, path):
         sys.exit()
     return revision
 
+def send_file(req, svnclient, path):
+    revision = _get_revision_or_die(req, svnclient, path)
+    if revision:
+        req.write(svnclient.cat(path, revision=revision))
+    else:
+        req.sendfile(path)
 
 def get_dirlisting(req, svnclient, path):
     """Given a local absolute path, creates a directory listing object
