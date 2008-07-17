@@ -59,8 +59,10 @@ CodePress = {
 	    else if(chars.indexOf('|'+charCode+'|')!=-1||keyCode==13) { // syntax highlighting
 			top.setTimeout(function(){CodePress.syntaxHighlight('generic');},100);
 		}
-		else if(keyCode==9 || evt.tabKey) {  // snippets activation (tab)
-			CodePress.snippets(evt);
+		else if(keyCode==9 || evt.tabKey) {  // Tabbing! Was snippets, but they're bad.
+			// TODO: Allow line indentation
+			evt.preventDefault();
+			CodePress.insertCode('    ');
 		}
 		else if(keyCode==46||keyCode==8) { // save to history when delete or backspace pressed
 		 	CodePress.actions.history[CodePress.actions.next()] = editor.innerHTML;
