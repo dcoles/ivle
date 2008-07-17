@@ -15,10 +15,16 @@ function save_file(filename)
     data = editbox.getCode();
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
-    do_action("putfile", filename,
-              {"path":".", "data":data, "overwrite":"true"},
-              "multipart/form-data", true);
-    disable_save_if_safe();
+    if (current_file.svnstatus != "revision" ||
+        confirm("You are currently viewing an older version of this file. " +
+                "Saving will overwrite the current version. " +
+                "Are you sure you want to continue?"))
+    {
+        do_action("putfile", filename,
+                  {"path":".", "data":data, "overwrite":"true"},
+                  "multipart/form-data", true);
+        disable_save_if_safe();
+    }
 }
 
 function save_file_as(default_filename)
