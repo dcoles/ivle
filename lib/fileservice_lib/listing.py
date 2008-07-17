@@ -253,6 +253,9 @@ def get_dirlisting(req, svnclient, path):
     # Listing is a nested object inside the top-level JSON.
     listing = {"listing" : listing}
 
+    if revision:
+        listing['revision'] = revision.number
+
     # The other object is the clipboard, if present in the browser session.
     # This can go straight from the session to JSON.
     session = req.get_session()

@@ -104,6 +104,7 @@ types_exec = [
 /** The listing object returned by the server as JSON */
 file_listing = null;
 current_file = null;
+current_revision = null;
 current_path = "";
 
 /** Filenames of all files selected
@@ -287,6 +288,11 @@ function handle_response(path, response, is_action, url_args)
     current_file = file_listing["."];     /* Global */
     delete file_listing["."];
 
+    if ('revision' in listing)
+    {
+        current_revision = listing.revision;
+    }
+
     /* Check if this is a directory listing or file contents */
     var isdir = response.getResponseHeader("X-IVLE-Return") == "Dir";
     if (isdir)
@@ -427,6 +433,19 @@ function handle_error(message)
     files.appendChild(txt_elem);
 }
 
+/** Given a path, filename and optional revision, returns a URL to open that
+ *  revision of that file.
+ */
+function build_revision_url(path, filename, revision)
+{
+    bits = {'path': app_path(this_app, path, filename)};
+    if (current_revision)
+    {
+        bits['query_string'] = 'r=' + revision;
+    }
+    return build_url(bits);
+}
+
 /** Given a mime type, returns the path to the icon.
  * \param type String, Mime type.
  * \param sizelarge Boolean, optional.
@@ -550,7 +569,8 @@ function update_actions()
         else
             open.setAttribute("title",
                 "Edit or view this file");
-        open.setAttribute("href", app_path(this_app, current_path, filename));
+        open.setAttribute("href", build_revision_url(current_path, filename,
+                                                     current_revision));
     }
     else
     {

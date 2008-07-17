@@ -692,7 +692,8 @@ function handle_dir_listing(path, listing)
         {
             td = dom_make_link_elem("td", filename,
                  "Navigate to " + path_join(path, filename),
-                 app_path(this_app, path, filename));
+                 build_revision_url(path, filename, current_revision),
+                 null, true);
         }
         else
         {
