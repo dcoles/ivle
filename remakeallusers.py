@@ -26,22 +26,19 @@
 import sys
 import os
 import common.db
-import os.path
-import pwd
-import conf
 import common.makeuser
 import optparse
-import shutil
 import logging
 
 p = optparse.OptionParser()
-p.add_option('--incremental', '-i', action='store_true')
 p.add_option('--verbose', '-v', action='store_true')
 options, arguments = p.parse_args()
 
-if options.verbose:
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
-                        level=logging.DEBUG)
+level = logging.DEBUG if options.verbose else logging.WARNING
+
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                        level=level)
+
 
 if os.getuid() != 0:
     print >> sys.stderr, "%s must be run as root" % sys.argv[0]
