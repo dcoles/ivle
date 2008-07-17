@@ -31,6 +31,7 @@ import pysvn
 import common.cgirequest
 import common.util
 import common.date
+import common.svn
 
 req = common.cgirequest.CGIRequest()
 req.install_error_handler()
@@ -38,6 +39,8 @@ req.content_type = "text/html"
 
 req.write('<h1>Subversion Log</h1>\n')
 
+r_str = req.get_fieldstorage().getfirst("r")
+sr = common.svn.revision_from_string(r_str)
 
 def pretty_path(cpath, revno=None):
     path = cpath['path']
@@ -60,11 +63,30 @@ def pretty_paths(paths, revno=None):
     return output
 
 def pretty_log(log):
-    return '''
+    revno = log.revision.number
+    author = cgi.escape(log.author)
+    message = cgi.escape(log.message)
+    result = '''
 <div class="svnlogentry">
 	<div class="svnloginfo">
 		Revision <a href="%s?r=%d" style="font-weight: bold">%d</a>
 		by <strong>%s</strong> on <strong>%s</strong>
+''' % (cgi.escape(common.util.make_path(os.path.join('files', req.path))),
+       revno, revno, author, common.date.make_date_nice(log.date))
+
+    # Now we get ugly. We need to sometimes present [select] and [diff] links.
+    if sr and sr.kind == pysvn.opt_revision_kind.number and sr.number == revno:
+        result += '[selected]'
+    else:
+        result += '<a href="%s?r=%d">[select]</a>' % (
+              cgi.escape(common.util.make_path(os.path.join('svnlog', req.path))),
+              revno)
+    if sr and sr.kind == pysvn.opt_revision_kind.number:
+        result += ' <a href="%s?r=%d&r=%d">[diff]</a>' % (
+              cgi.escape(common.util.make_path(os.path.join('diff', req.path))),
+              sr.number, revno)
+
+    result += '''
 	</div>
 	<pre>%s</pre>
         <hr size="1"/>
@@ -72,10 +94,8 @@ def pretty_log(log):
         <div class="svnlogpathlist">
 	%s
         </div>
-</div>''' % (cgi.escape(common.util.make_path(os.path.join('files', req.path))),
-             log.revision.number, log.revision.number, cgi.escape(log.author),
-             common.date.make_date_nice(log.date), cgi.escape(log.message),
-             pretty_paths(log.changed_paths, log.revision.number))
+</div>''' % (message, pretty_paths(log.changed_paths, log.revision.number))
+    return result
 
 try:
     client = pysvn.Client()
