@@ -1,0 +1,66 @@
+#!/usr/bin/python
+
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2008 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Script: interpretservice
+# Author: David Coles
+# Date:   6/3/2007
+
+# A CGI script for interpreting files.
+
+import mimetypes
+import os
+import sys
+import conf
+import StringIO
+import urlparse
+import subprocess
+
+from common import (cgirequest, studpath)
+
+req = cgirequest.CGIRequest()
+req.install_error_handler()
+
+# Work out the parts of the URL
+url = urlparse.urlparse(req.path)
+querystr = url[4]
+urlpath = url[2]
+filename = studpath.url_to_jailpaths(urlpath)[2]
+
+python = "/usr/bin/python"
+
+if filename is None:
+    req.throw_error(req.HTTP_NOT_FOUND, "The path specified is invalid.")
+elif not os.access(filename, os.R_OK):
+    req.throw_error(req.HTTP_NOT_FOUND,
+        "The specified file (%s) does not exist." % urlpath)
+else:
+    if os.path.isdir(filename):
+        # 403 Forbidden error for visiting a directory
+        # (Not giving a directory listing, since this can be seen by
+        # the world at large. Directory contents are private).
+        req.throw_error(req.HTTP_FORBIDDEN,
+            "The path specified is a directory.")
+    else:
+        # We'll save on a fork and execute in this python process
+        # Let exceptions blow up normally again
+        sys.excepthook = sys.__excepthook__
+        execfile(filename, {})
+        
+        # Non-Python process should probably use something like
+        # subprocess.call([python, filename])

@@ -65,6 +65,7 @@ def __listmake():
         "scripts/python-console",
         "scripts/fileservice",
         "scripts/serveservice",
+        "scripts/interpretservice",
         "scripts/usrmgt-server",
         "scripts/diffservice",
         "scripts/svnlogservice",

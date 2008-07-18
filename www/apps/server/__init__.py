@@ -32,6 +32,7 @@ import os
 import mimetypes
 
 serveservice_path = "/opt/ivle/scripts/serveservice"
+interpretservice_path = "/opt/ivle/scripts/interpretservice"
 
 # Serve all files as application/octet-stream so the browser presents them as
 # a download.
@@ -80,55 +81,16 @@ def serve_file(req, owner, filename, download=False):
     """
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
     authorize(req)
-
-    # First get the mime type of this file
-    # If download then use "application/octet-stream" type to force the browser 
-    # to download the file.
-    # (Note that importing common.util has already initialised mime types)
+    
+    # Jump into the jail
+    interp_object = interpret.interpreter_objects["cgi-python"]
+    user_jail_dir = os.path.join(conf.jail_base, owner)
     if download:
-        if os.path.isdir(filename):
-            type = zip_mimetype
-        else:
-            type = default_mimetype
-        req.headers_out["Content-Disposition"] = "attachment"
-    else:
-        (type, _) = mimetypes.guess_type(filename)
-        if type is None:
-            type = conf.mimetypes.default_mimetype
-
-    # If this type is to be interpreted
-    if os.path.isdir(filename) and not download:
-        # 403 Forbidden error for visiting a directory
-        # (Not giving a directory listing, since this can be seen by
-        # the world at large. Directory contents are private).
-        req.throw_error(req.HTTP_FORBIDDEN,
-            "The path specified is a directory.")
-    elif type in conf.app.server.interpreters:
-        interp_name = conf.app.server.interpreters[type]
-        try:
-            # Get the interpreter function object
-            interp_object = interpret.interpreter_objects[interp_name]
-            (_, jail_dir, path) = studpath.url_to_jailpaths(req.path)
-        except KeyError:
-            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-                "The interpreter for this file has not been "
-                "configured correctly.")
-        interpret.interpret_file(req, owner, jail_dir, path, interp_object)
-
-    else:
-        # Otherwise, use the blacklist/whitelist to see if this file should be
-        # served or disallowed
-        if (conf.app.server.blacklist_served_filetypes and \
-                type in conf.app.server.served_filetypes_blacklist) or \
-           (conf.app.server.served_filetypes_whitelist and \
-                type not in conf.app.server.served_filetypes_whitelist): 
-            req.throw_error(req.HTTP_FORBIDDEN,
-                "Files of this type are not allowed to be served.")
-
-        interp_object = interpret.interpreter_objects["cgi-python"]
-        user_jail_dir = os.path.join(conf.jail_base, owner)
         interpret.interpret_file(req, owner, user_jail_dir,
             serveservice_path, interp_object, gentle=False)
+    else:
+        interpret.interpret_file(req, owner, user_jail_dir,
+            interpretservice_path, interp_object, gentle=True)
 
 def serve_file_direct(req, filename, type):
     """Serves a file by directly writing it out to the response.
