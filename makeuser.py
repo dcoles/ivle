@@ -91,7 +91,7 @@ if 'unixid' not in user:
         (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
         user['unixid'] = uid
     except KeyError:
-        user['unixid'] = random.randrange(5000,10000)
+        pass
 
 try:
     # Make the user's database entry

@@ -65,19 +65,9 @@ def create_user(props):
        Return Value: the uid associated with the user. INT
     """
 
-    if 'unixid' not in props or props['unixid'] is None:
-        # For the time being, just choose a random unixid.
-        # This may result in duplicates, but the unixid is essentially
-        # a monitoring/logging convenience only. Oh, and dups could kill
-        # each other. <sigh>
-        props['unixid'] = random.randrange(5000,10000)
-        # raise NotImplementedError, "No algorithm for creating uids yet!"
-        # unixid = invent-uid
-        # props['unixid'] = unixid
-
     common.makeuser.make_user_db(**props)
-
-    return int(props['unixid'])
+    user = common.db.get_user(props["login"])
+    return user["unixid"]
 
 def update_user(props):
     """Create the database record for the given user.
