@@ -181,6 +181,13 @@ function action_unpublish(files)
     return false;
 }
 
+function action_update(files)
+{
+    if (files.length == 0) files = ".";
+    do_action("svnupdate", current_path, {"path": files});
+    return false;
+}
+
 function action_commit(files)
 {
     /* Get a commit log from the user */

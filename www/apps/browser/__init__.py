@@ -176,6 +176,7 @@ def present_actions1(req):
         ('svnadd',      ['Add',          'Schedule the selected temporary files to be added permanently']),
         ('svndiff',     ['Diff',         'View any changes to the selected file since its last committed state']),
         ('svnrevert',   ['Revert',       'Restore the selected files back to their last committed state']),
+        ('svnupdate',   ['Update',       'Update your files with changes from the permanent repository']),
         ('svncommit',   ['Commit',       'Commit any changes to the permanent repository']),
         ('svnlog',      ['View Log',     'View the log of commits of the selected file']),
         ('svncheckout', ['Re-checkout',  'Re-checkout your default directories'])

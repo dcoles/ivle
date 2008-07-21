@@ -66,6 +66,7 @@ svn_icons = {
     "missing": "missing.png",
     "deleted": "deleted.png",
     "modified": "modified.png",
+    "conflicted": "conflicted.png",
     "revision": "revision.png"
 };
 
@@ -733,14 +734,15 @@ function update_actions()
      * files selected. */
     set_action_state(["svnadd", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
 
-    /* Diff and log only support one path at the moment, so we must have 0 or 1
-     * versioned files selected. If 0, the directory must be versioned. */
+    /* Diff, log and update only support one path at the moment, so we must
+     * have 0 or 1 versioned files selected. If 0, the directory must be
+     * versioned. */
     single_versioned_path = (
          (
           (numsel == 1 && (svnst = file_listing[selected_files[0]].svnstatus)) ||
           (numsel == 0 && (svnst = current_file.svnstatus))
          ) && svnst != "unversioned");
-    set_action_state("svndiff", single_versioned_path);
+    set_action_state(["svndiff", "svnupdate"], single_versioned_path);
 
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
@@ -841,6 +843,9 @@ function handle_moreactions()
         break;
     case "svndiff":
         window.location = path_join(app_path('diff'), current_path, selected_files[0] || '');
+        break;
+    case "svnupdate":
+        action_update(selected_files);
         break;
     case "svncommit":
         action_commit(selected_files);
