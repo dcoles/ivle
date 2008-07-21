@@ -21,7 +21,12 @@
 
 # Allows students and tutors to manage project groups.
 
+# XXX Does not distinguish between current and past subjects.
+
+import cgi
+
 from common import util
+import common.db
 
 def handle(req):
     # Set request attributes
@@ -30,7 +35,55 @@ def handle(req):
     req.scripts = ["media/groups/groups.js"]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
-    # Start writing data
     req.write('<div id="ivle_padding">\n')
-    req.write("<p>Group Management Panel (Under Construction)</p>\n")
-    req.write("</div>\n")
+    # Show a group panel per enrolment
+    db = common.db.DB()
+    try:
+        subjects = db.get_enrolment(req.user.login)
+        # Sort by year,semester,subj_code (newer subjects first)
+        # Leave all fields as strings, just in case (eg. semester='y')
+        subjects.sort(key=lambda (_oid,subj_code,_sn,_ssn,year,semester):
+                            (year,semester,subj_code),
+                      reverse=True)
+        if len(subjects) == 0:
+            req.write("<p>Error: You are not currently enrolled in any subjects."
+                      "</p>\n")
+        for offeringid,_,subj_name,_,_,_ in subjects:
+            show_subject_panel(req, db, offeringid, subj_name)
+        req.write("</div>\n")
+    finally:
+        db.close()
+
+def show_subject_panel(req, db, offeringid, subj_name):
+    """
+    Show the group management panel for a particular subject.
+    Prints to req.
+    """
+    req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
+    # Get the groups this user is in, for this offering
+    groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
+    for groupid, groupnm, group_nick, is_member in groups:
+        req.write("<h2>%s (%s)</h2>\n" %
+            (cgi.escape(group_nick), cgi.escape(groupnm)))
+        if is_member:
+            req.write('<p>You are in this group.\n'
+                '  <input type="button" onclick="manage(&quot;%s&quot;)" '
+                'value="Manage" /></p>\n' % (cgi.escape(groupnm)))
+        else:
+            req.write('<p>You have been invited to this group.</p>\n')
+            req.write('<p>'
+                '<input type="button" '
+                'onclick="accept(&quot;%(groupnm)s&quot;)" '
+                'value="Accept" />\n'
+                '<input type="button" '
+                'onclick="decline(&quot;%(groupnm)s&quot;)" '
+                'value="Decline" />\n'
+                '</p>\n' % {"groupnm": cgi.escape(groupnm)})
+        req.write("<h3>Members</h3>\n")
+        req.write("<table>\n")
+        # TODO: Fill in members table
+        req.write("</table>\n")
+
+    if True:        # XXX Only if offering allows students to create groups
+        req.write('<input type="button" onclick="create(%d)" '
+            'value="Create Group" />\n' % offeringid)
