@@ -174,6 +174,7 @@ def present_actions1(req):
       ]),
       ('Subversion', True, [
         ('svnadd',      ['Add',          'Schedule the selected temporary files to be added permanently']),
+        ('svnremove',   ['Remove',       'Schedule the selected permanent files to be removed']),
         ('svndiff',     ['Diff',         'View any changes to the selected file since its last committed state']),
         ('svnrevert',   ['Revert',       'Restore the selected files back to their last committed state']),
         ('svnupdate',   ['Update',       'Update your files with changes from the permanent repository']),

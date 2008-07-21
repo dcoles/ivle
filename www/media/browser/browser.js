@@ -732,7 +732,7 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state(["svnadd", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
+    set_action_state(["svnadd", "svnremove", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
 
     /* Diff, log and update only support one path at the moment, so we must
      * have 0 or 1 versioned files selected. If 0, the directory must be
@@ -818,7 +818,7 @@ function handle_moreactions()
         action_rename(filename);
         break;
     case "delete":
-        action_remove(selected_files);
+        action_delete(selected_files);
         break;
     case "copy":
         action_copy(selected_files);
@@ -840,6 +840,9 @@ function handle_moreactions()
         break;
     case "svnadd":
         action_add(selected_files);
+        break;
+    case "svnremove":
+        action_remove(selected_files);
         break;
     case "svnrevert":
         action_revert(selected_files);

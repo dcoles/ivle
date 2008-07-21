@@ -256,8 +256,7 @@ def movefile(req, frompath, topath, copy=False):
 
 ### ACTIONS ###
 
-def action_remove(req, fields):
-    # TODO: Do an SVN rm if the file is versioned.
+def action_delete(req, fields):
     # TODO: Disallow removal of student's home directory
     """Removes a list of files or directories.
 
@@ -541,6 +540,19 @@ def action_svnadd(req, fields):
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
+def action_svnremove(req, fields):
+    """Performs a "svn remove" on each file specified.
+
+    Reads fields: 'path' (multiple)
+    """
+    paths = fields.getlist('path')
+    paths = map(lambda path: actionpath_to_local(req, path), paths)
+
+    try:
+        svnclient.remove(paths, force=True)
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
+
 def action_svnupdate(req, fields):
     """Performs a "svn update" to each file specified.
 
@@ -659,7 +671,7 @@ def action_svncheckout(req, fields):
 # Each function has the interface f(req, fields).
 
 actions_table = {
-    "remove" : action_remove,
+    "delete" : action_delete,
     "move" : action_move,
     "mkdir" : action_mkdir,
     "putfile" : action_putfile,
@@ -669,6 +681,7 @@ actions_table = {
     "unpublish" : action_unpublish,
 
     "svnadd" : action_svnadd,
+    "svnremove" : action_svnremove,
     "svnupdate" : action_svnupdate,
     "svnresolved" : action_svnresolved,
     "svnrevert" : action_svnrevert,

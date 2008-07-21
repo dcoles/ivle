@@ -50,7 +50,7 @@ function action_rename(fromfilename)
     return false;
 }
 
-function action_remove(files)
+function action_delete(files)
 {
     var conf_msg;
     /* A heavy nesty bit of logic to determine the confirmation message.
@@ -97,7 +97,7 @@ function action_remove(files)
 
     var confirmed = confirm(conf_msg);
     if (!confirmed) return;
-    do_action("remove", current_path, {"path":files});
+    do_action("delete", current_path, {"path":files});
     return false;
 }
 
@@ -160,6 +160,12 @@ function action_paste()
 function action_add(files)
 {
     do_action("svnadd", current_path, {"path":files});
+    return false;
+}
+
+function action_remove(files)
+{
+    do_action("svnremove", current_path, {"path":files});
     return false;
 }
 
