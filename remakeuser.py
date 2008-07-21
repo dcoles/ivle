@@ -16,47 +16,72 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Program: RemakeUser
+# Program: RemakeAllUsers
 # Author:  Matt Giuca
-# Date:    5/2/2008
+# Date:    3/3/2008
 
-# Repairs a user's jail, without actually writing to the DB.
-# (This asks for less input than makeuser).
-# This script wraps common.makeuser.
+# Script to rebuild jails for users on the system.
+# One can specify a single username, or that all should be rebuilt.
+# Requires root to run.
 
 import sys
 import os
-import os.path
-import pwd
-# Import modules from the website is tricky since they're in the www
-# directory.
-sys.path.append(os.path.join(os.getcwd(), 'www'))
-import conf
-import common.makeuser
 import common.db
+import common.makeuser
+import optparse
+import logging
 
-if len(sys.argv) <= 1:
-    print "Usage: python remakeuser.py <login>"
-    sys.exit()
+p = optparse.OptionParser()
+p.add_option('--verbose', '-v', action='store_true')
+p.add_option('--all', '-a', action='store_true')
+options, arguments = p.parse_args()
+
+level = logging.DEBUG if options.verbose else logging.WARNING
+
+logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                        level=level)
+
 
 if os.getuid() != 0:
-    print "Must run remakeuser.py as root."
-    sys.exit()
-
-login = sys.argv[1]
-
-try:
-    # Resolve the user's login into a UID
-    # Create the user if it does not exist
-    try:
-        conn = common.db.DB()
-        uid = conn.get_single({'login':login}, 'login', ['unixid'], ['login'])
-    except KeyError:
-        raise Exception("User does not have a unixid in the database")
-    # Remake the user's jail
-    common.makeuser.make_jail(login, uid)
-except Exception, message:
-    print "Error: " + str(message)
+    print >> sys.stderr, "%s must be run as root" % sys.argv[0]
     sys.exit(1)
 
-print "Successfully recreated user %s's jail." % login
+try:
+    db = common.db.DB()
+    if options.all:
+        list = db.get_users()
+    else:
+        if len(arguments) == 0:
+            print >> sys.stderr, "must be run with -a or a username"
+            sys.exit(1)
+        list = [db.get_user(arguments[0])]
+    res = db.get_all('login', ['login', 'unixid'])
+    def repack(flds):
+        return (flds['login'], flds['unixid'])
+    uids = dict(map(repack,res))
+except Exception, message:
+    logging.error(str(message))
+    sys.exit(1)
+
+logging.info("rebuild started")
+
+list.sort(key=lambda user: user.login)
+for user in list:
+    login = user.login
+
+    try:
+        # Resolve the user's login into a UID
+        try:
+            uid = uids[login]
+        except KeyError:
+            raise Exception("user %s does not have a unixid in the database"
+                % login)
+        # Remake the user's jail
+        common.makeuser.make_jail(login, uid)
+    except Exception, message:
+        logging.warning(str(message))
+        continue
+
+    logging.debug("recreated user %s's jail." % login)
+    
+logging.info("rebuild completed successfully")
