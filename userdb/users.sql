@@ -85,6 +85,7 @@ CREATE TABLE assessed (
     assessedid  SERIAL PRIMARY KEY NOT NULL,
     loginid     INT4 REFERENCES login (loginid),
     groupid     INT4 REFERENCES project_group (groupid),
+    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     -- exactly one of loginid and groupid must be non-null
     CHECK ((loginid IS NOT NULL AND groupid IS NULL)
         OR (loginid IS NULL AND groupid IS NOT NULL))
@@ -92,7 +93,6 @@ CREATE TABLE assessed (
 
 CREATE TABLE project_extension (
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
-    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
     notes       VARCHAR
@@ -100,14 +100,12 @@ CREATE TABLE project_extension (
 
 CREATE TABLE project_submission (
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
-    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     path        VARCHAR NOT NULL,
     revision    INT4 NOT NULL
 );
 
 CREATE TABLE project_mark (
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
-    projectid   INT4 REFERENCES project (projectid) NOT NULL,
     componentid INT4,
     marker      INT4 REFERENCES login (loginid) NOT NULL,
     mark        INT,
