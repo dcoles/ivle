@@ -32,6 +32,8 @@ CREATE TABLE offering (
     subject     INT4 REFERENCES subject (subjectid) NOT NULL,
     year        CHAR(4) NOT NULL,
     semester    CHAR(1) NOT NULL,
+    max_groups_per_student      INT4 DEFAULT 1,
+    max_students_per_group      INT4 DEFAULT 4,
     UNIQUE (subject, year, semester)
 );
 
