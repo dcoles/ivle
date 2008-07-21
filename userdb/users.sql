@@ -34,6 +34,10 @@ CREATE TABLE offering (
     semester    CHAR(1) NOT NULL,
     max_groups_per_student      INT4 DEFAULT 1,
     max_students_per_group      INT4 DEFAULT 4,
+    groups_student_permissions  VARCHAR NOT NULL
+        CHECK (groups_student_permissions in ('none', 'invite',
+                                              'create'))
+        DEFAULT 'none';
     UNIQUE (subject, year, semester)
 );
 
