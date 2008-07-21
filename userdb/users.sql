@@ -23,7 +23,7 @@ CREATE TABLE subject (
     subjectid       SERIAL PRIMARY KEY NOT NULL,
     subj_code       VARCHAR UNIQUE NOT NULL,
     subj_name       VARCHAR NOT NULL,
-    subj_short_name VARCHAR,    -- may be null
+    subj_short_name VARCHAR UNIQUE NOT NULL,
     url             VARCHAR
 );
 
