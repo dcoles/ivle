@@ -377,12 +377,6 @@ def fixup_environ(req):
     # Comments here are on the heavy side, explained carefully for security
     # reasons. Please read carefully before making changes.
 
-    # Remove HTTP_COOKIE. It is a security risk to have students see the IVLE
-    # cookie of their visitors.
-    try:
-        del env['HTTP_COOKIE']
-    except: pass
-
     # Remove DOCUMENT_ROOT and SCRIPT_FILENAME. Not part of CGI spec and
     # exposes unnecessary details about server.
     try:
