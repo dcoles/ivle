@@ -126,6 +126,12 @@ app_settings = App(dir = "settings",
                     requireauth = True,
                     hashelp = True)
 
+app_groups = App(dir = "groups",
+                    name = "Group Management",
+                    icon = "groups.png",
+                    requireauth = True,
+                    hashelp = True)
+
 app_userservice = App(dir = "userservice",
                     name = "User Management Service",
                     requireauth = False,
@@ -172,6 +178,7 @@ app_url = {
     "forum" : app_forum,
     "tos" : app_tos,
     "settings" : app_settings,
+    "groups" : app_groups,
     "userservice" : app_userservice,
     "diff" : app_diff,
     "svnlog" : app_svnlog,
