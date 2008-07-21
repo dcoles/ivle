@@ -178,6 +178,7 @@ def present_actions1(req):
         ('svnrevert',   ['Revert',       'Restore the selected files back to their last committed state']),
         ('svnupdate',   ['Update',       'Update your files with changes from the permanent repository']),
         ('svncommit',   ['Commit',       'Commit any changes to the permanent repository']),
+        ('svnresolved', ['Mark Resolved','Mark a conflicted file as being resolved']),
         ('svnlog',      ['View Log',     'View the log of commits of the selected file']),
         ('svncheckout', ['Re-checkout',  'Re-checkout your default directories'])
       ])

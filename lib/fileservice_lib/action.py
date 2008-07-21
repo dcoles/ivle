@@ -556,6 +556,21 @@ def action_svnupdate(req, fields):
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
+def action_svnresolved(req, fields):
+    """Performs a "svn resolved" to each file specified.
+
+    Reads fields: 'path'
+    """
+    path = fields.getfirst('path')
+    if path is None:
+        raise ActionError("Required field missing")
+    path = actionpath_to_local(req, path)
+
+    try:
+        svnclient.resolved(path, recurse=True)
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
+
 def action_svnrevert(req, fields):
     """Performs a "svn revert" to each file specified.
 
@@ -655,6 +670,7 @@ actions_table = {
 
     "svnadd" : action_svnadd,
     "svnupdate" : action_svnupdate,
+    "svnresolved" : action_svnresolved,
     "svnrevert" : action_svnrevert,
     "svnpublish" : action_svnpublish,
     "svnunpublish" : action_svnunpublish,

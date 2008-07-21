@@ -744,6 +744,9 @@ function update_actions()
          ) && svnst != "unversioned");
     set_action_state(["svndiff", "svnupdate"], single_versioned_path);
 
+    /* We can resolve if we have a file selected and it is conflicted. */
+    set_action_state("svnresolved", single_versioned_path && numsel == 1 && svnst == "conflicted");
+
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
 
@@ -846,6 +849,9 @@ function handle_moreactions()
         break;
     case "svnupdate":
         action_update(selected_files);
+        break;
+    case "svnresolved":
+        action_resolved(selected_files);
         break;
     case "svncommit":
         action_commit(selected_files);

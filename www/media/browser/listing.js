@@ -188,6 +188,13 @@ function action_update(files)
     return false;
 }
 
+function action_resolved(files)
+{
+    if (files.length == 0) files = ".";
+    do_action("svnresolved", current_path, {"path": files});
+    return false;
+}
+
 function action_commit(files)
 {
     /* Get a commit log from the user */
