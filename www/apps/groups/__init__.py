@@ -42,14 +42,15 @@ def handle(req):
         subjects = db.get_enrolment(req.user.login)
         # Sort by year,semester,subj_code (newer subjects first)
         # Leave all fields as strings, just in case (eg. semester='y')
-        subjects.sort(key=lambda (_oid,subj_code,_sn,_ssn,year,semester):
-                            (year,semester,subj_code),
+        subjects.sort(key=lambda(subject):
+                          (subject["year"],subject["semester"],subject["subj_code"]),
                       reverse=True)
         if len(subjects) == 0:
             req.write("<p>Error: You are not currently enrolled in any subjects."
                       "</p>\n")
-        for offeringid,_,subj_name,_,_,_ in subjects:
-            show_subject_panel(req, db, offeringid, subj_name)
+        for subject in subjects:
+            show_subject_panel(req, db, subject['offeringid'],
+                subject['subj_name'])
         req.write("</div>\n")
     finally:
         db.close()

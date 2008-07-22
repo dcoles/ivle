@@ -81,6 +81,10 @@
 # Disable a user's account. Does not work for no_agreement or pending users.
 # login = Login name of user to disable.
 
+# userservice/get_enrolments
+# Required cap: None (for yourself)
+# Returns a JSON encoded listing of a students is enrollments
+
 import os
 import sys
 
@@ -408,6 +412,35 @@ def handle_get_user(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+def handle_get_enrolments(req, fields):
+    """
+    Retrieve a user's enrolment details.
+    """
+    # For the moment we're only able to query ourselves
+    fullpowers = False
+    ## Only give full powers if this user has CAP_GETUSER
+    ##fullpowers = req.user.hasCap(caps.CAP_GETUSER)
+
+    try:
+        login = fields.getfirst('login')
+        if login is None:
+            raise AttributeError()
+        if not fullpowers and login != req.user.login:
+            # Not allowed to edit other users
+            req.throw_error(req.HTTP_FORBIDDEN,
+            "You do not have permission to see another user's subjects.")
+    except AttributeError:
+        # If login not specified, update yourself
+        login = req.user.login
+
+    # Just talk direct to the DB
+    db = common.db.DB()
+    enrolments = db.get_enrolment(login)
+    db.close()
+    response = cjson.encode(enrolments)
+    req.content_type = "text/plain"
+    req.write(response)
+
 # Map action names (from the path)
 # to actual function objects
 actions_map = {
@@ -416,4 +449,5 @@ actions_map = {
     "create_user": handle_create_user,
     "update_user": handle_update_user,
     "get_user": handle_get_user,
+    "get_enrolments": handle_get_enrolments,
 }

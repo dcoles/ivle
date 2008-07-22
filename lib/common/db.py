@@ -844,6 +844,8 @@ INSERT INTO enrolment (loginid, offeringid)
             return False
         return True
 
+    # SUBJECTS AND ENROLEMENT
+
     def get_enrolment(self, login, dry=False):
         """
         Get all subjects (in IVLE) the student is enrolled in.
@@ -860,7 +862,7 @@ WHERE enrolment.offeringid=offering.offeringid
   AND login=%s;""" % _escape(login)
         if dry:
             return query
-        return self.db.query(query).getresult()
+        return self.db.query(query).dictresult()
 
     # PROJECT GROUPS
 
