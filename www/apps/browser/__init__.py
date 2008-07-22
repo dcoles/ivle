@@ -223,25 +223,30 @@ def present_actions2(req):
           target="upload_iframe"
           action="%s"
           enctype="multipart/form-data" method="post">
+      <p>
+      <span id="selectallpanel">
       Select:
       <a onclick="action_selectall(true)"
           title="Select all files in this directory">All</a> :
       <a onclick="action_selectall(false)"
           title="Deselect all files in this directory">None</a>
+      </span>
 
-      <span style="display:none" id="uploadpanel">| Upload file:
+      <span style="display:none" id="uploadpanel">|
+        <label for="upload_file">Upload file:</label>
         <input type="hidden" value="putfiles" name="action" />
         <input type="hidden" value="" name="path" />
-        <input type="file" name="data" />
-        <input type="checkbox" checked="on" value="true" name="unpack"
-          />Unpack zip file
-        <input type="button" onclick="show_uploadpanel(false)" value="Hide" />
-        <input type="submit" value="Send" />
+        <input type="file" name="data" id="upload_file" />
+        <input type="checkbox" checked="checked" value="true" name="unpack" id="unpack" />
+        <label title="Extract files and directories from a ZIP file if one is uploaded" for="unpack">Unpack ZIP</label>
+        <input type="button" onclick="show_uploadpanel(false)" value="Cancel" />
+        <input type="submit" value="Upload" />
       </span>
       <!-- This iframe is for making a call to upload the file without
            refreshing the page. (It will refresh the listing). -->
       <iframe onload="upload_callback()" style="display: none;"
           name="upload_iframe" id="upload_iframe"></iframe>
+      </p>
     </form>
 """ % cgi.escape(util.make_path(os.path.join("fileservice", req.path))))
 

@@ -68,6 +68,10 @@
     color: #aaa;
 }
 
+#actions2 p {
+    margin: 0;
+}
+
 /* One of the actions2s is shown at runtime, depending on the context.
  * We will show moreactions if we need it. */
 #actions1 #moreactions_area, #actions2 #actions2_file,
