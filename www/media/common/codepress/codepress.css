@@ -12,7 +12,7 @@ body {
 	line-height:16px;
 	height:100%;
 }
-pre {margin:0;}
+pre {margin:0;cursor:text;}
 html>body{background-position:0 2px;}
 P {margin:0;padding:0;border:0;outline:0;display:block;white-space:pre;}
 b, i, s, u, a, em, tt, ins, big, cite, strong, var, dfn {text-decoration:none;font-weight:normal;font-style:normal;font-size:13px;}
