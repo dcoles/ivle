@@ -185,11 +185,7 @@ class Request:
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
         path = common.util.unmake_path(req.uri)
-        if self.publicmode:
-            self.app = None
-            (_, self.path) = (common.util.split_path(path))
-        else:
-            (self.app, self.path) = (common.util.split_path(path))
+        (self.app, self.path) = (common.util.split_path(path))
         self.user = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in

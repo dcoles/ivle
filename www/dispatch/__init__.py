@@ -86,7 +86,8 @@ def handler_(req, apachereq):
     """
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
-    req.user = login.get_user_details(req)
+    if not req.publicmode:
+        req.user = login.get_user_details(req)
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in conf.apps.app_url:
@@ -97,10 +98,14 @@ def handler_(req, apachereq):
             req.throw_error(Request.HTTP_NOT_FOUND,
                 "There is no application called %s." % repr(req.app))
 
-    # Special handling for public mode - just call public app and get out
+    # Special handling for public mode - only allow the public app, call it
+    # and get out.
     # NOTE: This will not behave correctly if the public app uses
     # write_html_head_foot, but "serve" does not.
     if req.publicmode:
+        if req.app != conf.apps.public_app:
+            req.throw_error(Request.HTTP_FORBIDDEN,
+                "This application is not available on the public site.")
         app = conf.apps.app_url[conf.apps.public_app]
         apps.call_app(app.dir, req)
         return req.OK
