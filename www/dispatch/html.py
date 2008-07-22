@@ -93,7 +93,9 @@ def write_html_head(req):
   <h2>Informatics Virtual Learning Environment</h2>
 """)
 
-    if req.user:
+    if req.publicmode:
+        req.write('   <p class="userhello">Running in public mode.</p>')
+    elif req.user:
         # Get the user's nickname from the request session
         nickname = req.user.nick
         req.write('  <p class="userhello"><span id="usernick">%s</span> '
