@@ -1,0 +1,41 @@
+Upgrade Procedure for IVLE
+==========================
+
+Upgrading to a new revision of IVLE SVN is generally fairly painless,
+but there are several steps involved.
+
+Firstly, in the IVLE checkout, bring your codebase up to date:
+
+  svn update
+
+Then configure and build IVLE. New configuration options may sometimes
+be added, so the configuration questions should be watched closely.
+
+  ./setup.py listmake
+  ./setup.py config
+  ./setup.py build
+
+Note that this will not perform a full rebuild of the template jail -
+only the IVLE files inside the jail will be updated. To force a full
+jail rebuild, give the build command the -j option.
+
+Now comes the time to block external access to IVLE. Stopping Apache
+on each server in the cluster and killing any remaining python-console
+processes is highly recommended.
+
+You should then run any outstanding database migrations. A note of the
+latest applied migration should probably be kept somewhere to avoid
+running the same one twice. This command must be run once for each.
+
+  sudo -u postgres ivle < userdb/migrations/YYYYMMDD-NN.sql
+
+Now we can install the new version:
+
+  ./setup.py install
+
+... and remake the user jails, as this will occasionally be needed:
+
+  ./remakeuser.py --all --verbose
+
+Restart the usrmgt-server and all Apaches, reenable external access,
+check that everything works, and you're done!
