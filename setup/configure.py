@@ -420,7 +420,10 @@ jail_base = '/'
 
 # The hostname for serving publicly accessible pages
 public_host = %s
-""" % (repr(root_dir),repr(public_host)))
+
+# The URL under which the Subversion repositories are located.
+svn_addr = %s
+""" % (repr(root_dir),repr(public_host),repr(svn_addr)))
 
         conf.close()
     except IOError, (errno, strerror):

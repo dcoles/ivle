@@ -652,14 +652,14 @@ def action_svncommit(req, fields):
         raise ActionError(str(e))
 
 def action_svncheckout(req, fields):
-    """Performs a "svn checkout" of each path specified.
+    """Performs a "svn checkout" of the first path into the second path.
 
     Reads fields: 'path'    (multiple)
     """
     paths = fields.getlist('path')
     if len(paths) != 2:
         raise ActionError("usage: svncheckout url local-path")
-    url = conf.svn_addr + "/" + login + "/" + paths[0]
+    url = conf.svn_addr + "/" + paths[0]
     local_path = actionpath_to_local(req, str(paths[1]))
     try:
         svnclient.callback_get_login = get_login
