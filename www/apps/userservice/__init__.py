@@ -92,6 +92,7 @@ import cjson
 
 import common
 import common.db
+import common.makeuser
 from common import (util, chat, caps)
 import conf
 
@@ -221,6 +222,32 @@ def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
     This does not create the user's jail, just an entry in the database which
     allows the user to accept an agreement.
+       Expected fields:
+        login       - used as a unix login name and svn repository name.
+                      STRING REQUIRED 
+        unixid      - the unix uid under which execution will take place
+                      on the behalf of the user. Don't use 0! If not specified
+                      or None, one will be allocated from the configured
+                      numeric range.
+                      INT OPTIONAL
+        password    - the clear-text password for the user. If this property is
+                      absent or None, this is an indication that external
+                      authentication should be used (i.e. LDAP).
+                      STRING OPTIONAL
+        email       - the user's email address.
+                      STRING OPTIONAL
+        nick        - the display name to use.
+                      STRING REQUIRED
+        fullname    - The name of the user for results and/or other official
+                      purposes.
+                      STRING REQUIRED
+        rolenm      - The user's role. Must be one of "anyone", "student",
+                      "tutor", "lecturer", "admin".
+                      STRING/ENUM REQUIRED
+        studentid   - If supplied and not None, the student id of the user for
+                      results and/or other official purposes.
+                      STRING OPTIONAL
+       Return Value: the uid associated with the user. INT
     """
     if req.method != "POST":
         req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
@@ -246,14 +273,10 @@ def handle_create_user(req, fields):
         else:
             pass
 
-    # Get the arguments for usermgt.create_user from the session
-    # (The user must have already logged in to use this app)
-    msg = {'create_user': create}
-
-    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
-        decode = False)
+    common.makeuser.make_user_db(**create)
+    user = common.db.DB().get_user(create["login"])
     req.content_type = "text/plain"
-    req.write(response)
+    req.write(str(user.unixid))
 
 update_user_fields_anyone = [
     'password', 'nick', 'email'
@@ -299,29 +322,21 @@ def handle_update_user(req, fields):
             pass
     update['login'] = login
 
-    # Get the arguments for usermgt.create_user from the session
-    # (The user must have already logged in to use this app)
-    args = {
-        "login": req.user.login,
-        "update": update,
-    }
-    msg = {'update_user': args}
-
-    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
-        decode = False)
+    db = common.db.DB()
+    db.update_user(**update)
 
     # Re-read the user's details from the DB so we can update their session
     # XXX potentially-unsafe session write
     if login == req.user.login:
-        db = common.db.DB()
         user = db.get_user(login)
         session = req.get_session()
         session['user'] = user
         session.save()
-        db.close()
+
+    db.close()
 
     req.content_type = "text/plain"
-    req.write(response)
+    req.write('')
 
 def handle_get_user(req, fields):
     """

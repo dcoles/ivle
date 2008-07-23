@@ -28,59 +28,6 @@ import common.studpath
 #   - Rebuild svn auth file
 #   - Rebuild passwd + push to nodes.
 
-def create_user(props):
-    """Create the database record for the given user.
-       Expected properties:
-        login       - used as a unix login name and svn repository name.
-                      STRING REQUIRED 
-        unixid      - the unix uid under which execution will take place
-                      on the behalf of the user. Don't use 0! If not specified
-                      or None, one will be allocated from the configured
-                      numeric range.
-                      INT OPTIONAL
-        password    - the clear-text password for the user. If this property is
-                      absent or None, this is an indication that external
-                      authentication should be used (i.e. LDAP).
-                      STRING OPTIONAL
-        email       - the user's email address.
-                      STRING OPTIONAL
-        nick        - the display name to use.
-                      STRING REQUIRED
-        fullname    - The name of the user for results and/or other official
-                      purposes.
-                      STRING REQUIRED
-        rolenm      - The user's role. Must be one of "anyone", "student",
-                      "tutor", "lecturer", "admin".
-                      STRING/ENUM REQUIRED
-        studentid   - If supplied and not None, the student id of the user for
-                      results and/or other official purposes.
-                      STRING OPTIONAL
-       Return Value: the uid associated with the user. INT
-    """
-
-    common.makeuser.make_user_db(**props)
-    user = common.db.get_user(props["login"])
-    return user["unixid"]
-
-def update_user(props):
-    """Create the database record for the given user.
-       Expected properties:
-        login       - user who is making the change (not necessarily the one
-                      being updated).
-        update      - dict of fields to be updated. The fields are all those
-                      in the login table of the db.
-                      'login' required.
-                      Omitted fields will not be set.
-    """
-    update = props['update']
-    # Note: "login" is special - it is not part of the kwargs to
-    # db.update_user, but the first arg - used to find the user to update.
-    # However it doesn't need any special treatment here.
-
-    db = common.db.DB()
-    db.update_user(**update)
-    db.close()
-
 def activate_user(props):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
@@ -130,8 +77,6 @@ def activate_user(props):
         db.close()
 
 actions = {
-        'create_user':create_user,
-        'update_user':update_user,
         'activate_user':activate_user,
     }
 
