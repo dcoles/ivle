@@ -115,6 +115,10 @@
 #               repository base).
 #       logmsg: Text of the log message.
 # 
+# action=svnrepostat: Check if a path exists in a repository (not WC).
+#       path:   The path to the directory to be checked (under the IVLE
+#               repository base).
+#
 # TODO: Implement the following actions:
 #   svnupdate (done?)
 # TODO: Implement ZIP unpacking in putfiles (done?).
@@ -686,6 +690,25 @@ def action_svnrepomkdir(req, fields):
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
+def action_svnrepostat(req, fields):
+    """Discovers whether a path exists in a repo under the IVLE SVN root.
+
+    Reads fields: 'path'
+    """
+    path = fields.getfirst('path')
+    url = conf.svn_addr + "/" + path
+    svnclient.exception_style = 1 
+
+    try:
+        svnclient.callback_get_login = get_login
+        svnclient.info2(url)
+    except pysvn.ClientError, e:
+        # Error code 170000 means ENOENT in this revision.
+        if e[1][0][1] == 170000:
+            raise util.IVLEError(404, 'The specified repository path does not exist')
+        else:
+            raise ActionError(str(e[0]))
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -709,4 +732,5 @@ actions_table = {
     "svncommit" : action_svncommit,
     "svncheckout" : action_svncheckout,
     "svnrepomkdir" : action_svnrepomkdir,
+    "svnrepostat" : action_svnrepostat,
 }
