@@ -555,7 +555,7 @@ function select_file(filename)
  * assuming that clear_page has just been called or the page just
  * loaded for the first time.
  */
-function setup_for_dir_listing()
+function setup_for_dir_listing(listing, subjects)
 {
     var filesbody = document.getElementById("filesbody");
 
@@ -573,6 +573,9 @@ function setup_for_dir_listing()
     var filetablediv = document.createElement("div");
     filetable.appendChild(filetablediv);
     filetablediv.setAttribute("id", "filetablediv");
+    /* Do the home listing */
+    if (subjects != null)
+        home_listing(listing, subjects);
     /* A nested table within this div - the actual files listing */
     var filetabletable = document.createElement("table");
     filetablediv.appendChild(filetabletable);
@@ -626,15 +629,14 @@ function setup_for_dir_listing()
 
 /** Presents the directory listing.
  */
-function handle_dir_listing(path, listing)
+function handle_dir_listing(path, listing, subjects)
 {
-    setup_for_dir_listing();
     var row_toggle = 1;
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
 
     /* Is this dir under svn? */
-    var under_subversion = "svnstatus" in current_file;
+    var under_subversion = ("svnstatus" in current_file) && (current_file.svnstatus != "unversioned");
 
     var files = document.getElementById("files");
     var file;

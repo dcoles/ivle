@@ -620,13 +620,14 @@ function random_string(length)
     return str.join('');
 }
 
-/** Makes an asynchronous XMLHttpRequest call to the server.
+/** Makes an XMLHttpRequest call to the server.
  * Sends the XMLHttpRequest object containing the completed response to a
  * specified callback function.
  *
  * \param callback A callback function. Will be called when the response is
  *      complete. Passed 1 parameter, an XMLHttpRequest object containing the
- *      completed response.
+ *      completed response. If callback is null this is a syncronous request 
+ *      otherwise this is an asynchronous request.
  * \param app IVLE app to call (such as "fileservice").
  * \param path URL path to make the request to, within the application.
  * \param args Argument object, as described in parse_url and friends.
@@ -646,26 +647,30 @@ function ajax_call(callback, app, path, args, method, content_type)
      * used within this function) */
     var boundary = random_string(20);
     var xhr = new_xmlhttprequest();
-    xhr.onreadystatechange = function()
-        {
-            if (xhr.readyState == 4)
+    var asyncronous = callback != null;
+    if (asyncronous)
+    {
+        xhr.onreadystatechange = function()
             {
-                callback(xhr);
+                if (xhr.readyState == 4)
+                {
+                    callback(xhr);
+                }
             }
-        }
+    }
     if (method == "GET")
     {
         /* GET sends the args in the URL */
         url = build_url({"path": path, "args": args});
         /* open's 3rd argument = true -> asynchronous */
-        xhr.open(method, url, true);
+        xhr.open(method, url, asyncronous);
         xhr.send(null);
     }
     else
     {
         /* POST sends the args in application/x-www-form-urlencoded */
         url = encodeURI(path);
-        xhr.open(method, url, true);
+        xhr.open(method, url, asyncronous);
         var message;
         if (content_type == "multipart/form-data")
         {
@@ -680,5 +685,30 @@ function ajax_call(callback, app, path, args, method, content_type)
         }
         xhr.send(message);
     }
+    /* Only return the XHR for syncronous requests */
+    if (!asyncronous)
+    { 
+        return xhr;
+    }
 }
 
+/** Attempts to JSON decodes a response object
+ * If a non-200 response or the JSON decode fails then returns null
+ */
+function decode_response(response)
+{
+    if (response.status == 200)
+    {
+        try
+        {
+            var responseText = response.responseText;
+            return JSON.parse(responseText);
+        }
+        catch (e)
+        {
+            // Pass
+        }
+     }
+    
+     return null;
+}

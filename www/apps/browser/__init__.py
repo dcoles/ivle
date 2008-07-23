@@ -58,6 +58,7 @@ def handle(req):
         "media/browser/browser.js",
         "media/browser/listing.js",
         "media/browser/editor.js",
+        "media/browser/specialhome.js",
     ]
     req.scripts_init = [
         "browser_init",

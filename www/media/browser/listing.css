@@ -182,3 +182,15 @@ tr.row2sel {
     font-size: 0.8em;
 }
 
+/* Special Top Level Directory Icons */
+li.listing-dir {
+    list-style-image: url(../images/mime/dir.png);
+}
+
+li.listing-loading {
+    list-style-image: url(../images/interface/loading.gif);
+}
+
+span.status {
+    color: gray;
+}

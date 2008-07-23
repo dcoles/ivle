@@ -241,6 +241,15 @@ function handle_response(path, response, is_action, url_args)
         return;
     }
 
+    var subjects = null;
+    var top_level_dir = path==username;
+    if (top_level_dir)
+    {
+        var req = ajax_call(null, "userservice", "get_enrolments", null, "GET")
+        subjects = decode_response(req);
+    }
+
+
     /* This will always return a listing, whether it is a dir or a file.
      */
     var listing = response.responseText;
@@ -298,6 +307,7 @@ function handle_response(path, response, is_action, url_args)
     var isdir = response.getResponseHeader("X-IVLE-Return") == "Dir";
     if (isdir)
     {
+        setup_for_dir_listing(listing, subjects);
         handle_dir_listing(path, listing);
     }
     else
