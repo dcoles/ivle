@@ -105,6 +105,9 @@ def get_login(login, passwd, realm, existing_login, _may_save):
     # If we're being asked again, then it means the credentials failed for
     # some reason and we should just fail. (This is not desirable, but it's
     # better than being asked an infinite number of times).
+    # It is of utmost importance that the fourth field is false, or all
+    # subsequent requests (regardless of the real user) will attempt to use
+    # these credentials, and the world will end.
     if existing_login == "":
         logging.warning("Could not authenticate SVN for %s" % login)
         return (False, login, passwd, False)
@@ -134,11 +137,17 @@ def activate_user(props):
 
         # make svn config/auth
 
-        logging.debug("Creating repo")
-        common.makeuser.make_svn_repo(login, throw_on_error=False)
-        logging.debug("Creating svn config")
-        common.makeuser.make_svn_config(login, throw_on_error=False)
-        logging.debug("Creating svn auth")
+        repopath = os.path.join(conf.svn_repo_path, login)
+        logging.debug("Creating user's Subversion repository")
+        common.makeuser.make_svn_repo(repopath, throw_on_error=False)
+
+        logging.debug("Rebuilding Subversion authorization config")
+        try:
+            common.makeuser.rebuild_svn_config()
+        except:
+            logging.warning('Rebuild of Subversion authorization config failed!')
+
+        logging.debug("Adding Subversion authentication")
         passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
         logging.debug("passwd: %s" % passwd)
 

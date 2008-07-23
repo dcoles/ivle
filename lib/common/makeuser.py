@@ -59,10 +59,9 @@ def chown_to_webserver(filename):
     except:
         pass
 
-def make_svn_repo(login, throw_on_error=True):
-    """Create a repository for the given user.
+def make_svn_repo(path, throw_on_error=True):
+    """Create a Subversion repository at the given path.
     """
-    path = os.path.join(conf.svn_repo_path, login)
     try:
         res = os.system("svnadmin create '%s'" % path)
         if res != 0 and throw_on_error:
@@ -78,13 +77,13 @@ def rebuild_svn_config():
     """Build the complete SVN configuration file.
     """
     conn = db.DB()
-    res = conn.query("SELECT login, rolenm FROM login;").dictresult()
+    users = conn.get_users()
     groups = {}
-    for r in res:
-        role = r['rolenm']
+    for u in users:
+        role = str(u.role)
         if role not in groups:
             groups[role] = []
-        groups[role].append(r['login'])
+        groups[role].append(u.login)
     f = open(conf.svn_conf + ".new", "w")
     f.write("# IVLE SVN Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
@@ -93,30 +92,15 @@ def rebuild_svn_config():
     for (g,ls) in groups.iteritems():
         f.write("%s = %s\n" % (g, ",".join(ls)))
     f.write("\n")
-    for r in res:
-        login = r['login']
-        f.write("[%s:/]\n" % login)
-        f.write("%s = rw\n" % login)
+    for u in users:
+        f.write("[%s:/]\n" % u.login)
+        f.write("%s = rw\n" % u.login)
         #f.write("@tutor = r\n")
         #f.write("@lecturer = rw\n")
         #f.write("@admin = rw\n")
         f.write("\n")
     f.close()
     os.rename(conf.svn_conf + ".new", conf.svn_conf)
-    chown_to_webserver(conf.svn_conf)
-
-def make_svn_config(login, throw_on_error=True):
-    """Add an entry to the apache-svn config file for the given user.
-       Assumes the given user is either a guest or a student.
-    """
-    f = open(conf.svn_conf, "a")
-    f.write("[%s:/]\n" % login)
-    f.write("%s = rw\n" % login)
-    #f.write("@tutor = r\n")
-    #f.write("@lecturer = rw\n")
-    #f.write("@admin = rw\n")
-    f.write("\n")
-    f.close()
     chown_to_webserver(conf.svn_conf)
 
 def make_svn_auth(login, throw_on_error=True):
