@@ -19,6 +19,9 @@ CREATE TABLE login (
     settings    VARCHAR
 );
 
+-- Subjects
+-- --------
+
 CREATE TABLE subject (
     subjectid       SERIAL PRIMARY KEY NOT NULL,
     subj_code       VARCHAR UNIQUE NOT NULL,
@@ -27,37 +30,82 @@ CREATE TABLE subject (
     url             VARCHAR
 );
 
+CREATE TABLE semester (
+    semesterid  SERIAL PRIMARY KEY NOT NULL,
+    year        CHAR(4) NOT NULL,
+    semester    CHAR(1) NOT NULL,
+    active      BOOL NOT NULL,
+    UNIQUE (year, semester)
+);
+
+CREATE OR REPLACE FUNCTION deactivate_semester_enrolments_update()
+RETURNS trigger AS '
+    BEGIN
+        IF OLD.active = true AND NEW.active = false THEN
+            UPDATE enrolment SET active=false WHERE offeringid IN (
+            SELECT offeringid FROM offering WHERE offering.semesterid = NEW.semesterid);
+        END IF;
+        RETURN NULL;
+    END;
+' LANGUAGE 'plpgsql';
+
+CREATE TRIGGER deactivate_semester_enrolments
+    AFTER UPDATE ON semester
+    FOR EACH ROW EXECUTE PROCEDURE deactivate_semester_enrolments_update();
+
 CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
     subject     INT4 REFERENCES subject (subjectid) NOT NULL,
-    year        CHAR(4) NOT NULL,
-    semester    CHAR(1) NOT NULL,
-    max_groups_per_student      INT4 DEFAULT 1,
-    max_students_per_group      INT4 DEFAULT 4,
-    groups_student_permissions  VARCHAR NOT NULL
-        CHECK (groups_student_permissions in ('none', 'invite',
-                                              'create'))
-        DEFAULT 'none';
-    UNIQUE (subject, year, semester)
+    semesterid  INTEGER REFERENCES semester (semesterid) NOT NULL,
+    groups_student_permissions  VARCHAR NOT NULL DEFAULT 'none',
+    CHECK (groups_student_permissions in ('none', 'invite', 'create')),
+    UNIQUE (subject, semesterid)
+);
+
+-- Projects and groups
+-- -------------------
+
+CREATE TABLE project_set (
+    projectsetid  SERIAL PRIMARY KEY NOT NULL,
+    offeringid    INTEGER REFERENCES offering (offeringid) NOT NULL,
+    max_students_per_group  INTEGER NOT NULL DEFAULT 4
 );
 
 CREATE TABLE project (
     projectid   SERIAL PRIMARY KEY NOT NULL,
     synopsis    VARCHAR,
     url         VARCHAR,
-    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
+    projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
     deadline    TIMESTAMP
 );
 
 CREATE TABLE project_group (
     groupnm     VARCHAR NOT NULL,
     groupid     SERIAL PRIMARY KEY NOT NULL,
-    offeringid  INT4 REFERENCES offering (offeringid),
+    projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
     nick        VARCHAR,
     createdby   INT4 REFERENCES login (loginid) NOT NULL,
     epoch       TIMESTAMP NOT NULL,
-    UNIQUE (offeringid, groupnm)
+    UNIQUE (projectsetid, groupnm)
 );
+
+CREATE OR REPLACE FUNCTION check_group_namespacing_insertupdate()
+RETURNS trigger AS '
+    DECLARE
+        oid INTEGER;
+    BEGIN
+        SELECT offeringid INTO oid FROM project_set WHERE project_set.projectsetid = NEW.projectsetid;
+        PERFORM 1 FROM project_group, project_set WHERE project_group.projectsetid = project_set.projectsetid AND project_group.groupnm = NEW.groupnm;
+        IF found THEN
+            RAISE EXCEPTION ''a project group named % already exists in offering ID %'', NEW.groupnm, oid;
+        END IF;
+        RETURN NEW;
+    END;
+' LANGUAGE 'plpgsql';
+
+CREATE TRIGGER check_group_namespacing
+    BEFORE INSERT OR UPDATE ON project_group
+    FOR EACH ROW EXECUTE PROCEDURE check_group_namespacing_insertupdate();
 
 CREATE TABLE group_invitation (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
@@ -71,8 +119,6 @@ CREATE TABLE group_invitation (
 CREATE TABLE group_member (
     loginid     INT4 REFERENCES login (loginid),
     groupid     INT4 REFERENCES project_group (groupid),
-    projectid   INT4 REFERENCES project (projectid),
-    UNIQUE (loginid,projectid),
     PRIMARY KEY (loginid,groupid)
 );
 
@@ -84,8 +130,26 @@ CREATE TABLE enrolment (
     supp_result INT,
     special_supp_result VARCHAR,
     notes       VARCHAR,
+    active      BOOL NOT NULL DEFAULT true,
     PRIMARY KEY (loginid,offeringid)
 );
+
+CREATE OR REPLACE FUNCTION confirm_active_semester_insertupdate()
+RETURNS trigger AS '
+    DECLARE
+        active BOOL;
+    BEGIN
+        SELECT semester.active INTO active FROM offering, semester WHERE offeringid=NEW.offeringid AND semester.semesterid = offering.semesterid;
+        IF NOT active AND NEW.active = true THEN
+            RAISE EXCEPTION ''cannot have active enrolment for % in offering %, as the semester is inactive'', NEW.loginid, NEW.offeringid;
+        END IF;
+        RETURN NEW;
+    END;
+' LANGUAGE 'plpgsql';
+
+CREATE TRIGGER confirm_active_semester
+    BEFORE INSERT OR UPDATE ON enrolment
+    FOR EACH ROW EXECUTE PROCEDURE confirm_active_semester_insertupdate();
 
 CREATE TABLE assessed (
     assessedid  SERIAL PRIMARY KEY NOT NULL,
@@ -119,6 +183,9 @@ CREATE TABLE project_mark (
     feedback    VARCHAR,
     notes       VARCHAR
 );
+
+-- Worksheets
+-- ----------
 
 CREATE TABLE problem (
     problemid   SERIAL PRIMARY KEY NOT NULL,

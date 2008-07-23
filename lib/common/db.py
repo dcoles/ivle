@@ -832,7 +832,9 @@ INSERT INTO enrolment (loginid, offeringid)
         (SELECT loginid FROM login WHERE login=%s),
         (SELECT offeringid
             FROM (offering INNER JOIN subject
-                ON subject.subjectid = offering.subject)
+                ON subject.subjectid = offering.subject
+                INNER JOIN semester
+                ON semester.semesterid = offering.semesterid)
             WHERE subj_code=%s AND semester=%s AND year=%s)
         );""" % (_escape(login), _escape(subj_code), _escape(semester),
                  _escape(year))
@@ -854,11 +856,13 @@ INSERT INTO enrolment (loginid, offeringid)
         """
         query = """\
 SELECT offering.offeringid, subj_code, subj_name, subj_short_name,
-       year, semester
-FROM login, enrolment, offering, subject
+       semester.year, semester.semester
+FROM login, enrolment, offering, subject, semester
 WHERE enrolment.offeringid=offering.offeringid
   AND login.loginid=enrolment.loginid
   AND offering.subject=subject.subjectid
+  AND semester.semesterid=offering.semesterid
+  AND enrolment.active
   AND login=%s;""" % _escape(login)
         if dry:
             return query
@@ -878,25 +882,28 @@ WHERE enrolment.offeringid=offering.offeringid
         if offeringid is None:
             and_offering = ""
         else:
-            and_offering = "AND project_group.offeringid = %s" % \
-                            _escape(offeringid)
+            and_projectset_table = ", project_set"
+            and_offering = """
+AND project_group.projectsetid = project_set.projectsetid
+AND project_set.offeringid = %s""" % _escape(offeringid)
         # Union both the groups this user is a member of, and the groups this
         # user is invited to.
         query = """\
     SELECT project_group.groupid, groupnm, project_group.nick, True
-    FROM project_group, group_member, login
+    FROM project_group, group_member, login %(and_projectset_table)s
     WHERE project_group.groupid = group_member.groupid
       AND group_member.loginid = login.loginid
       AND login = %(login)s
       %(and_offering)s
 UNION
     SELECT project_group.groupid, groupnm, project_group.nick, False
-    FROM project_group, group_invitation, login
+    FROM project_group, group_invitation, login %(and_projectset_table)s
     WHERE project_group.groupid = group_invitation.groupid
       AND group_invitation.loginid = login.loginid
       AND login = %(login)s
       %(and_offering)s
-;""" % {"login": _escape(login), "and_offering": and_offering}
+;""" % {"login": _escape(login), "and_offering": and_offering,
+        "and_projectset_table": and_projectset_table}
         if dry:
             return query
         # Convert 't' -> True, 'f' -> False
