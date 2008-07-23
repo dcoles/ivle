@@ -216,7 +216,7 @@ create_user_fields_required = [
     'login', 'fullname', 'rolenm'
 ]
 create_user_fields_optional = [
-    'password', 'nick', 'email', 'studentid', 'unixid'
+    'password', 'nick', 'email', 'studentid'
 ]
 def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
@@ -225,11 +225,6 @@ def handle_create_user(req, fields):
        Expected fields:
         login       - used as a unix login name and svn repository name.
                       STRING REQUIRED 
-        unixid      - the unix uid under which execution will take place
-                      on the behalf of the user. Don't use 0! If not specified
-                      or None, one will be allocated from the configured
-                      numeric range.
-                      INT OPTIONAL
         password    - the clear-text password for the user. If this property is
                       absent or None, this is an indication that external
                       authentication should be used (i.e. LDAP).

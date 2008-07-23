@@ -30,7 +30,6 @@
 import sys
 import os
 import os.path
-import pwd
 import getopt
 import random
 # Import modules from the website is tricky since they're in the www
@@ -45,7 +44,6 @@ import common.makeuser, common.db
 requireds = ["login", "fullname", "rolenm"]
 optionals = [
     ('p', 'password', "Cleartext password for this user"),
-    ('u', 'unixid', "Numeric unix user id"),
     ('n', 'nick', "Display name (defaults to <fullname>)"),
     ('e', 'email', "Email address"),
     ('s', 'studentid', "Student ID")
@@ -84,14 +82,6 @@ for short, long, _ in optionals:
 login = user['login']
 if 'nick' not in user:
     user['nick'] = user['fullname']
-
-# Resolve the user's username into a UID
-if 'unixid' not in user:
-    try:
-        (_,_,uid,_,_,_,_) = pwd.getpwnam(login)
-        user['unixid'] = uid
-    except KeyError:
-        pass
 
 try:
     # Make the user's database entry
