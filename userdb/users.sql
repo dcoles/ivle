@@ -1,3 +1,5 @@
+CREATE SEQUENCE login_unixid_seq MINVALUE 1000 MAXVALUE 29999 START WITH 5000;
+
 CREATE TABLE login (
     loginid     SERIAL PRIMARY KEY NOT NULL,
     login       VARCHAR UNIQUE NOT NULL,
@@ -7,7 +9,7 @@ CREATE TABLE login (
     rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student',
                                                    'marker', 'tutor',
                                                    'lecturer', 'admin')),
-    unixid      INT UNIQUE NOT NULL, -- unix user id
+    unixid      INT UNIQUE DEFAULT nextval('login_unixid_seq') NOT NULL,
     nick        VARCHAR NOT NULL,
     pass_exp    TIMESTAMP,
     acct_exp    TIMESTAMP,
