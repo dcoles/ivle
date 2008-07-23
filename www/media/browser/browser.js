@@ -750,9 +750,6 @@ function update_actions()
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
 
-    /* current_path == username: We are at the top level */
-    set_action_state("svncheckout", current_path == username);
-
     /* There is currently nothing on the More Actions menu of use
      * when the current file is not a directory. Hence, just remove
      * it entirely.
@@ -861,9 +858,6 @@ function handle_moreactions()
         break;
     case "svnlog":
         window.location = path_join(app_path('svnlog'), current_path, selected_files[0] || '');
-        break;
-    case "svncheckout":
-        action_checkout();
         break;
     }
 }

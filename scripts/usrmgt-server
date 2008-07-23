@@ -1,14 +1,8 @@
 #!/usr/bin/python
 
 import os
-import pysvn
-import subprocess
 import sys
-import urllib
-from functools import partial
-import traceback
 import logging
-import errno
 
 import conf
 import common.db
@@ -26,7 +20,6 @@ import common.studpath
 #           - create repository
 #           - svn config
 #           - svn auth
-#       - Checkout repository as home directory
 #       - /etc/passwd entry
 #   - Disable a user's account
 #   - Enable a user's account
@@ -88,32 +81,6 @@ def update_user(props):
     db.update_user(**update)
     db.close()
 
-def get_login(login, passwd, realm, existing_login, _may_save):
-    """Callback function used by pysvn for authentication.
-    login, passwd: Credentials of the user attempting to log in.
-        passwd in clear (this should be the user's svn_pass, a
-        randomly-generated permanent password for this user, not their main
-        IVLE password).
-    realm, existing_login, _may_save: The 3 arguments passed by pysvn to
-        callback_get_login.
-        The following has been determined empirically, not from docs:
-        existing_login will be the name of the user who owns the process on
-        the first attempt, "" on subsequent attempts. We use this fact.
-    """
-    logging.debug("Getting password for %s (realm %s)" % (login, realm))
-    # Only provide credentials on the _first_ attempt.
-    # If we're being asked again, then it means the credentials failed for
-    # some reason and we should just fail. (This is not desirable, but it's
-    # better than being asked an infinite number of times).
-    # It is of utmost importance that the fourth field is false, or all
-    # subsequent requests (regardless of the real user) will attempt to use
-    # these credentials, and the world will end.
-    if existing_login == "":
-        logging.warning("Could not authenticate SVN for %s" % login)
-        return (False, login, passwd, False)
-    else:
-        return (True, login, passwd, False)
-
 def activate_user(props):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
@@ -151,44 +118,8 @@ def activate_user(props):
         passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
         logging.debug("passwd: %s" % passwd)
 
-        svn = pysvn.Client()
-        svn.callback_get_login = partial(get_login, login, passwd)
-
-        if conf.svn_addr[-1] != '/':
-            conf.svn_addr = conf.svn_addr + "/"
-    
-        # FIXME: This should be a loop over enrolements.
-        #        We're not going to fix this now because it requires
-        #        a large amount of admin console work to manage subject
-        #        offerings.
-        #        Instead, we're just going to use a single offering with
-        #        a "short" name of "info1".
-        logging.debug("Creating /info1")
-        try:
-            svn.mkdir(conf.svn_addr + login + "/info1",
-                      "Initial creation of work directory for Informatics 1")
-        except Exception, exc:
-            logging.warning("While mkdiring info1: %s" % str(exc))
-            pass
-        logging.debug("Creating /stuff")
-        try:
-            svn.mkdir(conf.svn_addr + login + "/stuff",
-                      "Initial creation of directory for miscellania")
-        except Exception, exc:
-            logging.warning("While mkdiring stuff: %s" % str(exc))
-            pass
-
         logging.debug("Creating jail")
         common.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
-
-        common.makeuser.mount_jail(login)
-
-        do_checkout(props, svn_pass=passwd)
-
-        # FIXME: should this be nicer?
-        os.system("chown -R %d:%d %s" \
-                % (details.unixid, details.unixid,
-                   common.studpath.url_to_local(login)[1]))
 
         logging.info("Enabling user")
         db.update_user(login, state='enabled')
@@ -198,62 +129,10 @@ def activate_user(props):
     finally:
         db.close()
 
-def do_checkout(props, svn_pass=None):
-    """Create the default contents of a user's jail by checking out from the
-    repositories.
-    If any directory already exists, just fail silently (so this is not a
-    "wipe-and-checkout", merely a checkout if it failed or something).
-       Expected properties:
-        login       - the user name for the jail
-                      STRING REQUIRED
-       Return Value: None
-    """
-    login = props['login']
-
-    db = common.db.DB()
-    user = db.get_user(login)
-    # If svn_pass isn't supplied, grab it from the DB
-    if svn_pass is None:
-        svn_pass = user.svn_pass
-    db.close()
-
-    svn = pysvn.Client()
-    svn.callback_get_login = partial(get_login, login, svn_pass)
-
-    if conf.svn_addr[-1] != os.sep:
-        conf.svn_addr += os.sep
-
-    # FIXME: <hack>
-
-    logging.debug("Checking out directories in the jail")
-    try:
-        svn.checkout(conf.svn_addr + login + "/stuff",
-                     common.studpath.url_to_local(login + "/stuff")[1])
-        os.system("chown -R %d:%d %s" \
-                % (user.unixid, user.unixid,
-                   common.studpath.url_to_local(login + "/stuff")[1]))
-    except Exception, exc:
-        logging.warning("While mkdiring stuff: %s" % str(exc))
-        pass
-    try:
-        svn.checkout(conf.svn_addr + login + "/info1",
-                     common.studpath.url_to_local(login + "/info1")[1])
-        os.system("chown -R %d:%d %s" \
-                % (user.unixid, user.unixid,
-                   common.studpath.url_to_local(login + "/info1")[1]))
-    except Exception, exc:
-        logging.warning("While mkdiring info1: %s" % str(exc))
-        pass
-
-    # FIXME: </hack>
-
-    return {"response": "okay"}
-
 actions = {
         'create_user':create_user,
         'update_user':update_user,
         'activate_user':activate_user,
-        'do_checkout':do_checkout,
     }
 
 def initializer():

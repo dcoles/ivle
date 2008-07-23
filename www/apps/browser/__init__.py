@@ -181,7 +181,6 @@ def present_actions1(req):
         ('svncommit',   ['Commit',       'Commit any changes to the permanent repository']),
         ('svnresolved', ['Mark Resolved','Mark a conflicted file as being resolved']),
         ('svnlog',      ['View Log',     'View the log of commits of the selected file']),
-        ('svncheckout', ['Re-checkout',  'Re-checkout your default directories'])
       ])
     ]
 

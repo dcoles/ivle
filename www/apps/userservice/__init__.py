@@ -211,42 +211,6 @@ def handle_activate_me(req, fields):
     finally:
         db.close()
 
-def handle_do_checkout(req, fields):
-    """Check out the user's repositories into their home directory, failing
-    silently for any that already exist.
-    This can be done in a limited form by any user, on their own account,
-    or with full powers by a user with CAP_UPDATEUSER on any account.
-    """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-        "Only POST requests are valid methods to do_checkout.")
-
-    # Only give full powers if this user has CAP_UPDATEUSER
-    fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
-    # List of fields that may be changed
-    fieldlist = (update_user_fields_admin if fullpowers
-        else update_user_fields_anyone)
-
-    try:
-        login = fields.getfirst('login')
-        if login is None:
-            raise AttributeError()
-        if not fullpowers and login != req.user.login:
-            # Not allowed to edit other users
-            req.throw_error(req.HTTP_FORBIDDEN,
-            "You do not have permission to check out another user's "
-            "repository.")
-    except AttributeError:
-        # If login not specified, update yourself
-        login = req.user.login
-
-    msg = {'do_checkout': {"login": login}}
-
-    response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic,
-        decode = False)
-    req.content_type = "text/plain"
-    req.write(response)
-
 create_user_fields_required = [
     'login', 'fullname', 'rolenm'
 ]
@@ -445,7 +409,6 @@ def handle_get_enrolments(req, fields):
 # to actual function objects
 actions_map = {
     "activate_me": handle_activate_me,
-    "do_checkout": handle_do_checkout,
     "create_user": handle_create_user,
     "update_user": handle_update_user,
     "get_user": handle_get_user,
