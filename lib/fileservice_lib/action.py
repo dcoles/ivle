@@ -110,6 +110,11 @@
 #       path:   The [repository] path to the file or directory to be
 #               checked out.
 # 
+# action=svnrepomkdir: Create a directory in a repository (not WC).
+#       path:   The path to the directory to be created (under the IVLE
+#               repository base).
+#       logmsg: Text of the log message.
+# 
 # TODO: Implement the following actions:
 #   svnupdate (done?)
 # TODO: Implement ZIP unpacking in putfiles (done?).
@@ -667,6 +672,20 @@ def action_svncheckout(req, fields):
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
+def action_svnrepomkdir(req, fields):
+    """Performs a "svn mkdir" on a path under the IVLE SVN root.
+
+    Reads fields: 'path'
+    """
+    path = fields.getfirst('path')
+    logmsg = fields.getfirst('logmsg')
+    url = conf.svn_addr + "/" + path
+    try:
+        svnclient.callback_get_login = get_login
+        svnclient.mkdir(url, log_message=logmsg)
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
+
 # Table of all action functions #
 # Each function has the interface f(req, fields).
 
@@ -689,4 +708,5 @@ actions_table = {
     "svnunpublish" : action_svnunpublish,
     "svncommit" : action_svncommit,
     "svncheckout" : action_svncheckout,
+    "svnrepomkdir" : action_svnrepomkdir,
 }
