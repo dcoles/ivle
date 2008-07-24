@@ -129,8 +129,9 @@ function make_subject_item(path, name, description)
             else
             {
                 // Blocked: Offer to rename the directory
-                li.appendChild(dom_make_text_elem("span", name));
-                span = dom_make_text_elem("span", "blocked");
+                li.appendChild(dom_make_text_elem("span", name, description));
+                span = dom_make_text_elem("span", " (blocked) ",
+                      "Another file or directory is in the way of this directory.");
                 span.setAttribute("class", "status");
                 li.appendChild(span);
 
