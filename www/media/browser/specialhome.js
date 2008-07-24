@@ -26,7 +26,7 @@
  */
 
 /* The name of the personal file directory */
-PERSONALDIR="personal"
+PERSONALDIR="mywork"
 
 /* LAYOUT FUNCTIONS */
 
@@ -57,7 +57,7 @@ function home_listing(listing, subjects)
         /* Print the file listing */
         ul = document.createElement("ul");
         // Stuff
-        ul.appendChild(make_subject_item(path, "personal", "Your personal files here"));
+        ul.appendChild(make_subject_item(path, PERSONALDIR, "Your personal files here"));
         // Groups
         /* TODO: List groups */
             
@@ -132,8 +132,6 @@ function make_subject_item(path, name, description)
                 button.addEventListener("click", function(event)
                 {
                     action_rename(path_join(path, name));
-
-                    // FIXME: Also do checkout here?
                 },
                 false);
                 button.setAttribute("type", "button");
@@ -152,14 +150,7 @@ function make_subject_item(path, name, description)
             var button = document.createElement("input");
             button.addEventListener("click", function(event)
             {   
-                // Get repository stat
-                response = ajax_call(null, service_app, current_path,
-                    {
-                        "action": "svnrepostat",
-                        "path": path_join(username, path, name)
-                    }, "POST");
-
-                if (response.status == 200)
+                if (create_if_needed(path_join(username, name)))
                 {
                     // Try a checkout
                     do_action("svncheckout", current_path, {"path":
@@ -167,19 +158,6 @@ function make_subject_item(path, name, description)
                             path_join(username, path, name), // url
                             path_join(path, name) // localpath
                         ]});
-                }
-                else if (response.status == 404)
-                {
-                    // Try a mkdir
-                    do_action("svnrepomkdir", current_path,
-                        {
-                            "path": path_join(username, path, name),
-                            "logmsg": "Automated creation of '" + name + "' work directory"
-                        });
-                }
-                else
-                {
-                    alert("Error: Could not Create repository");
                 }
             },
             false);
@@ -194,3 +172,34 @@ function make_subject_item(path, name, description)
     return li;
 }
 
+function create_if_needed(path)
+{
+    response = ajax_call(null, service_app, current_path,
+            {
+                "action": "svnrepostat",
+                "path": path
+            }, "POST");
+
+
+    if (response.status == 200)
+    {
+        return;
+    }
+    else if (response.status == 404)
+    {
+        // Try a mkdir
+        r2 = ajax_call(null, service_app, current_path,
+                {
+                    "action": "svnrepomkdir",
+                    "path": path,
+                    "logmsg": "Automated creation of '" + name + "' work directory"
+                }, "POST");
+
+        if (r2.status == 200)
+        {
+            return true;
+        }
+    }
+    alert("Error: Could not create Subversion directory");
+    return false;
+}
