@@ -61,7 +61,8 @@ function home_listing(listing, subjects)
         /* Print the file listing */
         ul = document.createElement("ul");
         // Stuff
-        ul.appendChild(make_subject_item(path, PERSONALDIR, "Your personal files here"));
+        ul.appendChild(make_subject_item(path, PERSONALDIR,
+              "Your own files in this subject"));
         // Groups
         /* TODO: List groups */
             
@@ -80,7 +81,8 @@ function home_listing(listing, subjects)
     filetablediv.appendChild(h1);
     /* Create the contents */
     ul = document.createElement("ul");
-    ul.appendChild(make_subject_item("", "stuff", "stuff"));
+    ul.appendChild(make_subject_item("", "stuff",
+          "Your own files not related to a subject"));
     filetablediv.appendChild(ul);
     /* Remove stuff from the listing */
     if ("stuff" in listing)
