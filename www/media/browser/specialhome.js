@@ -149,15 +149,17 @@ function make_subject_item(path, name, description)
 
             var button = document.createElement("input");
             button.addEventListener("click", function(event)
-            {   
-                if (create_if_needed(path_join(username, name)))
+            {
+                var localpath = path_join(path, name);
+
+                // The repository doesn't know about PERSONALDIR.
+                if (name == PERSONALDIR) name = '';
+                var repopath = path_join(username, path, name);
+                if (create_if_needed(repopath))
                 {
                     // Try a checkout
                     do_action("svncheckout", current_path, {"path":
-                        [
-                            path_join(username, path, name), // url
-                            path_join(path, name) // localpath
-                        ]});
+                        [repopath, localpath]});
                 }
             },
             false);
@@ -183,7 +185,7 @@ function create_if_needed(path)
 
     if (response.status == 200)
     {
-        return;
+        return true;
     }
     else if (response.status == 404)
     {
@@ -192,7 +194,7 @@ function create_if_needed(path)
                 {
                     "action": "svnrepomkdir",
                     "path": path,
-                    "logmsg": "Automated creation of '" + name + "' work directory"
+                    "logmsg": "Automated creation of '" + path + "' work directory"
                 }, "POST");
 
         if (r2.status == 200)
