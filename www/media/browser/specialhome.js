@@ -150,16 +150,22 @@ function make_subject_item(path, name, description)
             var button = document.createElement("input");
             button.addEventListener("click", function(event)
             {
-                var localpath = path_join(path, name);
+                li.setAttribute("class", "listing-loading");
 
+                var localpath = path_join(path, name);
                 // The repository doesn't know about PERSONALDIR.
                 if (name == PERSONALDIR) name = '';
                 var repopath = path_join(username, path, name);
+
                 if (create_if_needed(repopath))
                 {
                     // Try a checkout
                     do_action("svncheckout", current_path, {"path":
                         [repopath, localpath]});
+                }
+                else
+                {
+                    li.setAttribute("class", "listing-dir");
                 }
             },
             false);
