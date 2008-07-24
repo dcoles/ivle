@@ -43,8 +43,12 @@ function home_listing(listing, subjects)
 
     /* SUBJECTS Section
     /* Create the header row */
-    h1 = dom_make_text_elem("h1", "Subjects");
-    filetablediv.appendChild(h1);
+    if (subjects.length > 0)
+    {
+        h1 = dom_make_text_elem("h1", "Subjects");
+        filetablediv.appendChild(h1);
+    }
+
     /* Create the contents */
     for (var i=0; i<subjects.length; i++)
     {
