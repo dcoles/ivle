@@ -103,7 +103,7 @@ function make_subject_item(path, name, description)
     var li = document.createElement("li");
     var span;
     li.setAttribute("class", "listing-loading");
-    li.appendChild(dom_make_text_elem("span", name));
+    li.appendChild(dom_make_text_elem("span", name, description));
     span = dom_make_text_elem("loading...");
     span.setAttribute("class","status");
     li.appendChild(span);
@@ -148,8 +148,9 @@ function make_subject_item(path, name, description)
         else
         {
             // Missing: Try to check out or create the repository
-            li.appendChild(dom_make_text_elem("span", name));
-            span = dom_make_text_elem("span", "missing");
+            li.appendChild(dom_make_text_elem("span", name, description));
+            span = dom_make_text_elem("span", " (missing) ",
+                  "This directory does not yet exist.");
             span.setAttribute("class", "status");
             li.appendChild(span);
 
