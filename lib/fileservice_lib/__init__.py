@@ -108,6 +108,9 @@ def handle(req):
     # Set request attributes
     req.write_html_head_foot = False     # No HTML
 
+    # We really, really don't want the responses to be cached.
+    req.headers_out['Cache-Control'] = 'no-store, must-revalidate'
+
     # Get all the arguments, if POST.
     # Ignore arguments if not POST, since we aren't allowed to cause
     # side-effects on the server.
