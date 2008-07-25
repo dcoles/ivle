@@ -163,7 +163,7 @@ function make_subject_item(path, name, description)
                 var localpath = path_join(path, name);
                 // The repository doesn't know about PERSONALDIR.
                 if (name == PERSONALDIR) name = '';
-                var repopath = path_join(username, path, name);
+                var repopath = path_join('users', username, path, name);
 
                 if (create_if_needed(repopath))
                 {

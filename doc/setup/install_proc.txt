@@ -70,7 +70,7 @@ sudo chown -R www-data:www-data /opt/ivle/svn
 # Make the "repositories", "sessions" and "logs" directories in the home.
 # Make sure they are owned by www-data.
 cd /home/informatics
-sudo mkdir repositories sessions logs
+sudo mkdir -p repositories/users sessions logs
 sudo chown -R www-data:www-data repositories sessions logs
 
 cd /home/informatics/ivle_svn

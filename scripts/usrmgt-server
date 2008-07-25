@@ -51,7 +51,7 @@ def activate_user(props):
 
         # make svn config/auth
 
-        repopath = os.path.join(conf.svn_repo_path, login)
+        repopath = os.path.join(conf.svn_repo_path, 'users', login)
         logging.debug("Creating user's Subversion repository")
         common.makeuser.make_svn_repo(repopath, throw_on_error=False)
 
