@@ -37,7 +37,7 @@ app_icon_dir_small = "media/images/apps/small"
 # of the site). This is the app's URL name.
 # Note that if this app requires authentication, the user will first be
 # presented with the login screen.
-default_app = "home"
+default_app = "files"
 # Which application to use for "public host" URLs.
 # (See conf.py)
 public_app = "serve"
@@ -192,8 +192,8 @@ if enable_debuginfo:
 # (The others are hidden unless they are linked to)
 # Note: The values in this list are the URL names as seen in app_url.
 
-apps_in_tabs = ["home", "subjects", "files", "tutorial", "console",
-                "forum", "help"]
+apps_in_tabs = ["files", "tutorial", "console",
+                "forum", "subjects", "help"]
 
 # List of apps that go in the list on the home page
 apps_on_home_page = ["subjects", "files", "tutorial", "console", "forum"]
