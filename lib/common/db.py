@@ -831,11 +831,10 @@ INSERT INTO enrolment (loginid, offeringid)
     VALUES (
         (SELECT loginid FROM login WHERE login=%s),
         (SELECT offeringid
-            FROM (offering INNER JOIN subject
-                ON subject.subjectid = offering.subject
-                INNER JOIN semester
-                ON semester.semesterid = offering.semesterid)
-            WHERE subj_code=%s AND semester=%s AND year=%s)
+            FROM offering, subject, semester
+                WHERE subject.subjectid = offering.subject
+                AND semester.semesterid = offering.semesterid
+                AND subj_code=%s AND semester=%s AND year=%s)
         );""" % (_escape(login), _escape(subj_code), _escape(semester),
                  _escape(year))
         if dry:
