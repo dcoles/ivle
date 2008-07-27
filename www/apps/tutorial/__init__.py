@@ -149,15 +149,38 @@ def handle_toplevel_menu(req):
     req.write("""<p>Welcome to the IVLE tutorial system.
   Please select a subject from the list below to select a worksheet
   for that subject.</p>\n""")
+
     # Get list of subjects
-    # TODO: Fetch from DB. For now, just get directory listing
-    subjects = os.listdir(conf.subjects_base)
-    subjects.sort()
-    req.write("<h2>Subjects</h2>\n<ul>\n")
-    for subject in subjects:
+    db = common.db.DB()
+    try:
+        enrolled_subjects = db.get_enrolment(req.user.login)
+        all_subjects = db.get_subjects()
+    finally:
+        db.close()
+
+    enrolled_set = set(x['subj_code'] for x in enrolled_subjects)
+    unenrolled_subjects = [x for x in all_subjects
+                           if x['subj_code'] not in enrolled_set]
+    enrolled_subjects.sort(key=lambda x: x['subj_code'])
+    unenrolled_subjects.sort(key=lambda x: x['subj_code'])
+
+    def print_subject(subject):
         req.write('  <li><a href="%s">%s</a></li>\n'
-            % (urllib.quote(subject) + '/', cgi.escape(subject)))
+            % (urllib.quote(subject['subj_code']) + '/',
+               cgi.escape(subject['subj_name'])))
+
+    req.write("<h2>Subjects</h2>\n<ul>\n")
+    for subject in enrolled_subjects:
+        print_subject(subject)
     req.write("</ul>\n")
+    if len(unenrolled_subjects) > 0:
+        req.write("<h3>Other Subjects</h3>\n")
+        req.write("<p>You are not currently enrolled in these subjects.\n"
+                  "   Your marks will not be counted.</p>\n")
+        req.write("<ul>\n")
+        for subject in unenrolled_subjects:
+            print_subject(subject)
+        req.write("</ul>\n")
     req.write("</div>\n")   # tutorialbody
 
 def is_valid_subjname(subject):
