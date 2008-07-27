@@ -40,9 +40,12 @@ req.install_error_handler()
 url = urlparse.urlparse(req.path)
 querystr = url[4]
 urlpath = url[2]
-filename = studpath.url_to_jailpaths(urlpath)[2]
+username, _, filename = studpath.url_to_jailpaths(urlpath)
 
 python = "/usr/bin/python"
+
+# Everything should be done from the home directory
+os.chdir(os.path.join('/home', username))
 
 if filename is None:
     req.throw_error(req.HTTP_NOT_FOUND, "The path specified is invalid.")
