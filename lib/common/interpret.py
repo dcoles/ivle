@@ -281,12 +281,14 @@ def process_cgi_header_line(req, line, cgiflags):
     try:
         name, value = line.split(':', 1)
     except ValueError:
-        # If we are being gentle, we want to help the user understand what
-        # went wrong. Otherwise, we bail out.
-        if not cgiflags.gentle:
-            raise
         # No colon. The user did not write valid headers.
-        if len(cgiflags.headers) == 0:
+        # If we are being gentle, we want to help the user understand what
+        # went wrong. Otherwise, just admit we screwed up.
+        warning = "Warning"
+        if not cgiflags.gentle:
+            message = """An unexpected server error has occured."""
+            warning = "Error"
+        elif len(cgiflags.headers) == 0:
             # First line was not a header line. We can assume this is not
             # a CGI app.
             message = """You did not print a CGI header.
@@ -297,7 +299,7 @@ CGI requires that you print a "Content-Type". You may wish to try:</p>
             # header.
             message = """You printed an invalid CGI header. You need to leave
 a blank line after the headers, before writing the page contents."""
-        write_html_warning(req, message)
+        write_html_warning(req, message, warning=warning)
         cgiflags.wrote_html_warning = True
         # Handle the rest of this line as normal data
         process_cgi_output(req, line + '\n', cgiflags)
@@ -332,7 +334,7 @@ print a number followed by a message, such as "302 Found"."""
         req.headers_out[name] = value
     cgiflags.headers[name] = value
 
-def write_html_warning(req, text):
+def write_html_warning(req, text, warning="Warning"):
     """Prints an HTML warning about invalid CGI interaction on the part of the
     user. text may contain HTML markup."""
     req.content_type = "text/html"
@@ -346,11 +348,11 @@ def write_html_warning(req, text):
 <body style="margin: 0; padding: 0; font-family: sans-serif;">
   <div style="background-color: #faa; border-bottom: 1px solid black;
     padding: 8px;">
-    <p><strong>Warning</strong>: %s
+    <p><strong>%s</strong>: %s
   </div>
   <div style="margin: 8px;">
     <pre>
-""" % text)
+""" % (warning, text))
 
 location_cgi_python = os.path.join(conf.ivle_install_dir,
     "bin/trampoline")
