@@ -36,17 +36,23 @@ function home_listing(listing, subjects)
 {
     listing = listing.listing;
     var filetablediv = document.getElementById("filetablediv");
-    var h1;
+    var specialhomediv;
     var h2;
+    var h3;
     var ul;
     var li;
+
+    /* Wrap all this "special" stuff in a div, for styling purposes */
+    specialhomediv = document.createElement("div");
+    specialhomediv.setAttribute("id", "specialhome");
+    filetablediv.appendChild(specialhomediv);
 
     /* SUBJECTS Section
     /* Create the header row */
     if (subjects.length > 0)
     {
-        h1 = dom_make_text_elem("h1", "Subjects");
-        filetablediv.appendChild(h1);
+        h2 = dom_make_text_elem("h2", "Subjects");
+        specialhomediv.appendChild(h2);
     }
 
     /* Create the contents */
@@ -55,8 +61,8 @@ function home_listing(listing, subjects)
         var subject = subjects[i];
         var path = subject.subj_short_name;
         // Header
-        h2 = dom_make_text_elem("h2", subject.subj_name);
-        filetablediv.appendChild(h2);
+        h3 = dom_make_text_elem("h3", subject.subj_name);
+        specialhomediv.appendChild(h3);
         
         /* Print the file listing */
         ul = document.createElement("ul");
@@ -66,7 +72,7 @@ function home_listing(listing, subjects)
         // Groups
         /* TODO: List groups */
             
-        filetablediv.appendChild(ul);
+        specialhomediv.appendChild(ul);
 
         /* Remove it from listing */
         if (subject.subj_short_name in listing)
@@ -77,21 +83,21 @@ function home_listing(listing, subjects)
 
     /* STUFF Section -- For the stuff directory */
     /* Create the header */
-    h1 = dom_make_text_elem("h1", "Stuff");
-    filetablediv.appendChild(h1);
+    h2 = dom_make_text_elem("h2", "Stuff");
+    specialhomediv.appendChild(h2);
     /* Create the contents */
     ul = document.createElement("ul");
     ul.appendChild(make_subject_item("", "stuff",
           "Your own files not related to a subject"));
-    filetablediv.appendChild(ul);
+    specialhomediv.appendChild(ul);
     /* Remove stuff from the listing */
     if ("stuff" in listing)
         delete listing["stuff"];
 
     /* JUNK Section -- All the rest */
     /* Create the header row */
-    h1 = dom_make_text_elem("h1", "Junk");
-    filetablediv.appendChild(h1);
+    h2 = dom_make_text_elem("h2", "Junk");
+    specialhomediv.appendChild(h2);
 }
 
 /* Does an series of AJAX requests to find out the properties of this folder 

@@ -182,7 +182,28 @@ tr.row2sel {
     font-size: 0.8em;
 }
 
-/* Special Top Level Directory Icons */
+/* SPECIAL TOP-LEVEL DIRECTORY */
+
+#specialhome {
+    background-color: #ddd;
+}
+#specialhome h2 {
+    background-color: #aaa;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    color: black;
+    padding: 0.3em;
+    margin: 0;
+}
+#specialhome h3 {
+    padding: 0.3em 0.5em;
+    margin: 0;
+}
+#specialhome ul {
+    margin: 0.5em 0 1.0em 0;
+}
+
+/* Top Level Directory Icons */
 li.listing-dir {
     list-style-image: url(../images/mime/dir.png);
 }
