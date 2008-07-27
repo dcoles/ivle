@@ -27,6 +27,7 @@ import urllib
 import cgi
 
 from common import util
+import common.db
 
 def handle(req):
     """Handler for the Subjects application. Links to subject home pages."""
@@ -44,24 +45,43 @@ def handle_toplevel_menu(req):
         req.throw_redirect(req.uri + '/')
 
     # Get list of subjects
-    # TODO: Fetch from DB. For now, just get directory listing
+    db = common.db.DB()
     try:
-        subjects = os.listdir(util.make_local_path(os.path.join('media',
-            'subjects')))
-    except OSError:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "There are is no subject homepages directory.")
-    subjects.sort()
+        enrolled_subjects = db.get_enrolment(req.user.login)
+        all_subjects = db.get_subjects()
+    finally:
+        db.close()
+
+    enrolled_set = set(x['subj_code'] for x in enrolled_subjects)
+    unenrolled_subjects = [x for x in all_subjects
+                           if x['subj_code'] not in enrolled_set]
+    enrolled_subjects.sort(key=lambda x: x['subj_code'])
+    unenrolled_subjects.sort(key=lambda x: x['subj_code'])
+
+    def print_subject(subject):
+        if subject['url'] is None:
+            req.write('  <li>%s (no home page)</li>\n'
+                % cgi.escape(subject['subj_name']))
+        else:
+            req.write('  <li><a href="%s">%s</a></li>\n'
+                % (cgi.escape(subject['url']),
+                   cgi.escape(subject['subj_name'])))
 
     req.content_type = "text/html"
     req.write_html_head_foot = True
     req.write('<div id="ivle_padding">\n')
     req.write("<h2>IVLE Subject Homepages</h2>\n")
     req.write("<h2>Subjects</h2>\n<ul>\n")
-    for subject in subjects:
-        req.write('  <li><a href="%s">%s</a></li>\n'
-            % (urllib.quote(subject) + '/', cgi.escape(subject)))
+    for subject in enrolled_subjects:
+        print_subject(subject)
     req.write("</ul>\n")
+    if len(unenrolled_subjects) > 0:
+        req.write("<h3>Other Subjects</h3>\n")
+        req.write("<p>You are not currently enrolled in these subjects</p>\n")
+        req.write("<ul>\n")
+        for subject in unenrolled_subjects:
+            print_subject(subject)
+        req.write("</ul>\n")
     req.write("</div>\n")
 
 def handle_subject_page(req, path):

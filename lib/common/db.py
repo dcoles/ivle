@@ -848,15 +848,24 @@ INSERT INTO enrolment (loginid, offeringid)
 
     # SUBJECTS AND ENROLEMENT
 
+    def get_subjects(self, dry=False):
+        """
+        Get all subjects in IVLE.
+        Returns a list of dicts (all values strings), with the keys:
+        subj_code, subj_name, subj_short_name, url
+        """
+        return self.get_all("subject",
+            ("subj_code", "subj_name", "subj_short_name", "url"), dry)
+
     def get_enrolment(self, login, dry=False):
         """
         Get all subjects (in IVLE) the student is enrolled in.
-        Returns a list of tuples (all elements strings):
-        (offeringid, subj_code, subj_name, subj_short_name, year, semester).
+        Returns a list of dicts (all values strings), with the keys:
+        offeringid, subj_code, subj_name, subj_short_name, year, semester, url
         """
         query = """\
 SELECT offering.offeringid, subj_code, subj_name, subj_short_name,
-       semester.year, semester.semester
+       semester.year, semester.semester, subject.url
 FROM login, enrolment, offering, subject, semester
 WHERE enrolment.offeringid=offering.offeringid
   AND login.loginid=enrolment.loginid
