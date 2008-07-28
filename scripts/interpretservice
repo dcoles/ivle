@@ -26,12 +26,15 @@
 import mimetypes
 import os
 import sys
-import conf
 import StringIO
 import urlparse
 import subprocess
 
 from common import (cgirequest, studpath)
+import conf
+import conf.mimetypes, conf.app, conf.app.server
+
+serveservice_path = "/opt/ivle/scripts/serveservice"
 
 req = cgirequest.CGIRequest()
 req.install_error_handler()
@@ -47,23 +50,36 @@ python = "/usr/bin/python"
 # Everything should be done from the home directory
 os.chdir(os.path.join('/home', username))
 
+(type, _) = mimetypes.guess_type(filename)
+if type is None:
+    type = conf.mimetypes.default_mimetype
+
 if filename is None:
     req.throw_error(req.HTTP_NOT_FOUND, "The path specified is invalid.")
 elif not os.access(filename, os.R_OK):
     req.throw_error(req.HTTP_NOT_FOUND,
         "The specified file (%s) does not exist." % urlpath)
+elif os.path.isdir(filename):
+    # 403 Forbidden error for visiting a directory
+    # (Not giving a directory listing, since this can be seen by
+    # the world at large. Directory contents are private).
+    req.throw_error(req.HTTP_FORBIDDEN,
+        "The path specified is a directory.")
+elif type in conf.app.server.interpreters:
+    # We'll save on a fork and execute in this python process
+    # Let exceptions blow up normally again
+    sys.excepthook = sys.__excepthook__
+    execfile(filename, {})
+    # Non-Python process should probably use something like
+    # subprocess.call([python, filename])
 else:
-    if os.path.isdir(filename):
-        # 403 Forbidden error for visiting a directory
-        # (Not giving a directory listing, since this can be seen by
-        # the world at large. Directory contents are private).
+    # Otherwise, use the blacklist/whitelist to see if this file should be
+    # served or disallowed
+    if (conf.app.server.blacklist_served_filetypes and \
+            type in conf.app.server.served_filetypes_blacklist) or \
+        (conf.app.server.served_filetypes_whitelist and \
+            type not in conf.app.server.served_filetypes_whitelist):
         req.throw_error(req.HTTP_FORBIDDEN,
-            "The path specified is a directory.")
-    else:
-        # We'll save on a fork and execute in this python process
-        # Let exceptions blow up normally again
-        sys.excepthook = sys.__excepthook__
-        execfile(filename, {})
-        
-        # Non-Python process should probably use something like
-        # subprocess.call([python, filename])
+            "Files of this type are not allowed to be served.")
+
+    execfile(serveservice_path)
