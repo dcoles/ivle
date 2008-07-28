@@ -8,12 +8,18 @@ Firstly, in the IVLE checkout, bring your codebase up to date:
 
   svn update
 
+Review the IVLE code changes. The current installed IVLE version can
+be found in /opt/ivle/version/ivle-revision.txt. 
+eg. run 'svn log -v --limit 20' to get the last 20 checking messages.
+Look to see whether there have been any changes to the jails or
+database tables.
+
 Then configure and build IVLE. New configuration options may sometimes
 be added, so the configuration questions should be watched closely.
 
   ./setup.py listmake
   ./setup.py config
-  ./setup.py build
+  sudo ./setup.py build
 
 Note that this will not perform a full rebuild of the template jail -
 only the IVLE files inside the jail will be updated. To force a full
@@ -31,7 +37,7 @@ running the same one twice. This command must be run once for each.
 
 Now we can install the new version:
 
-  ./setup.py install
+  sudo ./setup.py install
 
 ... and remake the user jails, as this will occasionally be needed:
 
