@@ -86,6 +86,7 @@ def serve_file(req, owner, filename, download=False):
     interp_object = interpret.interpreter_objects["cgi-python"]
     user_jail_dir = os.path.join(conf.jail_base, owner)
     if download:
+        req.headers_out["Content-Disposition"] = "attachment"
         interpret.interpret_file(req, owner, user_jail_dir,
             serveservice_path, interp_object, gentle=False)
     else:
