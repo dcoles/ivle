@@ -44,11 +44,14 @@ url = urlparse.urlparse(req.path)
 querystr = url[4]
 urlpath = url[2]
 username, _, filename = studpath.url_to_jailpaths(urlpath)
+path = os.path.split(filename)[0]
 
 python = "/usr/bin/python"
 
-# Everything should be done from the home directory
-os.chdir(os.path.join('/home', username))
+# Everything should be done from the same directory as the script
+os.chdir(path)
+# Search the path for modules first
+sys.path[0] = path
 
 (type, _) = mimetypes.guess_type(filename)
 if type is None:
