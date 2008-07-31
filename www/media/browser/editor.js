@@ -119,7 +119,7 @@ function handle_text(path, text, handler_type)
     language = language ? language : "text";
     document.getElementById("highlighting_select").value = language;
 
-    txt_elem.className = "codepress " + language;
+    txt_elem.className = "codepress autocomplete-off " + language;
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "35");
