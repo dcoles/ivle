@@ -79,12 +79,18 @@ def serve_file(req, owner, filename, download=False):
     filename: Filename in the local file system.
     download:  Should the file be viewed in browser or downloaded
     """
+
+    # We need a no-op trampoline run to ensure that the jail is mounted.
+    # Otherwise we won't be able to authorise for public mode!
+    noop_object = interpret.interpreter_objects["noop"]
+    user_jail_dir = os.path.join(conf.jail_base, owner)
+    interpret.interpret_file(req, owner, user_jail_dir, '', noop_object)
+
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
     authorize(req)
     
     # Jump into the jail
     interp_object = interpret.interpreter_objects["cgi-python"]
-    user_jail_dir = os.path.join(conf.jail_base, owner)
     if download:
         req.headers_out["Content-Disposition"] = "attachment"
         interpret.interpret_file(req, owner, user_jail_dir,
