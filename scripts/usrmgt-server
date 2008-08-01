@@ -95,15 +95,10 @@ def dispatch(props):
     return actions[action](props[action])
 
 if __name__ == "__main__":
-    if len(sys.argv) <3:
-        print >>sys.stderr, "Usage: usrmgt-server <port> <magic>"
-        sys.exit(1)
-    port = int(sys.argv[1])
-    magic = sys.argv[2]
-
     pid = os.getpid()
 
     logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
-    logging.info("Starting usrmgt server on port %d (pid = %d)" % (port, pid))
+    logging.info("Starting usrmgt server on port %d (pid = %d)" %
+                 (conf.usrmgt_port, pid))
 
-    common.chat.start_server(port, magic, True, dispatch, initializer)
+    common.chat.start_server(conf.usrmgt_port, conf.usrmgt_magic, True, dispatch, initializer)

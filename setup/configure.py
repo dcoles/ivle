@@ -533,7 +533,6 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DESC="IVLE user management server"
 NAME=usrmgt-server
 DAEMON=/opt/ivle/scripts/$NAME
-DAEMON_ARGS="''' + str(usrmgt_port) + ''' ''' + usrmgt_magic + '''"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/usrmgt-server
 
@@ -558,8 +557,7 @@ do_start()
 	#   2 if daemon could not be started
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
 		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
-		$DAEMON_ARGS \
+	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON \
 		|| return 2
 	# Add code here, if necessary, that waits for the process to be ready
 	# to handle requests from services started subsequently which depend
