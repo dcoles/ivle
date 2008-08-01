@@ -62,7 +62,11 @@ int main(int argc, const char *argv[])
 
     openlog("timount", LOG_CONS | LOG_PID, LOG_USER);
 
-    rootdir = opendir(argv[1]);
+    if (!(rootdir = opendir(argv[1])))
+    {
+        perror("could not open specified path");
+        exit(1);
+    }
 
     while ((mp = readdir(rootdir)))
     {
