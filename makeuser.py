@@ -29,14 +29,8 @@
 
 import sys
 import os
-import os.path
 import getopt
-import random
-# Import modules from the website is tricky since they're in the www
-# directory.
-sys.path.append(os.path.join(os.getcwd(), 'www'))
-import conf
-import common.makeuser, common.db
+import common.makeuser
 
 # Requireds and optionals will be used to display the usage message
 # AND do argument processing
