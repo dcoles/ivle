@@ -131,6 +131,14 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
     its environment.
     """
 
+    # Support no-op trampoline runs.
+    if interpreter is None:
+        interpreter = '/bin/true'
+        script_path = ''
+        noop = True
+    else:
+        noop = False
+
     # Get the student program's directory and execute it from that context.
     (tramp_dir, _) = os.path.split(trampoline)
 
@@ -166,6 +174,11 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
         del os.environ[k]
     for (k,v) in old_env.items():
         os.environ[k] = v
+
+    # We don't want any output! Bail out after the process terminates.
+    if noop:
+        pid.communicate()
+        return
 
     # process_cgi_line: Reads a single line of CGI output and processes it.
     # Prints to req, and also does fancy HTML warnings if Content-Type
@@ -363,6 +376,9 @@ location_cgi_python = os.path.join(conf.ivle_install_dir,
 interpreter_objects = {
     'cgi-python'
         : functools.partial(execute_cgi, "/usr/bin/python",
+            location_cgi_python),
+    'noop'
+        : functools.partial(execute_cgi, None,
             location_cgi_python),
     # Should also have:
     # cgi-generic
