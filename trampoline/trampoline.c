@@ -318,12 +318,12 @@ int main(int argc, char* const argv[])
     if (!unlimited)
     {
         struct rlimit l;
-        /* Process size in virtual memory */
+        /* Process data segment in memory */
         l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
         l.rlim_max = 72 * 1024 * 1024; /* 64Mb */
-        if (setrlimit(RLIMIT_CORE, &l))
+        if (setrlimit(RLIMIT_DATA, &l))
         {
-            perror("could not setrlimit/RLIMIT_CORE");
+            perror("could not setrlimit/RLIMIT_DATA");
             exit(1);
         }
 
