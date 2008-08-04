@@ -324,11 +324,17 @@ def incomplete_utf8_sequence(byteseq):
 if __name__ == "__main__":
     port = int(sys.argv[1])
     magic = sys.argv[2]
+    
+    # Sanitise the Enviroment
+    os.environ = {}
+    os.environ['PATH'] = '/usr/local/bin:/usr/bin:/bin'
+
     if len(sys.argv) >= 4:
         # working_dir
         os.chdir(sys.argv[3])
-        # Make python's search path follow the cwd
-        sys.path[0] = ''
         os.environ['HOME'] = sys.argv[3]
+
+    # Make python's search path follow the cwd
+    sys.path[0] = ''
 
     common.chat.start_server(port, magic, True, dispatch_msg, initializer)
