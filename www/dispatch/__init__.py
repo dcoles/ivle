@@ -27,7 +27,7 @@
 # Then passes the request along to the appropriate ivle app.
 
 import mod_python
-from mod_python import apache
+from mod_python import apache, Cookie
 
 import sys
 import os
@@ -48,6 +48,7 @@ import traceback
 import plugins.console
 import logging
 import socket
+import time
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -173,8 +174,11 @@ def logout(req):
     session = req.get_session()
     session.invalidate()
     session.delete()
-    req.add_cookie(forumutil.invalidated_forum_cookie())
-    req.throw_redirect(util.make_path(''))
+    # Invalidates all cookies
+    all_cookies = Cookie.get_cookies(req)
+    for cookie in all_cookies:
+        req.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+    req.throw_redirect(util.make_path('')) 
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """

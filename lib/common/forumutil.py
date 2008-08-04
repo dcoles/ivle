@@ -45,7 +45,4 @@ def make_forum_cookie(login_details):
     hash = hashlib.md5(hashtext).hexdigest()
     data = quote(login + ':' + nick + ':' + email + ':' + role + ':' + hash)
 
-    return Cookie.Cookie(cookie_name,data,expires=time.time()+86400,path='/')
- 
-def invalidated_forum_cookie():
-    return Cookie.Cookie(cookie_name,'NONE',expires=time.time()+86400,path='/')
+    return Cookie.Cookie(cookie_name,data,path='/')
