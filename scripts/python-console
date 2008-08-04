@@ -13,7 +13,6 @@ import socket
 import sys
 import traceback
 from threading import Thread
-from functools import partial
 
 import common.chat
 
@@ -24,7 +23,7 @@ class Interrupt(Exception):
 class ExpiryTimer(object):
     def __init__(self, idle):
         self.idle = idle
-        signal.signal(signal.SIGALRM, partial(self.timeout))
+        signal.signal(signal.SIGALRM, self.timeout)
 
     def ping(self):
         signal.alarm(self.idle)
@@ -37,7 +36,7 @@ class ExpiryTimer(object):
 
     def timeout(self, signum, frame):
         sys.exit(1)
-        
+
 class StdinFromWeb(object):
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
@@ -53,7 +52,6 @@ class StdinFromWeb(object):
             raise Interrupt()
         if 'terminate' in ln:
             sys.exit(0)
-            
 
 class StdoutToWeb(object):
     def __init__(self, cmdQ, lineQ):
@@ -220,6 +218,7 @@ magic = ''
 cmdQ = Queue.Queue()
 lineQ = Queue.Queue()
 interpThread = PythonRunner(cmdQ, lineQ)
+terminate = None
 
 # Default expiry time of 15 minutes
 expiry = ExpiryTimer(15 * 60)
@@ -227,11 +226,20 @@ expiry = ExpiryTimer(15 * 60)
 def initializer():
     interpThread.setDaemon(True)
     interpThread.start()
+    signal.signal(signal.SIGXCPU, sig_handler)
     expiry.ping()
+
+def sig_handler(signum, frame):
+    """Handles response from signals"""
+    global terminate
+    if signum == signal.SIGXCPU:
+        terminate = "CPU Time Limit Exceeded"
 
 def dispatch_msg(msg):
     expiry.ping()
     lineQ.put({msg['cmd']:msg['text']})
+    if terminate:
+        raise common.chat.Terminate({"restart":terminate})
     return cmdQ.get()
 
 def format_exc_start(start=0):

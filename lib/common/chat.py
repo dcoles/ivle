@@ -27,6 +27,16 @@ import os
 import socket
 import traceback
 
+class Terminate(Exception):
+    """Exception thrown when server is to be shut down. It will attempt to sned 
+    the final_response to the client and then exits"""
+    def __init__(self, final_response=None):
+        self.final_response = final_response
+
+    def __str__(self):
+        return repr(self.final_response)
+
+
 def start_server(port, magic, daemon_mode, handler, initializer = None):
     # Attempt to open the socket.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -76,6 +86,13 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             conn.sendall(cjson.encode(response))
 
             conn.close()
+
+        except Terminate, t:
+            # Try and send final response and then terminate
+            if t.final_response:
+                conn.sendall(cjson.encode(t.final_response))
+            conn.close()
+            sys.exit(0)
         except Exception:
             # Make a JSON object full of exceptional goodness
             tb_dump = cStringIO.StringIO()

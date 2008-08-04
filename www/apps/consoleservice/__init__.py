@@ -93,6 +93,9 @@ def handle_chat(req, kind = "chat"):
     # It simply acts as a proxy to the console server
     if req.method != "POST":
         req.throw_error(req.HTTP_BAD_REQUEST)
+    jail_path = os.path.join(conf.jail_base, req.user.login)
+    working_dir = os.path.join("/home", req.user.login)   # Within jail
+    uid = req.user.unixid
     fields = req.get_fieldstorage()
     try:
         key = cjson.decode(fields.getfirst("key").value.decode("hex"))
@@ -111,27 +114,23 @@ def handle_chat(req, kind = "chat"):
     msg = {'cmd':kind, 'text':text}
     try:
         response = chat.chat(host, port, msg, magic, decode = False)
+        
+        # Snoop the response from python-console to check that it's valid
+        try:
+            decoded_response = cjson.decode(response)
+        except cjson.DecodeError:
+            # Could not decode the reply from the python-console server
+            decoded_response = {"restart":
+                "Could not understand servers reply"}
+        if "restart" in decoded_response:
+            response = restart_console(uid, jail_path, working_dir,
+                decoded_response["restart"])
+
     except socket.error, (enumber, estring):
         if enumber == errno.ECONNREFUSED:
             # Timeout: Restart the session
-            jail_path = os.path.join(conf.jail_base, req.user.login)
-            working_dir = os.path.join("/home", req.user.login)   # Within jail
-            
-            # Get the UID of the logged-in user
-            uid = req.user.unixid
-
-            # Start the console
-            (host, port, magic) = start_console(uid, jail_path, working_dir)
-
-            # Make a JSON object to tell the browser to restart its console 
-            # client
-            new_key = cjson.encode(
-                {"host": host, "port": port, "magic": magic})
-            json_restart = {
-                "restart": "The IVLE console has timed out due to inactivity",
-                "key": new_key.encode("hex"),
-            }
-            response = cjson.encode(json_restart)
+            response = restart_console(uid, jail_path, working_dir,
+                "The IVLE console has timed out due to inactivity")
         else:
             # Some other error - probably serious
             raise socket.error, (enumber, estring)
@@ -185,4 +184,21 @@ def start_console(uid, jail_path, working_dir):
         raise Exception, "unable to start console service!"
 
     return (host, port, magic)
+
+def restart_console(uid, jail_path, working_dir, reason):
+    """Tells the client that it must be issued a new console since the old 
+    console is no longer availible. The client must accept the new key.
+    Returns the JSON response to be given to the client.
+    """
+    # Start a new console server console
+    (host, port, magic) = start_console(uid, jail_path, working_dir)
+
+    # Make a JSON object to tell the browser to restart its console client
+    new_key = cjson.encode({"host": host, "port": port, "magic": magic})
+    json_restart = {
+        "restart": reason,
+        "key": new_key.encode("hex"),
+    }
+    
+    return cjson.encode(json_restart)
 
