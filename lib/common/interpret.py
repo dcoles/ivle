@@ -20,12 +20,6 @@
 # Date: 18/1/2008
 
 # Runs a student script in a safe execution environment.
-#
-# NOTE: This script currently disables cookies. This means students will be
-# unable to write session-based or stateful web applications. This is done for
-# security reasons (we do not want the students to see the IVLE cookie of
-# whoever is visiting their pages).
-# This can be resolved but needs careful sanitisation. See fixup_environ.
 
 from common import studpath
 from common import db
