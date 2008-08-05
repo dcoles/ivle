@@ -307,8 +307,8 @@ function handle_response(path, response, is_action, url_args)
     var isdir = response.getResponseHeader("X-IVLE-Return") == "Dir";
     if (isdir)
     {
-        setup_for_dir_listing(listing, subjects);
-        handle_dir_listing(path, listing);
+        setup_for_listing();
+        home_listing(listing, subjects, path);
     }
     else
     {

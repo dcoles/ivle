@@ -186,6 +186,7 @@ tr.row2sel {
 
 #specialhome {
     background-color: #ddd;
+    border-bottom: 1px solid black;
 }
 #specialhome h2 {
     background-color: #aaa;

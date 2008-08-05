@@ -551,11 +551,11 @@ function select_file(filename)
     update_selection();
 }
 
-/** Initialises the DOM elements required to present a dir listing,
+/** Initialises the DOM elements required to present files window,
  * assuming that clear_page has just been called or the page just
  * loaded for the first time.
  */
-function setup_for_dir_listing(listing, subjects)
+function setup_for_listing()
 {
     var filesbody = document.getElementById("filesbody");
 
@@ -573,9 +573,34 @@ function setup_for_dir_listing(listing, subjects)
     var filetablediv = document.createElement("div");
     filetable.appendChild(filetablediv);
     filetablediv.setAttribute("id", "filetablediv");
-    /* Do the home listing */
-    if (subjects != null)
-        home_listing(listing, subjects);
+
+    /* Side-panel */
+    /* 2 nested divs, so we can set the width exactly and have padding inside
+     * of that */
+    var sidepanel_outer = document.createElement("div");
+    middle.appendChild(sidepanel_outer);
+    sidepanel_outer.setAttribute("id", "sidepanel_outer");
+    var sidepanel = document.createElement("div");
+    sidepanel_outer.appendChild(sidepanel);
+    sidepanel.setAttribute("id", "sidepanel");
+
+    /* Now after the table "middle", there is a status bar */
+    var statusbar_outer = document.createElement("div");
+    filesbody.appendChild(statusbar_outer);
+    statusbar_outer.setAttribute("id", "statusbar_outer");
+    var statusbar = document.createElement("div");
+    statusbar_outer.appendChild(statusbar);
+    statusbar.setAttribute("id", "statusbar");
+}
+
+/** Sets up the DOM elements required to present a directory liisting.
+ */
+function setup_dir_listing()
+{
+    var filesbody = document.getElementById("filesbody");
+    var filetable = document.getElementById("filetable");
+    var filetablediv = document.getElementById("filetablediv");
+
     /* A nested table within this div - the actual files listing */
     var filetabletable = document.createElement("table");
     filetablediv.appendChild(filetabletable);
@@ -607,34 +632,17 @@ function setup_for_dir_listing(listing, subjects)
     var filetabletbody = document.createElement("tbody");
     filetabletable.appendChild(filetabletbody);
     filetabletbody.setAttribute("id", "files");
-
-    /* Side-panel */
-    /* 2 nested divs, so we can set the width exactly and have padding inside
-     * of that */
-    var sidepanel_outer = document.createElement("div");
-    middle.appendChild(sidepanel_outer);
-    sidepanel_outer.setAttribute("id", "sidepanel_outer");
-    var sidepanel = document.createElement("div");
-    sidepanel_outer.appendChild(sidepanel);
-    sidepanel.setAttribute("id", "sidepanel");
-
-    /* Now after the table "middle", there is a status bar */
-    var statusbar_outer = document.createElement("div");
-    filesbody.appendChild(statusbar_outer);
-    statusbar_outer.setAttribute("id", "statusbar_outer");
-    var statusbar = document.createElement("div");
-    statusbar_outer.appendChild(statusbar);
-    statusbar.setAttribute("id", "statusbar");
 }
 
 /** Presents the directory listing.
  */
-function handle_dir_listing(path, listing, subjects)
+function handle_dir_listing(path, listing)
 {
-    var row_toggle = 1;
-    /* Nav through the top-level of the JSON to the actual listing object. */
-    var listing = listing.listing;
+    /* Add the DOM elements for the file listing */
+    setup_dir_listing()
 
+    var row_toggle = 1;
+    
     /* Is this dir under svn? */
     var under_subversion = ("svnstatus" in current_file) && (current_file.svnstatus != "unversioned");
 

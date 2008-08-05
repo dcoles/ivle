@@ -32,72 +32,87 @@ PERSONALDIR="mywork"
 
 /** Present home directory 
  */
-function home_listing(listing, subjects)
+function home_listing(listing, subjects, path)
 {
-    listing = listing.listing;
+    /* Nav through the top-level of the JSON to the actual listing object. */
+    var listing = listing.listing;
+    
     var filetablediv = document.getElementById("filetablediv");
     var specialhomediv;
     var h2;
     var h3;
     var ul;
     var li;
+    var div;
 
-    /* Wrap all this "special" stuff in a div, for styling purposes */
-    specialhomediv = document.createElement("div");
-    specialhomediv.setAttribute("id", "specialhome");
-    filetablediv.appendChild(specialhomediv);
-
-    /* SUBJECTS Section
-    /* Create the header row */
-    if (subjects.length > 0)
+    /* Only show special headings if we get subject listings */
+    if (subjects != null)
     {
-        h2 = dom_make_text_elem("h2", "Subjects");
-        specialhomediv.appendChild(h2);
-    }
+        /* Wrap all this "special" stuff in a div, for styling purposes */
+        specialhomediv = document.createElement("div");
+        specialhomediv.setAttribute("id", "specialhome");
+        filetablediv.appendChild(specialhomediv);
 
-    /* Create the contents */
-    for (var i=0; i<subjects.length; i++)
-    {
-        var subject = subjects[i];
-        var path = subject.subj_short_name;
-        // Header
-        h3 = dom_make_text_elem("h3", subject.subj_name);
-        specialhomediv.appendChild(h3);
+        /* SUBJECTS Section
+        /* Create the header row */
+        if (subjects.length > 0)
+        {
+            h2 = dom_make_text_elem("h2", "Subjects");
+            specialhomediv.appendChild(h2);
+        }
+
+        /* Create the contents */
+        for (var i=0; i<subjects.length; i++)
+        {
+            var subject = subjects[i];
+            var subjpath = subject.subj_short_name;
+            // Header
+            h3 = dom_make_text_elem("h3", subject.subj_name);
+            specialhomediv.appendChild(h3);
         
-        /* Print the file listing */
-        ul = document.createElement("ul");
-        // Stuff
-        ul.appendChild(make_subject_item(path, PERSONALDIR,
-              "Your own files in this subject"));
-        // Groups
-        /* TODO: List groups */
+            /* Print the file listing */
+            ul = document.createElement("ul");
+            // Stuff
+            ul.appendChild(make_subject_item(subjpath, PERSONALDIR,
+                "Your own files in this subject"));
+            // Groups
+            /* TODO: List groups */
             
+            specialhomediv.appendChild(ul);
+
+            /* Remove it from listing */
+            if (subject.subj_short_name in listing)
+                delete listing[subject.subj_short_name];
+        }
+
+        /* FIXME: Old Subjects? */
+
+        /* STUFF Section -- For the stuff directory */
+        /* Create the header */
+        h2 = dom_make_text_elem("h2", "Stuff");
+        specialhomediv.appendChild(h2);
+        /* Create the contents */
+        ul = document.createElement("ul");
+        ul.appendChild(make_subject_item("", "stuff",
+              "Your own files not related to a subject"));
         specialhomediv.appendChild(ul);
+        /* Remove stuff from the listing */
+        if ("stuff" in listing)
+            delete listing["stuff"];
 
-        /* Remove it from listing */
-        if (subject.subj_short_name in listing)
-            delete listing[subject.subj_short_name];
+        /* JUNK Section -- All the rest */
+        /* Create the header row */
+        if (obj_length(listing) > 0)
+        {
+            h2 = dom_make_text_elem("h2", "Junk");
+            specialhomediv.appendChild(h2);
+            handle_dir_listing(path, listing);
+        }
     }
-   
-    /* FIXME: Old Subjects? */
-
-    /* STUFF Section -- For the stuff directory */
-    /* Create the header */
-    h2 = dom_make_text_elem("h2", "Stuff");
-    specialhomediv.appendChild(h2);
-    /* Create the contents */
-    ul = document.createElement("ul");
-    ul.appendChild(make_subject_item("", "stuff",
-          "Your own files not related to a subject"));
-    specialhomediv.appendChild(ul);
-    /* Remove stuff from the listing */
-    if ("stuff" in listing)
-        delete listing["stuff"];
-
-    /* JUNK Section -- All the rest */
-    /* Create the header row */
-    h2 = dom_make_text_elem("h2", "Junk");
-    specialhomediv.appendChild(h2);
+    else
+    {
+        handle_dir_listing(path, listing);
+    }
 }
 
 /* Does an series of AJAX requests to find out the properties of this folder 
@@ -224,4 +239,14 @@ function create_if_needed(path)
     }
     alert("Error: Could not create Subversion directory");
     return false;
+}
+
+/** Finds the length (number of user defined properties) of an object
+ */
+function obj_length(obj)
+{
+    length = 0;
+    for (prop in obj)
+        length++;
+    return length;
 }
