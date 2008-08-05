@@ -50,6 +50,9 @@ import logging
 import socket
 import time
 
+# List of cookies that IVLE uses (to be removed at logout)
+ivle_cookies = ["ivleforumcookie", "clipboard"]
+
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
     Intended to be called by mod_python, as a handler.
@@ -174,10 +177,11 @@ def logout(req):
     session = req.get_session()
     session.invalidate()
     session.delete()
-    # Invalidates all cookies
+    # Invalidates all IVLE cookies
     all_cookies = Cookie.get_cookies(req)
     for cookie in all_cookies:
-        req.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+        if cookie in ivle_cookies:
+            req.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
     req.throw_redirect(util.make_path('')) 
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
