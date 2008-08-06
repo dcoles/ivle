@@ -892,7 +892,7 @@ INSERT INTO enrolment (loginid, offeringid)
 
     def get_enrolment(self, login, dry=False):
         """
-        Get all subjects (in IVLE) the student is enrolled in.
+        Get all offerings (in IVLE) the student is enrolled in.
         Returns a list of dicts (all values strings), with the keys:
         offeringid, subj_code, subj_name, subj_short_name, year, semester, url
         """
@@ -909,6 +909,28 @@ WHERE enrolment.offeringid=offering.offeringid
         if dry:
             return query
         return self.db.query(query).dictresult()
+
+    def get_subjects_status(self, login, dry=False):
+        """
+        Get all subjects in IVLE, split into lists of enrolled and unenrolled
+        subjects.
+        Returns a tuple of lists (enrolled, unenrolled) of dicts
+        (all values strings) with the keys:
+        subj_code, subj_name, subj_short_name, url
+        """
+        enrolments = self.get_enrolment(login)
+        all_subjects = self.get_subjects()
+
+        enrolled_set = set(x['subj_code'] for x in enrolments)
+ 
+        enrolled_subjects = [x for x in all_subjects
+                             if x['subj_code'] in enrolled_set]
+        unenrolled_subjects = [x for x in all_subjects
+                               if x['subj_code'] not in enrolled_set]
+        enrolled_subjects.sort(key=lambda x: x['subj_code'])
+        unenrolled_subjects.sort(key=lambda x: x['subj_code'])
+        return (enrolled_subjects, unenrolled_subjects)
+
 
     # PROJECT GROUPS
 

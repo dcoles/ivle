@@ -150,22 +150,8 @@ def handle_toplevel_menu(req):
   Please select a subject from the list below to select a worksheet
   for that subject.</p>\n""")
 
-    # Get list of subjects
-    db = common.db.DB()
-    try:
-        enrolments = db.get_enrolment(req.user.login)
-        all_subjects = db.get_subjects()
-    finally:
-        db.close()
-
-    enrolled_set = set(x['subj_code'] for x in enrolments)
-
-    enrolled_subjects = [x for x in all_subjects
-                         if x['subj_code'] in enrolled_set]
-    unenrolled_subjects = [x for x in all_subjects
-                           if x['subj_code'] not in enrolled_set]
-    enrolled_subjects.sort(key=lambda x: x['subj_code'])
-    unenrolled_subjects.sort(key=lambda x: x['subj_code'])
+    (enrolled_subjects, unenrolled_subjects) = \
+              common.db.DB().get_subjects_status(req.user.login)
 
     def print_subject(subject):
         req.write('  <li><a href="%s">%s</a></li>\n'
