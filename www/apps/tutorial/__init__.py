@@ -153,12 +153,15 @@ def handle_toplevel_menu(req):
     # Get list of subjects
     db = common.db.DB()
     try:
-        enrolled_subjects = db.get_enrolment(req.user.login)
+        enrolments = db.get_enrolment(req.user.login)
         all_subjects = db.get_subjects()
     finally:
         db.close()
 
-    enrolled_set = set(x['subj_code'] for x in enrolled_subjects)
+    enrolled_set = set(x['subj_code'] for x in enrolments)
+
+    enrolled_subjects = [x for x in all_subjects
+                         if x['subj_code'] in enrolled_set]
     unenrolled_subjects = [x for x in all_subjects
                            if x['subj_code'] not in enrolled_set]
     enrolled_subjects.sort(key=lambda x: x['subj_code'])
