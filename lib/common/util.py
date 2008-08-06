@@ -25,6 +25,7 @@
 
 import os
 import mimetypes
+import datetime
 
 import conf
 import conf.mimetypes
@@ -197,3 +198,10 @@ just be the contents of a body element (IVLE will wrap it accordingly).</p>
 <p>This will automatically be used as the license text instead of this
 placeholder text.</p>
 """)
+
+def parse_iso8601(str):
+    """Parses ISO8601 string into a datetime object."""
+    # FIXME: Terrific hack that means we only accept the format that is 
+    # produced by json.js module when it encodes date objects.
+    return datetime.datetime.strptime(str, "%Y-%m-%dT%H:%M:%SZ")
+

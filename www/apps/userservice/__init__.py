@@ -89,9 +89,11 @@
 
 # userservice/create_project_set
 # Required cap: CAP_MANAGEPROJECTS
-# Creates a project set for a offering - returns the projectsetid
+# Creates a project set for a offering
 # Required:
 #   offeringid, max_students_per_group
+# Returns:
+#   projectsetid
 
 # userservice/create_project
 # Required cap: CAP_MANAGEPROJECTS
@@ -99,7 +101,9 @@
 # Required:
 #   projectsetid
 # Optional:
-#   synopsys, url, deadline
+#   synopsis, url, deadline
+# Returns:
+#   projectid
 
 # userservice/create_group
 # Required cap: CAP_MANAGEGROUPS
@@ -445,7 +449,11 @@ def handle_get_enrolments(req, fields):
     req.write(response)
 
 def handle_create_project_set(req, fields):
-    """Creates a project set for a offering - returns the projectsetid"""
+    """Required cap: CAP_MANAGEPROJECTS
+    Creates a project set for a offering - returns the projectsetid
+    Required:
+        offeringid, max_students_per_group
+    """
     
     if req.method != "POST":
         req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
@@ -461,7 +469,6 @@ def handle_create_project_set(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: offeringid, max_students_per_group")
 
-    projectsetid = "Not set"
     # Talk to the DB
     db = common.db.DB()
     dbquery = db.return_insert(
@@ -480,13 +487,59 @@ def handle_create_project_set(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
-# TODO: write userservice/create_project
-# Required cap: CAP_MANAGEPROJECTS
-# Creates a project in a specific project set
-# Required:
-#   projectsetid
-# Optional:
-#   synopsys, url, deadline
+def handle_create_project(req, fields):
+    """Required cap: CAP_MANAGEPROJECTS
+    Creates a project in a specific project set
+    Required:
+        projectsetid
+    Optional:
+        synopsis, url, deadline
+    Returns:
+        projectid
+    """
+    
+    if req.method != "POST":
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to create_user.")
+    # Check if this user has CAP_MANAGEPROJECTS
+    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You do not have permission to manage projects.")
+    # Get required fields
+    projectsetid = fields.getfirst('projectsetid')
+    if projectsetid is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: projectsetid")
+    # Get optional fields
+    synopsis = fields.getfirst('synopsis')
+    url = fields.getfirst('url')
+    deadline = fields.getfirst('deadline')
+    if deadline is not None:
+        try:
+            deadline = util.parse_iso8601(deadline).timetuple()
+        except ValueError, e:
+            req.throw_error(req.HTTP_BAD_REQUEST, e.message)
+
+    # Talk to the DB
+    db = common.db.DB()
+    dbquery = db.return_insert(
+        {
+            'projectsetid': projectsetid,
+            'synopsis': synopsis,
+            'url': url,
+            'deadline': deadline,
+        },
+        "project", # table
+        frozenset(["projectsetid", "synopsis", "url", "deadline"]), # fields
+        ["projectid"], # returns
+    )
+    db.close()
+    
+    response = cjson.encode(dbquery.dictresult()[0])
+
+    req.content_type = "text/plain"
+    req.write(response)
+
 
 # TODO: write userservice/create_group
 # Required cap: CAP_MANAGEGROUPS
@@ -510,4 +563,5 @@ actions_map = {
     "get_user": handle_get_user,
     "get_enrolments": handle_get_enrolments,
     "create_project_set": handle_create_project_set,
+    "create_project": handle_create_project,
 }
