@@ -129,5 +129,10 @@ CAP_READ_SVN = Role.LECTURER
 # Writing to any student's svn
 CAP_WRITE_SVN = Role.LECTURER
 
+# Create and modify projects and project sets
+CAP_MANAGEPROJECTS = Role.LECTURER
+# Create and modify project groups and assign logins to them
+CAP_MANAGEGROUPS = Role.TUTOR
+
 # "SuperUser" role - certain users are granted "sudo" powers on the Unix
 # system, giving them abilities beyond what is granted here in IVLE.

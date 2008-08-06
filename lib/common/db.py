@@ -187,6 +187,40 @@ class DB:
         if dry: return query
         self.db.query(query)
 
+    def return_insert(self, dict, tablename, tablefields, returning,
+        disallowed=frozenset([]), dry=False):
+        """Inserts a new row in a table, using data from a supplied
+        dictionary (which will be checked by check_dict) and returns certain 
+        fields as a dict.
+        dict: Dictionary mapping column names to values. The values may be
+            any of the following types:
+            str, int, long, float, NoneType.
+        tablename: String, name of the table to insert into. Will NOT be
+            escaped - must be a valid identifier.
+        returning: List of fields to return, not escaped
+        tablefields, disallowed: see check_dict.
+        dry: Returns the SQL query as a string, and does not execute it.
+        Raises a DBException if the dictionary contains invalid fields.
+        """
+        if not DB.check_dict(dict, tablefields, disallowed):
+            extras = set(dict.keys()) - tablefields
+            raise DBException("Supplied dictionary contains invalid fields. (%s)" % (repr(extras)))
+        # Build two lists concurrently: field names and values, as SQL strings
+        fieldnames = []
+        values = []
+        for k,v in dict.items():
+            fieldnames.append(k)
+            values.append(_escape(v))
+        if len(fieldnames) == 0: return
+        fieldnames = ', '.join(fieldnames)
+        values = ', '.join(values)
+        returns = ', '.join(returning)
+        query = ("INSERT INTO %s (%s) VALUES (%s) RETURNING (%s);"
+            % (tablename, fieldnames, values, returns))
+        if dry: return query
+        return self.db.query(query)
+
+
     def update(self, primarydict, updatedict, tablename, tablefields,
         primary_keys, disallowed_update=frozenset([]), dry=False):
         """Updates a row in a table, matching against primarydict to find the

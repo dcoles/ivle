@@ -85,6 +85,35 @@
 # Required cap: None (for yourself)
 # Returns a JSON encoded listing of a students is enrollments
 
+# PROJECTS AND GROUPS
+
+# userservice/create_project_set
+# Required cap: CAP_MANAGEPROJECTS
+# Creates a project set for a offering - returns the projectsetid
+# Required:
+#   offeringid, max_students_per_group
+
+# userservice/create_project
+# Required cap: CAP_MANAGEPROJECTS
+# Creates a project in a specific project set
+# Required:
+#   projectsetid
+# Optional:
+#   synopsys, url, deadline
+
+# userservice/create_group
+# Required cap: CAP_MANAGEGROUPS
+# Creates a project group in a specific project set
+# Required:
+#   projectsetid, groupnm
+# Optional:
+#   nick
+
+# userservice/assign_to_group
+# Required cap: CAP_MANAGEGROUPS
+# Assigns a user to a project group
+# Required: loginid, groupid
+
 import os
 import sys
 
@@ -415,6 +444,63 @@ def handle_get_enrolments(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+def handle_create_project_set(req, fields):
+    """Creates a project set for a offering - returns the projectsetid"""
+    
+    if req.method != "POST":
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to create_user.")
+    # Check if this user has CAP_MANAGEPROJECTS
+    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You do not have permission to manage projects.")
+    # Get required fields
+    offeringid = fields.getfirst('offeringid')
+    max_students_per_group = fields.getfirst('max_students_per_group')
+    if offeringid is None or max_students_per_group is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: offeringid, max_students_per_group")
+
+    projectsetid = "Not set"
+    # Talk to the DB
+    db = common.db.DB()
+    dbquery = db.return_insert(
+        {
+            'offeringid': offeringid,
+            'max_students_per_group': max_students_per_group,
+        },
+        "project_set",
+        frozenset(["offeringid", "max_students_per_group"]),
+        ["projectsetid"],
+    )
+    db.close()
+    
+    response = cjson.encode(dbquery.dictresult()[0])
+
+    req.content_type = "text/plain"
+    req.write(response)
+
+# TODO: write userservice/create_project
+# Required cap: CAP_MANAGEPROJECTS
+# Creates a project in a specific project set
+# Required:
+#   projectsetid
+# Optional:
+#   synopsys, url, deadline
+
+# TODO: write userservice/create_group
+# Required cap: CAP_MANAGEGROUPS
+# Creates a project group in a specific project set
+# Required:
+#   projectsetid, groupnm
+# Optional:
+#   nick
+
+# TODO: write userservice/assign_to_group
+# Required cap: CAP_MANAGEGROUPS
+# Assigns a user to a project group
+# Required: loginid, groupid
+
 # Map action names (from the path)
 # to actual function objects
 actions_map = {
@@ -423,4 +509,5 @@ actions_map = {
     "update_user": handle_update_user,
     "get_user": handle_get_user,
     "get_enrolments": handle_get_enrolments,
+    "create_project_set": handle_create_project_set,
 }
