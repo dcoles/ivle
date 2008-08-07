@@ -50,8 +50,6 @@ class StdinFromWeb(object):
             return ln['chat']
         if 'interrupt' in ln:
             raise Interrupt()
-        if 'terminate' in ln:
-            sys.exit(0)
 
 class StdoutToWeb(object):
     def __init__(self, cmdQ, lineQ):
@@ -236,6 +234,11 @@ def sig_handler(signum, frame):
         terminate = "CPU Time Limit Exceeded"
 
 def dispatch_msg(msg):
+    global terminate
+    if msg['cmd'] == 'restart':
+        terminate = "User requested console be reset"
+    if terminate:
+        raise common.chat.Terminate({"restart":terminate})
     expiry.ping()
     lineQ.put({msg['cmd']:msg['text']})
     if terminate:

@@ -303,21 +303,23 @@ function console_response(inputbox, graytimer, inputline, responseText)
     var output = document.getElementById("console_output");
     if (res.hasOwnProperty('okay'))
     {
+        // Success!
+        if (res.okay)
+        {
+            output.appendChild(document.createTextNode(res.okay + "\n"));
+            output.appendChild(span);
+        }
         // set the prompt to >>>
-        var prompt = document.getElementById("console_prompt");
-        prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
+        set_prompt(">>>");
     }
     else if (res.hasOwnProperty('exc'))
     {
         // Failure!
         // print out the error message (res.exc)
-        var span = document.createElement("span");
-        span.setAttribute("class", "errorMsg");
-        span.appendChild(document.createTextNode(res.exc + "\n"));
-        output.appendChild(span);
+        print_error(res.exc);
+        
         // set the prompt to >>>
-        var prompt = document.getElementById("console_prompt");
-        prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
+        set_prompt(">>>");
     }
     else if (res.hasOwnProperty('restart') && res.hasOwnProperty('key'))
     {
@@ -328,20 +330,15 @@ function console_response(inputbox, graytimer, inputline, responseText)
 
         // Print a reason to explain why we'd do such a horrible thing
         // (console timeout, server error etc.)
-        var span = document.createElement("span");
-        span.setAttribute("class", "errorMsg");
-        span.appendChild(document.createTextNode("Console Restart: " + res.restart + "\n"));
-        output.appendChild(span);
+        print_error("Console Restart: " + res.restart);
+        
         // set the prompt to >>>
-        var prompt = document.getElementById("console_prompt");
-        prompt.replaceChild(document.createTextNode(">>> "), prompt.firstChild);
-
+        set_prompt(">>>");
     }
     else if (res.hasOwnProperty('more'))
     {
         // Need more input, so set the prompt to ...
-        var prompt = document.getElementById("console_prompt");
-        prompt.replaceChild(document.createTextNode("... "), prompt.firstChild);
+        set_prompt("...");
     }
     else if (res.hasOwnProperty('output'))
     {
@@ -375,10 +372,10 @@ function console_response(inputbox, graytimer, inputline, responseText)
         // Return early, so we don't re-enable the input box.
         return;
     }
-    else {
+    else
+    {
         // assert res.hasOwnProperty('input')
-        var prompt = document.getElementById("console_prompt");
-        prompt.replaceChild(document.createTextNode("+++ "), prompt.firstChild);
+        set_prompt("...");
     }
 
     if (inputbox != null)
@@ -396,8 +393,8 @@ function console_response(inputbox, graytimer, inputline, responseText)
     divScroll.activeScroll();
 
     // Focus the input box by default
-    document.getElementById("console_output").focus()
-    document.getElementById("console_inputText").focus()
+    document.getElementById("console_output").focus();
+    document.getElementById("console_inputText").focus();
 }
 
 function catch_input(key)
@@ -456,6 +453,48 @@ function catch_input(key)
     }
 }
 
+/** Resets the console by signalling the old console to expire and starting a 
+ * new one.
+ */
+function console_reset()
+{
+    // FIXME: We show some feedback here - either disable input or at very 
+    // least the reset button.
+
+    // Restart the console
+    if(!server_started)
+    {
+        start_server(null);
+    }
+    else
+    {
+        xhr = ajax_call(null, "consoleservice", "restart", {"key": server_key}, "POST");
+        console_response(null, null, null, xhr.responseText);
+    }
+}
+
+/** Prints an error line in the console **/
+function print_error(error)
+{ 
+    var output = document.getElementById("console_output");
+  
+    // Create text block
+    var span = document.createElement("span");
+    span.setAttribute("class", "errorMsg");
+    span.appendChild(document.createTextNode(error + "\n"));
+    output.appendChild(span);
+
+    // Autoscroll
+    divScroll.activeScroll();
+}
+
+/** Sets the prompt text **/
+function set_prompt(prompt_text)
+{
+    var prompt = document.getElementById("console_prompt");
+    prompt.replaceChild(document.createTextNode(prompt_text + " "), prompt.firstChild);
+}
+
 /**** Following Code modified from ******************************************/
 /**** http://radio.javaranch.com/pascarello/2006/08/17/1155837038219.html ***/
 /****************************************************************************/
@@ -473,9 +512,8 @@ chatscroll.Pane.prototype.activeScroll = function()
         
     if (scrollDiv.scrollHeight > 0)
         currentHeight = scrollDiv.scrollHeight;
-    else 
-        if (objDiv.offsetHeight > 0)
-            currentHeight = scrollDiv.offsetHeight;
+    else if (scrollDiv.offsetHeight > 0)
+        currentHeight = scrollDiv.offsetHeight;
 
     scrollDiv.scrollTop = currentHeight;
 
