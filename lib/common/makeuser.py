@@ -65,7 +65,7 @@ def make_svn_repo(path, throw_on_error=True):
     try:
         res = os.system("svnadmin create '%s'" % path)
         if res != 0 and throw_on_error:
-            raise Exception("Cannot create repository for %s" % login)
+            raise Exception("Cannot create repository: %s" % path)
     except Exception, exc:
         print repr(exc)
         if throw_on_error:
