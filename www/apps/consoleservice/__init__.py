@@ -121,7 +121,7 @@ def handle_chat(req, kind = "chat"):
         except cjson.DecodeError:
             # Could not decode the reply from the python-console server
             decoded_response = {"restart":
-                "Could not understand servers reply"}
+                "Communication to console process lost"}
         if "restart" in decoded_response:
             response = restart_console(uid, jail_path, working_dir,
                 decoded_response["restart"])
