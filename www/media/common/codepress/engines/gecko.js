@@ -119,7 +119,9 @@ CodePress = {
 		if(flag != 'init') { window.getSelection().getRangeAt(0).insertNode(document.createTextNode(cc));}
 		editor = CodePress.getEditor();
 		o = editor.innerHTML;
-		o = o.replace(/<br>/g,'\n');
+
+		// The ? in the following two regexps makes them less hungry. Do not remove!
+		o = o.replace(/<br(\/?| .*?)>/g,'\n');
 		o = o.replace(/<.*?>/g,'');
 		x = z = this.split(o,flag);
 		x = x.replace(/\n/g,'<br>');
