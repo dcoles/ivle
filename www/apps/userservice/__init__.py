@@ -120,8 +120,10 @@
 
 import os
 import sys
+import time
 
 import cjson
+import pg
 
 import common
 import common.db
@@ -541,13 +543,96 @@ def handle_create_project(req, fields):
     req.write(response)
 
 
-# TODO: write userservice/create_group
-# Required cap: CAP_MANAGEGROUPS
-# Creates a project group in a specific project set
-# Required:
-#   projectsetid, groupnm
-# Optional:
-#   nick
+def handle_create_group(req, fields):
+    """Required cap: CAP_MANAGEGROUPS
+    Creates a project group in a specific project set
+    Required:
+        projectsetid, groupnm
+    Optional:
+        nick
+    Returns:
+        groupid
+    """
+    if req.method != "POST":
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to create_user.")
+    # Check if this user has CAP_MANAGEPROJECTS
+    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You do not have permission to manage groups.")
+    # Get required fields
+    projectsetid = fields.getfirst('projectsetid')
+    groupnm = fields.getfirst('groupnm')
+    if projectsetid is None or groupnm is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: projectsetid, groupnm")
+    projectsetid = int(projectsetid)
+    # Get optional fields
+    nick = fields.getfirst('nick')
+
+    # Talk to the DB
+    db = common.db.DB()
+    # Other fields
+    createdby = db.get_user_loginid(req.user.login)
+    epoch = time.localtime()
+    try:
+        dbquery = db.return_insert(
+            {
+                'groupnm': groupnm,
+                'projectsetid': projectsetid,
+                'nick': nick,
+                'createdby': createdby,
+                'epoch': epoch,
+            },
+            "project_group", # table
+            frozenset(["groupnm", "projectsetid", "nick", "createdby",
+                "epoch"]), # fields
+            ["groupid"], # returns
+        )
+    except pg.ProgrammingError, e:
+        req.throw_error(req.HTTP_FORBIDDEN, repr(e))
+ 
+    singlerow = dbquery.dictresult()[0]
+    groupid = singlerow['groupid']
+
+    # Create the groups repository
+    # Get the arguments for usermgt.activate_user from the session
+    # (The user must have already logged in to use this app)
+    
+    # Find the rest of the parameters we need
+    try:
+        offeringinfo = db.get_offering_info(projectsetid)
+    except pg.ProgrammingError, e:
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    db.close()
+
+    subj_short_name = offeringinfo['subj_short_name']
+    year = offeringinfo['year']
+    semester = offeringinfo['semester']
+
+    args = {
+        "subj_short_name": subj_short_name,
+        "year": year,
+        "semester": semester,
+        "groupnm": groupnm,
+    }
+    msg = {'create_group_repository': args}
+
+    # Contact the usrmgt server
+    try:
+        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+    except cjson.DecodeError, e:
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "Could not understand usrmgt server response: %s"%e.message)
+
+    if 'response' not in usrmgt or usrmgt['response']=='failure':
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "Failure creating repository: %s"%str(usrmgt))
+
+    response = cjson.encode(singlerow)
+
+    req.content_type = "text/plain"
+    req.write(response)
 
 # TODO: write userservice/assign_to_group
 # Required cap: CAP_MANAGEGROUPS
@@ -564,4 +649,5 @@ actions_map = {
     "get_enrolments": handle_get_enrolments,
     "create_project_set": handle_create_project_set,
     "create_project": handle_create_project,
+    "create_group": handle_create_group,
 }

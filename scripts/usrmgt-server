@@ -76,8 +76,34 @@ def activate_user(props):
     finally:
         db.close()
 
+def create_group_repository(props):
+    """Creates on disk repository for the given group
+    Expected properties:
+        subj_short_name, year, semester, groupnm
+    Return value:
+        response (okay, failure)
+    """
+
+    subj_short_name = props['subj_short_name']
+    year = props['year']
+    semester = props['semester']
+    groupnm = props['groupnm']
+
+    namespace = "_".join([subj_short_name, year, semester, groupnm])
+    repopath = os.path.join(conf.svn_repo_path, 'groups', namespace)
+    logging.debug("Creating Subversion repository %s"%repopath)
+    try:
+        common.makeuser.make_svn_repo(repopath)
+    except Exception, e:
+        logging.error("Failed to create Subversion repository %s: %s"%
+            (repopath,repr(e)))
+        return {'response': 'failure', 'msg': repr(e)}
+
+    return {'response': 'okay'}
+
 actions = {
         'activate_user':activate_user,
+        'create_group_repository':create_group_repository,
     }
 
 def initializer():
