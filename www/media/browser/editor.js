@@ -141,5 +141,6 @@ function language_from_mime(mime)
             'text/css': 'css',
             'text/plain': 'text',
             'text/html': 'html',
+            'application/xml': 'html',
             'application/xhtml+xml': 'html'}[mime];
 }
