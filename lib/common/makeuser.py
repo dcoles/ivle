@@ -103,6 +103,32 @@ def rebuild_svn_config():
     os.rename(conf.svn_conf + ".new", conf.svn_conf)
     chown_to_webserver(conf.svn_conf)
 
+def rebuild_svn_group_config():
+    """Build the complete SVN configuration file for groups
+    """
+    conn = db.DB()
+    groups = conn.get_all('project_group',
+        ['groupid', 'groupnm', 'projectsetid'])
+    f = open(conf.svn_group_conf + ".new", "w")
+    f.write("# IVLE SVN Group Repositories Configuration\n")
+    f.write("# Auto-generated on %s\n" % time.asctime())
+    f.write("\n")
+    for g in groups:
+        projectsetid = g['projectsetid']
+        offeringinfo = conn.get_offering_info(projectsetid)
+        subj_short_name = offeringinfo['subj_short_name']
+        year = offeringinfo['year']
+        semester = offeringinfo['semester']
+        reponame = "_".join([subj_short_name, year, semester, g['groupnm']])
+        f.write("[%s:/]\n"%reponame)
+        users = conn.get_projectgroup_members(g['groupid'])
+        for u in users:
+            f.write("%s = rw\n"%u['login'])
+        f.write("\n")
+    f.close()
+    os.rename(conf.svn_group_conf + ".new", conf.svn_group_conf)
+    chown_to_webserver(conf.svn_group_conf)
+
 def make_svn_auth(login, throw_on_error=True):
     """Setup svn authentication for the given user.
        FIXME: create local.auth entry

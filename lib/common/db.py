@@ -989,7 +989,19 @@ WHERE offering.subject = subject.subjectid AND
     project_set.projectsetid = %d;"""%projectsetid
         if dry:
             return query
-        return self.db.query(query).dictresult()[0]      
+        return self.db.query(query).dictresult()[0]
+
+    def get_projectgroup_members(self, groupid, dry=False):
+        """Returns the logins of all students in a project group
+        """
+        query = """\
+SELECT login
+FROM login, group_member
+WHERE login.loginid = group_member.loginid AND
+    group_member.groupid = %d;"""%groupid
+        if dry:
+            return query
+        return self.db.query(query).dictresult()
 
     def close(self):
         """Close the DB connection. Do not call any other functions after

@@ -55,11 +55,7 @@ def activate_user(props):
         logging.debug("Creating user's Subversion repository")
         common.makeuser.make_svn_repo(repopath, throw_on_error=False)
 
-        logging.debug("Rebuilding Subversion authorization config")
-        try:
-            common.makeuser.rebuild_svn_config()
-        except:
-            logging.warning('Rebuild of Subversion authorization config failed!')
+        rebuild_svn_config(props)
 
         logging.debug("Adding Subversion authentication")
         passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
@@ -75,6 +71,33 @@ def activate_user(props):
 
     finally:
         db.close()
+
+def rebuild_svn_config(props):
+    """Rebuilds the svn config file
+    Return value:
+        response (okay, failure)
+    """
+    try:
+        common.makeuser.rebuild_svn_config()
+    except Exception, e:
+        logging.warning('Rebuild of Subversion authorization config failed!')
+        return{'response': 'failure', 'msg': repr(e)}
+
+    return {'response': 'okay'}
+
+def rebuild_svn_group_config(props):
+    """Rebuilds the svn group config file
+    Return value:
+        response (okay, failure)
+    """
+    try:
+        common.makeuser.rebuild_svn_group_config()
+    except Exception, e:
+        logging.warning(
+            'Rebuild of Subversion group authorization config failed!')
+        return{'response': 'failure', 'msg': repr(e)}
+
+    return {'response': 'okay'}
 
 def create_group_repository(props):
     """Creates on disk repository for the given group
@@ -104,6 +127,8 @@ def create_group_repository(props):
 actions = {
         'activate_user':activate_user,
         'create_group_repository':create_group_repository,
+        'rebuild_svn_config':rebuild_svn_config,
+        'rebuild_svn_group_config':rebuild_svn_group_config,
     }
 
 def initializer():

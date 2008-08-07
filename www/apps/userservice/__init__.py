@@ -556,7 +556,7 @@ def handle_create_group(req, fields):
     if req.method != "POST":
         req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
             "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_MANAGEPROJECTS
+    # Check if this is allowed to manage groups
     if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
         req.throw_error(req.HTTP_FORBIDDEN,
         "You do not have permission to manage groups.")
@@ -634,10 +634,62 @@ def handle_create_group(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
-# TODO: write userservice/assign_to_group
-# Required cap: CAP_MANAGEGROUPS
-# Assigns a user to a project group
-# Required: loginid, groupid
+def handle_assign_group(req, fields):
+    """ Required cap: CAP_MANAGEGROUPS
+    Assigns a user to a project group
+    Required:
+        login, groupid
+    """
+    if req.method != "POST":
+        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
+            "Only POST requests are valid methods to create_user.")
+    # Check if this user is allowed to manage groups
+    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You do not have permission to manage groups.")
+    # Get required fields
+    login = fields.getfirst('login')
+    groupid = fields.getfirst('groupid')
+    if login is None or groupid is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: login, groupid")
+    groupid = int(groupid)
+
+    # Talk to the DB
+    db = common.db.DB()
+    try:
+        loginid = db.get_user_loginid(login)
+    except common.db.DBException, e:
+        req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
+
+    # Add assignment to database
+    try:
+        dbquery = db.insert(
+            {
+                'loginid': loginid,
+                'groupid': groupid,
+            },
+            "group_member", # table
+            frozenset(["loginid", "groupid"]), # fields
+        )
+    except pg.ProgrammingError, e:
+        req.throw_error(req.HTTP_FORBIDDEN, repr(e))
+
+    # Rebuild the svn config file
+    # Contact the usrmgt server
+    msg = {'rebuild_svn_group_config': {}}
+    try:
+        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+    except cjson.DecodeError, e:
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "Could not understand usrmgt server response: %s"%e.message)
+
+    if 'response' not in usrmgt or usrmgt['response']=='failure':
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+            "Failure creating repository: %s"%str(usrmgt))
+
+
+    return(cjson.encode({'response': 'okay'}))
 
 # Map action names (from the path)
 # to actual function objects
@@ -650,4 +702,5 @@ actions_map = {
     "create_project_set": handle_create_project_set,
     "create_project": handle_create_project,
     "create_group": handle_create_group,
+    "assign_group": handle_assign_group,
 }
