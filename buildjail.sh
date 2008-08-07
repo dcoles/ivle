@@ -35,7 +35,7 @@ JAIL=jail
 SYSTEMPACKAGES="python2.5 python-cjson python-svn"
 STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
     python-beautifulsoup python-lxml python-imaging \
-    python-simpletal python-nltk" # elementtree-1.3beta (needs tidy)
+    python-simpletal python-nltk python-nltk-data" # elementtree-1.3beta
 
 # FIXME: [hack] Override the default mirror to the local AARNET one.  This 
 # should really be a local configuration option, but unfortunately setup.py is 
@@ -80,5 +80,3 @@ sudo chroot $JAIL /bin/sh -c "apt-get -y --allow-unauthenticated install \
 sudo chroot $JAIL /bin/sh -c "apt-get -y upgrade"
 sudo chroot $JAIL /bin/sh -c "apt-get -y clean"
 
-echo "Pruning unwanted files from Jail..."
-sudo rm -rf $JAIL/dev/ $JAIL/sys/ $JAIL/proc/ $JAIL/boot/ $JAIL/var/lib/dpkg/ $JAIL/usr/share/perl* $JAIL/usr/share/doc $JAIL/usr/share/i18n $JAIL/usr/share/locale $JAIL/usr/share/man $JAIL/usr/share/zoneinfo
