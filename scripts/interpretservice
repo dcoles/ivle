@@ -49,7 +49,12 @@ path = os.path.split(filename)[0]
 python = "/usr/bin/python"
 
 # Everything should be done from the same directory as the script
-os.chdir(path)
+# If we can't chdir, a 404 will be thrown later when we can't access the file.
+try:
+    os.chdir(path)
+except OSError:
+    pass
+
 # Search the path for modules first
 sys.path[0] = path
 
