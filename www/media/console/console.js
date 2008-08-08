@@ -65,7 +65,7 @@ function start_server(callback)
         }
 
     //var current_path;
-    if(typeof(current_path) != 'undefined')
+    if((typeof(current_path) != 'undefined') && current_file)
     {
         // We have a current_path - give a suggestion to the server
         var path;
