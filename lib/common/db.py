@@ -924,7 +924,7 @@ WHERE login.login=%s
   AND group_member.loginid=login.loginid
   AND project_group.groupid=group_member.groupid
   AND project_group.projectsetid=project_set.projectsetid
-""" % (_escape(offeringid), _escape(login))
+""" % (_escape(login), _escape(offeringid))
         if dry:
             return query
         return self.db.query(query).dictresult()
