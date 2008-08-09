@@ -69,6 +69,10 @@ CodePress = function(obj) {
 		return self.editor.addChangeHandler ? self.editor.addChangeHandler(handler) : false;
 	}
 
+	self.addSaveHandler = function(handler) {
+		return self.editor.addSaveHandler ? self.editor.addSaveHandler(handler) : false;
+	}
+
 	self.toggleAutoComplete = function() {
 		self.editor.autocomplete = (self.editor.autocomplete) ? false : true;
 	}

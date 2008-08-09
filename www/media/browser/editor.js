@@ -83,6 +83,7 @@ function highlighting_changed(select)
 function initialise_codepress()
 {
     editbox.addChangeHandler(edit_text);
+    editbox.addSaveHandler(function() {document.getElementById("save_button").click()});
      
     /* We can only safely disable the save button on the first load.
      * Syntax highlighting changes will also get this function called.

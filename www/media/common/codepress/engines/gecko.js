@@ -32,7 +32,8 @@ CodePress = {
 		window.addEventListener('scroll', function() { if(!CodePress.scrolling) CodePress.syntaxHighlight('scroll') }, false);
 		completeChars = this.getCompleteChars();
 		completeEndingChars =  this.getCompleteEndingChars();
-		document.changehandlers = Array()
+		document.changehandlers = Array();
+		document.savehandlers = Array();
 	},
 
 	// treat key bindings
@@ -41,7 +42,7 @@ CodePress = {
 		charCode = evt.charCode;
 		fromChar = String.fromCharCode(charCode);
 		// Arrow keys, Pg{Up,Dn}, Home, End won't mutate the content.
-		if ([33, 34, 35, 36, 37, 38, 39, 40].indexOf(keyCode) == -1)
+		if ([33, 34, 35, 36, 37, 38, 39, 40].indexOf(keyCode) == -1 && (charCode!=115 || !evt.ctrlKey))
 		{
 			for (var handler in this.changehandlers)
 			{
@@ -49,7 +50,7 @@ CodePress = {
 			}
 		}
 
-		if((evt.ctrlKey || evt.metaKey) && evt.shiftKey && charCode!=90)  { // shortcuts = ctrl||appleKey+shift+key!=z(undo) 
+		else if((evt.ctrlKey || evt.metaKey) && evt.shiftKey && charCode!=90)  { // shortcuts = ctrl||appleKey+shift+key!=z(undo) 
 			CodePress.shortcuts(charCode?charCode:keyCode);
 		}
 		else if( (completeEndingChars.indexOf('|'+fromChar+'|')!= -1 || completeChars.indexOf('|'+fromChar+'|')!=-1) && CodePress.autocomplete) { // auto complete
@@ -77,7 +78,13 @@ CodePress = {
 		else if(charCode==99 && evt.ctrlKey)  { // handle cut
 		 	//alert(window.getSelection().getRangeAt(0).toString().replace(/\t/g,'FFF'));
 		}
-
+		else if(charCode==115 && evt.ctrlKey)  { // handle save
+			evt.preventDefault();
+			for (var handler in this.savehandlers)
+			{
+				document.savehandlers[handler]();
+			}
+		}
 	},
 
 	// put cursor back to its original position after every parsing
@@ -270,6 +277,10 @@ CodePress = {
 
 	addChangeHandler : function(handler) {
 		document.changehandlers.push(handler);
+	},
+
+	addSaveHandler : function(handler) {
+		document.savehandlers.push(handler);
 	},
 
 	// undo and redo methods
