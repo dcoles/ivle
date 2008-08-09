@@ -85,7 +85,19 @@
 # Required cap: None (for yourself)
 # Returns a JSON encoded listing of a students is enrollments
 
+# userservice/get_active_offerings(req, fields):
+# Required cap: None
+# Returns all the active offerings for a particular subject
+# Required:
+#   subjectid
+
 # PROJECTS AND GROUPS
+
+# userservice/get_project_groups
+# Required cap: None
+# Returns all the project groups in an offering grouped by project set
+# Required:
+#   offeringid
 
 # userservice/create_project_set
 # Required cap: CAP_MANAGEPROJECTS
@@ -453,6 +465,63 @@ def handle_get_enrolments(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+def handle_get_active_offerings(req, fields):
+    """Required cap: None
+    Returns all the active offerings for a particular subject
+    Required:
+        subjectid
+    """
+
+    subjectid = fields.getfirst('subjectid')
+    if subjectid is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: subjectid")
+    try:
+        subjectid = int(subjectid)
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "subjectid must be a integer")
+    
+    db = common.db.DB()
+    try:
+        offerings = db.get_offering_semesters(subjectid)
+    finally:
+        db.close()
+
+    response = cjson.encode([o for o in offerings if o['active']])
+    req.content_type = "text/plain"
+    req.write(response)
+
+def handle_get_project_groups(req, fields):
+    """Required cap: None
+    Returns all the project groups in an offering grouped by project set
+    Required:
+        offeringid
+    """
+
+    offeringid = fields.getfirst('offeringid')
+    if offeringid is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: offeringid")
+    try:
+        offeringid = int(offeringid)
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "offeringid must be a integer")
+    
+    db = common.db.DB()
+    try:
+        projectsets = db.get_projectsets_by_offering(offeringid)
+        for p in projectsets:
+            p['groups'] = db.get_groups_by_projectset(p['projectsetid'])
+    except Exception, e:
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    finally:
+        db.close()
+
+    response = cjson.encode(projectsets)
+    req.write(response)
+
 def handle_create_project_set(req, fields):
     """Required cap: CAP_MANAGEPROJECTS
     Creates a project set for a offering - returns the projectsetid
@@ -544,7 +613,6 @@ def handle_create_project(req, fields):
 
     req.content_type = "text/plain"
     req.write(response)
-
 
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
@@ -691,7 +759,6 @@ def handle_assign_group(req, fields):
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
             "Failure creating repository: %s"%str(usrmgt))
 
-
     return(cjson.encode({'response': 'okay'}))
 
 # Map action names (from the path)
@@ -702,6 +769,8 @@ actions_map = {
     "update_user": handle_update_user,
     "get_user": handle_get_user,
     "get_enrolments": handle_get_enrolments,
+    "get_active_offerings": handle_get_active_offerings,
+    "get_project_groups": handle_get_project_groups,
     "create_project_set": handle_create_project_set,
     "create_project": handle_create_project,
     "create_group": handle_create_group,

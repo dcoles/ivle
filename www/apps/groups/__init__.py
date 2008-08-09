@@ -25,14 +25,18 @@
 
 import cgi
 
-from common import util
+from common import (util, caps)
 import common.db
 
 def handle(req):
     # Set request attributes
     req.content_type = "text/html"
     req.styles = ["media/groups/groups.css"]
-    req.scripts = ["media/groups/groups.js"]
+    req.scripts = [
+        "media/groups/groups.js",
+        "media/common/util.js",
+        "media/common/json2.js",
+    ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     req.write('<div id="ivle_padding">\n')
@@ -51,15 +55,37 @@ def handle(req):
         for subject in subjects:
             show_subject_panel(req, db, subject['offeringid'],
                 subject['subj_name'])
+        if req.user.hasCap(caps.CAP_MANAGEGROUPS):
+            show_groupadmin_panel(req, db)
+        
         req.write("</div>\n")
     finally:
         db.close()
+
+def show_groupadmin_panel(req, db):
+    """
+    Shows the group admin panel
+    """
+    req.write("<hr/>\n")
+    req.write("<h1>Group Administration</h1>")
+    # Choose subject
+    subjects = db.get_subjects()
+    req.write("<p>Manage a subject's groups:</p>\n")
+    req.write("<select id=\"subject_select\">\n")
+    for s in subjects:
+        req.write("    <option value=\"%d\">%s: %s</option>\n"%
+            (s['subjectid'], s['subj_code'], s['subj_name']))
+    req.write("</select>\n")
+    req.write("<input type=\"button\" value=\"Manage Subject\" \
+        onclick=\"manage_subject()\" />\n")
+    req.write("<div id=\"subject_div\"></div>")
 
 def show_subject_panel(req, db, offeringid, subj_name):
     """
     Show the group management panel for a particular subject.
     Prints to req.
     """
+    req.write("<div id=\"subject%d\"class=\"subject\">"%offeringid)
     req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
     # Get the groups this user is in, for this offering
     groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
@@ -88,3 +114,4 @@ def show_subject_panel(req, db, offeringid, subj_name):
     if True:        # XXX Only if offering allows students to create groups
         req.write('<input type="button" onclick="create(%d)" '
             'value="Create Group" />\n' % offeringid)
+    req.write("</div>")

@@ -888,7 +888,27 @@ INSERT INTO enrolment (loginid, offeringid)
         subj_code, subj_name, subj_short_name, url
         """
         return self.get_all("subject",
-            ("subj_code", "subj_name", "subj_short_name", "url"), dry)
+            ("subjectid", "subj_code", "subj_name", "subj_short_name", "url"),
+            dry)
+
+    def get_offering_semesters(self, subjectid, dry=False):
+        """
+        Get the semester information for a subject as well as providing 
+        information about if the subject is active and which semester it is in.
+        """
+        query = """\
+SELECT offeringid, subj_name, year, semester, active
+FROM semester, offering, subject
+WHERE offering.semesterid = semester.semesterid AND
+    offering.subject = subject.subjectid AND
+    offering.subject = %d;"""%subjectid
+        if dry:
+            return query
+        results = self.db.query(query).dictresult()
+        # Parse boolean varibles
+        for result in results:
+            result['active'] = _parse_boolean(result['active'])
+        return results
 
     def get_enrolment(self, login, dry=False):
         """
@@ -952,7 +972,6 @@ WHERE login.login=%s
 
 
     # PROJECT GROUPS
-
     def get_groups_by_user(self, login, offeringid=None, dry=False):
         """
         Get all project groups the student is in, corresponding to a
@@ -1018,6 +1037,26 @@ SELECT login
 FROM login, group_member
 WHERE login.loginid = group_member.loginid AND
     group_member.groupid = %d;"""%groupid
+        if dry:
+            return query
+        return self.db.query(query).dictresult()
+
+    def get_projectsets_by_offering(self, offeringid, dry=False):
+        """Returns all the projectsets in a particular offering"""
+        query = """\
+SELECT projectsetid, max_students_per_group
+FROM project_set
+WHERE project_set.offeringid = %d;"""%offeringid
+        if dry:
+            return query
+        return self.db.query(query).dictresult()
+
+    def get_groups_by_projectset(self, projectsetid, dry=False):
+        """Returns all the groups that are in a particular projectset"""
+        query = """\
+SELECT groupid, groupnm, nick, createdby, epoch
+FROM project_group
+WHERE project_group.projectsetid = %d;"""%projectsetid
         if dry:
             return query
         return self.db.query(query).dictresult()
