@@ -73,10 +73,22 @@ function home_listing(listing, subjects, path)
             /* Print the file listing */
             ul = document.createElement("ul");
             // Stuff
-            ul.appendChild(make_subject_item(subjpath, PERSONALDIR,
+            ul.appendChild(make_subject_item(subjpath,
+                path_join("users", username, subjpath), PERSONALDIR,
                 "Your own files in this subject"));
+
             // Groups
-            /* TODO: List groups */
+            var groups = subject.groups;
+            for (var j=0; j<subject.groups.length; j++)
+            {
+                var group = subject.groups[j];
+                ul.appendChild(make_subject_item(subjpath,
+                    path_join("groups", subject.subj_short_name + "_" +
+                              subject.year + "_" + subject.semester + "_" +
+                              group.name),
+                    group.name,
+                    "This group's files in this subject"));
+            }
             
             specialhomediv.appendChild(ul);
 
@@ -93,7 +105,8 @@ function home_listing(listing, subjects, path)
         specialhomediv.appendChild(h2);
         /* Create the contents */
         ul = document.createElement("ul");
-        ul.appendChild(make_subject_item("", "stuff",
+        ul.appendChild(make_subject_item("",
+              path_join("users", username, "stuff"), "stuff",
               "Your own files not related to a subject"));
         specialhomediv.appendChild(ul);
         /* Remove stuff from the listing */
@@ -118,7 +131,7 @@ function home_listing(listing, subjects, path)
 /* Does an series of AJAX requests to find out the properties of this folder 
  * and then updates the folder view
  */
-function make_subject_item(path, name, description)
+function make_subject_item(path, repopath, name, description)
 {
     // Create the temporary item
     var li = document.createElement("li");
@@ -182,9 +195,6 @@ function make_subject_item(path, name, description)
                 li.setAttribute("class", "listing-loading");
 
                 var localpath = path_join(path, name);
-                // The repository doesn't know about PERSONALDIR.
-                if (name == PERSONALDIR) name = '';
-                var repopath = path_join('users', username, path, name);
 
                 if (create_if_needed(repopath))
                 {
