@@ -910,6 +910,25 @@ WHERE enrolment.offeringid=offering.offeringid
             return query
         return self.db.query(query).dictresult()
 
+    def get_enrolment_groups(self, login, offeringid, dry=False):
+        """
+        Get all groups the user is member of in the given offering.
+        Returns a list of dicts (all values strings), with the keys:
+        name, nick
+        """
+        query = """\
+SELECT project_group.groupnm as name, project_group.nick as nick
+FROM project_set, project_group, group_member, login
+WHERE login.login=%s
+  AND project_set.offeringid=%s
+  AND group_member.loginid=login.loginid
+  AND project_group.groupid=group_member.groupid
+  AND project_group.projectsetid=project_set.projectsetid
+""" % (_escape(offeringid), _escape(login))
+        if dry:
+            return query
+        return self.db.query(query).dictresult()
+
     def get_subjects_status(self, login, dry=False):
         """
         Get all subjects in IVLE, split into lists of enrolled and unenrolled

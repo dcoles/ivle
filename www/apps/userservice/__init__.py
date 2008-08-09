@@ -423,7 +423,8 @@ def handle_get_user(req, fields):
 
 def handle_get_enrolments(req, fields):
     """
-    Retrieve a user's enrolment details.
+    Retrieve a user's enrolment details. Each enrolment includes any group
+    memberships for that offering.
     """
     # For the moment we're only able to query ourselves
     fullpowers = False
@@ -445,6 +446,8 @@ def handle_get_enrolments(req, fields):
     # Just talk direct to the DB
     db = common.db.DB()
     enrolments = db.get_enrolment(login)
+    for e in enrolments:
+        e['groups'] = db.get_enrolment_groups(login, e['offeringid'])
     db.close()
     response = cjson.encode(enrolments)
     req.content_type = "text/plain"
