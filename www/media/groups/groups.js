@@ -92,6 +92,7 @@ function manage_subject_offering(offeringid, elem)
                 li.id = namespace;
                 var button = document.createElement("a");
                 button.id = namespace+"_button";
+                button.setAttribute("class", "choice");
                 button.textContent = '(manage)';
                 button.setAttribute("onclick",
                     "manage_group("+offeringid+","+group.groupid+",'"+namespace+"')");
