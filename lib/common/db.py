@@ -915,7 +915,7 @@ WHERE offering.semesterid = semester.semesterid AND
         Gets the logins of all the people enroled in an offering
         """
         query = """\
-SELECT login
+SELECT login.login AS login, login.fullname AS fullname
 FROM login, enrolment
 WHERE login.loginid = enrolment.loginid AND
     enrolment.offeringid = %d;"""%offeringid
