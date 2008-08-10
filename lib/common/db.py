@@ -910,6 +910,20 @@ WHERE offering.semesterid = semester.semesterid AND
             result['active'] = _parse_boolean(result['active'])
         return results
 
+    def get_offering_members(self, offeringid, dry=False):
+        """
+        Gets the logins of all the people enroled in an offering
+        """
+        query = """\
+SELECT login
+FROM login, enrolment
+WHERE login.loginid = enrolment.loginid AND
+    enrolment.offeringid = %d;"""%offeringid
+        if dry:
+            return query
+        return self.db.query(query).dictresult()
+
+
     def get_enrolment(self, login, dry=False):
         """
         Get all offerings (in IVLE) the student is enrolled in.

@@ -125,10 +125,17 @@
 # Optional:
 #   nick
 
+# userservice/get_group_membership
+# Required cap: None
+# Returns two lists. One of people in the group and one of people not in the 
+# group (but enroled in the offering)
+# Required:
+#   groupid
+
 # userservice/assign_to_group
 # Required cap: CAP_MANAGEGROUPS
 # Assigns a user to a project group
-# Required: loginid, groupid
+# Required: login, groupid
 
 import os
 import sys
@@ -637,7 +644,11 @@ def handle_create_group(req, fields):
     if projectsetid is None or groupnm is None:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: projectsetid, groupnm")
-    projectsetid = int(projectsetid)
+    try:
+        projectsetid = int(projectsetid)
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "projectsetid must be an int")
     # Get optional fields
     nick = fields.getfirst('nick')
 
@@ -701,6 +712,48 @@ def handle_create_group(req, fields):
             "Failure creating repository: %s"%str(usrmgt))
 
     response = cjson.encode(singlerow)
+
+    req.content_type = "text/plain"
+    req.write(response)
+
+def handle_get_group_membership(req, fields):
+    """ Required cap: None
+    Returns two lists. One of people in the group and one of people not in the 
+    group (but enroled in the offering)
+    Required:
+        groupid, offeringid
+    """
+    # Get required fields
+    groupid = fields.getfirst('groupid')
+    offeringid = fields.getfirst('offeringid')
+    if groupid is None or offeringid is None:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "Required: groupid, offeringid")
+    try:
+        groupid = int(groupid)
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "groupid must be an int")
+    try:
+        offeringid = int(offeringid)
+    except:
+        req.throw_error(req.HTTP_BAD_REQUEST,
+            "offeringid must be an int")
+
+    db = common.db.DB()
+    try:
+        offeringmembers = db.get_offering_members(offeringid)
+        groupmembers = db.get_projectgroup_members(groupid)
+    finally:
+        db.close()
+    
+    # Make sure we don't include members in both lists
+    for member in groupmembers:
+        if member in offeringmembers:
+            offeringmembers.remove(member)
+
+    response = cjson.encode(
+        {'groupmembers': groupmembers, 'available': offeringmembers})
 
     req.content_type = "text/plain"
     req.write(response)
@@ -771,6 +824,7 @@ actions_map = {
     "get_enrolments": handle_get_enrolments,
     "get_active_offerings": handle_get_active_offerings,
     "get_project_groups": handle_get_project_groups,
+    "get_group_membership": handle_get_group_membership,
     "create_project_set": handle_create_project_set,
     "create_project": handle_create_project,
     "create_group": handle_create_group,
