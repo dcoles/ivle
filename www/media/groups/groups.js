@@ -74,11 +74,6 @@ function manage_subject_offering(offeringid, elem)
             var groups = projectset.groups;
             
             var dt = dom_make_text_elem("dt", "Project Set "+(i+1)+" ");
-            var input = document.createElement("input");
-            input.value = "New Group";
-            input.type = 'button';
-            input.setAttribute("onclick", "create_new_group("+projectset['projectsetid']+")");
-            dt.appendChild(input);
             dl.appendChild(dt);
             var dd = document.createElement("dd");
             var ul = document.createElement("ul");
@@ -99,6 +94,13 @@ function manage_subject_offering(offeringid, elem)
                 li.appendChild(button);
                 ul.appendChild(li);
             }
+            var li = dom_make_text_elem("li", "");
+            var input = document.createElement("input");
+            input.value = "New";
+            input.type = 'button';
+            input.setAttribute("onclick", "create_new_group("+projectset['projectsetid']+")");
+            li.appendChild(input);
+            ul.appendChild(li);
             dl.appendChild(dd);
         }
     }
@@ -136,7 +138,17 @@ function manage_group(offeringid, groupid, namespace)
         var available = members.available;
         var groupmembers = members.groupmembers;
         
+        /* Existing members */
+        var ul = document.createElement("ul");
+        for (var i=0; i<groupmembers.length; i++)
+        {
+            var li = dom_make_text_elem("li", groupmembers[i].fullname + " (" +
+                                              groupmembers[i].login + ")");
+            ul.appendChild(li);
+        }
+
         /* Add member box */
+        var add_li = document.createElement("li");
         var select = document.createElement("select");
         for (var i=0; i<available.length; i++)
         {
@@ -145,24 +157,16 @@ function manage_group(offeringid, groupid, namespace)
             select.appendChild(option);
         }
         var button = document.createElement("input");
-        button.value = "Add new group member";
+        button.value = "Add";
         button.type = 'button';
         button.addEventListener("click", function()
         {
             args = {'login': select.value, 'groupid': groupid};
             ajax_call(null, serviceapp, 'assign_group', args, 'POST');
         }, false);
-        manage_div.appendChild(select);
-        manage_div.appendChild(button);
-        
-        /* Existing members */
-        manage_div.appendChild(dom_make_text_elem("p", "Group Members:"));
-        var ul = document.createElement("ul");
-        for (var i=0; i<groupmembers.length; i++)
-        {
-            var li = dom_make_text_elem("li", groupmembers[i].login);
-            ul.appendChild(li);
-        }
+        add_li.appendChild(select);
+        add_li.appendChild(button);
+        ul.appendChild(add_li);
         manage_div.appendChild(ul);
     }
     var args = {'offeringid': offeringid, 'groupid': groupid};

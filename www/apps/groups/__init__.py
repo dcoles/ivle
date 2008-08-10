@@ -70,13 +70,13 @@ def show_groupadmin_panel(req, db):
     req.write("<h1>Group Administration</h1>")
     # Choose subject
     subjects = db.get_subjects()
-    req.write("<p>Manage a subject's groups:</p>\n")
+    req.write("<label for=\"subject_select\">Subject:</label>\n")
     req.write("<select id=\"subject_select\">\n")
     for s in subjects:
-        req.write("    <option value=\"%d\">%s: %s</option>\n"%
-            (s['subjectid'], s['subj_code'], s['subj_name']))
+        req.write("    <option value=\"%d\">%s (%s)</option>\n"%
+            (s['subjectid'], s['subj_name'], s['subj_code']))
     req.write("</select>\n")
-    req.write("<input type=\"button\" value=\"Manage Subject\" \
+    req.write("<input type=\"button\" value=\"Manage\" \
         onclick=\"manage_subject()\" />\n")
     req.write("<div id=\"subject_div\"></div>")
 
