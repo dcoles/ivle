@@ -119,7 +119,7 @@ function create_new_group(projectsetid)
     }
     else
     {
-        alert("Error: Could not add group. Does it already exits?");
+        alert("Error: Could not add group. Does it already exist?");
     }
     /* Reload the display */
     manage_subject();
