@@ -603,18 +603,22 @@ def handle_create_project(req, fields):
 
     # Talk to the DB
     db = common.db.DB()
-    dbquery = db.return_insert(
-        {
-            'projectsetid': projectsetid,
-            'synopsis': synopsis,
-            'url': url,
-            'deadline': deadline,
-        },
-        "project", # table
-        frozenset(["projectsetid", "synopsis", "url", "deadline"]), # fields
-        ["projectid"], # returns
-    )
-    db.close()
+    try:
+        dbquery = db.return_insert(
+            {
+                'projectsetid': projectsetid,
+                'synopsis': synopsis,
+                'url': url,
+                'deadline': deadline,
+            },
+            "project", # table
+            frozenset(["projectsetid", "synopsis", "url", "deadline"]),
+            ["projectid"], # returns
+        )
+    except Exception, e:
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    finally:
+        db.close()
     
     response = cjson.encode(dbquery.dictresult()[0])
 
@@ -657,6 +661,9 @@ def handle_create_group(req, fields):
     # Other fields
     createdby = db.get_user_loginid(req.user.login)
     epoch = time.localtime()
+
+    # Begin transaction since things can go wrong
+    db.start_transaction()
     try:
         dbquery = db.return_insert(
             {
@@ -671,45 +678,48 @@ def handle_create_group(req, fields):
                 "epoch"]), # fields
             ["groupid"], # returns
         )
-    except pg.ProgrammingError, e:
-        req.throw_error(req.HTTP_FORBIDDEN, repr(e))
  
-    singlerow = dbquery.dictresult()[0]
-    groupid = singlerow['groupid']
+        singlerow = dbquery.dictresult()[0]
+        groupid = singlerow['groupid']
 
-    # Create the groups repository
-    # Get the arguments for usermgt.activate_user from the session
-    # (The user must have already logged in to use this app)
+        # Create the groups repository
+        # Get the arguments for usermgt.activate_user from the session
+        # (The user must have already logged in to use this app)
     
-    # Find the rest of the parameters we need
-    try:
+        # Find the rest of the parameters we need
         offeringinfo = db.get_offering_info(projectsetid)
-    except pg.ProgrammingError, e:
+                
+        subj_short_name = offeringinfo['subj_short_name']
+        year = offeringinfo['year']
+        semester = offeringinfo['semester']
+
+        args = {
+            "subj_short_name": subj_short_name,
+            "year": year,
+            "semester": semester,
+            "groupnm": groupnm,
+        }
+        msg = {'create_group_repository': args}
+
+        # Contact the usrmgt server
+        try:
+            usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        except cjson.DecodeError, e:
+            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+                "Could not understand usrmgt server response: %s"%e.message)
+
+        if 'response' not in usrmgt or usrmgt['response']=='failure':
+            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+                "Failure creating repository: %s"%str(usrmgt))
+    
+        # Everything went OK. Lock it in
+        db.commit()
+
+    except Exception, e:
+        db.rollback()
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    db.close()
-
-    subj_short_name = offeringinfo['subj_short_name']
-    year = offeringinfo['year']
-    semester = offeringinfo['semester']
-
-    args = {
-        "subj_short_name": subj_short_name,
-        "year": year,
-        "semester": semester,
-        "groupnm": groupnm,
-    }
-    msg = {'create_group_repository': args}
-
-    # Contact the usrmgt server
-    try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
-    except cjson.DecodeError, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Could not understand usrmgt server response: %s"%e.message)
-
-    if 'response' not in usrmgt or usrmgt['response']=='failure':
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Failure creating repository: %s"%str(usrmgt))
+    finally:
+        db.close()
 
     response = cjson.encode(singlerow)
 
@@ -787,6 +797,8 @@ def handle_assign_group(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
 
     # Add assignment to database
+    # Start transaction since things can go wrong
+    db.start_transaction()
     try:
         dbquery = db.insert(
             {
@@ -796,21 +808,28 @@ def handle_assign_group(req, fields):
             "group_member", # table
             frozenset(["loginid", "groupid"]), # fields
         )
-    except pg.ProgrammingError, e:
-        req.throw_error(req.HTTP_FORBIDDEN, repr(e))
 
-    # Rebuild the svn config file
-    # Contact the usrmgt server
-    msg = {'rebuild_svn_group_config': {}}
-    try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
-    except cjson.DecodeError, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Could not understand usrmgt server response: %s"%e.message)
+        # Rebuild the svn config file
+        # Contact the usrmgt server
+        msg = {'rebuild_svn_group_config': {}}
+        try:
+            usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        except cjson.DecodeError, e:
+            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+                "Could not understand usrmgt server response: %s"%e.message)
 
-    if 'response' not in usrmgt or usrmgt['response']=='failure':
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "Failure creating repository: %s"%str(usrmgt))
+            if 'response' not in usrmgt or usrmgt['response']=='failure':
+                req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
+                    "Failure creating repository: %s"%str(usrmgt))
+
+        # Everything went OK. Lock it into the database
+        db.commit()
+
+    except Exception, e:
+        db.rollback()
+        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    finally:
+        db.close()
 
     return(cjson.encode({'response': 'okay'}))
 
