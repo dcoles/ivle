@@ -90,6 +90,8 @@ def show_subject_panel(req, db, offeringid, subj_name):
     # Get the groups this user is in, for this offering
     groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
     for groupid, groupnm, group_nick, is_member in groups:
+        if group_nick is None:
+            group_nick = "";
         req.write("<h2>%s (%s)</h2>\n" %
             (cgi.escape(group_nick), cgi.escape(groupnm)))
         if is_member:
