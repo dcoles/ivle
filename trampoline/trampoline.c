@@ -319,11 +319,11 @@ int main(int argc, char* const argv[])
     {
         struct rlimit l;
         /* Process data segment in memory */
-        l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
-        l.rlim_max = 72 * 1024 * 1024; /* 64Mb */
-        if (setrlimit(RLIMIT_DATA, &l))
+        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
+        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        if (setrlimit(RLIMIT_AS, &l))
         {
-            perror("could not setrlimit/RLIMIT_DATA");
+            perror("could not setrlimit/RLIMIT_AS");
             exit(1);
         }
 
