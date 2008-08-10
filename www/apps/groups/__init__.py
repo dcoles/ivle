@@ -85,19 +85,20 @@ def show_subject_panel(req, db, offeringid, subj_name):
     Show the group management panel for a particular subject.
     Prints to req.
     """
-    req.write("<div id=\"subject%d\"class=\"subject\">"%offeringid)
-    req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
     # Get the groups this user is in, for this offering
     groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
+    if len(groups) == 0:
+        return
+
+    req.write("<div id=\"subject%d\"class=\"subject\">"%offeringid)
+    req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
     for groupid, groupnm, group_nick, is_member in groups:
         if group_nick is None:
             group_nick = "";
         req.write("<h2>%s (%s)</h2>\n" %
             (cgi.escape(group_nick), cgi.escape(groupnm)))
         if is_member:
-            req.write('<p>You are in this group.\n'
-                '  <input type="button" onclick="manage(&quot;%s&quot;)" '
-                'value="Manage" /></p>\n' % (cgi.escape(groupnm)))
+            req.write('<p>You are a member of this group.</p>\n')
         else:
             req.write('<p>You have been invited to this group.</p>\n')
             req.write('<p>'
@@ -109,11 +110,11 @@ def show_subject_panel(req, db, offeringid, subj_name):
                 'value="Decline" />\n'
                 '</p>\n' % {"groupnm": cgi.escape(groupnm)})
         req.write("<h3>Members</h3>\n")
-        req.write("<table>\n")
-        # TODO: Fill in members table
-        req.write("</table>\n")
+        req.write("<ul>\n")
+        for user in db.get_projectgroup_members(groupid):
+            req.write("<li>%s (%s)</li>" %
+                      (cgi.escape(user['fullname']),
+                       cgi.escape(user['login'])))
+        req.write("</ul>\n")
 
-    if True:        # XXX Only if offering allows students to create groups
-        req.write('<input type="button" onclick="create(%d)" '
-            'value="Create Group" />\n' % offeringid)
     req.write("</div>")

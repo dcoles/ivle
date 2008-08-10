@@ -1047,10 +1047,11 @@ WHERE offering.subject = subject.subjectid AND
         """Returns the logins of all students in a project group
         """
         query = """\
-SELECT login
+SELECT login.login as login, login.fullname as fullname
 FROM login, group_member
 WHERE login.loginid = group_member.loginid AND
-    group_member.groupid = %d;"""%groupid
+    group_member.groupid = %d
+ORDER BY login.login;"""%groupid
         if dry:
             return query
         return self.db.query(query).dictresult()
