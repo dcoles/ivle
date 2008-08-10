@@ -797,8 +797,8 @@ def handle_assign_group(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
 
     # Add assignment to database
-    # Start transaction since things can go wrong
-    db.start_transaction()
+    # We can't use a transaction here, as usrmgt-server needs to see the
+    # changes!
     try:
         dbquery = db.insert(
             {
@@ -821,12 +821,7 @@ def handle_assign_group(req, fields):
             if 'response' not in usrmgt or usrmgt['response']=='failure':
                 req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
                     "Failure creating repository: %s"%str(usrmgt))
-
-        # Everything went OK. Lock it into the database
-        db.commit()
-
     except Exception, e:
-        db.rollback()
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
     finally:
         db.close()
