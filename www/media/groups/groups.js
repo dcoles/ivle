@@ -130,8 +130,24 @@ function manage_group(offeringid, groupid, namespace)
     var elem = document.getElementById(namespace);
     var button = document.getElementById(namespace+"_button");
     var manage_div = document.createElement("div")
+    manage_div.id = namespace + "_contents";
     elem.insertBefore(manage_div, button);
+    
+    /* Refresh contents */
+    list_projectgroup_contents(offeringid, groupid, manage_div.id);
 
+    /* Remove the button element */
+    elem.removeChild(button);
+}
+
+/* Lists the information about a particular project group identified by groupid 
+ * in an offering identified by offeringid in the element with id elemnm. May 
+ * be called multiple times safely to refresh the displayed information.
+ */
+function list_projectgroup_contents(offeringid, groupid, elemnm)
+{
+    var contents = document.getElementById(elemnm);
+    dom_removechildren(contents);
     var callback = function(xhr)
     {
         var members = JSON.parse(xhr.responseText);
@@ -163,14 +179,14 @@ function manage_group(offeringid, groupid, namespace)
         {
             args = {'login': select.value, 'groupid': groupid};
             ajax_call(null, serviceapp, 'assign_group', args, 'POST');
+            list_projectgroup_contents(offeringid, groupid, elemnm);
         }, false);
         add_li.appendChild(select);
         add_li.appendChild(button);
         ul.appendChild(add_li);
-        manage_div.appendChild(ul);
+        contents.appendChild(ul);
     }
     var args = {'offeringid': offeringid, 'groupid': groupid};
     ajax_call(callback, serviceapp, 'get_group_membership', args, 'GET');
-    /* Remove the button element */
-    elem.removeChild(button);
+
 }
