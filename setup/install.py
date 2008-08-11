@@ -108,6 +108,10 @@ def __install(dry=False,nojail=False,nosubjects=False):
     action_copylist(install_list.list_www, ivle_install_dir, dry)
     action_copylist(install_list.list_lib, ivle_install_dir, dry)
     
+    # Make the config file private
+    configpath = os.path.join(ivle_install_dir, 'lib/conf/conf.py')
+    action_make_private(configpath, dry)
+
     # Copy the php directory
     forum_dir = "www/php/phpBB3"
     forum_path = os.path.join(ivle_install_dir, forum_dir)

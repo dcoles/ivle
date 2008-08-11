@@ -43,6 +43,9 @@ PYTHON_VERSION = sys.version[0:3]
 # Location of standard programs
 RSYNC = '/usr/bin/rsync'
 
+# UID of the Webserver
+wwwuid = 33
+
 def copy_file_to_jail(src, dry):
     """Copies a single file from an absolute location into the same location
     within the jail. src must begin with a '/'. The jail will be located
@@ -216,6 +219,16 @@ def action_chmod_x(file, dry):
     if not dry:
         os.chmod(file, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR
             | stat.S_IXGRP | stat.S_IRGRP | stat.S_IXOTH | stat.S_IROTH)
+
+def action_make_private(file, dry):
+    """Ensures that a file is private to IVLE (chowns to www-data and chmod to 
+    600)"""
+    print "chown %s:%s %s"%(wwwuid, wwwuid, file)
+    if not dry:
+        os.chown(file, wwwuid, wwwuid)
+    print "chmod 600", file
+    if not dry:
+        os.chmod(file, stat.S_IRUSR | stat.S_IWUSR)
 
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
