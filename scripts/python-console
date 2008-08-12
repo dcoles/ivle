@@ -5,6 +5,8 @@
 
 import cjson
 import codeop
+import cPickle
+import cStringIO
 import md5
 import os
 import Queue
@@ -15,6 +17,9 @@ import traceback
 from threading import Thread
 
 import common.chat
+
+# This version must be supported by both the local and remote code
+PICKLEVERSION = 2
 
 class Interrupt(Exception):
     def __init__(self):
@@ -199,6 +204,38 @@ class PythonRunner(Thread):
                     self.webio.flush()
                     self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
                     self.curr_cmd = ''
+            if 'inspect' in ln:
+                # Like block but return a serialization of the state
+                # throw away a partial command and all state.
+                inspection = {}
+                globs = {}
+                globs['__builtins__'] = globals()['__builtins__']
+                output_buffer = cStringIO.StringIO()
+                try:
+                    cmd = compile(ln['inspect'], "<web session>", 'exec');
+                    #self.execCmd(cmd)
+                    # Begin changes
+                    sys.stdin = None
+                    sys.stdout = output_buffer
+                    sys.stderr = output_buffer
+                    # We don't expect a return value - 'single' symbol prints 
+                    # it.
+                    eval(cmd, globs)
+                except Exception, e:
+                    exception = {}
+                    tb = format_exc_start(start=1)
+                    exception['traceback'] = \
+                        ''.join(tb).decode('utf-8', 'replace')
+                    exception['except'] = cPickle.dumps(e, PICKLEVERSION)
+                    inspection['exception'] = exception                
+                
+                # Write out the inspection object
+                inspection['output'] = output_buffer.getvalue()
+                inspection['globals'] = flatten(globs)
+                self.cmdQ.put({"inspection": inspection})
+                output_buffer.close()
+                self.curr_cmd = ''
+
 
 def daemonize():
     if os.fork():   # launch child and...
@@ -331,6 +368,16 @@ def incomplete_utf8_sequence(byteseq):
     elif count < expect:
         # Incomplete
         return count
+
+# Takes an object and returns a flattened version suitable for JSON
+def flatten(object):
+    flat = {}
+    for o in object:
+        try:
+            flat[o] = cPickle.dumps(object[o], PICKLEVERSION)
+        except:
+            pass
+    return flat
 
 if __name__ == "__main__":
     port = int(sys.argv[1])

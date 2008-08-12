@@ -55,6 +55,8 @@ def handle(req):
         handle_chat(req)
     elif req.path == "block":
         handle_chat(req, kind="block")
+    elif req.path == "inspect":
+        handle_chat(req, kind="inspect")
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
