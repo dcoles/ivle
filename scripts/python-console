@@ -19,7 +19,7 @@ from threading import Thread
 import common.chat
 
 # This version must be supported by both the local and remote code
-PICKLEVERSION = 2
+PICKLEVERSION = 0
 
 class Interrupt(Exception):
     def __init__(self):
@@ -194,7 +194,7 @@ class PythonRunner(Thread):
                     self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
                     self.webio.flush()
                     self.curr_cmd = ''
-            if 'block' in ln:
+            elif 'block' in ln:
                 # throw away a partial command.
                 try:
                     cmd = compile(ln['block'], "<web session>", 'exec');
@@ -204,23 +204,52 @@ class PythonRunner(Thread):
                     self.webio.flush()
                     self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
                     self.curr_cmd = ''
-            if 'inspect' in ln:
+            elif 'flush' in ln:
+                # reset the globals
+                self.globs = {}
+                self.globs['__builtins__'] = globals()['__builtins__']
+                self.cmdQ.put({'response': 'okay'})
+                # Unpickle the new space (if provided)
+                if isinstance(ln['flush'],dict):
+                    for g in ln['flush']:
+                        try:
+                            self.globs[g] = cPickle.loads(ln['flush'][g])
+                        except:
+                            pass
+            elif 'call' in ln:
+                if isinstance(ln['call'], dict):
+                    params = ln['call']
+                    if 'args' in params:
+                        args = params['args']
+                    else:
+                        args = []
+                    if 'kwargs' in params:
+                        kwargs = params['kwargs']
+                    else:
+                        kwargs = {}
+
+                    try:
+                        function = cPickle.loads(params['function'])
+                        result = function(*args, **kwargs)
+                        self.cmdQ.put({'output': result})
+                    except Exception,e:
+                        self.cmdQ.put({'response': 'failure: %s'%repr(e)})
+                else:
+                    self.cmdQ.put({'response': 'failure'})
+            elif 'inspect' in ln:
                 # Like block but return a serialization of the state
-                # throw away a partial command and all state.
+                # throw away partial command
                 inspection = {}
-                globs = {}
-                globs['__builtins__'] = globals()['__builtins__']
-                output_buffer = cStringIO.StringIO()
+                stdout = cStringIO.StringIO()
+                stderr = cStringIO.StringIO()
                 try:
                     cmd = compile(ln['inspect'], "<web session>", 'exec');
-                    #self.execCmd(cmd)
-                    # Begin changes
                     sys.stdin = None
-                    sys.stdout = output_buffer
-                    sys.stderr = output_buffer
+                    sys.stdout = stdout
+                    sys.stderr = stderr
                     # We don't expect a return value - 'single' symbol prints 
                     # it.
-                    eval(cmd, globs)
+                    eval(cmd, self.globs)
                 except Exception, e:
                     exception = {}
                     tb = format_exc_start(start=1)
@@ -230,12 +259,15 @@ class PythonRunner(Thread):
                     inspection['exception'] = exception                
                 
                 # Write out the inspection object
-                inspection['output'] = output_buffer.getvalue()
-                inspection['globals'] = flatten(globs)
-                self.cmdQ.put({"inspection": inspection})
-                output_buffer.close()
+                inspection['stdout'] = stdout.getvalue()
+                inspection['stderr'] = stderr.getvalue()
+                inspection['globals'] = flatten(self.globs)
+                self.cmdQ.put(inspection)
+                stdout.close()
+                stderr.close()
                 self.curr_cmd = ''
-
+            else:
+                raise Exception, "Invalid Command"
 
 def daemonize():
     if os.fork():   # launch child and...

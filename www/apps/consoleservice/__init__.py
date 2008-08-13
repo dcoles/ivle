@@ -29,14 +29,9 @@ import uuid
 
 import cjson
 
-from common import (util, studpath, chat)
+from common import (util, studpath, chat, console)
 import conf
 import errno
-
-trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
-python_path = "/usr/bin/python"                     # Within jail
-console_dir = "/opt/ivle/scripts"                   # Within jail
-console_path = "/opt/ivle/scripts/python-console"   # Within jail
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
@@ -55,6 +50,8 @@ def handle(req):
         handle_chat(req)
     elif req.path == "block":
         handle_chat(req, kind="block")
+    elif req.path == "flush":
+        handle_chat(req, kind="flush")
     elif req.path == "inspect":
         handle_chat(req, kind="inspect")
     else:
@@ -82,10 +79,11 @@ def handle_start(req):
 
     # Start the server
     jail_path = os.path.join(conf.jail_base, req.user.login)
-    (host, port, magic) = start_console(uid, jail_path, working_dir)
+    cons = console.Console(uid, jail_path, working_dir)
 
     # Assemble the key and return it.
-    key = cjson.encode({"host": host, "port": port, "magic": magic})
+    key = cjson.encode(
+        {"host": cons.host, "port": cons.port, "magic": cons.magic})
     req.write(cjson.encode(key.encode("hex")))
 
 def handle_chat(req, kind = "chat"):
@@ -142,67 +140,20 @@ def handle_chat(req, kind = "chat"):
     req.content_type = "text/plain"
     req.write(response)
 
-def start_console(uid, jail_path, working_dir):
-    """Starts up a console service for user uid, inside chroot jail jail_path 
-    with work directory of working_dir
-    Returns a tupple (host, port, magic)
-    """
-
-    # TODO: Figure out the host name the console server is running on.
-    host = socket.gethostname()
-
-    # Create magic
-    # TODO
-    magic = md5.new(uuid.uuid4().bytes).digest().encode('hex')
-
-    # Try to find a free port on the server.
-    # Just try some random ports in the range [3000,8000)
-    # until we either succeed, or give up. If you think this
-    # sounds risky, it isn't:
-    # For N ports (e.g. 5000) with k (e.g. 100) in use, the
-    # probability of failing to find a free port in t (e.g. 5) tries
-    # is (k / N) ** t (e.g. 3.2*10e-9).
-
-    tries = 0
-    while tries < 5:
-        port = int(random.uniform(3000, 8000))
-
-        # Start the console server (port, magic)
-        # trampoline usage: tramp uid jail_dir working_dir script_path args
-        # console usage:    python-console port magic
-        cmd = ' '.join([trampoline_path, str(uid), jail_path,
-                            console_dir, python_path, console_path,
-                            str(port), str(magic), working_dir])
-
-        res = os.system(cmd)
-
-        if res == 0:
-            # success
-            break;
-
-        tries += 1
-
-    # If we can't start the console after 5 attemps (can't find a free port 
-    # during random probing, syntax errors, segfaults) throw an exception.
-    if tries == 5:
-        raise Exception, "unable to start console service!"
-
-    return (host, port, magic)
-
 def restart_console(uid, jail_path, working_dir, reason):
     """Tells the client that it must be issued a new console since the old 
     console is no longer availible. The client must accept the new key.
     Returns the JSON response to be given to the client.
     """
     # Start a new console server console
-    (host, port, magic) = start_console(uid, jail_path, working_dir)
+    cons = console.Console(uid, jail_path, working_dir)
 
     # Make a JSON object to tell the browser to restart its console client
-    new_key = cjson.encode({"host": host, "port": port, "magic": magic})
+    new_key = cjson.encode(
+        {"host": cons.host, "port": cons.port, "magic": cons.magic})
     json_restart = {
         "restart": reason,
         "key": new_key.encode("hex"),
     }
     
     return cjson.encode(json_restart)
-
