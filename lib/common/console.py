@@ -28,6 +28,8 @@ import random
 import socket
 import uuid
 
+import cjson
+
 import conf
 from common import chat
 
@@ -167,8 +169,8 @@ class Console(object):
     def call(self, function, *args, **kwargs):
         """ Calls a function in the python console """
         call_args = {
-            'function': cPickle.dumps(function),
-            'args':args,
+            'function': function,
+            'args': args,
             'kwargs': kwargs}
         response = self.__chat('call', call_args)
         if 'output' in response:

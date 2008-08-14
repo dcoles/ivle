@@ -158,7 +158,7 @@ class PythonRunner(Thread):
             sys.stdout = self.webio
             sys.stderr = self.webio
             # We don't expect a return value - 'single' symbol prints it.
-            eval(cmd, self.globs)
+            self.eval(cmd)
             self.webio.flush()
             self.cmdQ.put({"okay": None})
             self.curr_cmd = ''
@@ -219,21 +219,28 @@ class PythonRunner(Thread):
             elif 'call' in ln:
                 if isinstance(ln['call'], dict):
                     params = ln['call']
-                    if 'args' in params:
-                        args = params['args']
-                    else:
-                        args = []
-                    if 'kwargs' in params:
-                        kwargs = params['kwargs']
-                    else:
-                        kwargs = {}
-
                     try:
-                        function = cPickle.loads(params['function'])
+                        # Expand parameters
+                        if isinstance(params['args'], list):
+                            args = map(self.eval, params['args'])
+                        else:
+                            args = []
+                        if isinstance(params['kwargs'], dict):
+                            kwargs = {}
+                            for kwarg in params['kwargs']:
+                                kwargs[kwarg] = self.eval(
+                                    params['kwargs'][kwarg])
+                        else:
+                            kwargs = {}
+
+                        # Run the fuction
+                        function = self.eval(params['function'])
                         result = function(*args, **kwargs)
                         self.cmdQ.put({'output': result})
-                    except Exception,e:
-                        self.cmdQ.put({'response': 'failure: %s'%repr(e)})
+                    except Exception, e:
+                        tb = format_exc_start(start=1)
+                        self.cmdQ.put(
+                            {"exc": ''.join(tb).decode('utf-8', 'replace')})
                 else:
                     self.cmdQ.put({'response': 'failure'})
             elif 'inspect' in ln:
@@ -249,7 +256,7 @@ class PythonRunner(Thread):
                     sys.stderr = stderr
                     # We don't expect a return value - 'single' symbol prints 
                     # it.
-                    eval(cmd, self.globs)
+                    self.eval(cmd)
                 except Exception, e:
                     exception = {}
                     tb = format_exc_start(start=1)
@@ -268,6 +275,10 @@ class PythonRunner(Thread):
                 self.curr_cmd = ''
             else:
                 raise Exception, "Invalid Command"
+
+    def eval(self, source):
+        """ Evaluates a string in the private global space """
+        return eval(source, self.globs)
 
 def daemonize():
     if os.fork():   # launch child and...
