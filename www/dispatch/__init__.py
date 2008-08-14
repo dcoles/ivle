@@ -136,7 +136,8 @@ def handler_(req, apachereq):
         # Well, it's a fine idea, but it creates considerable grief in the
         # concurrent update department, so instead, we'll just make the
         # sessions not time out.
-        
+        req.get_session().unlock()
+
         # If user did not specify an app, HTTP redirect to default app and
         # exit.
         if req.app is None:

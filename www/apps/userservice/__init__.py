@@ -379,8 +379,10 @@ def handle_update_user(req, fields):
     if login == req.user.login:
         user = db.get_user(login)
         session = req.get_session()
+        session.lock()
         session['user'] = user
         session.save()
+        session.unlock()
 
     db.close()
 
