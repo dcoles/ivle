@@ -120,8 +120,10 @@ def chat(host, port, msg, magic, decode = True):
     while blk:
         buf.write(blk)
         try:
-            blk = conn.recv(1024, socket.MSG_DONTWAIT)
-        except:
+            blk = sok.recv(1024, socket.MSG_DONTWAIT)
+        except socket.error, e:
+            if e[0] != 11:
+                raise
             # Exception thrown if it WOULD block (but we
             # told it not to wait) - ie. we are done
             blk = None
