@@ -245,6 +245,7 @@ CREATE TABLE problem_attempt (
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
+    active      BOOLEAN NOT NULL DEFAULT true,
     PRIMARY KEY (problemid,loginid,date)
 );
 
