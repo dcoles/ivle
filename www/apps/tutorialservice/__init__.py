@@ -27,10 +27,11 @@
 # Path must be empty.
 # The arguments determine what is to be done on this file.
 
+# "action". One of the tutorialservice actions.
 # "exercise" - The path to a exercise file (including the .xml extension),
-#    relative to the subjects base directory.
-# "code" - Full text of the student's code being submitted.
-# "action". May be "test" or "save". (More to come).
+#              relative to the subjects base directory.
+# action "save" or "test" (POST only):
+#   "code" - Full text of the student's code being submitted.
 
 # Returns a JSON response string indicating the results.
 
@@ -50,24 +51,28 @@ def handle(req):
 
     if req.path != "":
         req.throw_error(req.HTTP_BAD_REQUEST)
-    # Get all the arguments, if POST.
-    # Ignore arguments if not POST, since we aren't allowed to cause
-    # side-effects on the server.
     fields = req.get_fieldstorage()
     act = fields.getfirst('action')
     exercise = fields.getfirst('exercise')
-    code = fields.getfirst('code')
-
-    if exercise == None or code == None or act == None:
+    if act is None or exercise is None:
         req.throw_error(req.HTTP_BAD_REQUEST)
     act = act.value
     exercise = exercise.value
-    code = code.value
 
-    if act == "save":
-        handle_save(req, exercise, code, fields)
-    elif act == "test":
-        handle_test(req, exercise, code, fields)
+    if act == 'save' or act == 'test':
+        # Must be POST
+        if req.method != 'POST':
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        code = fields.getfirst('code')
+
+        if code is None:
+            req.throw_error(req.HTTP_BAD_REQUEST)
+        code = code.value
+
+        if act == 'save':
+            handle_save(req, exercise, code, fields)
+        else:   # act == "test"
+            handle_test(req, exercise, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
