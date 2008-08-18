@@ -30,7 +30,7 @@
 # "exercise" - The path to a exercise file (including the .xml extension),
 #    relative to the subjects base directory.
 # "code" - Full text of the student's code being submitted.
-# "action". May be "test". (More to come).
+# "action". May be "test" or "save". (More to come).
 
 # Returns a JSON response string indicating the results.
 
@@ -68,8 +68,6 @@ def handle(req):
         handle_save(req, exercise, code, fields)
     elif act == "test":
         handle_test(req, exercise, code, fields)
-    elif act == "run":
-        handle_run(req, exercise, code, fields)
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
@@ -132,11 +130,3 @@ def handle_test(req, exercise, code, fields):
         req.write(cjson.encode(test_results))
     finally:
         conn.close()
-
-def handle_run(req, exercise, code, fields):
-    """Handles a run action."""
-    # Extremely makeshift.
-    # For now, just echo the code back
-    output = code
-    out_json = {"stdout": output}
-    req.write(cjson.encode(out_json))
