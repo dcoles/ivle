@@ -74,6 +74,15 @@ h1 a:hover, h2 a:hover {
     cursor: default;
 }
 
+.attempthistory h3 {
+    font-size: 1em;
+    color: black;
+}
+/* Drop-down box */
+.attempthistory select {
+    width: 20em;
+}
+
 /*
 :Author: Edward Loper, James Curran
 :Copyright: This stylesheet has been placed in the public domain.

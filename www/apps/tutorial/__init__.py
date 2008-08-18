@@ -572,7 +572,8 @@ def present_exercise(req, exercisesrc, exerciseid):
         % (exerciseid, exerciseid, filename))
     req.write("""</div>
 <div class="testoutput">
-</div>\n""")
+</div>
+""")
     # Write the "summary" - whether this problem is complete and how many
     # attempts it has taken.
     req.write("""<div class="problem_summary">
@@ -584,6 +585,29 @@ def present_exercise(req, exercisesrc, exerciseid):
 """ % (exerciseid, "complete" if complete else "incomplete",
         exerciseid, "Complete" if complete else "Incomplete",
         exerciseid, attempts))
+    # Write the attempt history infrastructure
+    req.write("""<div class="attempthistory">
+  <p><a title="Click to view previous submissions you have made for this \
+exercise" onclick="open_previous(&quot;exercise%d&quot;, %s)">View previous \
+attempts</a></p>
+  <div style="display: none">
+    <h3>Previous attempts</h3>
+    <p><a title="Close the previous attempts" \
+onclick="close_previous(&quot;exercise%d&quot;)">Close attempts</a></p>
+    <p>
+      <select title="Select an attempt's time stamp from the list">
+        <option></option>
+      </select>
+      <input type="button" value="View"
+        onclick="select_attempt(&quot;exercise%d&quot;, %s)" />
+    </p>
+    <p><textarea readonly="readonly" class="exercisebox" cols="80" rows="%s"
+        title="You submitted this code on a previous attempt">
+       </textarea>
+    </p>
+  </div>
+</div>
+""" % (exerciseid, filename, exerciseid, exerciseid, filename, rows))
     req.write("</div>\n")
 
 def update_db_worksheet(subject, worksheet, file_mtime,

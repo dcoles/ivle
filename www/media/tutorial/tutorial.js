@@ -87,6 +87,8 @@ function submitexercise(exerciseid, filename)
             handle_testresponse(exercisediv, exerciseid, testresponse);
             set_saved_status(exerciseid, filename, "Saved");
             set_submit_status(exerciseid, filename, "Submit");
+            /* Close the "view previous" area (force reload) */
+            close_previous(exerciseid);
         }
     ajax_call(callback, "tutorialservice", "", args, "POST",
         "multipart/form-data");
@@ -458,4 +460,153 @@ function catch_textbox_input(exerciseid, filename, key)
          */
         break;
     }
+}
+
+/** User clicks "view previous attempts" button. Do an Ajax call and populate.
+ * exerciseid: "id" of the exercise's div element.
+ * filename: Filename of the exercise's XML file (used to identify the
+ *     exercise when interacting with the server).
+ */
+function open_previous(exerciseid, filename)
+{
+    var exercisediv = document.getElementById(exerciseid);
+    var divs = exercisediv.getElementsByTagName("div");
+    var attempthistory;
+    for (var i=0; i<divs.length; i++)
+        if (divs[i].getAttribute("class") == "attempthistory")
+            attempthistory = divs[i];
+
+    /* Get handles on the four existing elements of the history box */
+    var openbutton = attempthistory.getElementsByTagName("p")[0];
+    var openarea = attempthistory.getElementsByTagName("div")[0];
+    var dropdown = attempthistory.getElementsByTagName("select")[0];
+    var textarea = attempthistory.getElementsByTagName("textarea")[0];
+
+    /* Activate the "open" state, and clear the dropdown box */
+    openbutton.setAttribute("style", "display: none");
+    openarea.setAttribute("style", "display: auto");
+    textarea.setAttribute("style", "display: none");
+    dom_removechildren(dropdown);
+    var pleasewait = document.createElement("option");
+    pleasewait.appendChild(document.createTextNode("Retrieving past attempts..."));
+    dropdown.appendChild(pleasewait);
+
+    var args = {"exercise": filename, "action": "getattempts"};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            var attempts;
+            var attempt;
+            var opt;
+            try
+            {
+                attempts = JSON.parse(xhr.responseText);
+            }
+            catch (ex)
+            {
+                alert("There was an error fetching your attempt history. "
+                    + "Please notify the administrators of this.");
+                return;
+            }
+            /* Populate the attempt history div */
+            dom_removechildren(dropdown);
+            for (var i=0; i<attempts.length; i++)
+            {
+                /* An object with a date and complete */
+                attempt = attempts[i];
+                opt = document.createElement("option");
+                opt.setAttribute("value", attempt.date);
+                opt.appendChild(document.createTextNode(attempt.date));
+                if (attempt.complete)
+                {
+                    /* Add a little green ball to this option
+                     * This is probably hideously illegal, but looks nice :)
+                     */
+                    opt.appendChild(document.createTextNode(" "));
+                    var img = document.createElement("img");
+                    img.setAttribute("src",
+                        make_path("media/images/tutorial/tiny/complete.png"));
+                    img.setAttribute("alt", "Complete");
+                    opt.appendChild(img);
+                }
+                dropdown.appendChild(opt);
+            }
+        }
+    ajax_call(callback, "tutorialservice", "", args, "GET");
+}
+
+function close_previous(exerciseid)
+{
+    var exercisediv = document.getElementById(exerciseid);
+    var divs = exercisediv.getElementsByTagName("div");
+    var attempthistory;
+    for (var i=0; i<divs.length; i++)
+        if (divs[i].getAttribute("class") == "attempthistory")
+            attempthistory = divs[i];
+
+    /* Get handles on the four existing elements of the history box */
+    var openbutton = attempthistory.getElementsByTagName("p")[0];
+    var openarea = attempthistory.getElementsByTagName("div")[0];
+
+    /* Deactivate the "open" state */
+    openbutton.setAttribute("style", "display: auto");
+    openarea.setAttribute("style", "display: none");
+}
+
+/** User selects an attempt in the dropdown. Do an Ajax call and populate.
+ * exerciseid: "id" of the exercise's div element.
+ * filename: Filename of the exercise's XML file (used to identify the
+ *     exercise when interacting with the server).
+ */
+function select_attempt(exerciseid, filename)
+{
+    var exercisediv = document.getElementById(exerciseid);
+    var divs = exercisediv.getElementsByTagName("div");
+    var attempthistory;
+    for (var i=0; i<divs.length; i++)
+        if (divs[i].getAttribute("class") == "attempthistory")
+            attempthistory = divs[i];
+
+    /* Get handles on the four existing elements of the history box */
+    var dropdown = attempthistory.getElementsByTagName("select")[0];
+    var textarea = attempthistory.getElementsByTagName("textarea")[0];
+
+    /* Get the "value" of the selected option */
+    var date = dropdown.options[dropdown.selectedIndex].getAttribute("value");
+
+    var args = {"exercise": filename, "action": "getattempt", "date": date};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            var attempt;
+            try
+            {
+                attempt = JSON.parse(xhr.responseText);
+            }
+            catch (ex)
+            {
+                alert("There was an error fetching your attempt history. "
+                    + "Please notify the administrators of this.");
+                return;
+            }
+            if (attempt == null)
+            {
+                /* There was no data for this date - that's odd */
+                alert("There was no attempt made before that date.");
+                return;
+            }
+            /* Populate the attempt text field */
+            textarea.removeAttribute("readonly");
+            dom_removechildren(textarea);
+            textarea.appendChild(document.createTextNode(attempt));
+            textarea.setAttribute("style", "display: auto");
+            //textarea.setAttribute("readonly", "readonly");
+        }
+    ajax_call(callback, "tutorialservice", "", args, "GET");
 }
