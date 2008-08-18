@@ -63,6 +63,17 @@ li.semicomplete {
     margin-left: 1.5em;
 }
 
+h1 a, h2 a {
+    color: black;
+    text-decoration: none;
+    cursor: default;
+}
+h1 a:hover, h2 a:hover {
+    color: black;
+    text-decoration: none;
+    cursor: default;
+}
+
 /*
 :Author: Edward Loper, James Curran
 :Copyright: This stylesheet has been placed in the public domain.

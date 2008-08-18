@@ -16,8 +16,10 @@ html, body {
     font-size: 0.95em;
 }
 
-a:link, a:visited {
+a {
     color: navy;
+    text-decoration: underline;
+    cursor: pointer;
 }
 a:hover, a:active, a:focus {
     color: blue;
