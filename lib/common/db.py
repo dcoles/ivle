@@ -603,7 +603,7 @@ class DB:
     UNION
         (SELECT problemid, loginid, date, text FROM problem_attempt
          AS problem_attempt (problemid, loginid, date, text)
-         WHERE loginid = %d AND problemid = %d)
+         WHERE loginid = %d AND problemid = %d AND active)
     )
     AS _
     ORDER BY date DESC
@@ -640,9 +640,9 @@ class DB:
         # Will return an empty table if the problem has never been
         # successfully completed.
         query = """SELECT COUNT(*) FROM problem_attempt
-    WHERE loginid = %d AND problemid = %d AND date <=
+    WHERE loginid = %d AND problemid = %d AND active AND date <=
         (SELECT date FROM problem_attempt
-            WHERE loginid = %d AND problemid = %d AND complete = TRUE
+            WHERE loginid = %d AND problemid = %d AND complete AND active
             ORDER BY date ASC
             LIMIT 1);""" % (loginid, problemid, loginid, problemid)
         if dry: return query
@@ -658,7 +658,7 @@ class DB:
             # completed.
             # Return the total number of attempts, and False for success.
             query = """SELECT COUNT(*) FROM problem_attempt
-    WHERE loginid = %d AND problemid = %d;""" % (loginid, problemid)
+    WHERE loginid = %d AND problemid = %d AND active;""" % (loginid, problemid)
             result = self.db.query(query)
             count = int(result.getresult()[0][0])
             return (False, count)
