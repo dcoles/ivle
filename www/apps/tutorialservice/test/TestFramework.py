@@ -26,6 +26,8 @@
 import sys, StringIO, copy
 import types
 
+from common import util
+
 # student error or author error
 # errors in student code get handled internally
 # errors in solution code get passed up
@@ -305,11 +307,13 @@ class TestCase:
     """
     A set of tests with a common inputs
     """
-    def __init__(self, name='', function=None, stdin='', filespace=None, global_space=None):
+    def __init__(self, console, name='', function=None, stdin='', filespace=None, global_space=None):
         """Initialise with name and optionally, a function to test (instead of the entire script)
         The inputs stdin, the filespace and global variables can also be specified at
         initialisation, but may also be set later.
         """
+        self._console = console
+
         if global_space == None:
             global_space = {}
         if filespace == None:
@@ -333,16 +337,18 @@ class TestCase:
 
     def set_stdin(self, stdin):
         """ Set the given string as the stdin for this test case"""
+        # TODO: Set stdin of console
         self._stdin = stdin
 
     def add_file(self, filename, data):
         """ Insert the given filename-data pair into the filespace for this test case"""
+        # TODO: Add the file to the console
         self._filespace.add_file(filename, data)
         
     def add_variable(self, variable, value):
         """ Add the given varibale-value pair to the initial global environment
-        for this test case.
-        Throw and exception if the value cannot be paresed.
+        for this test case. The value is the string repr() of an actual value.
+        Throw an exception if the value cannot be paresed.
         """
         
         try:
@@ -394,11 +400,10 @@ class TestCase:
             
             # if we are just testing a function
             if not self._function == None:
-                if self._function not in global_space_copy:
+                if self._function not in solution_data['globals']:
                     raise FunctionNotFoundError(self._function)
-                func_to_exec = lambda: global_space_copy[self._function](
-                                    *self._list_args, **self._keyword_args)
-                solution_data = self._run_function(func_to_exec, solution)
+                solution_data = self._run_function(self._function,
+                    self._list_args, self._keyword_args, solution)
                 
         except:
             raise ScriptExecutionError(sys.exc_info())
@@ -410,11 +415,10 @@ class TestCase:
             
             # if we are just testing a function
             if not self._function == None:
-                if self._function not in global_space_copy:
+                if self._function not in attempt_data['globals']:
                     raise FunctionNotFoundError(self._function)
-                func_to_exec = lambda: global_space_copy[self._function](
-                    *self._list_args, **self._keyword_args)
-                attempt_data = self._run_function(func_to_exec, attempt_code)
+                attempt_data = self._run_function(self._function,
+                    self._list_args, self._keyword_args, attempt_code)
         except:
             case_dict['exception'] = ScriptExecutionError(sys.exc_info()).to_dict()
             case_dict['passed'] = False
@@ -457,71 +461,73 @@ class TestCase:
         return data
 
     def _execstring(self, string, global_space):
-        """ Execute the given string in global_space, and return the outputs. """
+        """ Execute the given string in global_space, and return the outputs. 
+        """
         self._initialise_global_space(global_space)
         
-        def f():
-            exec string in global_space
-            
-        data = self._run_function(f, code=string)
-        return data
+        inspection = self._console.inspect(string)
+
+        exception_name = None
+        if 'exception' in inspection:
+            exception = inspection['exception']['except']
+            exception_name = type(exception).__name__
+            raise(exception)
+
+        return {'code': string,
+                'result': None,
+                'globals': inspection['globals'],
+                'exception': exception_name, # Hmmm... odd? Is this right?
+                'stdout': inspection['stdout'],
+                'stderr': inspection['stderr'],
+                'modified_files': None}
 
     def _initialise_global_space(self, global_space):
         """ Modify the provided global_space so that file, open and raw_input are redefined
         to use our methods instead.
         """
+        self._console.flush(global_space)
         self._current_filespace_copy = self._filespace.copy()
         global_space['file'] = lambda filename, mode='r', bufsize=-1: self._current_filespace_copy.openfile(filename, mode)
         global_space['open'] = global_space['file']
         global_space['raw_input'] = lambda x=None: raw_input()
         return global_space
 
-    def _run_function(self, function, code):
+    def _run_function(self, function, args, kwargs, code):
         """ Run the provided function with the provided stdin, capturing stdout and stderr
         and the return value.
         Return all the output data.
         code: The full text of the code, which needs to be stored as part of
         the returned dictionary.
         """
-        import sys, StringIO
-        sys_stdout, sys_stdin, sys_stderr = sys.stdout, sys.stdin, sys.stderr
+        s_args = map(repr, args)
+        s_kwargs = dict(zip(kwargs.keys(), map(repr, kwargs.values())))
+        call = self._console.call(function, *s_args, **s_kwargs)
 
-        output_stream, input_stream, error_stream = StringIO.StringIO(), StringIO.StringIO(self._stdin), StringIO.StringIO()
-        sys.stdout, sys.stdin, sys.stderr = output_stream, input_stream, error_stream
-
-        result = None
         exception_name = None
-        
-        try:
-            result = function()
-        except:
-            sys.stdout, sys.stdin, sys.stderr = sys_stdout, sys_stdin, sys_stderr
-            exception_name = sys.exc_info()[0].__name__
-            if exception_name not in self._allowed_exceptions:
-                raise
-        
-        sys.stdout, sys.stdin, sys.stderr = sys_stdout, sys_stdin, sys_stderr
+        if 'exception' in call:
+            exception = call['exception']['except']
+            exception_name = type(exception).__name__
+            raise(exception)
 
-        self._current_filespace_copy.flush_all()
-            
         return {'code': code,
-                'result': result,
+                'result': call['result'],
                 'exception': exception_name,
-                'stdout': output_stream.getvalue(),
-                'stderr': output_stream.getvalue(),
-                'modified_files': self._current_filespace_copy.get_modified_files()}
+                'stdout': call['stdout'],
+                'stderr': call['stderr'],
+                'modified_files': None}
 
 class TestSuite:
     """
     The complete collection of test cases for a given exercise
     """
-    def __init__(self, name, solution=None):
+    def __init__(self, name, console, solution=None):
         """Initialise with the name of the test suite (the exercise name) and the solution.
         The solution may be specified later.
         """
         self._solution = solution
         self._name = name
         self._tests = []
+        self._console = console
         self.add_include_code("")
 
     def add_solution(self, solution):
@@ -558,7 +564,7 @@ class TestSuite:
         test_case.validate_functions(self._include_space)
 
     def run_tests(self, attempt_code, stop_on_fail=False):
-        " Run all test cases and collate the results "
+        " Run all test cases on the specified console and collate the results "
         
         exercise_dict = {}
         exercise_dict['name'] = self._name

@@ -17,6 +17,7 @@ import traceback
 from threading import Thread
 
 import common.chat
+import common.util
 
 # This version must be supported by both the local and remote code
 PICKLEVERSION = 0
@@ -217,6 +218,12 @@ class PythonRunner(Thread):
                         except:
                             pass
             elif 'call' in ln:
+                call = {}
+                stdout = cStringIO.StringIO()
+                stderr = cStringIO.StringIO()
+                sys.stdout = stdout
+                sys.stderr = stderr
+
                 if isinstance(ln['call'], dict):
                     params = ln['call']
                     try:
@@ -235,14 +242,30 @@ class PythonRunner(Thread):
 
                         # Run the fuction
                         function = self.eval(params['function'])
-                        result = function(*args, **kwargs)
-                        self.cmdQ.put({'output': result})
+                        try:
+                            call['result'] = function(*args, **kwargs)
+                        except Exception, e:
+                            exception = {}
+                            tb = format_exc_start(start=1)
+                            exception['traceback'] = \
+                                ''.join(tb).decode('utf-8', 'replace')
+                            exception['except'] = cPickle.dumps(e,
+                                PICKLEVERSION)
+                            call['exception'] = exception
                     except Exception, e:
                         tb = format_exc_start(start=1)
                         self.cmdQ.put(
                             {"exc": ''.join(tb).decode('utf-8', 'replace')})
+                    
+                    # Write out the inspection object
+                    call['stdout'] = stdout.getvalue()
+                    call['stderr'] = stderr.getvalue()
+                    self.cmdQ.put(call)
                 else:
                     self.cmdQ.put({'response': 'failure'})
+                stdout.close()
+                stderr.close()
+                self.curr_cmd = ''
             elif 'inspect' in ln:
                 # Like block but return a serialization of the state
                 # throw away partial command
@@ -273,6 +296,17 @@ class PythonRunner(Thread):
                 stdout.close()
                 stderr.close()
                 self.curr_cmd = ''
+            elif 'set_vars' in ln:
+                # Adds some variables to the global dictionary
+                for var in ln['set_vars']:
+                    try:
+                        self.globs[var] = self.eval(ln['set_vars'][var])
+                    except Exception, e:
+                        tb = format_exc_start(start=1)
+                        self.cmdQ.put(
+                            {"exc": ''.join(tb).decode('utf-8', 'replace')})
+
+                self.cmdQ.put({'response': 'okay'})
             else:
                 raise Exception, "Invalid Command"
 
@@ -418,8 +452,14 @@ def flatten(object):
     for o in object:
         try:
             flat[o] = cPickle.dumps(object[o], PICKLEVERSION)
-        except:
-            pass
+        except TypeError:
+            try:
+                o_type = type(object[o]).__name__
+                o_name = object[o].__name__
+                fake_o = common.util.FakeObject(o_type, o_name)
+                flat[o] = cPickle.dumps(fake_o, PICKLEVERSION)
+            except AttributeError:
+                pass
     return flat
 
 if __name__ == "__main__":

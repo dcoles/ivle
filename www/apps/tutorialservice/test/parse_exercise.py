@@ -99,14 +99,14 @@ def getCasePartData(partNode):
 
     return part
 
-def getCaseData(caseNode):
+def getCaseData(caseNode, console):
     """ Create a TestCase instance from test case xml data
     """
     
     case_name = caseNode.getAttribute('name')
     function = caseNode.getAttribute('function')
     if function == '': function = None
-    case = TestCase(case_name, function)
+    case = TestCase(console, case_name, function)
     
     for child in caseNode.childNodes:
         if child.nodeType != child.ELEMENT_NODE:
@@ -148,7 +148,7 @@ def getCaseData(caseNode):
 
     return case
                 
-def parse_exercise_file(fileobj, exercise_num=1):
+def parse_exercise_file(fileobj, console, exercise_num=1):
     """ Parse an xml exercise file and return a testsuite for that exercise """
     dom = parse(fileobj)
 
@@ -170,7 +170,7 @@ def parse_exercise_file(fileobj, exercise_num=1):
     if not exercise_name:
         raise ParseException('Exercise name not supplied')
 
-    exercise_suite = TestSuite(exercise_name)
+    exercise_suite = TestSuite(exercise_name, console)
 
     # get solution and include info
     for child in exercise.childNodes:
@@ -181,7 +181,7 @@ def parse_exercise_file(fileobj, exercise_num=1):
         elif child.tagName == 'include':
             exercise_suite.add_include_code(getTextData(child))
         elif child.tagName == 'case':
-            exercise_suite.add_case(getCaseData(child))
+            exercise_suite.add_case(getCaseData(child, console))
 
     return exercise_suite
 

@@ -21,6 +21,7 @@
 
 # Mainly refactored out of consoleservice
 
+import errno
 import cPickle
 import md5
 import os
@@ -31,13 +32,14 @@ import uuid
 import cjson
 
 import conf
-from common import chat
+from common import (chat, util)
 
+# Outside Jail
 trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
-trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
-python_path = "/usr/bin/python"                     # Within jail
-console_dir = "/opt/ivle/scripts"                   # Within jail
-console_path = "/opt/ivle/scripts/python-console"   # Within jail
+# Inside Jail
+python_path = "/usr/bin/python"
+console_dir = "/opt/ivle/scripts"
+console_path = "/opt/ivle/scripts/python-console"
 
 class ConsoleError(Exception):
     """ The console failed in some way. This is bad. """
@@ -92,10 +94,17 @@ class Console(object):
             # Start the console server (port, magic)
             # trampoline usage: tramp uid jail_dir working_dir script_path args
             # console usage:    python-console port magic
-            cmd = ' '.join([trampoline_path, str(self.uid), self.jail_path,
-                            console_dir, python_path, console_path,
-                            str(self.port), str(self.magic), 
-                            self.working_dir])
+            cmd = ' '.join([
+                trampoline_path,
+                str(self.uid),
+                self.jail_path,
+                console_dir,
+                python_path,
+                console_path,
+                str(self.port),
+                str(self.magic),
+                self.working_dir
+                ])
 
             res = os.system(cmd)
 
@@ -121,14 +130,14 @@ class Console(object):
             if enumber == errno.ECONNREFUSED:
                 # Timeout
                 raise ConsoleError(
-                    "The IVLE console has timed out due to inactivity")
+                    "Could not establish a connection to the python console")
             else:
                 # Some other error - probably serious
                 raise socket.error, (enumber, estring)
         except cjson.DecodeError:
             # Couldn't decode the JSON
             raise ConsoleError(
-                "Communication to console process lost")
+                "Could not understand the python console response")
 
         # Look for user errors
         if 'exc' in response:
@@ -167,17 +176,22 @@ class Console(object):
             raise ConsoleError("Bad response from console: %s"%str(flush))
 
     def call(self, function, *args, **kwargs):
-        """ Calls a function in the python console """
+        """ Calls a function in the python console. Can take in a list of 
+        repr() args and dictionary of repr() values kwargs. These will be 
+        evaluated on the server side.
+        """
         call_args = {
             'function': function,
             'args': args,
             'kwargs': kwargs}
-        response = self.__chat('call', call_args)
-        if 'output' in response:
-            return response['output']
-        else:
-            raise ConsoleError(
-                "Bad response from console: %s"%str(response))
+        call = self.__chat('call', call_args)
+        
+        # Unpickle any exceptions
+        if 'exception' in call:
+            call['exception']['except'] = \
+                cPickle.loads(call['exception']['except'])
+
+        return call
 
     def inspect(self, code=''):
         """ Runs a block of code in the python console returning a dictionary 
@@ -199,5 +213,23 @@ class Console(object):
                 cPickle.loads(inspection['exception']['except'])
 
         return inspection
+
+    def set_vars(self, variables):
+        """ Takes a dictionary of varibles to add to the console's global 
+        space. These are evaluated in the local space so you can't use this to 
+        set a varible to a value to be calculated on the console side.
+        """
+        vars = {}
+        for v in variables:
+            vars[v] = repr(variables[v])
+
+        set_vars = self.__chat('set_vars', vars)
+
+        if set_vars.get('response') != 'okay':
+            raise ConsoleError("Could not set variables")
+
+    def close(self):
+        """ Causes the console process to terminate """
+        self.__chat('restart', None)
     
 

@@ -62,6 +62,17 @@ class IVLEJailError(Exception):
         self.message = message
         self.info = info
 
+class FakeObject(object):
+    """ A representation of an object that can't be Pickled """
+    def __init__(self, type, name, attrib={}):
+        self.type = type
+        self.name = name
+        self.attrib = attrib
+
+    def __repr__(self):
+        return "<Fake %s %s>"%(self.type, self.name)
+
+
 def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
     site root using conf.root_dir. This path can be used in URLs sent to the

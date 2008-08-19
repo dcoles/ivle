@@ -46,7 +46,7 @@ import time
 
 import cjson
 
-from common import (db, util)
+from common import (db, util, console)
 import test
 import conf
 
@@ -134,12 +134,21 @@ def handle_test(req, exercise, code, fields):
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
 
+    # Start a console to run the tests on
+    jail_path = os.path.join(conf.jail_base, req.user.login)
+    working_dir = os.path.join("/home", req.user.login)
+    cons = console.Console(req.user.unixid, jail_path, working_dir)
+
     # Parse the file into a exercise object using the test suite
-    exercise_obj = test.parse_exercise_file(exercisefile)
+    exercise_obj = test.parse_exercise_file(exercisefile, cons)
     exercisefile.close()
+
     # Run the test cases. Get the result back as a JSONable object.
     # Return it.
     test_results = exercise_obj.run_tests(code)
+
+    # Close the console
+    cons.close()
 
     conn = db.DB()
     try:
