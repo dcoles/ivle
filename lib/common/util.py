@@ -30,8 +30,6 @@ import datetime
 import conf
 import conf.mimetypes
 
-root_dir = conf.root_dir
-
 class IVLEError(Exception):
     """
     This is the "standard" exception class for IVLE errors.
@@ -77,7 +75,7 @@ def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
     site root using conf.root_dir. This path can be used in URLs sent to the
     client."""
-    return os.path.join(root_dir, path)
+    return os.path.join(conf.root_dir, path)
 
 def make_local_path(path):
     """Given a path relative to the IVLE root, on the local file system, makes
@@ -91,7 +89,7 @@ def unmake_path(path):
     does not appear at the beginning, returns path unchanged. Also normalises
     the path."""
     path = os.path.normpath(path)
-    root = os.path.normpath(root_dir)
+    root = os.path.normpath(conf.root_dir)
 
     if path.startswith(root):
         path = path[len(root):]
