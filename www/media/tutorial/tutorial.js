@@ -602,11 +602,9 @@ function select_attempt(exerciseid, filename)
                 return;
             }
             /* Populate the attempt text field */
-            textarea.removeAttribute("readonly");
             dom_removechildren(textarea);
             textarea.appendChild(document.createTextNode(attempt));
             textarea.setAttribute("style", "display: auto");
-            //textarea.setAttribute("readonly", "readonly");
         }
     ajax_call(callback, "tutorialservice", "", args, "GET");
 }
