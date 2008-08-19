@@ -12,10 +12,10 @@
     <p><small>You can give students lessons in between problems.</small></p>
     <p>The Python <code>print</code> statement can be used to write text
     to the screen. Try it in this exercise.</p>
-    <problem src="sample/hello.xml" />
+    <exercise src="sample/hello.xml" />
     <p>The next problem is a bit harder. It requires you to manipulate
     several files.</p>
-    <problem src="sample/all_input.xml" />
+    <exercise src="sample/all_input.xml" />
     <p>Now functions can be used to compute values.  This one will be recursive.</p>
-    <problem src="sample/fib.xml" />
+    <exercise src="sample/fib.xml" />
 </worksheet>

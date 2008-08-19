@@ -23,7 +23,9 @@ print " ".join([greeting, name])
             <code type="check">lambda x,y: 'print' in y</code>
     	</function>
     	<!-- Ensures that all outputs match exactly -->	
-    	<function pass="Exact match" fail="Incorrect characters still" default="match"/>
+    	<function pass="Exact match" fail="Incorrect characters still" default="ignore">
+            <stdout type="norm">str.strip</stdout>
+	</function>
     </case>
 </exercise>
 
