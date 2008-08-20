@@ -326,10 +326,7 @@ class TestCase:
         self._list_args = []
         self._keyword_args = {}
         
-        # stdin must have a newline at the end for raw_input to work properly
-        if stdin[-1:] != '\n': stdin += '\n'
-        
-        self._stdin = stdin
+        self.set_stdin(stdin)
         self._filespace = testfilespace.TestFilespace(filespace)
         self._global_space = global_space
         self._parts = []
@@ -337,8 +334,10 @@ class TestCase:
 
     def set_stdin(self, stdin):
         """ Set the given string as the stdin for this test case"""
-        # TODO: Set stdin of console
-        self._stdin = stdin
+        # stdin must have a newline at the end for raw_input to work properly
+        if stdin[-1:] != '\n':
+            stdin += '\n'
+        self.stdin = stdin
 
     def add_file(self, filename, data):
         """ Insert the given filename-data pair into the filespace for this test case"""
@@ -397,6 +396,8 @@ class TestCase:
         try:
             global_space_copy = copy.deepcopy(self._global_space)
             solution_data = self._execstring(solution, global_space_copy)
+            self._console.stdin.truncate(0)
+            self._console.stdin.write(self._stdin)
             
             # if we are just testing a function
             if not self._function == None:
@@ -412,6 +413,8 @@ class TestCase:
         try:
             global_space_copy = copy.deepcopy(self._global_space)
             attempt_data = self._execstring(attempt_code, global_space_copy)
+            self._console.stdin.truncate(0)
+            self._console.stdin.write(self._stdin)
             
             # if we are just testing a function
             if not self._function == None:
