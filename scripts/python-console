@@ -171,7 +171,6 @@ class PythonRunner(Thread):
 
     def run(self):
         self.globs = {}
-        self.globs['__builtins__'] = globals()['__builtins__']
         self.curr_cmd = ''
 
         while True:
@@ -205,24 +204,23 @@ class PythonRunner(Thread):
                     self.webio.flush()
                     self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
                     self.curr_cmd = ''
-            elif 'flush' in ln:
-                # reset the globals
-                self.globs = {}
-                self.globs['__builtins__'] = globals()['__builtins__']
-                self.cmdQ.put({'response': 'okay'})
+            elif 'globals' in ln:
                 # Unpickle the new space (if provided)
-                if isinstance(ln['flush'],dict):
-                    for g in ln['flush']:
+                if isinstance(ln['globals'],dict):
+                    self.globs = {}
+                    for g in ln['globals']:
                         try:
-                            self.globs[g] = cPickle.loads(ln['flush'][g])
+                            self.globs[g] = cPickle.loads(ln['globals'][g])
                         except:
                             pass
+
+                # Return the current globals
+                self.cmdQ.put({'globals': flatten(self.globs)})
             elif 'call' in ln:
                 call = {}
-                stdout = cStringIO.StringIO()
-                stderr = cStringIO.StringIO()
-                sys.stdout = stdout
-                sys.stderr = stderr
+                sys.stdin = self.webio
+                sys.stdout = self.webio
+                sys.stderr = self.webio
 
                 if isinstance(ln['call'], dict):
                     params = ln['call']
@@ -258,43 +256,33 @@ class PythonRunner(Thread):
                             {"exc": ''.join(tb).decode('utf-8', 'replace')})
                     
                     # Write out the inspection object
-                    call['stdout'] = stdout.getvalue()
-                    call['stderr'] = stderr.getvalue()
                     self.cmdQ.put(call)
                 else:
                     self.cmdQ.put({'response': 'failure'})
-                stdout.close()
-                stderr.close()
                 self.curr_cmd = ''
-            elif 'inspect' in ln:
+            elif 'execute' in ln:
                 # Like block but return a serialization of the state
                 # throw away partial command
-                inspection = {}
-                stdout = cStringIO.StringIO()
-                stderr = cStringIO.StringIO()
+                response = {'okay': None}
+                sys.stdin = self.webio
+                sys.stdout = self.webio
+                sys.stderr = self.webio
                 try:
-                    cmd = compile(ln['inspect'], "<web session>", 'exec');
-                    sys.stdin = None
-                    sys.stdout = stdout
-                    sys.stderr = stderr
+                    cmd = compile(ln['execute'], "<web session>", 'exec');
                     # We don't expect a return value - 'single' symbol prints 
                     # it.
                     self.eval(cmd)
                 except Exception, e:
-                    exception = {}
-                    tb = format_exc_start(start=1)
-                    exception['traceback'] = \
-                        ''.join(tb).decode('utf-8', 'replace')
-                    exception['except'] = cPickle.dumps(e, PICKLEVERSION)
-                    inspection['exception'] = exception                
+                    response = {'exception': cPickle.dumps(e, PICKLEVERSION)}
+               
+                # Flush the files
+                sys.stderr.flush()
+                sys.stdout.flush()
                 
-                # Write out the inspection object
-                inspection['stdout'] = stdout.getvalue()
-                inspection['stderr'] = stderr.getvalue()
-                inspection['globals'] = flatten(self.globs)
-                self.cmdQ.put(inspection)
-                stdout.close()
-                stderr.close()
+                # Return the inspection object
+                self.cmdQ.put(response)
+
+                # Clear any previous command
                 self.curr_cmd = ''
             elif 'set_vars' in ln:
                 # Adds some variables to the global dictionary
@@ -306,7 +294,7 @@ class PythonRunner(Thread):
                         self.cmdQ.put(
                             {"exc": ''.join(tb).decode('utf-8', 'replace')})
 
-                self.cmdQ.put({'response': 'okay'})
+                self.cmdQ.put({'okay': None})
             else:
                 raise Exception, "Invalid Command"
 
@@ -349,14 +337,14 @@ def sig_handler(signum, frame):
 
 def dispatch_msg(msg):
     global terminate
-    if msg['cmd'] == 'restart':
-        terminate = "User requested console be reset"
+    if msg['cmd'] == 'terminate':
+        terminate = "User requested console be terminated"
     if terminate:
-        raise common.chat.Terminate({"restart":terminate})
+        raise common.chat.Terminate({"terminate":terminate})
     expiry.ping()
     lineQ.put({msg['cmd']:msg['text']})
     if terminate:
-        raise common.chat.Terminate({"restart":terminate})
+        raise common.chat.Terminate({"terminate":terminate})
     return cmdQ.get()
 
 def format_exc_start(start=0):

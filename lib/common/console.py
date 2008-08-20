@@ -27,6 +27,7 @@ import md5
 import os
 import random
 import socket
+import StringIO
 import uuid
 
 import cjson
@@ -56,6 +57,68 @@ class ConsoleException(Exception):
     def __str__(self):
         return repr(self.value)
 
+class TruncateStringIO(StringIO.StringIO):
+    """ A class that wraps around StringIO and truncates the buffer when the 
+    contents are read (except for when using getvalue).
+    """
+    def __init__(self, buffer=None):
+        StringIO.StringIO.__init__(self, buffer)
+    
+    def read(self, n=-1):
+        """ Read at most size bytes from the file (less if the read hits EOF 
+        before obtaining size bytes).
+
+        If the size argument is negative or omitted, read all data until EOF is      
+        reached. The bytes are returned as a string object. An empty string is 
+        returned when EOF is encountered immediately.
+
+        Truncates the buffer.
+        """
+
+        self.seek(0)
+        res = StringIO.StringIO.read(self, n)
+        self.truncate(0)
+        return res
+
+    def readline(self, length=None):
+        """ Read one entire line from the file.
+ 
+        A trailing newline character is kept in the string (but may be absent 
+        when a file ends with an incomplete line). If the size argument is   
+        present and non-negative, it is a maximum byte count (including the      
+        trailing newline) and an incomplete line may be returned.
+
+        An empty string is returned only when EOF is encountered immediately.
+        
+        Note: Unlike stdio's fgets(), the returned string contains null   
+        characters ('\0') if they occurred in the input.
+
+        Removes the line from the buffer.
+        """
+
+        self.seek(0)
+        res = StringIO.StringIO.readline(self, length)
+        rest = StringIO.StringIO.read(self)
+        self.truncate(0)
+        self.write(rest)
+        return res
+
+    def readlines(self, sizehint=0):
+        """ Read until EOF using readline() and return a list containing the        
+        lines thus read.
+        
+        If the optional sizehint argument is present, instead of reading up to 
+        EOF, whole lines totalling approximately sizehint bytes (or more to      
+        accommodate a final whole line).
+
+        Truncates the buffer.
+        """
+
+        self.seek(0)
+        res = StringIO.StringIO.readlines(self, length)
+        self.truncate(0)
+        return res
+
 class Console(object):
     """ Provides a nice python interface to the console
     """
@@ -66,9 +129,21 @@ class Console(object):
         self.uid = uid
         self.jail_path = jail_path
         self.working_dir = working_dir
+
+        # Set up the buffers
+        self.stdin = TruncateStringIO()
+        self.stdout = TruncateStringIO()
+        self.stderr = TruncateStringIO()
+
+        # Fire up the console
         self.restart()
 
     def restart(self):
+        # Empty all the buffers
+        self.stdin.truncate(0)
+        self.stdout.truncate(0)
+        self.stderr.truncate(0)
+
         # TODO: Check if we are already running a console. If we are shut it 
         # down first.
 
@@ -139,10 +214,27 @@ class Console(object):
             raise ConsoleError(
                 "Could not understand the python console response")
 
-        # Look for user errors
+        return response
+
+    def __handle_chat(self, cmd, args):
+        """ A wrapper around self.__chat that handles all the messy responses 
+        of chat for higher level interfaces such as inspect
+        """
+        # Do the request
+        response = self.__chat(cmd, args)
+
+        # Process I/O requests
+        while 'output' in response or 'input' in response:
+            if 'output' in response:
+                self.stdout.write(response['output'])
+                response = self.chat()
+            elif 'input' in response:
+                response = self.chat(self.stdin.readline())
+
+        # Process user exceptions
         if 'exc' in response:
             raise ConsoleException(response['exc'])
-        
+
         return response
 
     def chat(self, code=''):
@@ -151,7 +243,7 @@ class Console(object):
 
     def block(self, code):
         """ Executes a block of code and returns the output """
-        block = self.__chat('block', code)
+        block = self.__handle_chat('block', code)
         if 'output' in block:
             return block['output']
         elif 'okay' in block:
@@ -159,21 +251,25 @@ class Console(object):
         else:
             raise ConsoleException("Bad response from console: %s"%str(block))
 
-    def flush(self, globs=None):
-        """ Resets the consoles globals() to the default and optionally augment 
-        them with a dictionary simple globals. (Must be able to be pickled)
+    def globals(self, globs=None):
+        """ Returns a dictionary of the console's globals and optionally set 
+        them to a new value
         """
         # Pickle the globals
-        pickled_globs = {}
+        pickled_globs = None
         if globs is not None:
+            pickled_globs = {}
             for g in globs:
                 pickled_globs[g] = cPickle.dumps(globs[g])
 
-        flush = self.__chat('flush', pickled_globs)
-        if 'response' in flush and flush['response'] == 'okay':
-            return
-        else:
-            raise ConsoleError("Bad response from console: %s"%str(flush))
+        globals = self.__handle_chat('globals', pickled_globs)
+
+        # Unpickle the globals
+        for g in globals['globals']:
+            globals['globals'][g] = cPickle.loads(globals['globals'][g])
+
+        return globals['globals']
+        
 
     def call(self, function, *args, **kwargs):
         """ Calls a function in the python console. Can take in a list of 
@@ -184,8 +280,8 @@ class Console(object):
             'function': function,
             'args': args,
             'kwargs': kwargs}
-        call = self.__chat('call', call_args)
-        
+        call = self.__handle_chat('call', call_args)
+
         # Unpickle any exceptions
         if 'exception' in call:
             call['exception']['except'] = \
@@ -193,26 +289,18 @@ class Console(object):
 
         return call
 
-    def inspect(self, code=''):
-        """ Runs a block of code in the python console returning a dictionary 
-        summary of the evaluation. Currently this includes the values of 
-        stdout, stderr, simple global varibles.
-        If an exception was thrown then this dictionary also includes a 
-        exception dictionary containg a traceback string and the exception 
-        except.
+    def execute(self, code=''):
+        """ Runs a block of code in the python console.
+        If an exception was thrown then returns an exception object.
         """
-        inspection = self.__chat('inspect', code)
-       
-        # Unpickle the globals
-        for g in inspection['globals']:
-            inspection['globals'][g] = cPickle.loads(inspection['globals'][g])
-        
+        execute = self.__handle_chat('execute', code)
+              
         # Unpickle any exceptions
-        if 'exception' in inspection:
-            inspection['exception']['except'] = \
-                cPickle.loads(inspection['exception']['except'])
+        if 'exception' in execute:
+            return cPickle.loads(execute['exception'])
+        else:
+            return execute
 
-        return inspection
 
     def set_vars(self, variables):
         """ Takes a dictionary of varibles to add to the console's global 
@@ -223,13 +311,13 @@ class Console(object):
         for v in variables:
             vars[v] = repr(variables[v])
 
-        set_vars = self.__chat('set_vars', vars)
+        set_vars = self.__handle_chat('set_vars', vars)
 
         if set_vars.get('response') != 'okay':
             raise ConsoleError("Could not set variables")
 
     def close(self):
         """ Causes the console process to terminate """
-        self.__chat('restart', None)
+        return self.__chat('terminate', None)
     
 

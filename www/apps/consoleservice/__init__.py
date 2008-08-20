@@ -124,9 +124,9 @@ def handle_chat(req, kind = "chat"):
             # Could not decode the reply from the python-console server
             decoded_response = {"restart":
                 "Communication to console process lost"}
-        if "restart" in decoded_response:
+        if "terminate" in decoded_response:
             response = restart_console(uid, jail_path, working_dir,
-                decoded_response["restart"])
+                decoded_response["terminate"])
 
     except socket.error, (enumber, estring):
         if enumber == errno.ECONNREFUSED:
