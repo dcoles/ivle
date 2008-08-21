@@ -126,6 +126,8 @@ class Console(object):
         """Starts up a console service for user uid, inside chroot jail 
         jail_path with work directory of working_dir
         """
+        super(Console, self).__init__()
+
         self.uid = uid
         self.jail_path = jail_path
         self.working_dir = working_dir
@@ -320,4 +322,21 @@ class Console(object):
         """ Causes the console process to terminate """
         return self.__chat('terminate', None)
     
+class ExistingConsole(Console):
+    """ Provides a nice python interface to an existing console.
+    Note: You can't restart an existing console since there is no way to infer 
+    all the starting parameters. Just start a new Console instead.
+    """
+    def __init__(self, host, port, magic):
+        self.host = host
+        self.port = port
+        self.magic = magic
 
+        # Set up the buffers
+        self.stdin = TruncateStringIO()
+        self.stdout = TruncateStringIO()
+        self.stderr = TruncateStringIO()
+
+    def restart():
+        raise NotImplementedError('You can not restart an existing console')
+        

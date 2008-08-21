@@ -51,10 +51,10 @@ class StdinFromWeb(object):
     def readline(self):
         self.cmdQ.put({"input":None})
         expiry.ping()
-        ln = self.lineQ.get()
-        if 'chat' in ln:
-            return ln['chat']
-        if 'interrupt' in ln:
+        action, params = self.lineQ.get()
+        if action == 'chat':
+            return params
+        elif action == 'interrupt':
             raise Interrupt()
 
 class StdoutToWeb(object):
@@ -94,7 +94,7 @@ class StdoutToWeb(object):
             (blk, count) = self._trim_incomplete_final(self.remainder[:512])
             self.cmdQ.put({"output":blk.decode('utf-8', 'replace')})
             expiry.ping()
-            ln = self.lineQ.get()
+            action, params = self.lineQ.get()
             self.remainder = self.remainder[512 - count:]
 
         # Finally, split the remainder up into lines, and ship all the
@@ -108,8 +108,8 @@ class StdoutToWeb(object):
             text = "\n".join(lines)
             self.cmdQ.put({"output":text.decode('utf-8', 'replace')})
             expiry.ping()
-            ln = self.lineQ.get()
-            if 'interrupt' in ln:
+            action, params = self.lineQ.get()
+            if action == 'interrupt':
                 raise Interrupt()
 
     def flush(self):
@@ -117,18 +117,20 @@ class StdoutToWeb(object):
             (out, count) = self._trim_incomplete_final(self.remainder)
             self.cmdQ.put({"output":out.decode('utf-8', 'replace')})
             expiry.ping()
-            ln = self.lineQ.get()
+            action, params = self.lineQ.get()
             # Leave incomplete characters in the buffer.
             # Yes, this does mean that an incomplete character will be left
             # off the end, but we discussed this and it was deemed best.
             self.remainder = self.remainder[len(self.remainder)-count:]
-            if 'interrupt' in ln:
+            if action == 'interrupt':
                 raise Interrupt()
 
 class WebIO(object):
     """Provides a file like interface to the Web front end of the console.
     You may print text to the console using write(), flush any buffered output 
     using flush(), or request text from the console using readline()"""
+    # FIXME: Clean up the whole stdin, stdout, stderr mess. We really need to 
+    # be able to deal with the streams individually.
     
     def __init__(self, cmdQ, lineQ):
         self.cmdQ = cmdQ
@@ -155,148 +157,179 @@ class PythonRunner(Thread):
 
     def execCmd(self, cmd):
         try:
-            sys.stdin = self.webio
-            sys.stdout = self.webio
-            sys.stderr = self.webio
             # We don't expect a return value - 'single' symbol prints it.
             self.eval(cmd)
-            self.webio.flush()
-            self.cmdQ.put({"okay": None})
             self.curr_cmd = ''
+            self.webio.flush()
+            return({"okay": None})
         except:
-            tb = format_exc_start(start=1)
-            self.webio.flush()
-            self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
             self.curr_cmd = ''
+            self.webio.flush()
+            tb = format_exc_start(start=2)
+            return({"exc": ''.join(tb).decode('utf-8', 'replace')})
 
     def run(self):
+        # Set up global space and partial command buffer
         self.globs = {}
         self.curr_cmd = ''
 
+        # Set up I/O to use web interface
+        sys.stdin = self.webio
+        sys.stdout = self.webio
+        sys.stderr = self.webio
+
+        # Handlers for each action
+        actions = {
+            'chat': self.handle_chat,
+            'block': self.handle_block,
+            'globals': self.handle_globals,
+            'call': self.handle_call,
+            'execute': self.handle_execute,
+            'setvars': self.handle_setvars,
+            }
+
+        # Run the processing loop
         while True:
-            ln = self.lineQ.get()
-            if 'chat' in ln:
-                if self.curr_cmd == '':
-                    self.curr_cmd = ln['chat']
-                else:
-                    self.curr_cmd = self.curr_cmd + '\n' + ln['chat']
-                try:
-                    cmd = codeop.compile_command(self.curr_cmd, '<web session>')
-                    if cmd is None:
-                        # The command was incomplete,
-                        # so send back a None, so the
-                        # client can print a '...'
-                        self.cmdQ.put({"more":None})
-                    else:
-                        self.execCmd(cmd)
-                except:
-                    tb = format_exc_start(start=3)
-                    self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
-                    self.webio.flush()
-                    self.curr_cmd = ''
-            elif 'block' in ln:
-                # throw away a partial command.
-                try:
-                    cmd = compile(ln['block'], "<web session>", 'exec');
-                    self.execCmd(cmd)
-                except:
-                    tb = format_exc_start(start=1)
-                    self.webio.flush()
-                    self.cmdQ.put({"exc": ''.join(tb).decode('utf-8', 'replace')})
-                    self.curr_cmd = ''
-            elif 'globals' in ln:
-                # Unpickle the new space (if provided)
-                if isinstance(ln['globals'],dict):
-                    self.globs = {}
-                    for g in ln['globals']:
-                        try:
-                            self.globs[g] = cPickle.loads(ln['globals'][g])
-                        except:
-                            pass
-
-                # Return the current globals
-                self.cmdQ.put({'globals': flatten(self.globs)})
-            elif 'call' in ln:
-                call = {}
-                sys.stdin = self.webio
-                sys.stdout = self.webio
-                sys.stderr = self.webio
-
-                if isinstance(ln['call'], dict):
-                    params = ln['call']
-                    try:
-                        # Expand parameters
-                        if isinstance(params['args'], list):
-                            args = map(self.eval, params['args'])
-                        else:
-                            args = []
-                        if isinstance(params['kwargs'], dict):
-                            kwargs = {}
-                            for kwarg in params['kwargs']:
-                                kwargs[kwarg] = self.eval(
-                                    params['kwargs'][kwarg])
-                        else:
-                            kwargs = {}
-
-                        # Run the fuction
-                        function = self.eval(params['function'])
-                        try:
-                            call['result'] = function(*args, **kwargs)
-                        except Exception, e:
-                            exception = {}
-                            tb = format_exc_start(start=1)
-                            exception['traceback'] = \
-                                ''.join(tb).decode('utf-8', 'replace')
-                            exception['except'] = cPickle.dumps(e,
-                                PICKLEVERSION)
-                            call['exception'] = exception
-                    except Exception, e:
-                        tb = format_exc_start(start=1)
-                        self.cmdQ.put(
-                            {"exc": ''.join(tb).decode('utf-8', 'replace')})
-                    
-                    # Write out the inspection object
-                    self.cmdQ.put(call)
-                else:
-                    self.cmdQ.put({'response': 'failure'})
-                self.curr_cmd = ''
-            elif 'execute' in ln:
-                # Like block but return a serialization of the state
-                # throw away partial command
-                response = {'okay': None}
-                sys.stdin = self.webio
-                sys.stdout = self.webio
-                sys.stderr = self.webio
-                try:
-                    cmd = compile(ln['execute'], "<web session>", 'exec');
-                    # We don't expect a return value - 'single' symbol prints 
-                    # it.
-                    self.eval(cmd)
-                except Exception, e:
-                    response = {'exception': cPickle.dumps(e, PICKLEVERSION)}
-               
-                # Flush the files
-                sys.stderr.flush()
-                sys.stdout.flush()
-                
-                # Return the inspection object
+            action, params = self.lineQ.get()
+            try:
+                response = actions[action](params)
+            except Exception, e:
+                response = {'error': repr(e)}
+            finally:
                 self.cmdQ.put(response)
+                   
+    def handle_chat(self, params):
+        # Set up the partial cmd buffer
+        if self.curr_cmd == '':
+            self.curr_cmd = params
+        else:
+            self.curr_cmd = self.curr_cmd + '\n' + params
 
-                # Clear any previous command
-                self.curr_cmd = ''
-            elif 'set_vars' in ln:
-                # Adds some variables to the global dictionary
-                for var in ln['set_vars']:
-                    try:
-                        self.globs[var] = self.eval(ln['set_vars'][var])
-                    except Exception, e:
-                        tb = format_exc_start(start=1)
-                        self.cmdQ.put(
-                            {"exc": ''.join(tb).decode('utf-8', 'replace')})
-
-                self.cmdQ.put({'okay': None})
+        # Try to execute the buffer
+        try:
+            cmd = codeop.compile_command(self.curr_cmd, '<web session>')
+            if cmd is None:
+                # The command was incomplete, so send back a None, so the              
+                # client can print a '...'
+                return({"more":None})
             else:
-                raise Exception, "Invalid Command"
+                return(self.execCmd(cmd))
+        except:
+            # Clear any partial command
+            self.curr_cmd = ''
+            # Flush the output buffers
+            sys.stderr.flush()
+            sys.stdout.flush()
+            # Return the exception
+            tb = format_exc_start(start=3)
+            return({"exc": ''.join(tb).decode('utf-8', 'replace')})
+
+    def handle_block(self, params):
+        # throw away any partial command.
+        self.curr_cmd = ''
+
+        # Try to execute a complete block of code
+        try:
+            cmd = compile(params, "<web session>", 'exec');
+            return(self.execCmd(cmd))
+        except:
+            # Flush the output buffers
+            sys.stderr.flush()
+            sys.stdout.flush()
+            # Return the exception
+            tb = format_exc_start(start=1)
+            return({"exc": ''.join(tb).decode('utf-8', 'replace')})
+
+    def handle_globals(self, params):
+        # Unpickle the new space (if provided)
+        if isinstance(params, dict):
+            self.globs = {}
+            for g in params:
+                try:
+                    self.globs[g] = cPickle.loads(params[g])
+                except:
+                    pass
+
+        # Return the current globals
+        return({'globals': flatten(self.globs)})
+
+    def handle_call(self, params):
+        call = {}
+        
+        # throw away any partial command.
+        self.curr_cmd = ''
+
+        if isinstance(params, dict):
+            try:
+                # Expand parameters
+                if isinstance(params['args'], list):
+                    args = map(self.eval, params['args'])
+                else:
+                    args = []
+                if isinstance(params['kwargs'], dict):
+                    kwargs = {}
+                    for kwarg in params['kwargs']:
+                        kwargs[kwarg] = self.eval(
+                            params['kwargs'][kwarg])
+                else:
+                    kwargs = {}
+
+                # Run the fuction
+                function = self.eval(params['function'])
+                try:
+                    call['result'] = function(*args, **kwargs)
+                except Exception, e:
+                    exception = {}
+                    tb = format_exc_start(start=1)
+                    exception['traceback'] = \
+                        ''.join(tb).decode('utf-8', 'replace')
+                    exception['except'] = cPickle.dumps(e,
+                        PICKLEVERSION)
+                    call['exception'] = exception
+            except Exception, e:
+                tb = format_exc_start(start=1)
+                call = {"exc": ''.join(tb).decode('utf-8', 'replace')}
+            
+            # Flush the output buffers
+            sys.stderr.flush()
+            sys.stdout.flush()
+
+            # Write out the inspection object
+            return(call)
+        else:
+            return({'response': 'failure'})
+
+    def handle_execute(self, params):
+        # throw away any partial command.
+        self.curr_cmd = ''
+        
+        # Like block but return a serialization of the state
+        # throw away partial command
+        response = {'okay': None}
+        try:
+            cmd = compile(params, "<web session>", 'exec');
+            # We don't expect a return value - 'single' symbol prints it.
+            self.eval(cmd)
+        except Exception, e:
+            response = {'exception': cPickle.dumps(e, PICKLEVERSION)}
+           
+        # Flush the output
+        sys.stderr.flush()
+        sys.stdout.flush()
+               
+        # Return the inspection object
+        return(response)
+
+    def handle_setvars(self, params):
+        # Adds some variables to the global dictionary
+        for var in params['set_vars']:
+            try:
+                self.globs[var] = self.eval(params['set_vars'][var])
+            except Exception, e:
+                tb = format_exc_start(start=1)
+                return({"exc": ''.join(tb).decode('utf-8', 'replace')})
+
+        return({'okay': None})
 
     def eval(self, source):
         """ Evaluates a string in the private global space """
@@ -342,7 +375,7 @@ def dispatch_msg(msg):
     if terminate:
         raise common.chat.Terminate({"terminate":terminate})
     expiry.ping()
-    lineQ.put({msg['cmd']:msg['text']})
+    lineQ.put((msg['cmd'],msg['text']))
     if terminate:
         raise common.chat.Terminate({"terminate":terminate})
     return cmdQ.get()
