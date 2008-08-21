@@ -122,7 +122,7 @@ def handle_chat(req, kind = "chat"):
             decoded_response = cjson.decode(response)
         except cjson.DecodeError:
             # Could not decode the reply from the python-console server
-            decoded_response = {"restart":
+            decoded_response = {"terminate":
                 "Communication to console process lost"}
         if "terminate" in decoded_response:
             response = restart_console(uid, jail_path, working_dir,
