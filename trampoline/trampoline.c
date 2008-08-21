@@ -44,6 +44,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <limits.h>
+#include <signal.h>
 
 /* conf.h is admin-configured by the setup process.
  * It defines jail_base.
@@ -199,6 +200,16 @@ void mount_if_needed(const char* jailpath)
 }
 #endif /* IVLE_AUFS_JAILS */
 
+/* Unsets any signal mask applied by the parent process */
+void unmask_signals()
+{
+    sigset_t* sigset;
+    sigset = die_if_null(malloc(sizeof(sigset_t)));
+    sigemptyset(sigset);
+    sigprocmask(SIG_SETMASK, sigset, NULL);
+    free(sigset);
+}
+
 int main(int argc, char* const argv[])
 {
     char* jailpath;
@@ -233,6 +244,8 @@ int main(int argc, char* const argv[])
         daemon_mode = 1;
         arg_num++;
     }
+
+    unmask_signals();
 
     if (strcmp(argv[arg_num], "-u") == 0)
     {
