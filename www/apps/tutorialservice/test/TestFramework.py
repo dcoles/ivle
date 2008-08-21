@@ -337,7 +337,7 @@ class TestCase:
         # stdin must have a newline at the end for raw_input to work properly
         if stdin[-1:] != '\n':
             stdin += '\n'
-        self.stdin = stdin
+        self._stdin = stdin
 
     def add_file(self, filename, data):
         """ Insert the given filename-data pair into the filespace for this test case"""
@@ -515,8 +515,8 @@ class TestCase:
         return {'code': code,
                 'result': call['result'],
                 'exception': exception_name,
-                'stdout': call['stdout'],
-                'stderr': call['stderr'],
+                'stdout': self._console.stdout.read(),
+                'stderr': self._console.stderr.read(),
                 'modified_files': None}
 
 class TestSuite:
