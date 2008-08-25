@@ -45,7 +45,7 @@ def handle(req):
     elif req.path == "interrupt":
         handle_chat(req, kind='interrupt')
     elif req.path == "restart":
-        handle_chat(req, kind='restart')
+        handle_chat(req, kind='terminate')
     elif req.path == "chat":
         handle_chat(req)
     elif req.path == "block":
