@@ -33,6 +33,8 @@
  *  sudo chown root:root trampoline; sudo chroot +s trampoline
  */
 
+#define _XOPEN_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -201,13 +203,16 @@ void mount_if_needed(const char* jailpath)
 #endif /* IVLE_AUFS_JAILS */
 
 /* Unsets any signal mask applied by the parent process */
-void unmask_signals()
+int unmask_signals(void)
 {
+    int result;
     sigset_t* sigset;
     sigset = die_if_null(malloc(sizeof(sigset_t)));
     sigemptyset(sigset);
-    sigprocmask(SIG_SETMASK, sigset, NULL);
+    result = sigprocmask(SIG_SETMASK, sigset, NULL);
     free(sigset);
+    printf("%d", result);
+    return result;
 }
 
 int main(int argc, char* const argv[])
@@ -244,8 +249,6 @@ int main(int argc, char* const argv[])
         daemon_mode = 1;
         arg_num++;
     }
-
-    unmask_signals();
 
     if (strcmp(argv[arg_num], "-u") == 0)
     {
@@ -322,16 +325,11 @@ int main(int argc, char* const argv[])
         exit(1);
     }
 
-    if (daemon_mode)
-    {
-        daemonize();
-    }
-
     /* set user resource limits */
     if (!unlimited)
     {
         struct rlimit l;
-        /* Process data segment in memory */
+        /* Process adress space in memory */
         l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
         l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
         if (setrlimit(RLIMIT_AS, &l))
@@ -339,10 +337,22 @@ int main(int argc, char* const argv[])
             perror("could not setrlimit/RLIMIT_AS");
             exit(1);
         }
+        
+        /* Process data segment in memory
+         * Note: This requires a kernel patch to work correctly otherwise it is  
+         * ineffective (thus you are only limited by RLIMIT_AS)
+         */
+        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
+        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        if (setrlimit(RLIMIT_DATA, &l))
+        {
+            perror("could not setrlimit/RLIMIT_DATA");
+            exit(1);
+        }
 
         /* Core */
-        l.rlim_cur = 0;
-        l.rlim_max = 0;
+        l.rlim_cur = 0; /* No core files */
+        l.rlim_max = 0; /* No core files */
         if (setrlimit(RLIMIT_CORE, &l))
         {
             perror("could not setrlimit/RLIMIT_CORE");
@@ -350,8 +360,8 @@ int main(int argc, char* const argv[])
         }
 
         /* CPU */
-        l.rlim_cur = 25;
-        l.rlim_max = 30;
+        l.rlim_cur = 25; /* 25 Seconds */
+        l.rlim_max = 30; /* 30 Seconds */
         if (setrlimit(RLIMIT_CPU, &l))
         {
             perror("could not setrlimit/RLIMIT_CPU");
@@ -359,13 +369,26 @@ int main(int argc, char* const argv[])
         }
 
         /* File Size */
-        l.rlim_cur = 64 * 1024 * 1024; /* 64Mb */
-        l.rlim_max = 72 * 1024 * 1024; /* 72Mb */
-        if (setrlimit(RLIMIT_FSIZE, &l))
+        l.rlim_cur = 64 * 1024 * 1024; /* 64MiB */
+        l.rlim_max = 72 * 1024 * 1024; /* 72MiB */
+if (setrlimit(RLIMIT_FSIZE, &l))
         {
             perror("could not setrlimit/RLIMIT_FSIZE");
             exit(1);
         }
+    }
+
+    /* Remove any signal handler masks so we can send signals to the child */
+    if(unmask_signals())
+    {
+        perror("could not unmask signals");
+        exit(1);
+    }
+
+    /* If everything was OK daemonize (if required) */
+    if (daemon_mode)
+    {
+        daemonize();
     }
 
     /* exec (replace this process with the a new instance of the target
