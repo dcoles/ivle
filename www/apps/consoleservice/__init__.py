@@ -133,6 +133,10 @@ def handle_chat(req, kind = "chat"):
             # Timeout: Restart the session
             response = restart_console(uid, jail_path, working_dir,
                 "The IVLE console has timed out due to inactivity")
+        elif enumber == errno.ECONNRESET:
+            # Communication issue: Restart the session
+            response = restart_console(uid, jail_path, working_dir,
+                "Connection with the console has been reset")
         else:
             # Some other error - probably serious
             raise socket.error, (enumber, estring)
