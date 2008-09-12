@@ -171,7 +171,7 @@ class Console(object):
             # Start the console server (port, magic)
             # trampoline usage: tramp uid jail_dir working_dir script_path args
             # console usage:    python-console port magic
-            cmd = ' '.join([
+            res = os.spawnv(os.P_WAIT, trampoline_path, [
                 trampoline_path,
                 str(self.uid),
                 self.jail_path,
@@ -182,8 +182,6 @@ class Console(object):
                 str(self.magic),
                 self.working_dir
                 ])
-
-            res = os.system(cmd)
 
             if res == 0:
                 # success
