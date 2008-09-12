@@ -975,7 +975,8 @@ WHERE offering.semesterid = semester.semesterid AND
 SELECT login.login AS login, login.fullname AS fullname
 FROM login, enrolment
 WHERE login.loginid = enrolment.loginid AND
-    enrolment.offeringid = %d;"""%offeringid
+    enrolment.offeringid = %d
+    ORDER BY login.login;"""%offeringid
         if dry:
             return query
         return self.db.query(query).dictresult()
