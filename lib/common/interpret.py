@@ -338,8 +338,8 @@ print a number followed by a message, such as "302 Found"."""
     else:
         # Generic HTTP header
         # FIXME: Security risk letting users write arbitrary headers?
-        req.headers_out[name] = value
-    cgiflags.headers[name] = value
+        req.headers_out.add(name, value)
+    cgiflags.headers[name] = value # FIXME: Only the last header will end up here.
 
 def write_html_warning(req, text, warning="Warning"):
     """Prints an HTML warning about invalid CGI interaction on the part of the
