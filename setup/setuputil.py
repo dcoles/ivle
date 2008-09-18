@@ -125,9 +125,9 @@ def action_copytree(src, dst, dry):
     try:
         action_runprog(RSYNC, ['-a','--delete',src + '/',dst], dry)
     except RunError:
-        print "cp -r", src, dst
         if dry: return
         action_remove(dst, dry)
+        print "cp -r", src, dst
         shutil.copytree(src, dst, True)
 
 def action_copylist(srclist, dst, dry, srcdir="."):
