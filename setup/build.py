@@ -79,6 +79,10 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
         print >>sys.stderr, "(I need to chroot)."
         return 1
     
+    if not rebuildjail and not os.path.exists('jail'):
+        print >> sys.stderr, "No jail exists -- please rerun with -j."
+        return 1
+
     # Find out the revison number
     revnum = get_svn_revision()
     print "Building Revision %s"%str(revnum)

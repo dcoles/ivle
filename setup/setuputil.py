@@ -26,7 +26,6 @@ import os
 import shutil
 import errno
 import sys
-import pysvn
 import string
 import stat
 
@@ -250,6 +249,7 @@ def filter_mutate(function, list):
 
 def get_svn_revision():
     """Returns either the current SVN revision of this build, or None"""
+    import pysvn
     try:
         svn = pysvn.Client()
         entry = svn.info('.')

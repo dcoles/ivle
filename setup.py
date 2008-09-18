@@ -62,14 +62,14 @@ IVLE Setup
 def help(args):
     if len(args)!=1:
         print """Usage: python setup.py operation [options]
-Operation (and options) can be:
+Operation can be:
     help [operation]
     listmake (developer use only)
-    config [args]
+    config
     build
-    install [--nojail] [--nosubjects] [-n|--dry]
+    install
 
-    For help on a specific operation use 'help [operation]'."""
+    For help and options for a specific operation use 'help [operation]'."""
     else:
         operator = args[0]
         oper_func = call_operator(operator)
