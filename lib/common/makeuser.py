@@ -325,45 +325,6 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
                       % (username, unixid, unixid, username))
     passwd_file.close()
 
-def linktree(src, dst):
-    """Recursively hard-link a directory tree using os.link().
-
-    The destination directory must not already exist.
-    If exception(s) occur, an Error is raised with a list of reasons.
-
-    Symlinks are preserved (in fact, hard links are created which point to the
-    symlinks).
-
-    Code heavily based upon shutil.copytree from Python 2.5 library.
-    """
-    names = os.listdir(src)
-    os.makedirs(dst)
-    errors = []
-    for name in names:
-        srcname = os.path.join(src, name)
-        dstname = os.path.join(dst, name)
-        try:
-            if os.path.isdir(srcname):
-                linktree(srcname, dstname)
-            else:
-                os.link(srcname, dstname)
-            # XXX What about devices, sockets etc.?
-        except (IOError, os.error), why:
-            errors.append((srcname, dstname, str(why)))
-        # catch the Error from the recursive copytree so that we can
-        # continue with other files
-        except Exception, err:
-            errors.append(err.args[0])
-    try:
-        shutil.copystat(src, dst)
-    except WindowsError:
-        # can't copy file access times on Windows
-        pass
-    except OSError, why:
-        errors.extend((src, dst, str(why)))
-    if errors:
-        raise Exception, errors
-
 def make_user_db(throw_on_error = True, **kwargs):
     """Creates a user's entry in the database, filling in all the fields.
     All arguments must be keyword args. They are the fields in the table.

@@ -30,11 +30,6 @@ import pysvn
 import string
 import stat
 
-# Import modules from the website is tricky since they're in the www
-# directory.
-sys.path.append('lib')
-import common.makeuser
-
 # Determine which Python version (2.4 or 2.5, for example) we are running,
 # and use that as the filename to the Python directory.
 # Just get the first 3 characters of sys.version.
@@ -134,15 +129,6 @@ def action_copytree(src, dst, dry):
         if dry: return
         action_remove(dst, dry)
         shutil.copytree(src, dst, True)
-
-def action_linktree(src, dst, dry):
-    """Hard-links an entire directory tree. Same as copytree but the created
-    files are hard-links not actual copies. Removes the existing destination.
-    """
-    action_remove(dst, dry)
-    print "<cp with hardlinks> -r", src, dst
-    if dry: return
-    common.makeuser.linktree(src, dst)
 
 def action_copylist(srclist, dst, dry, srcdir="."):
     """Copies all files in a list to a new location. The files in the list
