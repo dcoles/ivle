@@ -19,7 +19,7 @@
 ##########################################################################
 # Apt packages
 ##########################################################################
-sudo apt-get install subversion build-essential debootstrap             \
+sudo apt-get install rsync subversion build-essential debootstrap       \
                      apache2 libapache2-mod-python libapache2-svn       \
                      python2.5-dev python-svn python-webpy python-cjson \
                      postgresql python-pygresql php5 php5-pgsql         \
@@ -30,10 +30,8 @@ sudo apt-get install subversion build-essential debootstrap             \
 ##########################################################################
 
 # Set the postgres user's postgres password
-sudo -u postgres psql template1
 # At the prompt type (substituting <***password***> with a real one).
-ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>';
-\q
+sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>'"
 
 ##########################################################################
 # Installing ivle
@@ -60,6 +58,9 @@ sudo -u postgres psql -d ivle < userdb/users.sql
 # Leave others default.
 # Note: This will cause IVLE to get installed to /opt/ivle
 
+sudo mkdir -p /home/informatics/{repositories/{users,groups},sessions,logs,jails,jailssrc}
+sudo chown -R www-data:www-data /home/informatics/{repositories,sessions,logs}
+
 sudo ./setup.py build
 sudo ./setup.py install
 
@@ -70,11 +71,6 @@ sudo chown -R www-data:www-data /opt/ivle/svn
 
 # Make the "repositories", "sessions" and "logs" directories in the home.
 # Make sure they are owned by www-data.
-cd /home/informatics
-sudo mkdir -p repositories/users repositories/groups sessions logs
-sudo chown -R www-data:www-data repositories sessions logs
-
-cd /home/informatics/ivle_svn
 
 # Create a user
 sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
@@ -109,17 +105,15 @@ sudo vim /etc/hosts
 ##########################################################################
 # User management server: usrmgt-server
 ##########################################################################
-# To start the user management server:
-cd /opt/ivle/scripts
-sudo ./usrmgt-server
-# usrmgt-password is the password entered in setup.py config (usrmgt_magic)
-# Note that the port number and usrmgt password are recorded in
-# the automatically created init.d script: doc/setup/usrmgt-server.init
 
-# To run it at boot time:
 sudo cp doc/setup/usrmgt-server.init /etc/init.d/usrmgt-server
 sudo chown root:root /etc/init.d/usrmgt-server
-sudo chmod 700 /etc/init.d/usrmgt-server  # so world can't read database magic
+sudo chmod +x /etc/init.d/usrmgt-server
+
+# To start it now:
+sudo /etc/init.d/usrmgt-server start
+
+# To run it at boot time:
 sudo update-rc.d usrmgt-server defaults 99  # create symlinks in /etc/rc*.d
 
 ##########################################################################
