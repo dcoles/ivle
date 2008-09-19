@@ -140,7 +140,7 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
     # Write the HTTP body to a temporary file so it can be passed as a *real*
     # file to popen.
     f = os.tmpfile()
-    body = req.read()
+    body = req.read() if not noop else None
     if body is not None:
         f.write(body)
         f.flush()
