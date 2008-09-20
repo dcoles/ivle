@@ -47,7 +47,10 @@ def handle(req):
     # on the local machine where the file is stored.
     (user, path) = studpath.url_to_local(req.path)
 
-    if user is None:
+    try:
+        interpret.get_uid(user)
+    except KeyError:
+        # There is no user.
         req.throw_error(req.HTTP_NOT_FOUND,
             "The path specified is invalid.")
 
