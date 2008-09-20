@@ -221,6 +221,8 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 
     # Log File
     try:
+        for h in logging.getLogger().handlers:
+            logging.getLogger().removeHandler(h)
         logging.basicConfig(level=logging.INFO,
             format='%(asctime)s %(levelname)s: ' +
                 '(HTTP: ' + str(req.status) +
