@@ -274,6 +274,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
                 %cgi.escape(logfile))
         req.write('</div>\n')
+        html.write_html_foot(req)
     else:
         # A "bad" error message. We shouldn't get here unless IVLE
         # misbehaves (which is currently very easy, if things aren't set up
@@ -310,7 +311,9 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         # Logging
         logging.error('%s\n%s'%(str(msg), tb))
 
-        req.write("""<html>
+        req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">                                      
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>IVLE Internal Server Error</title></head>
 <body>
 <h1>IVLE Internal Server Error""")
@@ -334,4 +337,4 @@ administrator). Include the following information:</p>
         if logfail:
             req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
                 %cgi.escape(logfile))
-        req.write("</body>")
+        req.write("</body></html>")
