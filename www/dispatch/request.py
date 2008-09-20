@@ -200,6 +200,9 @@ class Request:
         self.scripts = []
         self.scripts_init = []
         self.write_html_head_foot = False
+        # In some cases we don't want the template JS (such as the username
+        # and public FQDN) in the output HTML. In that case, set this to 0.
+        self.write_javascript_settings = True
         self.got_common_vars = False
 
     def __writeheaders(self):

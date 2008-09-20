@@ -250,6 +250,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         # HTML wrappers).
         
         req.write_html_head_foot = True
+        req.write_javascript_settings = False
         req.write('<div id="ivle_padding">\n')
         try:
             codename, msg = req.get_http_codename(httpcode)

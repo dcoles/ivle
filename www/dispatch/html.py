@@ -58,7 +58,8 @@ def write_html_head(req):
         username = repr(req.user.login)
     else:
         username = "null"
-    req.write("""  <script type="text/javascript">
+    if req.write_javascript_settings:
+        req.write("""  <script type="text/javascript">
     root_dir = %s;
     public_host = %s;
     username = %s;
