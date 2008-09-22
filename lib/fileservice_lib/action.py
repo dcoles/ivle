@@ -414,7 +414,8 @@ def action_putfiles(req, fields):
                 dest = open(filepath_local, 'wb')
                 if data is not None:
                     shutil.copyfileobj(filedata, dest)
-            except OSError:
+            except (OSError, IOError):
+                # TODO: Be more descriptive.
                 goterror = True
 
     if goterror:
