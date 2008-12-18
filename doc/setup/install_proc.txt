@@ -29,9 +29,10 @@ sudo apt-get install rsync subversion build-essential debootstrap       \
 # Configure postgres
 ##########################################################################
 
-# Set the postgres user's postgres password
+# Create a new database user which will be used by IVLE to talk to the DB, and
+# set this user's password.
 # At the prompt type (substituting <***password***> with a real one).
-sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD '<***password***>'"
+sudo -u postgres psql -c "CREATE USER ivleuser WITH ENCRYPTED PASSWORD '<***password***>'"
 
 ##########################################################################
 # Installing ivle
@@ -45,7 +46,7 @@ cd ivle_svn
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
 sudo -u postgres dropdb ivle
-sudo -u postgres createdb ivle
+sudo -u postgres createdb --owner ivleuser ivle
 sudo -u postgres createlang plpgsql ivle
 sudo -u postgres psql -d ivle < userdb/users.sql
 
@@ -124,7 +125,7 @@ sudo update-rc.d usrmgt-server defaults 99  # create symlinks in /etc/rc*.d
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
 sudo -u postgres dropdb ivle_forum
-sudo -u postgres createdb ivle_forum
+sudo -u postgres createdb --owner ivleuser ivle_forum
 sudo -u postgres psql -d ivle_forum < userdb/forum_schema.sql
 sudo -u postgres psql -d ivle_forum < userdb/forum_data.sql
 
