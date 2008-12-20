@@ -538,15 +538,6 @@ function endswith(str, substring)
     return str.substr(str.length - substring.length) == substring;
 }
 
-/** Equivalent to Python's repr.
- * Gets the JavaScript string representation.
- * Actually just calls JSON.stringify.
- */
-function repr(str)
-{
-    return JSON.stringify(str);
-}
-
 /** Removes all occurences of a value from an array.
  */
 Array.prototype.removeall = function(val)

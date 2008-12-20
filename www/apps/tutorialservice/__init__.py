@@ -193,6 +193,6 @@ def handle_getattempt(req, exercise, date):
             as_of=date,
             allow_inactive=HISTORY_ALLOW_INACTIVE)
         # attempt may be None; will write "null"
-        req.write(cjson.encode(attempt))
+        req.write(cjson.encode({'code': attempt}))
     finally:
         conn.close()

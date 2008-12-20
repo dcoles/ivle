@@ -533,24 +533,6 @@ function compare_files(a, b)
 
 /** END SORTING **/
 
-/** Clears all selected files and causes the single file specified to become
- * selected.
- * \param filename The file in the list to select.
- */
-function select_file(filename)
-{
-    var files_children = document.getElementById("files").childNodes;
-    var checkbox;
-    var tr;
-    for (var i=0; i<files_children.length; i++)
-    {
-        tr = files_children[i];
-        checkbox = tr.firstChild.firstChild;
-        checkbox.checked = tr.filename == filename;
-    }
-    update_selection();
-}
-
 /** Initialises the DOM elements required to present files window,
  * assuming that clear_page has just been called or the page just
  * loaded for the first time.
@@ -652,8 +634,6 @@ function handle_dir_listing(path, listing)
     var td;
     var checkbox;
 
-    var selection_string;
-
     /* Convert selected_files array into a dictionary which can be efficiently
      * searched. */
     sel_files_dict = {};
@@ -665,7 +645,19 @@ function handle_dir_listing(path, listing)
     /* Create all of the files */
     for (var filename in listing)
     {
-        selection_string = "select_file(" + repr(filename) + ")";
+        select_row = function() {
+            var files_children = document.getElementById("files").childNodes;
+            var checkbox;
+            var tr;
+            for (var i=0; i<files_children.length; i++)
+            {
+                tr = files_children[i];
+                checkbox = tr.firstChild.firstChild;
+                checkbox.checked = tr == this.parentNode;
+            }
+            update_selection();
+        }
+
         file = listing[filename];
         /* Make a 'tr' element. Store the filename and fileinfo in
          * here. */
@@ -689,7 +681,7 @@ function handle_dir_listing(path, listing)
         /* Column 2: Filetype and subversion icons. */
         td = document.createElement("td");
         td.setAttribute("class", "thincol");
-        td.setAttribute("onclick", selection_string);
+        td.addEventListener("click", select_row, false);
         /* Directories don't really have a MIME type, so we fake one. */
         if (file.isdir) file.type = "text/directory";
         td.appendChild(dom_make_img(mime_type_to_icon(file.type),
@@ -718,17 +710,17 @@ function handle_dir_listing(path, listing)
         {
             td = dom_make_text_elem("td", filename);
         }
-        td.setAttribute("onclick", selection_string);
+        td.addEventListener("click", select_row, false);
         row.appendChild(td);
 
         /* Column 4: Size */
         td = dom_make_text_elem("td", nice_filesize(file.size));
-        td.setAttribute("onclick", selection_string);
+        td.addEventListener("click", select_row, false);
         row.appendChild(td);
 
         /* Column 5: Date */
         td = dom_make_text_elem("td", file.mtime_short, file.mtime_nice);
-        td.setAttribute("onclick", selection_string);
+        td.addEventListener("click", select_row, false);
         row.appendChild(td);
         files.appendChild(row);
     }

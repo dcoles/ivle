@@ -84,7 +84,7 @@ def handle_start(req):
     # Assemble the key and return it.
     key = cjson.encode(
         {"host": cons.host, "port": cons.port, "magic": cons.magic})
-    req.write(cjson.encode(key.encode("hex")))
+    req.write(cjson.encode({"key": key.encode("hex")}))
 
 def handle_chat(req, kind = "chat"):
     # The request *should* have the following four fields:

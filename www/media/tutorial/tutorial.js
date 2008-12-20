@@ -185,8 +185,10 @@ function set_saved_status(exerciseid, filename, stat)
         /* Enable the button */
         button.disabled = false;
         /* Create a timer which will auto-save when it expires */
-        var save_string = "saveexercise(" + repr(exerciseid) + ", "
-            + repr(filename) + ")"
+
+        /* XXX: This is bad, but it's better than using repr and I want this
+         * fixed quickly (wgrant). */
+        var save_string = document.getElementById("savebutton_" + exerciseid).onclick;
         savetimers[timername] = setTimeout(save_string, 10000);
     }
 }
@@ -427,9 +429,6 @@ function catch_textbox_input(exerciseid, filename, key)
             var pre_sel = inp.value.substr(0, selstart);
             var in_sel = inp.value.substr(selstart, selend-selstart);
             var post_sel = inp.value.substr(selend);
-            console.log("pre_sel = " + repr(pre_sel));
-            console.log("in_sel = " + repr(in_sel));
-            console.log("post_sel = " + repr(post_sel));
             /* Move everything after the last newline in pre_sel to in_sel,
              * so it will be indented too (ie. the first line
              * partially-selected). */
@@ -587,7 +586,7 @@ function select_attempt(exerciseid, filename)
             var attempt;
             try
             {
-                attempt = JSON.parse(xhr.responseText);
+                attempt = JSON.parse(xhr.responseText).code;
             }
             catch (ex)
             {
