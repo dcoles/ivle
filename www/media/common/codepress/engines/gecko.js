@@ -117,7 +117,19 @@ CodePress = {
 			if(body.innerHTML=="<br>") body.innerHTML = "<pre> </pre>";
 			else body.innerHTML = "<pre>"+body.innerHTML+"</pre>";
 		}
-		return document.getElementsByTagName('pre')[0];
+		/* For some reason we'll sometimes get multiple <pre>s when
+		 * something is pasted from within Firefox (particularly when
+		 * there are blank lines). Here we check if multiple <p>s exist
+		 * and merge any that do. */
+		var pres = document.getElementsByTagName('pre');
+		if(pres.length > 1) {
+			tomerge = pres.length - 1; // As we kill them, this will change, so we store it here.
+			for(i = 1; i <= tomerge; i++) {
+				pres[0].innerHTML += "<br />" + pres[1].innerHTML;
+				pres[1].parentNode.removeChild(pres[1]);
+			}
+		}
+		return pres[0];
 	},
 	
 	// syntax highlighting parser
