@@ -36,35 +36,73 @@ import conf.mimetypes, conf.app, conf.app.server
 
 serveservice_path = "/opt/ivle/scripts/serveservice"
 
+def determine_file_type(filename):
+    filetype = mimetypes.guess_type(filename)[0]
+    if filetype is None:
+         filetype = conf.mimetypes.default_mimetype
+    return filetype
+
 req = cgirequest.CGIRequest()
 req.install_error_handler()
 
-# Work out the parts of the URL
-url = urlparse.urlparse(req.path)
-querystr = url[4]
-urlpath = url[2]
-username, _, filename = studpath.url_to_jailpaths(urlpath)
-path = os.path.split(filename)[0]
-
 python = "/usr/bin/python"
 
+# Work out the parts of the URL
+urlpath = urlparse.urlparse(req.path)[2]
+filename = studpath.url_to_jailpaths(urlpath)[2]
+path_info = ''
+
+if filename is None:
+    req.throw_error(req.HTTP_NOT_FOUND, "The path specified is invalid.")
+
+if not os.access(filename, os.F_OK):
+    # The given path doesn't exist. CGI lets us backtrack and put the path
+    # elements through which we pass into PATH_INFO, so we try that.
+    while not os.access(filename, os.F_OK):
+        filename, path_info_frag = os.path.split(filename)
+
+        # os.path.join tacks a / on the end even if the second fragment is
+        # empty, which we don't want.
+        if len(path_info) > 0:
+            path_info = os.path.join(path_info_frag, path_info)
+        else:
+            path_info = path_info_frag
+
+    # PATH_INFO is meant to start with a /.
+    path_info = os.path.join(os.sep, path_info)
+
+    # We now have a file that exists, but is it something that we're allowed
+    # to execute? If not, we should 404 anyway.
+    if determine_file_type(filename) not in conf.app.server.interpreters:
+        req.throw_error(req.HTTP_NOT_FOUND,
+            "The specified file (%s) does not exist." % urlpath)
+
+path = os.path.split(filename)[0]
+
 # Everything should be done from the same directory as the script
-# If we can't chdir, a 404 will be thrown later when we can't access the file.
 try:
     os.chdir(path)
 except OSError:
-    pass
+    req.throw_error(req.HTTP_NOT_FOUND,
+        "The specified file (%s) does not exist." % urlpath)
 
 # Search the path for modules first
 sys.path[0] = path
 
-(type, _) = mimetypes.guess_type(filename)
-if type is None:
-    type = conf.mimetypes.default_mimetype
+# Now we have lots of fun mangling environment variables to fix PATH_INFO
+# and related stuff.
+os.environ['PATH_INFO'] = path_info
+if len(path_info) > 0:
+    os.environ['SCRIPT_NAME'] = os.environ['SCRIPT_NAME'][:-len(path_info)]
 
-if filename is None:
-    req.throw_error(req.HTTP_NOT_FOUND, "The path specified is invalid.")
-elif not os.access(filename, os.R_OK):
+# Set PATH_TRANSLATED. We trim the leading / from path_info or things go bad.
+path_translated = studpath.url_to_jailpaths(path_info[1:])[2]
+if path_translated is not None:
+    if len(path_translated) == 0 or path_translated[0] != os.sep:
+        path_translated = os.sep + path_translated
+    os.environ['PATH_TRANSLATED'] = path_translated
+
+if not os.access(filename, os.R_OK):
     req.throw_error(req.HTTP_NOT_FOUND,
         "The specified file (%s) does not exist." % urlpath)
 elif os.path.isdir(filename):
@@ -73,7 +111,7 @@ elif os.path.isdir(filename):
     # the world at large. Directory contents are private).
     req.throw_error(req.HTTP_FORBIDDEN,
         "The path specified is a directory.")
-elif type in conf.app.server.interpreters:
+elif determine_file_type(filename) in conf.app.server.interpreters:
     # We'll save on a fork and execute in this python process
     # Let exceptions blow up normally again
     sys.excepthook = sys.__excepthook__
@@ -84,9 +122,11 @@ else:
     # Otherwise, use the blacklist/whitelist to see if this file should be
     # served or disallowed
     if (conf.app.server.blacklist_served_filetypes and \
-            type in conf.app.server.served_filetypes_blacklist) or \
+            determine_file_type(filename) in \
+            conf.app.server.served_filetypes_blacklist) or \
         (conf.app.server.served_filetypes_whitelist and \
-            type not in conf.app.server.served_filetypes_whitelist):
+            determine_file_type(filename) not in \
+            conf.app.server.served_filetypes_whitelist):
         req.throw_error(req.HTTP_FORBIDDEN,
             "Files of this type are not allowed to be served.")
 

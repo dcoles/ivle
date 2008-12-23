@@ -409,19 +409,10 @@ def fixup_environ(req):
 
     # PATH_INFO is wrong because the script doesn't physically exist.
     # Apache makes it relative to the "serve" app. It should actually be made
-    # relative to the student's script.
-    # TODO: At this stage, it is not possible to add a path after the script,
-    # so PATH_INFO is always "".
-    path_info = ""
-    env['PATH_INFO'] = path_info
-
-    # PATH_TRANSLATED currently points to a non-existant location within the
-    # local web server directory. Instead make it represent a path within the
-    # student jail.
-    (username, _, path_translated) = studpath.url_to_jailpaths(req.path)
-    if len(path_translated) == 0 or path_translated[0] != os.sep:
-        path_translated = os.sep + path_translated
-    env['PATH_TRANSLATED'] = path_translated
+    # relative to the student's script. intepretservice does that in the jail,
+    # so here we just clear it.
+    env['PATH_INFO'] = ''
+    env['PATH_TRANSLATED'] = ''
 
     # CGI specifies that REMOTE_HOST SHOULD be set, and MAY just be set to
     # REMOTE_ADDR. Since Apache does not appear to set this, set it to
@@ -431,8 +422,6 @@ def fixup_environ(req):
 
     # SCRIPT_NAME is the path to the script WITHOUT PATH_INFO.
     script_name = req.uri
-    if len(path_info) > 0:
-        script_name = script_name[:-len(path_info)]
     env['SCRIPT_NAME'] = script_name
 
     # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
@@ -440,4 +429,5 @@ def fixup_environ(req):
     env['SERVER_SOFTWARE'] = "IVLE/" + str(conf.ivle_version)
 
     # Additional environment variables
+    username = studpath.url_to_jailpaths(req.path)[0]
     env['HOME'] = os.path.join('/home', username)
