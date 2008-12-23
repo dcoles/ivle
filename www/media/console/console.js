@@ -261,7 +261,7 @@ function console_enter_line(inputbox, which)
     else
     {
         GLOBAL_inputbox = inputbox;     /* For timer */
-        var inputline = inputbox.value;
+        var inputline = inputbox.value + "\n";
         var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
             + "\"disabled\");", 100);
     }
@@ -275,7 +275,7 @@ function console_enter_line(inputbox, which)
         // Print input line itself in a span
         var span = document.createElement("span");
         span.setAttribute("class", "inputMsg");
-        span.appendChild(document.createTextNode(inputline + "\n"));
+        span.appendChild(document.createTextNode(inputline));
         output.appendChild(span);
     }
     var args = {"key": server_key, "text":inputline};
