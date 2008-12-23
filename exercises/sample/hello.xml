@@ -1,8 +1,8 @@
 <exercise name = "Hello Name">
-    <desc>You need to write <b>Hello</b> and then your name.</desc>
+    <desc>You need to write "Hello" and then your name.</desc>
     <partial>
 <![CDATA[
-print "Hello &lt;print the contents of the variable 'name' here&gt;."
+print "Hello <print the contents of the variable 'name' here>"
 ]]>
     </partial>
     <solution>
