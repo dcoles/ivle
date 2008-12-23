@@ -153,6 +153,7 @@ class PythonRunner(Thread):
         self.cmdQ = cmdQ
         self.lineQ = lineQ
         self.webio = WebIO(self.cmdQ, self.lineQ)
+        self.cc = codeop.CommandCompiler()
         Thread.__init__(self)
 
     def execCmd(self, cmd):
@@ -207,7 +208,7 @@ class PythonRunner(Thread):
 
         # Try to execute the buffer
         try:
-            cmd = codeop.compile_command(self.curr_cmd, '<web session>')
+            cmd = self.cc(self.curr_cmd, '<web session>')
             if cmd is None:
                 # The command was incomplete, so send back a None, so the              
                 # client can print a '...'
