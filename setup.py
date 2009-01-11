@@ -40,7 +40,7 @@ def main(argv=None):
     # Print the opening spiel including the GPL notice
 
     print """IVLE - Informatics Virtual Learning Environment Setup
-Copyright (C) 2007-2008 The University of Melbourne
+Copyright (C) 2007-2009 The University of Melbourne
 IVLE comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions. See LICENSE.txt for details.
