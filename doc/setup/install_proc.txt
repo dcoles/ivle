@@ -62,7 +62,8 @@ sudo -u postgres psql -d ivle < userdb/users.sql
 sudo mkdir -p /home/informatics/{repositories/{users,groups},sessions,logs,jails,jailssrc}
 sudo chown -R www-data:www-data /home/informatics/{repositories,sessions,logs}
 
-sudo ./setup.py build
+# -j is required to rebuild all jails, not just do an update
+sudo ./setup.py build -j
 sudo ./setup.py install
 
 # Make the directory containing the svn auth.
