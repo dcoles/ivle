@@ -108,7 +108,7 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
         # Note: Other subdirs will be made by copying files
         if apt_mirror != None:
             os.environ['MIRROR'] = apt_mirror
-        action_runprog('./buildjail.sh', [], dry)
+        action_runprog('./bin/buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail
     action_copylist(install_list.list_scripts, 'jail/opt/ivle', dry)

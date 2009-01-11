@@ -43,7 +43,8 @@ STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
 # override it here.
 
 if [ -z "$MIRROR" ]; then
-    MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
+    #MIRROR=http://mirror.aarnet.edu.au/pub/ubuntu/archive/
+    MIRROR=http://mirror.gamearena.com.au/ubuntu
     #MIRROR=http://archive.ubuntu.com/ubuntu/ # Default Mirror
 fi
 echo "Using Mirror: $MIRROR"
