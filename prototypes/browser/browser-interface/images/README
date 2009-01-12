@@ -1,6 +1,0 @@
-Images from Nuvola icon set, with exceptions.
-
-mime/py.png, mime/large/py.png:
-    Built from "empty" icon from Nuvola plus the Official Python Logo.
-mime/large/multi.png:
-    Built from "txt" icon from Nuvola, shrunk a bit and duplicated 3 times.
