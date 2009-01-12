@@ -165,7 +165,7 @@ config_options.append(ConfigOption("db_forumdbname", "ivle_forum",
     """Forum Database name:""",
     """
 # Forum Database name"""))
-config_options.append(ConfigOption("db_user", "ivleuser",
+config_options.append(ConfigOption("db_user", "postgres",
     """Username for DB server login:""",
     """
 # Database username"""))
