@@ -53,12 +53,12 @@ def activate_user(props):
 
         repopath = os.path.join(conf.svn_repo_path, 'users', login)
         logging.debug("Creating user's Subversion repository")
-        common.makeuser.make_svn_repo(repopath, throw_on_error=False)
+        common.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
         rebuild_svn_config(props)
 
         logging.debug("Adding Subversion authentication")
-        passwd = common.makeuser.make_svn_auth(login, throw_on_error=False)
+        passwd = common.makeuser.make_svn_auth(login, throw_on_error=True)
         logging.debug("passwd: %s" % passwd)
 
         logging.debug("Creating jail")
