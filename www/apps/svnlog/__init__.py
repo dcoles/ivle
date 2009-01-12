@@ -36,5 +36,5 @@ def handle(req):
     interpreter = common.interpret.interpreter_objects["cgi-python"]
     jail_dir = os.path.join(conf.jail_base, req.user.login)
     common.interpret.interpret_file(req, req.user.login, jail_dir,
-          '/opt/ivle/scripts/svnlogservice', interpreter)
+          '/opt/ivle/services/svnlogservice', interpreter)
 

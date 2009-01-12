@@ -98,10 +98,10 @@ def __install(dry=False,nojail=False,nosubjects=False):
     timountpath = os.path.join(ivle_install_dir, 'bin/timount')
     action_copyfile('timount/timount', timountpath, dry)
 
-    # Create a scripts directory to put the usrmgt-server in.
-    action_mkdir(os.path.join(ivle_install_dir, 'scripts'), dry)
-    usrmgtpath = os.path.join(ivle_install_dir, 'scripts/usrmgt-server')
-    action_copyfile('scripts/usrmgt-server', usrmgtpath, dry)
+    # Create a services directory to put the usrmgt-server in.
+    action_mkdir(os.path.join(ivle_install_dir, 'services'), dry)
+    usrmgtpath = os.path.join(ivle_install_dir, 'services/usrmgt-server')
+    action_copyfile('services/usrmgt-server', usrmgtpath, dry)
     action_chmod_x(usrmgtpath, dry)
 
     # Copy the www and lib directories using the list

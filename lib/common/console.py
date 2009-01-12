@@ -39,8 +39,8 @@ from common import (chat, util)
 trampoline_path = os.path.join(conf.ivle_install_dir, "bin/trampoline")
 # Inside Jail
 python_path = "/usr/bin/python"
-console_dir = "/opt/ivle/scripts"
-console_path = "/opt/ivle/scripts/python-console"
+console_dir = "/opt/ivle/services"
+console_path = "/opt/ivle/services/python-console"
 
 class ConsoleError(Exception):
     """ The console failed in some way. This is bad. """

@@ -40,16 +40,16 @@ import common.util
 # handle_with_trampoline controls the way in which fileservice_lib is invoked.
 # If False, it will simply be called directly by this handler.
 # If True, the request will get marshalled into a CGI environment and the
-# trampoline will invoke scripts/fileservices within the user's jail (SetUID'd
-# to them). This script will then wrap the CGI environment in a replica of the
-# original environment and handle it that way.
+# trampoline will invoke services/fileservices within the user's jail
+# (SetUID'd to them). This script will then wrap the CGI environment in a
+# replica of the original environment and handle it that way.
 # This is a lot of overhead but it's the only way to properly ensure we are
 # acting "as" that user and therefore we don't run into permissions problems.
 # If set to True, it will be a lot more efficient, but there will be
 # permissions issues unless all user's files are owned by the web server user.
 HANDLE_WITH_TRAMPOLINE = True
 
-fileservice_path = "/opt/ivle/scripts/fileservice"   # Within jail
+fileservice_path = "/opt/ivle/services/fileservice"   # Within jail
 
 def handle(req):
     """Handler for the File Services application."""

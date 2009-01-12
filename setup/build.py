@@ -111,15 +111,15 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
         action_runprog('./bin/buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail
-    action_copylist(install_list.list_scripts, 'jail/opt/ivle', dry)
+    action_copylist(install_list.list_services, 'jail/opt/ivle', dry)
     
     # Chmod the python console
-    action_chmod_x('jail/opt/ivle/scripts/python-console', dry)
-    action_chmod_x('jail/opt/ivle/scripts/fileservice', dry)
-    action_chmod_x('jail/opt/ivle/scripts/serveservice', dry)
+    action_chmod_x('jail/opt/ivle/services/python-console', dry)
+    action_chmod_x('jail/opt/ivle/services/fileservice', dry)
+    action_chmod_x('jail/opt/ivle/services/serveservice', dry)
     
     # Also copy the IVLE lib directory into the jail
-    # This is necessary for running certain scripts
+    # This is necessary for running certain services
     action_copylist(install_list.list_lib, 'jail/opt/ivle', dry)
     # IMPORTANT: The file jail/opt/ivle/lib/conf/conf.py contains details
     # which could compromise security if left in the jail (such as the DB
@@ -132,7 +132,7 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
     compileall.compile_dir('lib', quiet=True)
-    compileall.compile_dir('scripts', quiet=True)
+    compileall.compile_dir('services', quiet=True)
     compileall.compile_dir('jail/opt/ivle/lib', quiet=True)
 
     # Set up ivle.pth inside the jail

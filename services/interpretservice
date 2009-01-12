@@ -34,7 +34,7 @@ from common import (cgirequest, studpath)
 import conf
 import conf.mimetypes, conf.app, conf.app.server
 
-serveservice_path = "/opt/ivle/scripts/serveservice"
+serveservice_path = "/opt/ivle/services/serveservice"
 
 def determine_file_type(filename):
     filetype = mimetypes.guess_type(filename)[0]

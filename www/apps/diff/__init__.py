@@ -32,7 +32,7 @@ from os import path
 # handle_with_trampoline controls the way in which fileservice_lib is invoked.
 # If False, it will simply be called directly by this handler.
 # If True, the request will get marshalled into a CGI environment and the
-# trampoline will invoke scripts/fileservices within the user's jail (SetUID'd
+# trampoline will invoke services/fileservices within the user's jail (SetUID'd
 # to them). This script will then wrap the CGI environment in a replica of the
 # original environment and handle it that way.
 # This is a lot of overhead but it's the only way to properly ensure we are
@@ -41,7 +41,7 @@ from os import path
 # permissions issues unless all user's files are owned by the web server user.
 HANDLE_WITH_TRAMPOLINE = True
 
-diffservice_path = "/opt/ivle/scripts/diffservice"   # Within jail
+diffservice_path = "/opt/ivle/services/diffservice"   # Within jail
 
 def handle(req):
     """Handler for the File Services application."""

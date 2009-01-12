@@ -31,8 +31,8 @@ import conf.app.server
 import os
 import mimetypes
 
-serveservice_path = "/opt/ivle/scripts/serveservice"
-interpretservice_path = "/opt/ivle/scripts/interpretservice"
+serveservice_path = "/opt/ivle/services/serveservice"
+interpretservice_path = "/opt/ivle/services/interpretservice"
 
 # Serve all files as application/octet-stream so the browser presents them as
 # a download.

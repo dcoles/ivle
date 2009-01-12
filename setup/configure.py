@@ -539,7 +539,7 @@ $forum_secret = '""" + forum_secret +"""';
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DESC="IVLE user management server"
 NAME=usrmgt-server
-DAEMON=/opt/ivle/scripts/$NAME
+DAEMON=/opt/ivle/services/$NAME
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/usrmgt-server
 

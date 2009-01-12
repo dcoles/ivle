@@ -22,7 +22,7 @@
  * This program runs a given program in a given working dir.
  * First, it chroots to a jail path and setuids to a given user ID.
  * This is intented to provide a safe execution environment for arbitrary
- * programs and scripts.
+ * programs and services.
  *
  * Scripts (such as Python programs) should be executed by supplying
  * "/usr/bin/python" as the program, and the script as the first argument.
