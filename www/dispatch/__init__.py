@@ -92,10 +92,6 @@ def handler_(req, apachereq):
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in conf.apps.app_url:
-        # Maybe it is a special app!
-        #if req.app == 'logout':
-        #    logout(req)
-        #else:
         req.throw_error(Request.HTTP_NOT_FOUND,
             "There is no application called %s." % repr(req.app))
 

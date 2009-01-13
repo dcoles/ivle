@@ -20,7 +20,6 @@
 # Date: 13/01/2009
 
 import cgi
-import mod_python
 from common import util
 
 # url path for this app
