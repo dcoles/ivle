@@ -94,14 +94,14 @@ a:hover, a:active, a:focus {
     padding: 1em;
 }
 
-p.userhello {
+.userhello {
     font-size: .8em;
     top: 0;
     text-align: right;
     padding: 11px 0;
     margin: 0;
 }
-p.userhello .username {
+.userhello .username {
     font-weight: bold;
 }
 

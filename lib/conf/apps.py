@@ -162,7 +162,11 @@ app_home = App(dir = "home",
                     icon = "home.png",
                     requireauth = True,
                     hashelp = False)
-
+                    
+app_logout = App(dir = "logout",
+                    name = "Logout",
+                    requireauth = True,
+                    hashelp = False)
 # Mapping URL names to apps
 
 app_url = {
@@ -184,6 +188,7 @@ app_url = {
     "svnlog" : app_svnlog,
     "subjects" : app_subjects,
     "home" : app_home,
+    "logout" : app_logout,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
