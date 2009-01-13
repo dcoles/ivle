@@ -24,15 +24,15 @@
 # for python files, we evaluate the python script inside
 # our safe execution environment.
 
-from common import (util, studpath, interpret)
-import conf
-import conf.app.server
-
 import os
 import mimetypes
 
-serveservice_path = "/opt/ivle/services/serveservice"
-interpretservice_path = "/opt/ivle/services/interpretservice"
+from ivle import (util, studpath, interpret)
+import ivle.conf
+
+serveservice_path = os.path.join(ivle.conf.share_path, 'services/serveservice')
+interpretservice_path = os.path.join(ivle.conf.share_path,
+                                     'services/interpretservice')
 
 # Serve all files as application/octet-stream so the browser presents them as
 # a download.
@@ -86,7 +86,7 @@ def serve_file(req, owner, filename, download=False):
     # We need a no-op trampoline run to ensure that the jail is mounted.
     # Otherwise we won't be able to authorise for public mode!
     noop_object = interpret.interpreter_objects["noop"]
-    user_jail_dir = os.path.join(conf.jail_base, owner)
+    user_jail_dir = os.path.join(ivle.conf.jail_base, owner)
     interpret.interpret_file(req, owner, user_jail_dir, '', noop_object)
 
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.

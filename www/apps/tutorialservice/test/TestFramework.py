@@ -26,7 +26,7 @@
 import sys, copy
 import types
 
-from common import testfilespace
+from ivle import testfilespace
 
 # student error or author error
 # errors in student code get handled internally

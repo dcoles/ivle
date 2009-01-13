@@ -23,7 +23,7 @@
 # Configures IVLE with machine-specific details, most notably, various paths.
 # Either prompts the administrator for these details or accepts them as
 # command-line args.
-# Creates lib/conf/conf.py and trampoline/conf.h.
+# Creates lib/conf/conf.py and bin/trampoline/conf.h.
 
 import optparse
 import getopt
@@ -31,11 +31,12 @@ import os
 import sys
 import hashlib
 import uuid
-from setup.setuputil import query_user
+
+from setup.util import query_user
 
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
-    def __init__(self, option_name, default, prompt, comment):
+    def __init__(self, option_name, default, prompt, comment, ask=True):
         """Creates a configuration option.
         option_name: Name of the variable in conf.py. Also name of the
             command-line argument to setup.py conf.
@@ -44,88 +45,60 @@ class ConfigOption:
             setup.py conf.
         comment: (Long) comment string stored in conf.py. Each line of this
             string should begin with a '#'.
+        ask: Whether to ask the question in the default config run.
         """
         self.option_name = option_name
         self.default = default
         self.prompt = prompt
         self.comment = comment
+        self.ask = ask
 
 # Configuration options, defaults and descriptions
 config_options = []
+
 config_options.append(ConfigOption("root_dir", "/",
     """Root directory where IVLE is located (in URL space):""",
     """
 # In URL space, where in the site is IVLE located. (All URLs will be prefixed
 # with this).
-# eg. "/" or "/ivle"."""))
-config_options.append(ConfigOption("ivle_install_dir", "/opt/ivle",
-    'Root directory where IVLE will be installed (on the local file '
-    'system):',
+# eg. "/" or "/ivle".""", ask=False))
+
+config_options.append(ConfigOption("prefix", "/usr/local",
+    """In the local file system, the prefix to the system directory where IVLE
+is installed. (This should either be /usr or /usr/local):""",
     """
-# In the local file system, where IVLE is actually installed.
-# This directory should contain the "www" and "bin" directories."""))
-config_options.append(ConfigOption("jail_base", "/home/informatics/jails",
-    """Location of jail mountpoints
-============================
-Root directory where the user jails will be mounted, and the non-user
-components of the jails will be stored (on the local file system):""",
+# In the local file system, the prefix to the system directory where IVLE is
+# installed. This should either be '/usr' or '/usr/local'.
+# ('/usr/local' for the usual install, '/usr' for distribution packages)""",
+    ask=False))
+
+config_options.append(ConfigOption("python_site_packages_override",
+    None,
+    """site-packages directory in Python, where Python libraries are to be
+installed. May be left as the default, in which case the value will be
+computed from prefix and the current Python version:""",
     """
-# In the local file system, where the student/user jails will be mounted.
-# Only a single copy of the jail's system components will be stored here -
-# all user jails will be virtually mounted here."""))
-config_options.append(ConfigOption("jail_system", "/home/informatics/jails/__base__",
-    """Location of system jail components
-==================================
-Directory where the template system jail will be stored.""",
+# 'site-packages' directory in Python, where Python libraries are to be
+# installed. May be None (recommended), in which case the value will be
+# computed from prefix and the current Python version.""", ask=False))
+
+config_options.append(ConfigOption("data_path",
+    "/var/lib/ivle",
+    "In the local file system, where user-modifiable data files should be "
+    "located:",
     """
-# In the local file system, where the template system jail will be stored."""))
-config_options.append(ConfigOption("jail_src_base", "/home/informatics/jailssrc",
-    """Location of user jail components
-================================
-Root directory where the user components of the jails will be stored (on the
-local file system):""",
-    """
-# In the local file system, where are the student/user file spaces located.
-# The user jails are expected to be located immediately in subdirectories of
-# this location. Note that no complete jails reside here - only user
-# modifications."""))
-config_options.append(ConfigOption("subjects_base",
-    "/home/informatics/subjects",
-    """Root directory where the subject directories (containing worksheets
-and other per-subject files) are stored (on the local file system):""",
-    """
-# In the local file system, where are the per-subject file spaces located.
-# The individual subject directories are expected to be located immediately
-# in subdirectories of this location."""))
-config_options.append(ConfigOption("exercises_base",
-    "/home/informatics/exercises",
-    """Root directory where the exercise directories (containing
-subject-independent exercise sheets) are stored (on the local file
-system):""",
-    """
-# In the local file system, where are the subject-independent exercise sheet
-# file spaces located."""))
-config_options.append(ConfigOption("tos_path",
-    "/home/informatics/tos.html",
-    """Location where the Terms of Service document is stored (on the local
-    file system):""",
-    """
-# In the local file system, where is the Terms of Service document located."""))
-config_options.append(ConfigOption("motd_path",
-    "/home/informatics/motd.html",
-    """Location where the Message of the Day document is stored (on the local
-    file system):""",
-    """
-# In the local file system, where is the Message of the Day document
-# located. This is an HTML file (just the body fragment), which will
-# be displayed on the login page. It is optional."""))
+# In the local file system, where user-modifiable data files should be
+# located.""", ask=False))
+
 config_options.append(ConfigOption("log_path",
-    "/home/informatics/logs",
+    "/var/log/ivle",
     """Directory where IVLE log files are stored (on the local
-    file system). Note - this must be writable by the user the IVLE server 
-    process runs as (usually www-data).:""",
+file system). Note - this must be writable by the user the IVLE server 
+process runs as (usually www-data):""",
     """
-# In the local file system, where IVLE error logs should be located."""))
+# In the local file system, where IVLE error logs should be located.""",
+    ask=False))
+
 config_options.append(ConfigOption("public_host", "public.localhost",
     """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""",
@@ -136,6 +109,7 @@ providing login-free access to student's published work:""",
 # Public mode does not use cookies, and serves only public content.
 # Private mode (normal mode) requires login, and only serves files relevant to
 # the logged-in user."""))
+
 config_options.append(ConfigOption("allowed_uids", "33",
     """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
@@ -145,7 +119,9 @@ a comma-separated list.
 # The User-ID of the web server process which will run IVLE, and any other
 # users who are allowed to run the trampoline. This is stores as a string of
 # comma-separated integers, simply because it is not used within Python, only
-# used by the setup program to write to conf.h (see setup.py config)."""))
+# used by the setup program to write to conf.h (see setup.py config).""",
+    ask=False))
+
 config_options.append(ConfigOption("db_host", "localhost",
     """PostgreSQL Database config
 ==========================
@@ -153,51 +129,62 @@ Hostname of the DB server:""",
     """
 ### PostgreSQL Database config ###
 # Database server hostname"""))
+
 config_options.append(ConfigOption("db_port", "5432",
     """Port of the DB server:""",
     """
 # Database server port"""))
+
 config_options.append(ConfigOption("db_dbname", "ivle",
     """Database name:""",
     """
 # Database name"""))
+
 config_options.append(ConfigOption("db_forumdbname", "ivle_forum",
     """Forum Database name:""",
     """
 # Forum Database name"""))
+
 config_options.append(ConfigOption("db_user", "postgres",
     """Username for DB server login:""",
     """
 # Database username"""))
+
 config_options.append(ConfigOption("db_password", "",
     """Password for DB server login:
-    (Caution: This password is stored in plaintext in lib/conf/conf.py)""",
+    (Caution: This password is stored in plaintext in ivle/conf/conf.py)""",
     """
 # Database password"""))
-config_options.append(ConfigOption("auth_modules", "ldap_auth",
+
+config_options.append(ConfigOption("auth_modules", "",
     """Authentication config
 =====================
-Comma-separated list of authentication modules. Only "ldap" is available
-by default.""",
+Comma-separated list of authentication modules.""",
     """
 # Comma-separated list of authentication modules.
+# Note that auth is always enabled against the local database, and NO OTHER
+# auth is enabled by default. This section is for specifying additional auth
+# modules.
 # These refer to importable Python modules in the www/auth directory.
-# Modules "ldap" and "guest" are available in the source tree, but
+# Modules "ldap_auth" and "guest" are available in the source tree, but
 # other modules may be plugged in to auth against organisation-specific
-# auth backends."""))
+# auth backends.""", ask=False))
+
 config_options.append(ConfigOption("ldap_url", "ldaps://www.example.com",
     """(LDAP options are only relevant if "ldap" is included in the list of
 auth modules).
 URL for LDAP authentication server:""",
     """
-# URL for LDAP authentication server"""))
+# URL for LDAP authentication server""", ask=False))
+
 config_options.append(ConfigOption("ldap_format_string",
     "uid=%s,ou=users,o=example",
     """Format string for LDAP auth request:
     (Must contain a single "%s" for the user's login name)""",
     """
 # Format string for LDAP auth request
-# (Must contain a single "%s" for the user's login name)"""))
+# (Must contain a single "%s" for the user's login name)""", ask=False))
+
 config_options.append(ConfigOption("subject_pulldown_modules", "",
     """Comma-separated list of subject pulldown modules.
 Add proprietary modules to automatically enrol students in subjects.""",
@@ -206,76 +193,43 @@ Add proprietary modules to automatically enrol students in subjects.""",
 # These refer to importable Python modules in the lib/pulldown_subj directory.
 # Only "dummy_subj" is available in the source tree (an example), but
 # other modules may be plugged in to pulldown against organisation-specific
-# pulldown backends."""))
+# pulldown backends.""", ask=False))
+
 config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
     """Subversion config
 =================
 The base url for accessing subversion repositories:""",
     """
 # The base url for accessing subversion repositories."""))
-config_options.append(ConfigOption("svn_conf", "/opt/ivle/svn/svn.conf",
-    """The location of the subversion configuration file used by apache
-to host the user repositories:""",
-    """
-# The location of the subversion configuration file used by
-# apache to host the user repositories."""))
-config_options.append(ConfigOption("svn_group_conf",
-    "/opt/ivle/svn/svn-group.conf",
-    """The location of the subversion configuration file used by apache
-to host group repositories:""",
-    """
-# The location of the subversion configuration file used by
-# apache to host the user repositories."""))
-config_options.append(ConfigOption("svn_repo_path", "/home/informatics/repositories",
-    """The root directory for the subversion repositories:""",
-    """
-# The root directory for the subversion repositories."""))
-config_options.append(ConfigOption("svn_auth_ivle", "/opt/ivle/svn/ivle.auth",
-    """The location of the password file used to authenticate users
-of the subversion repository from the ivle server:""",
-    """
-# The location of the password file used to authenticate users
-# of the subversion repository from the ivle server."""))
-config_options.append(ConfigOption("svn_auth_local", "/opt/ivle/svn/local.auth",
-    """The location of the password file used to authenticate local users
-of the subversion repository:""",
-    """
-# The location of the password file used to authenticate local users
-# of the subversion repository."""))
+
 config_options.append(ConfigOption("usrmgt_host", "localhost",
     """User Management Server config
 ============================
 The hostname where the usrmgt-server runs:""",
     """
 # The hostname where the usrmgt-server runs."""))
+
 config_options.append(ConfigOption("usrmgt_port", "2178",
     """The port where the usrmgt-server runs:""",
     """
-# The port where the usrmgt-server runs."""))
-config_options.append(ConfigOption("usrmgt_magic", "",
+# The port where the usrmgt-server runs.""", ask=False))
+
+config_options.append(ConfigOption("usrmgt_magic", None,
     """The password for the usrmgt-server:""",
     """
-# The password for the usrmgt-server."""))
+# The password for the usrmgt-server.""", ask=False))
 
 def configure(args):
-    usage = """usage: %prog build [options]
-(requires root)
-Compiles all files and sets up a jail template in the source directory.
--O is recommended to cause compilation to be optimised.
-Details:
-Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
-Creates jail with system and student packages installed from MIRROR.
-Copies console/ to a location within the jail.
-Copies OS programs and files to corresponding locations within the jail
-  (eg. python and Python libs, ld.so, etc).
-Generates .pyc or .pyo files for all the IVLE .py files."""
+    usage = """usage: %prog config [options]
+Creates lib/conf/conf.py (and a few other config files).
+Interactively asks questions to set this up."""
 
     # Parse arguments
     parser = optparse.OptionParser(usage)
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    __configure(args)
+    return __configure(args)
 
 def __configure(args):
     global db_port, usrmgt_port
@@ -285,7 +239,7 @@ def __configure(args):
     # of setup besides conf, so we need to know them.
     # Also this allows you to hit Return to accept the existing value.
     try:
-        confmodule = __import__("lib/conf/conf")
+        confmodule = __import__("ivle/conf/conf")
         for opt in config_options:
             try:
                 globals()[opt.option_name] = \
@@ -301,11 +255,10 @@ def __configure(args):
     cwd = os.getcwd()
 
     # the files that will be created/overwritten
-    conffile = os.path.join(cwd, "lib/conf/conf.py")
-    jailconffile = os.path.join(cwd, "lib/conf/jailconf.py")
-    conf_hfile = os.path.join(cwd, "trampoline/conf.h")
+    conffile = os.path.join(cwd, "ivle/conf/conf.py")
+    jailconffile = os.path.join(cwd, "ivle/conf/jailconf.py")
+    conf_hfile = os.path.join(cwd, "bin/trampoline/conf.h")
     phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
-    usrmgtserver_initdfile = os.path.join(cwd, "doc/setup/usrmgt-server.init")
 
     # Get command-line arguments to avoid asking questions.
 
@@ -326,20 +279,20 @@ def __configure(args):
     %s
     %s
     %s
-    %s
 prompting you for details about your configuration. The file will be
 overwritten if it already exists. It will *not* install or deploy IVLE.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, jailconffile, conf_hfile, phpBBconffile, usrmgtserver_initdfile)
+""" % (conffile, jailconffile, conf_hfile, phpBBconffile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
         # silently
 
         for opt in config_options:
-            globals()[opt.option_name] = \
-                query_user(globals()[opt.option_name], opt.prompt)
+            if opt.ask:
+                globals()[opt.option_name] = \
+                    query_user(globals()[opt.option_name], opt.prompt)
     else:
         opts = dict(opts)
         # Non-interactive mode. Parse the options.
@@ -372,6 +325,10 @@ Please hit Ctrl+C now if you do not wish to do this.
         "Must be an integer between 0 and 65535." % repr(usrmgt_port))
         return 1
 
+    # By default we generate the magic randomly.
+    if globals()['usrmgt_magic'] is None:
+        globals()['usrmgt_magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+
     # Generate the forum secret
     forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
@@ -384,20 +341,24 @@ Please hit Ctrl+C now if you do not wish to do this.
 # conf.py
 # Miscellaneous application settings
 
+import os
+import sys
 """)
         for opt in config_options:
-            conf.write('%s\n%s = %s\n' % (opt.comment, opt.option_name,
-                repr(globals()[opt.option_name])))
+            conf.write('%s\n%s = %r\n' % (opt.comment, opt.option_name,
+                globals()[opt.option_name]))
 
-	# Add the forum secret to the config file (regenerated each config)
-        conf.write('forum_secret = "%s"\n' % (forum_secret))
+	    # Add the forum secret to the config file (regenerated each config)
+        conf.write('forum_secret = "%s"\n\n' % (forum_secret))
+
+        write_conf_file_boilerplate(conf)
 
         conf.close()
     except IOError, (errno, strerror):
         print "IO error(%s): %s" % (errno, strerror)
         sys.exit(1)
 
-    print "Successfully wrote lib/conf/conf.py"
+    print "Successfully wrote %s" % conffile
 
     # Write conf/jailconf.py
 
@@ -437,12 +398,19 @@ svn_addr = %s
         print "IO error(%s): %s" % (errno, strerror)
         sys.exit(1)
 
-    print "Successfully wrote lib/conf/jailconf.py"
+    print "Successfully wrote %s" % jailconffile
 
-    # Write trampoline/conf.h
+    # Write bin/trampoline/conf.h
 
     try:
         conf = open(conf_hfile, "w")
+
+        # XXX Compute jail_base, jail_src_base and jail_system. These will
+        # ALSO be done by the boilerplate code, but we need them here in order
+        # to write to the C file.
+        jail_base = os.path.join(data_path, 'jailmounts')
+        jail_src_base = os.path.join(data_path, 'jails')
+        jail_system = os.path.join(jail_src_base, '__base__')
 
         conf.write("""/* IVLE Configuration File
  * conf.h
@@ -477,7 +445,7 @@ static const int allowed_uids[] = { %s };
         print "IO error(%s): %s" % (errno, strerror)
         sys.exit(1)
 
-    print "Successfully wrote trampoline/conf.h"
+    print "Successfully wrote %s" % conf_hfile
 
     # Write www/php/phpBB3/config.php
 
@@ -515,172 +483,7 @@ $forum_secret = '""" + forum_secret +"""';
         print "IO error(%s): %s" % (errno, strerror)
         sys.exit(1)
 
-    print "Successfully wrote www/php/phpBB3/config.php"
-
-    # Write lib/conf/usrmgt-server.init
-
-    try:
-        conf = open(usrmgtserver_initdfile, "w")
-
-        conf.write( '''#! /bin/sh
-
-# Works for Ubuntu. Check before using on other distributions
-
-### BEGIN INIT INFO
-# Provides:          usrmgt-server
-# Required-Start:    $syslog $networking $urandom
-# Required-Stop:     $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:      1
-# Short-Description: IVLE user management server
-# Description:       Daemon connecting to the IVLE user management database.
-### END INIT INFO
-
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-DESC="IVLE user management server"
-NAME=usrmgt-server
-DAEMON=/opt/ivle/services/$NAME
-PIDFILE=/var/run/$NAME.pid
-SCRIPTNAME=/etc/init.d/usrmgt-server
-
-# Exit if the daemon does not exist 
-test -f $DAEMON || exit 0
-
-# Load the VERBOSE setting and other rcS variables
-[ -f /etc/default/rcS ] && . /etc/default/rcS
-
-# Define LSB log_* functions.
-# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
-. /lib/lsb/init-functions
-
-#
-# Function that starts the daemon/service
-#
-do_start()
-{
-	# Return
-	#   0 if daemon has been started
-	#   1 if daemon was already running
-	#   2 if daemon could not be started
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
-		|| return 1
-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON \
-		|| return 2
-	# Add code here, if necessary, that waits for the process to be ready
-	# to handle requests from services started subsequently which depend
-	# on this one.  As a last resort, sleep for some time.
-}
-
-#
-# Function that stops the daemon/service
-#
-do_stop()
-{
-	# Return
-	#   0 if daemon has been stopped
-	#   1 if daemon was already stopped
-	#   2 if daemon could not be stopped
-	#   other if a failure occurred
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
-	# Wait for children to finish too if this is a daemon that forks
-	# and if the daemon is only ever run from this initscript.
-	# If the above conditions are not satisfied then add some other code
-	# that waits for the process to drop all resources that could be
-	# needed by services started subsequently.  A last resort is to
-	# sleep for some time.
-	start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $DAEMON
-	[ "$?" = 2 ] && return 2
-	# Many daemons don't delete their pidfiles when they exit.
-	rm -f $PIDFILE
-	return "$RETVAL"
-}
-
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload() {
-	#
-	# If the daemon can reload its configuration without
-	# restarting (for example, when it is sent a SIGHUP),
-	# then implement that here.
-	#
-	start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE --name $NAME
-	return 0
-}
-
-case "$1" in
-  start)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-	do_start
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	;;
-  stop)
-	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
-	do_stop
-	case "$?" in
-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-	esac
-	;;
-  #reload|force-reload)
-	#
-	# If do_reload() is not implemented then leave this commented out
-	# and leave 'force-reload' as an alias for 'restart'.
-	#
-	#log_daemon_msg "Reloading $DESC" "$NAME"
-	#do_reload
-	#log_end_msg $?
-	#;;
-  restart|force-reload)
-	#
-	# If the "reload" option is implemented then remove the
-	# 'force-reload' alias
-	#
-	log_daemon_msg "Restarting $DESC" "$NAME"
-	do_stop
-	case "$?" in
-	  0|1)
-		do_start
-		case "$?" in
-			0) log_end_msg 0 ;;
-			1) log_end_msg 1 ;; # Old process is still running
-			*) log_end_msg 1 ;; # Failed to start
-		esac
-		;;
-	  *)
-	  	# Failed to stop
-		log_end_msg 1
-		;;
-	esac
-	;;
-  *)
-	#echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
-	exit 3
-	;;
-esac
-
-:
-''')
-        
-        conf.close()
-    except IOError, (errno, strerror):
-        print "IO error(%s): %s" % (errno, strerror)
-        sys.exit(1)
-
-    # fix permissions as the file contains the database password
-    try:
-        os.chmod('doc/setup/usrmgt-server.init', 0600)
-    except OSError, (errno, strerror):
-        print "WARNING: Couldn't chmod doc/setup/usrmgt-server.init:"
-        print "OS error(%s): %s" % (errno, strerror)
-
-    print "Successfully wrote lib/conf/usrmgt-server.init"
+    print "Successfully wrote %s" % phpBBconffile
 
     print
     print "You may modify the configuration at any time by editing"
@@ -688,7 +491,91 @@ esac
     print jailconffile
     print conf_hfile
     print phpBBconffile
-    print usrmgtserver_initdfile
     print
     
     return 0
+
+def write_conf_file_boilerplate(conf_file):
+    conf_file.write("""\
+### Below is boilerplate code, appended by ./setup.py config ###
+
+# Path where architecture-dependent data (including non-user-executable
+# binaries) is installed.
+lib_path = os.path.join(prefix, 'lib/ivle')
+
+# Path where arch-independent data is installed.
+share_path = os.path.join(prefix, 'share/ivle')
+
+# Path where user-executable binaries are installed.
+bin_path = os.path.join(prefix, 'bin')
+
+# 'site-packages' directory in Python, where Python libraries are to be
+# installed.
+if python_site_packages_override is None:
+    PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
+    python_site_packages = os.path.join(prefix,
+                               'lib/python%s/site-packages' % PYTHON_VERSION)
+else:
+    python_site_packages = python_site_packages_override
+
+# In the local file system, where the student/user jails will be mounted.
+# Only a single copy of the jail's system components will be stored here -
+# all user jails will be virtually mounted here.
+jail_base = os.path.join(data_path, 'jailmounts')
+
+# In the local file system, where are the student/user file spaces located.
+# The user jails are expected to be located immediately in subdirectories of
+# this location. Note that no complete jails reside here - only user
+# modifications.
+jail_src_base = os.path.join(data_path, 'jails')
+
+# In the local file system, where the template system jail will be stored.
+jail_system = os.path.join(jail_src_base, '__base__')
+
+# In the local file system, where the subject content files are located.
+# (The 'subjects' and 'exercises' directories).
+content_path = os.path.join(data_path, 'content')
+
+# In the local file system, where are the per-subject file spaces located.
+# The individual subject directories are expected to be located immediately
+# in subdirectories of this location.
+subjects_base = os.path.join(content_path, 'subjects')
+
+# In the local file system, where are the subject-independent exercise sheet
+# file spaces located.
+exercises_base = os.path.join(content_path, 'exercises')
+
+# In the local file system, where the system notices are stored (such as terms
+# of service and MOTD).
+notices_path = os.path.join(data_path, 'notices')
+
+# In the local file system, where is the Terms of Service document located.
+tos_path = os.path.join(notices_path, 'tos.html')
+
+# In the local file system, where is the Message of the Day document
+# located. This is an HTML file (just the body fragment), which will
+# be displayed on the login page. It is optional.
+motd_path = os.path.join(notices_path, 'motd.html')
+
+# The location of all the subversion config and repositories.
+svn_path = os.path.join(data_path, 'svn')
+
+# The location of the subversion configuration file used by
+# apache to host the user repositories.
+svn_conf = os.path.join(svn_path, 'svn.conf')
+
+# The location of the subversion configuration file used by
+# apache to host the user repositories.
+svn_group_conf = os.path.join(svn_path, 'svn-group.conf')
+
+# The root directory for the subversion repositories.
+svn_repo_path = os.path.join(svn_path, 'repositories')
+
+# The location of the password file used to authenticate users
+# of the subversion repository from the ivle server.
+svn_auth_ivle = os.path.join(svn_path, 'ivle.auth')
+
+# The location of the password file used to authenticate local users
+# of the subversion repository.
+svn_auth_local = os.path.join(svn_path, 'local.auth')
+""")

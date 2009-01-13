@@ -20,7 +20,7 @@
 # Date: 13/01/2009
 
 import cgi
-from common import util
+from ivle import util
 
 # url path for this app
 THIS_APP = "logout"

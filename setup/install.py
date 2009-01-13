@@ -19,28 +19,19 @@
 # Author: Matt Giuca, Refactored by David Coles
 # Date:   03/07/2008
 
-# setup/build.py
-# Compiles all files and sets up a jail template in the source directory.
-# Details:
-# Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
-# Creates jail/.
-# Creates standard subdirs inside the jail, eg bin, opt, home, tmp.
-# Copies console/ to a location within the jail.
-# Copies OS programs and files to corresponding locations within the jail
-#   (eg. python and Python libs, ld.so, etc).
-# Generates .pyc files for all the IVLE .py files.
-
 import optparse
 import os
-from setuputil import *
+import sys
+
+from setup import util
 
 def install(args):
     usage = """usage: %prog install [options]
 (Requires root)
 Create target install directory ($target).
 Create $target/bin.
-Copy trampoline/trampoline to $target/bin.
-Copy timount/timount to $target/bin.
+Copy bin/trampoline/trampoline to $target/bin.
+Copy bin/timount/timount to $target/bin.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
 Copy jail/ to jail_system directory (unless --nojail specified).
@@ -61,20 +52,22 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    __install(options.dry, options.nojail, options.nosubjects)
+    return __install(options.dry, options.nojail, options.nosubjects)
 
 def __install(dry=False,nojail=False,nosubjects=False):
-    # Importing configuration is a little tricky
-    sys.path.append('lib')
-    import conf.conf
-    import install_list
+    # We need to import the one in the working copy, not in the system path.
+    confmodule = __import__("ivle/conf/conf")
+    install_list = util.InstallList()
 
     # Pull the required varibles out of the config
-    ivle_install_dir = conf.conf.ivle_install_dir
-    jail_base = conf.conf.jail_base
-    jail_system = conf.conf.jail_system
-    subjects_base = conf.conf.subjects_base
-    exercises_base = conf.conf.exercises_base
+    lib_path = confmodule.lib_path
+    share_path = confmodule.share_path
+    bin_path = confmodule.bin_path
+    python_site_packages = confmodule.python_site_packages
+    jail_base = confmodule.jail_base
+    jail_system = confmodule.jail_system
+    subjects_base = confmodule.subjects_base
+    exercises_base = confmodule.exercises_base
 
     # Must be run as root or a dry run  
     if dry:
@@ -84,38 +77,63 @@ def __install(dry=False,nojail=False,nosubjects=False):
         print >>sys.stderr, "Must be root to run build"
         print >>sys.stderr, "(I need to chown)."
         return 1
-    
-    # Create the target (install) directory
-    action_mkdir(ivle_install_dir, dry)
 
-    # Create bin and copy the compiled files there
-    action_mkdir(os.path.join(ivle_install_dir, 'bin'), dry)
-    tramppath = os.path.join(ivle_install_dir, 'bin/trampoline')
-    action_copyfile('trampoline/trampoline', tramppath, dry)
+    # Make some directories for data.
+    util.action_mkdir(confmodule.log_path, dry)
+    util.action_mkdir(confmodule.data_path, dry)
+    util.action_mkdir(confmodule.jail_base, dry)
+    util.action_mkdir(confmodule.jail_src_base, dry)
+    util.action_mkdir(confmodule.content_path, dry)
+    util.action_mkdir(confmodule.notices_path, dry)
+    util.action_mkdir(os.path.join(confmodule.data_path, 'sessions'), dry)
+    util.action_mkdir(confmodule.svn_path, dry)
+    util.action_mkdir(confmodule.svn_repo_path, dry)
+    util.action_mkdir(os.path.join(confmodule.svn_repo_path, 'users'), dry)
+    util.action_mkdir(os.path.join(confmodule.svn_repo_path, 'groups'), dry)
+
+    util.action_chown(confmodule.log_path, util.wwwuid, util.wwwuid, dry)
+    util.action_chown(os.path.join(confmodule.data_path, 'sessions'),
+                      util.wwwuid, util.wwwuid, dry)
+    util.action_chown(os.path.join(confmodule.svn_repo_path, 'users'),
+                      util.wwwuid, util.wwwuid, dry)
+    util.action_chown(os.path.join(confmodule.svn_repo_path, 'groups'),
+                      util.wwwuid, util.wwwuid, dry)
+
+    # Create lib and copy the compiled files there
+    util.action_mkdir(lib_path, dry)
+
+    tramppath = os.path.join(lib_path, 'trampoline')
+    util.action_copyfile('bin/trampoline/trampoline', tramppath, dry)
     # chown trampoline to root and set setuid bit
-    action_chown_setuid(tramppath, dry)
+    util.action_chown_setuid(tramppath, dry)
 
-    timountpath = os.path.join(ivle_install_dir, 'bin/timount')
-    action_copyfile('timount/timount', timountpath, dry)
+    timountpath = os.path.join(lib_path, 'timount')
+    util.action_copyfile('bin/timount/timount', timountpath, dry)
 
     # Create a services directory to put the usrmgt-server in.
-    action_mkdir(os.path.join(ivle_install_dir, 'services'), dry)
-    usrmgtpath = os.path.join(ivle_install_dir, 'services/usrmgt-server')
-    action_copyfile('services/usrmgt-server', usrmgtpath, dry)
-    action_chmod_x(usrmgtpath, dry)
+    util.action_mkdir(os.path.join(share_path, 'services'), dry)
+
+    usrmgtpath = os.path.join(share_path, 'services/usrmgt-server')
+    util.action_copyfile('services/usrmgt-server', usrmgtpath, dry)
+    util.action_chmod_x(usrmgtpath, dry)
+
+    # Copy the user-executable binaries using the list.
+    util.action_copylist(install_list.list_user_binaries, bin_path, dry,
+                         onlybasename=True)
 
     # Copy the www and lib directories using the list
-    action_copylist(install_list.list_www, ivle_install_dir, dry)
-    action_copylist(install_list.list_lib, ivle_install_dir, dry)
+    util.action_copylist(install_list.list_www, share_path, dry)
+    util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
     
     # Make the config file private
-    configpath = os.path.join(ivle_install_dir, 'lib/conf/conf.py')
-    action_make_private(configpath, dry)
+    # XXX Get rid of lib
+    configpath = os.path.join(python_site_packages, 'ivle/conf/conf.py')
+    util.action_make_private(configpath, dry)
 
     # Copy the php directory
     forum_dir = "www/php/phpBB3"
-    forum_path = os.path.join(ivle_install_dir, forum_dir)
-    action_copytree(forum_dir, forum_path, dry)
+    forum_path = os.path.join(share_path, forum_dir)
+    util.action_copytree(forum_dir, forum_path, dry)
     print "chown -R www-data:www-data %s" % forum_path
     if not dry:
         os.system("chown -R www-data:www-data %s" % forum_path)
@@ -124,53 +142,45 @@ def __install(dry=False,nojail=False,nosubjects=False):
         # Copy the local jail directory built by the build action
         # to the jail_system directory (it will be used to help build
         # all the students' jails).
-        action_copytree('jail', jail_system, dry)
+        util.action_copytree('jail', jail_system, dry)
+
     if not nosubjects:
         # Copy the subjects and exercises directories across
-        action_copylist(install_list.list_subjects, subjects_base, dry,
+        util.action_mkdir(subjects_base, dry)
+        util.action_copylist(install_list.list_subjects, subjects_base, dry,
             srcdir="./subjects")
-        action_copylist(install_list.list_exercises, exercises_base, dry,
+        util.action_mkdir(exercises_base, dry)
+        util.action_copylist(install_list.list_exercises, exercises_base, dry,
             srcdir="./exercises")
 
-    # Append IVLE path to ivle.pth in python site packages
-    # (Unless it's already there)
-    ivle_pth = os.path.join(sys.prefix,
-        "lib/python%s/site-packages/ivle.pth" % PYTHON_VERSION)
-    ivle_www = os.path.join(ivle_install_dir, "www")
-    ivle_lib = os.path.join(ivle_install_dir, "lib")
-    write_ivle_pth = True
-    write_ivle_lib_pth = True
+    # XXX We shouldn't have ivle.pth at all any more.
+    # We may still need the www packages to be importable.
+    # Anything from www that is needed from the outside should go to lib.
+    ivle_pth = os.path.join(python_site_packages, "ivle.pth")
     try:
-        file = open(ivle_pth, 'r')
-        for line in file:
-            if line.strip() == ivle_www:
-                write_ivle_pth = False
-            elif line.strip() == ivle_lib:
-                write_ivle_lib_pth = False
+        file = open(ivle_pth, 'w')
+        file.write(os.path.join(share_path, "www"))
         file.close()
     except (IOError, OSError):
         pass
-    if write_ivle_pth:
-        action_append(ivle_pth, ivle_www)
-    if write_ivle_lib_pth:
-        action_append(ivle_pth, ivle_lib)
-
 
     # Create the ivle working revision record file
-    action_mkdir(os.path.join(ivle_install_dir, 'version'), dry)
-    ivle_revision_record_file = os.path.join(ivle_install_dir, 'version/ivle-revision.txt')
+    ivle_revision_record_file = os.path.join(share_path, 'ivle-revision.txt')
     if not dry:
         try:
             conf = open(ivle_revision_record_file, "w")
 
-            conf.write( "# IVLE code revision listing generated by running 'svn status -v ..' from " + os.getcwd() + "\n#\n\n")
+            conf.write("""# SVN revision r%d
+# Source tree location: %s
+# Modified files:
+""" % (util.get_svn_revision(), os.getcwd()))
 
             conf.close()
         except IOError, (errno, strerror):
             print "IO error(%s): %s" % (errno, strerror)
             sys.exit(1)
 
-        os.system("svn status -v . >> %s" % ivle_revision_record_file)
+        os.system("svn status . >> %s" % ivle_revision_record_file)
 
     print "Wrote IVLE code revision status to %s" % ivle_revision_record_file
 

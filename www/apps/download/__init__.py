@@ -25,9 +25,10 @@
 # Also can serve directories or multiple files, automatically zipping them up.
 # Uses a large chunk of code from "serve"
 
-from common import studpath
-from apps import server
 import StringIO
+
+from ivle import studpath
+from apps import server
 
 # Serve all files as application/octet-stream so the browser presents them as
 # a download.

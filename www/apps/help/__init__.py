@@ -22,11 +22,11 @@
 # This is an IVLE application.
 # A sample / testing application for IVLE.
 
-from common import util
 import os
 import copy
-import conf
-from conf import apps
+
+from ivle import util
+import ivle.conf
 
 # TODO: Nicer 404 errors
 
@@ -38,9 +38,9 @@ def handle(req):
         show_help_menu(req)
     else:
         # app must be valid and have help available
-        if appurl not in conf.apps.app_url:
+        if appurl not in ivle.conf.apps.app_url:
             req.throw_error(req.HTTP_NOT_FOUND)
-        app = conf.apps.app_url[appurl]
+        app = ivle.conf.apps.app_url[appurl]
         if not app.hashelp:
             req.throw_error(req.HTTP_NOT_FOUND)
         # subpath must be empty, for now, as there is only one help file per app
@@ -62,8 +62,8 @@ def show_help_menu(req):
     # Write a list of links to all apps with help modules
     req.write("<ul>\n")
     # Tab apps, in order of tabs
-    for appurl in conf.apps.apps_in_tabs:
-        app = conf.apps.app_url[appurl]
+    for appurl in ivle.conf.apps.apps_in_tabs:
+        app = ivle.conf.apps.app_url[appurl]
         if app.hashelp:
             req.write('  <li><a href="%s">%s</a></li>\n'
                 % (os.path.join(util.make_path("help"), appurl), app.name))

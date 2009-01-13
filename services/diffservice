@@ -24,12 +24,13 @@
 # A CGI script for generating a diff report page in HTML. It is intended to be 
 # run from the trampoline by the Diff application.
 
-from common import cgirequest
-import common.svn
 import cgi
 import os.path
 import pysvn
 import re
+
+from ivle import cgirequest
+import ivle.svn
 
 def htmlfy_diff(difftext):
     """Adds HTML markup to a udiff string"""
@@ -70,7 +71,7 @@ revs = [pysvn.Revision(x) for x in [pysvn.opt_revision_kind.base,
 fields = req.get_fieldstorage()
 field_r = fields.getlist("r")
 for ri in range(len(field_r)):
-    r = common.svn.revision_from_string(field_r[ri])
+    r = ivle.svn.revision_from_string(field_r[ri])
     if r is not None:
         revs[ri] = r
 

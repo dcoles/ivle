@@ -4,11 +4,10 @@ import os
 import sys
 import logging
 
-import conf
-import common.db
-import common.chat
-import common.makeuser
-import common.studpath
+import ivle.conf
+import ivle.db
+import ivle.chat
+import ivle.makeuser
 
 # usage:
 #   usrmgt-server <port> <magic>
@@ -41,7 +40,7 @@ def activate_user(props):
 
     login = props['login']
 
-    db = common.db.DB()
+    db = ivle.db.DB()
 
     try:
 
@@ -51,18 +50,18 @@ def activate_user(props):
 
         # make svn config/auth
 
-        repopath = os.path.join(conf.svn_repo_path, 'users', login)
+        repopath = os.path.join(ivle.conf.svn_repo_path, 'users', login)
         logging.debug("Creating user's Subversion repository")
-        common.makeuser.make_svn_repo(repopath, throw_on_error=True)
+        ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
         rebuild_svn_config(props)
 
         logging.debug("Adding Subversion authentication")
-        passwd = common.makeuser.make_svn_auth(login, throw_on_error=True)
+        passwd = ivle.makeuser.make_svn_auth(login, throw_on_error=True)
         logging.debug("passwd: %s" % passwd)
 
         logging.debug("Creating jail")
-        common.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
+        ivle.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
 
         logging.info("Enabling user")
         db.update_user(login, state='enabled')
@@ -78,7 +77,7 @@ def rebuild_svn_config(props):
         response (okay, failure)
     """
     try:
-        common.makeuser.rebuild_svn_config()
+        ivle.makeuser.rebuild_svn_config()
     except Exception, e:
         logging.warning('Rebuild of Subversion authorization config failed!')
         return{'response': 'failure', 'msg': repr(e)}
@@ -91,7 +90,7 @@ def rebuild_svn_group_config(props):
         response (okay, failure)
     """
     try:
-        common.makeuser.rebuild_svn_group_config()
+        ivle.makeuser.rebuild_svn_group_config()
     except Exception, e:
         logging.warning(
             'Rebuild of Subversion group authorization config failed!')
@@ -113,10 +112,10 @@ def create_group_repository(props):
     groupnm = props['groupnm']
 
     namespace = "_".join([subj_short_name, year, semester, groupnm])
-    repopath = os.path.join(conf.svn_repo_path, 'groups', namespace)
+    repopath = os.path.join(ivle.conf.svn_repo_path, 'groups', namespace)
     logging.debug("Creating Subversion repository %s"%repopath)
     try:
-        common.makeuser.make_svn_repo(repopath)
+        ivle.makeuser.make_svn_repo(repopath)
     except Exception, e:
         logging.error("Failed to create Subversion repository %s: %s"%
             (repopath,repr(e)))
@@ -150,6 +149,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
     logging.info("Starting usrmgt server on port %d (pid = %d)" %
-                 (conf.usrmgt_port, pid))
+                 (ivle.conf.usrmgt_port, pid))
 
-    common.chat.start_server(conf.usrmgt_port, conf.usrmgt_magic, True, dispatch, initializer)
+    ivle.chat.start_server(ivle.conf.usrmgt_port, ivle.conf.usrmgt_magic,
+                           True, dispatch, initializer)

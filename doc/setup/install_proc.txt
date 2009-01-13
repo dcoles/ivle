@@ -50,31 +50,14 @@ sudo -u postgres createlang plpgsql ivle
 sudo -u postgres psql -d ivle < userdb/users.sql
 
 # Set up IVLE
-./setup.py listmake
 ./setup.py config
-
-# "Root directory" - type "/" or "/ivle" (without the quotes)
-# "UID of web server process" - 1000 at this stage (informatics)
-# Leave others default.
-# Note: This will cause IVLE to get installed to /opt/ivle
-
-sudo mkdir -p /home/informatics/{repositories/{users,groups},sessions,logs,jails,jailssrc}
-sudo chown -R www-data:www-data /home/informatics/{repositories,sessions,logs}
 
 # -j is required to rebuild all jails, not just do an update
 sudo ./setup.py build -j
 sudo ./setup.py install
 
-# Make the directory containing the svn auth.
-# Make sure it is owned by www-data.
-sudo mkdir /opt/ivle/svn
-sudo chown -R www-data:www-data /opt/ivle/svn
-
-# Make the "repositories", "sessions" and "logs" directories in the home.
-# Make sure they are owned by www-data.
-
 # Create a user
-sudo ./makeuser.py [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
+sudo ivle-makeuser [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
 # role = guest/student/tutor/lecturer/admin
 
 # Configure the Apache HTTP server
@@ -88,6 +71,7 @@ sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle
 #   (svn.localhost). You must change this to the domain for svn access.
 # * Change all paths beginning with /opt/ivle or /home/informatics to the
 #   locations you have installed things in.
+# * Update all of the paths to where you installed IVLE, if required.
 sudo vim /etc/apache2/sites-available/ivle
 
 # Replace the default with the IVLE site.
@@ -128,25 +112,3 @@ sudo -u postgres dropdb ivle_forum
 sudo -u postgres createdb ivle_forum
 sudo -u postgres psql -d ivle_forum < userdb/forum_schema.sql
 sudo -u postgres psql -d ivle_forum < userdb/forum_data.sql
-
-#Change to the installed IVLE directory
-cd /opt/ivle
-# Fix permissions for install
-cd www/php/phpBB3
-# At very minimum you apache user must be able to write to
-# cache/ files/ store/ images/avatars/upload config.php
-sudo chown -R www-data:www-data .
-
-##########################################################################
-# Installing Pound reverse proxy (optional)
-##########################################################################
-
-sudo apt-get install pound
-
-# edit /etc/default/pound so that the line reading
-#     startup=0
-# instead reads
-#     startup=1
-#
-# copy pound.cfg to /etc/pound/pound.cfg
-# edit IP addresses in pound.cfg

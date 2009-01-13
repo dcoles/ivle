@@ -16,8 +16,8 @@ import sys
 import traceback
 from threading import Thread
 
-import common.chat
-import common.util
+import ivle.chat
+import ivle.util
 
 # This version must be supported by both the local and remote code
 PICKLEVERSION = 0
@@ -67,7 +67,7 @@ class StdoutToWeb(object):
         '''Trim an incomplete UTF-8 character from the end of a string.
            Returns (trimmed_string, count_of_trimmed_bytes).
         '''
-        tokill = common.util.incomplete_utf8_sequence(stuff)
+        tokill = ivle.util.incomplete_utf8_sequence(stuff)
         if tokill == 0:
             return (stuff, tokill)
         else:
@@ -366,12 +366,12 @@ def dispatch_msg(msg):
     if msg['cmd'] == 'terminate':
         terminate = "User requested console be terminated"
     if terminate:
-        raise common.chat.Terminate({"terminate":terminate})
+        raise ivle.chat.Terminate({"terminate":terminate})
     expiry.ping()
     lineQ.put((msg['cmd'],msg['text']))
     response = cmdQ.get()
     if terminate:
-        raise common.chat.Terminate({"terminate":terminate})
+        raise ivle.chat.Terminate({"terminate":terminate})
     return response
 
 def format_exc_start(start=0):
@@ -393,7 +393,7 @@ def flatten(object):
             try:
                 o_type = type(object[o]).__name__
                 o_name = object[o].__name__
-                fake_o = common.util.FakeObject(o_type, o_name)
+                fake_o = ivle.util.FakeObject(o_type, o_name)
                 flat[o] = cPickle.dumps(fake_o, PICKLEVERSION)
             except AttributeError:
                 pass
@@ -415,4 +415,4 @@ if __name__ == "__main__":
     # Make python's search path follow the cwd
     sys.path[0] = ''
 
-    common.chat.start_server(port, magic, True, dispatch_msg, initializer)
+    ivle.chat.start_server(port, magic, True, dispatch_msg, initializer)

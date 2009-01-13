@@ -26,8 +26,9 @@
 # Applications also need to call console_init in JavaScript from their own
 # onload events.
 
-from common import util
 import cgi
+
+from ivle import util
 
 def insert_scripts_styles(scripts, styles, scripts_init):
     """Given 2 lists of strings: scripts and styles. These lists are lists of

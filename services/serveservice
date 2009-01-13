@@ -25,12 +25,11 @@
 
 import mimetypes
 import os
-import conf
 import StringIO
 import urlparse
 
-from common import (cgirequest, studpath)
-from common import zip as zipmod
+from ivle import (cgirequest, studpath)
+from ivle import zip as zipmod
 
 req = cgirequest.CGIRequest()
 req.install_error_handler()

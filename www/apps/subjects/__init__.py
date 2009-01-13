@@ -26,8 +26,8 @@ import os
 import urllib
 import cgi
 
-from common import util
-import common.db
+from ivle import util
+import ivle.db
 
 def handle(req):
     """Handler for the Subjects application. Links to subject home pages."""
@@ -45,7 +45,7 @@ def handle_toplevel_menu(req):
         req.throw_redirect(req.uri + '/')
 
     (enrolled_subjects, unenrolled_subjects) = \
-              common.db.DB().get_subjects_status(req.user.login)
+              ivle.db.DB().get_subjects_status(req.user.login)
 
     def print_subject(subject):
         if subject['url'] is None:

@@ -31,11 +31,10 @@
 
 import os.path
 
-import conf
-import fileservice_lib
-import common
-import common.interpret
-import common.util
+import ivle.conf
+import ivle.fileservice_lib
+import ivle.interpret
+import ivle.util
 
 # handle_with_trampoline controls the way in which fileservice_lib is invoked.
 # If False, it will simply be called directly by this handler.
@@ -49,18 +48,18 @@ import common.util
 # permissions issues unless all user's files are owned by the web server user.
 HANDLE_WITH_TRAMPOLINE = True
 
-fileservice_path = "/opt/ivle/services/fileservice"   # Within jail
+fileservice_path = os.path.join(ivle.conf.share_path, 'services/fileservice')
 
 def handle(req):
     """Handler for the File Services application."""
     if len(req.path) == 0:
         # If no path specified, default to the user's home directory
-        req.throw_redirect(common.util.make_path(os.path.join('fileservice',
+        req.throw_redirect(ivle.util.make_path(os.path.join('fileservice',
                                                        req.user.login)))
     if not HANDLE_WITH_TRAMPOLINE:
-        fileservice_lib.handle(req)
+        ivle.fileservice_lib.handle(req)
     else:
-        interp_object = common.interpret.interpreter_objects["cgi-python"]
-        user_jail_dir = os.path.join(conf.jail_base, req.user.login)
-        common.interpret.interpret_file(req, req.user.login, user_jail_dir,
+        interp_object = ivle.interpret.interpreter_objects["cgi-python"]
+        user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        ivle.interpret.interpret_file(req, req.user.login, user_jail_dir,
             fileservice_path, interp_object, gentle=False)

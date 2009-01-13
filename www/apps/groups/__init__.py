@@ -25,8 +25,8 @@
 
 import cgi
 
-from common import (util, caps)
-import common.db
+from ivle import (util, caps)
+import ivle.db
 
 def handle(req):
     # Set request attributes
@@ -41,7 +41,7 @@ def handle(req):
 
     req.write('<div id="ivle_padding">\n')
     # Show a group panel per enrolment
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         subjects = db.get_enrolment(req.user.login)
         # Sort by year,semester,subj_code (newer subjects first)

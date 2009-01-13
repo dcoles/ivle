@@ -22,7 +22,7 @@
 # This is an IVLE application.
 # A sample / testing application for IVLE.
 
-from common import util
+from ivle import util
 
 def handle(req):
     """Handler for the Dummy application."""

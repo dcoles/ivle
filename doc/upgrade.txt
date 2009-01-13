@@ -17,7 +17,6 @@ database tables.
 Then configure and build IVLE. New configuration options may sometimes
 be added, so the configuration questions should be watched closely.
 
-  ./setup.py listmake
   ./setup.py config
   sudo ./setup.py build
 
@@ -41,7 +40,7 @@ Now we can install the new version:
 
 ... and remake the user jails, as this will occasionally be needed:
 
-  ./remakeuser.py --all --verbose
+  ivle-remakeuser --all --verbose
 
 Restart the usrmgt-server and all Apaches, reenable external access,
 check that everything works, and you're done!

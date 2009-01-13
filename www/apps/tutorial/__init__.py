@@ -39,9 +39,9 @@ import mimetypes
 
 import cjson
 
-from common import util
-import conf
-import common.db
+from ivle import util
+import ivle.conf
+import ivle.db
 
 from rst import rst
 
@@ -124,10 +124,10 @@ def handle_media_path(req):
     if urlpath.startswith("..") or urlpath.startswith('/'):
         req.throw_error(req.HTTP_FORBIDDEN,
             "Invalid path.")
-    filename = os.path.join(conf.subjects_base, urlpath)
+    filename = os.path.join(ivle.conf.subjects_base, urlpath)
     (type, _) = mimetypes.guess_type(filename)
     if type is None:
-        type = conf.mimetypes.default_mimetype
+        type = ivle.conf.mimetypes.default_mimetype
     ## THIS CODE taken from apps/server/__init__.py
     if not os.access(filename, os.R_OK):
         req.throw_error(req.HTTP_NOT_FOUND,
@@ -151,7 +151,7 @@ def handle_toplevel_menu(req):
   for that subject.</p>\n""")
 
     (enrolled_subjects, unenrolled_subjects) = \
-              common.db.DB().get_subjects_status(req.user.login)
+              ivle.db.DB().get_subjects_status(req.user.login)
 
     def print_subject(subject):
         req.write('  <li><a href="%s">%s</a></li>\n'
@@ -189,7 +189,7 @@ def handle_subject_menu(req, subject):
     # The subject directory must have a file "subject.xml" in it,
     # or it does not exist (404 error).
     try:
-        subjectfile = open(os.path.join(conf.subjects_base, subject,
+        subjectfile = open(os.path.join(ivle.conf.subjects_base, subject,
             "subject.xml"))
     except:
         req.throw_error(req.HTTP_NOT_FOUND,
@@ -213,7 +213,7 @@ def handle_subject_menu(req, subject):
                 worksheetdom.getAttribute("assessable") == "true")
             worksheets.append(worksheet)
 
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         # Now all the errors are out the way, we can begin writing
         req.title = "Tutorial - %s" % subject
@@ -258,7 +258,7 @@ def handle_subject_menu(req, subject):
                             'Completed %d/%d%s</li></ul>\n  '
                             % (complete_class, mand_done, mand_total,
                                 optional_message))
-            except common.db.DBException:
+            except ivle.db.DBException:
                 # Worksheet is probably not in database yet
                 pass
             req.write('</li>\n')
@@ -293,7 +293,7 @@ def handle_worksheet(req, subject, worksheet):
                 % (repr(subject), repr(worksheet)))
 
     # Read in worksheet data
-    worksheetfilename = os.path.join(conf.subjects_base, subject,
+    worksheetfilename = os.path.join(ivle.conf.subjects_base, subject,
             worksheet + ".xml")
     try:
         worksheetfile = open(worksheetfilename)
@@ -352,7 +352,7 @@ def present_table_of_contents(req, node, exerciseid):
 <h2>Worksheet Contents</h2>
 <ul>
 """)
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         for tag, xml in find_all_nodes(req, node):
             if tag == "ex":
@@ -520,7 +520,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
     saved_text = None
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         saved_text = db.get_problem_stored_text(login=req.user.login,
             exercisename=exercisesrc)
@@ -625,7 +625,7 @@ def update_db_worksheet(subject, worksheet, file_mtime,
     the existing data. If the worksheet does not yet exist, and assessable
     is omitted, it defaults to False.
     """
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         db_mtime = db.get_worksheet_mtime(subject, worksheet)
         if db_mtime is None or file_mtime > db_mtime:

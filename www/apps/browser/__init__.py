@@ -28,8 +28,8 @@
 import os.path
 import cgi
 
-from common import (util, studpath)
-import common.svn
+from ivle import (util, studpath)
+import ivle.svn
 
 # url path for this app
 THIS_APP = "files"
@@ -115,7 +115,7 @@ def presentpath(req, path, isdir):
     href_path = util.make_path(THIS_APP)
     nav_path = ""
 
-    revision = common.svn.revision_from_string(
+    revision = ivle.svn.revision_from_string(
                      req.get_fieldstorage().getfirst('r'))
 
     try: 

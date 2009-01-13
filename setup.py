@@ -30,7 +30,6 @@ import sys
 import setup.configure
 import setup.build
 import setup.install
-import setup.listmake
 
 
 def main(argv=None):
@@ -64,7 +63,6 @@ def help(args):
         print """Usage: python setup.py operation [options]
 Operation can be:
     help [operation]
-    listmake (developer use only)
     config
     build
     install
@@ -82,7 +80,6 @@ def call_operator(operation):
             'help' : help,
             'config' : setup.configure.configure,
             'build' : setup.build.build,
-            'listmake' : setup.listmake.listmake,
             'install' : setup.install.install,
             #'updatejails' : None,
         }[operation]

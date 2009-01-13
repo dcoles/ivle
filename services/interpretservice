@@ -30,16 +30,19 @@ import StringIO
 import urlparse
 import subprocess
 
-from common import (cgirequest, studpath)
-import conf
-import conf.mimetypes, conf.app, conf.app.server
+from ivle import (cgirequest, studpath)
+import ivle.conf
+import ivle.conf.mimetypes
+import ivle.conf.app
+import ivle.conf.app.server
 
-serveservice_path = "/opt/ivle/services/serveservice"
+# XXX: using dirname because we don't have path config in the jailconf.
+serveservice_path = os.path.join(os.path.dirname(__file__), 'serveservice')
 
 def determine_file_type(filename):
     filetype = mimetypes.guess_type(filename)[0]
     if filetype is None:
-         filetype = conf.mimetypes.default_mimetype
+         filetype = ivle.conf.mimetypes.default_mimetype
     return filetype
 
 req = cgirequest.CGIRequest()
@@ -73,7 +76,7 @@ if not os.access(filename, os.F_OK):
 
     # We now have a file that exists, but is it something that we're allowed
     # to execute? If not, we should 404 anyway.
-    if determine_file_type(filename) not in conf.app.server.interpreters:
+    if determine_file_type(filename) not in ivle.conf.app.server.interpreters:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The specified file (%s) does not exist." % urlpath)
 
@@ -111,7 +114,7 @@ elif os.path.isdir(filename):
     # the world at large. Directory contents are private).
     req.throw_error(req.HTTP_FORBIDDEN,
         "The path specified is a directory.")
-elif determine_file_type(filename) in conf.app.server.interpreters:
+elif determine_file_type(filename) in ivle.conf.app.server.interpreters:
     # We'll save on a fork and execute in this python process
     # Let exceptions blow up normally again
     sys.excepthook = sys.__excepthook__
@@ -121,12 +124,12 @@ elif determine_file_type(filename) in conf.app.server.interpreters:
 else:
     # Otherwise, use the blacklist/whitelist to see if this file should be
     # served or disallowed
-    if (conf.app.server.blacklist_served_filetypes and \
+    if (ivle.conf.app.server.blacklist_served_filetypes and \
             determine_file_type(filename) in \
-            conf.app.server.served_filetypes_blacklist) or \
-        (conf.app.server.served_filetypes_whitelist and \
+            ivle.conf.app.server.served_filetypes_blacklist) or \
+        (ivle.conf.app.server.served_filetypes_whitelist and \
             determine_file_type(filename) not in \
-            conf.app.server.served_filetypes_whitelist):
+            ivle.conf.app.server.served_filetypes_whitelist):
         req.throw_error(req.HTTP_FORBIDDEN,
             "Files of this type are not allowed to be served.")
 

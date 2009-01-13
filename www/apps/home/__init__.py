@@ -25,8 +25,8 @@
 import cgi
 import urllib
 
-from common import util
-from conf import apps
+from ivle import util
+from ivle.conf import apps
 
 def handle(req):
     """Handler for the student home application.

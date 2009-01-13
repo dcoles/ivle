@@ -23,10 +23,10 @@
 # a la phpinfo.
 # Important: This application should be removed from a production system.
 
-from common import util
-import conf
-from conf import apps
 import os
+
+from ivle import util
+import ivle.conf
 
 def handle(req):
     """Handler for the Debug Information application."""
@@ -40,13 +40,16 @@ def handle(req):
     req.write("<h2>IVLE Debug Information</h2>\n")
 
     print_table(req, "System Constants", [
-        ("ivle_version", conf.ivle_version),
-        ("ivle_install_dir", conf.ivle_install_dir),
-        ("root_dir", conf.root_dir),
-        ("public_host", conf.public_host),
-        ("jail_base", conf.jail_base),
-        ("default_app", conf.apps.default_app),
-        ("public_app", conf.apps.public_app),
+        ("ivle_version", ivle.conf.ivle_version),
+        ("prefix", ivle.conf.prefix),
+        ("python_site_packages", ivle.conf.python_site_packages),
+        ("data_path", ivle.conf.data_path),
+        ("log_path", ivle.conf.log_path),
+        ("root_dir", ivle.conf.root_dir),
+        ("public_host", ivle.conf.public_host),
+        ("jail_base", ivle.conf.jail_base),
+        ("default_app", ivle.conf.apps.default_app),
+        ("public_app", ivle.conf.apps.public_app),
     ])
 
     print_table(req, "Operating System Variables", [
@@ -57,7 +60,7 @@ def handle(req):
         ("uname", os.uname()),
     ])
 
-    print_table(req, "Available Applications", conf.apps.app_url.items())
+    print_table(req, "Available Applications", ivle.conf.apps.app_url.items())
 
     print_table(req, "Request Properties", [
         ("method", req.method),
@@ -98,7 +101,7 @@ def handle(req):
     req.write("<h3>Removal instructions</h3>\n")
     req.write("""<p>In a production environment, debuginfo should be disabled.
     To do this, comment out or remove the debuginfo line of the app_url
-    dictionary in conf/apps.py.</p>
+    dictionary in ivle/conf/apps.py.</p>
     <p>For extra security, it may be removed completely by deleting the
     apps/debuginfo directory.</p>
 </div>

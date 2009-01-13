@@ -24,7 +24,8 @@
 # (Mostly this is here for the "Help" section)
 
 import os
-from common import util
+
+from ivle import util
 
 def handle(req):
     """Handler for the TOS application."""

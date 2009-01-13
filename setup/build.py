@@ -19,21 +19,12 @@
 # Author: Matt Giuca, Refactored by David Coles
 # Date:   02/07/2008
 
-# setup/build.py
-# Compiles all files and sets up a jail template in the source directory.
-# Details:
-# Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
-# Creates jail/.
-# Creates standard subdirs inside the jail, eg bin, opt, home, tmp.
-# Copies console/ to a location within the jail.
-# Copies OS programs and files to corresponding locations within the jail
-#   (eg. python and Python libs, ld.so, etc).
-# Generates .pyc files for all the IVLE .py files.
-
 import optparse
 import os
+import sys
 import compileall
-from setuputil import *
+
+from setup import util
 
 def build(args):
     usage = """usage: %prog build [options]
@@ -41,8 +32,8 @@ def build(args):
 Compiles all files and sets up a jail template in the source directory.
 -O is recommended to cause compilation to be optimised.
 Details:
-Compiles (GCC) trampoline/trampoline.c to trampoline/trampoline.
-Compiles (GCC) timount/timount.c to timount/timount.
+Compiles (GCC) bin/trampoline/trampoline.c to bin/trampoline/trampoline.
+Compiles (GCC) bin/timount/timount.c to bin/timount/timount.
 Creates jail with system and student packages installed from MIRROR.
 Copies console/ to a location within the jail.
 Copies OS programs and files to corresponding locations within the jail
@@ -63,12 +54,12 @@ Generates .pyc or .pyo files for all the IVLE .py files."""
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    __build(options.dry, options.rebuildjail, options.apt_mirror)
+    return __build(options.dry, options.rebuildjail, options.apt_mirror)
 
 def __build(dry=False,rebuildjail=False,apt_mirror=None):
-    # Importing configuration is a little tricky
-    sys.path.append(os.pardir)
-    import install_list
+    # We need to import the one in the working copy, not in the system path.
+    confmodule = __import__("ivle/conf/conf")
+    install_list = util.InstallList()
 
     # Must be run as root or a dry run  
     if dry:
@@ -83,24 +74,16 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
         print >> sys.stderr, "No jail exists -- please rerun with -j."
         return 1
 
-    # Find out the revison number
-    revnum = get_svn_revision()
-    print "Building Revision %s"%str(revnum)
-    if not dry:
-        vfile = open('BUILD-VERSION','w')
-        vfile.write(str(revnum) + '\n')
-        vfile.close()
-
     # Compile the trampoline
     curdir = os.getcwd()
-    os.chdir('trampoline')
-    action_runprog('make', [], dry)
+    os.chdir('bin/trampoline')
+    util.action_runprog('make', [], dry)
     os.chdir(curdir)
 
     # Compile timount
     curdir = os.getcwd()
-    os.chdir('timount')
-    action_runprog('make', [], dry)
+    os.chdir('bin/timount')
+    util.action_runprog('make', [], dry)
     os.chdir(curdir)
 
     if rebuildjail:
@@ -108,40 +91,36 @@ def __build(dry=False,rebuildjail=False,apt_mirror=None):
         # Note: Other subdirs will be made by copying files
         if apt_mirror != None:
             os.environ['MIRROR'] = apt_mirror
-        action_runprog('./bin/buildjail.sh', [], dry)
+        util.action_runprog('setup/buildjail.sh', [], dry)
 
     # Copy all console and operating system files into the jail
-    action_copylist(install_list.list_services, 'jail/opt/ivle', dry)
-    
+    jail_share = os.path.join('jail', confmodule.share_path[1:])
+    jail_services = os.path.join(jail_share, 'services')
+    util.action_copylist(install_list.list_services, jail_share, dry)
+
     # Chmod the python console
-    action_chmod_x('jail/opt/ivle/services/python-console', dry)
-    action_chmod_x('jail/opt/ivle/services/fileservice', dry)
-    action_chmod_x('jail/opt/ivle/services/serveservice', dry)
-    
+    util.action_chmod_x(os.path.join(jail_services, 'python-console'), dry)
+    util.action_chmod_x(os.path.join(jail_services, 'fileservice'), dry)
+    util.action_chmod_x(os.path.join(jail_services, 'serveservice'), dry)
+
     # Also copy the IVLE lib directory into the jail
     # This is necessary for running certain services
-    action_copylist(install_list.list_lib, 'jail/opt/ivle', dry)
-    # IMPORTANT: The file jail/opt/ivle/lib/conf/conf.py contains details
+    jail_site_packages = os.path.join('jail',
+                                      confmodule.python_site_packages[1:])
+    util.action_copylist(install_list.list_ivle_lib, jail_site_packages, dry)
+    # IMPORTANT: ivle/conf/conf.py contains details
     # which could compromise security if left in the jail (such as the DB
     # password).
     # The "safe" version is in jailconf.py. Delete conf.py and replace it with
     # jailconf.py.
-    action_copyfile('lib/conf/jailconf.py',
-        'jail/opt/ivle/lib/conf/conf.py', dry)
+    util.action_copyfile('ivle/conf/jailconf.py',
+        os.path.join(jail_site_packages, 'ivle/conf/conf.py'), dry)
 
     # Compile .py files into .pyc or .pyo files
     compileall.compile_dir('www', quiet=True)
-    compileall.compile_dir('lib', quiet=True)
+    compileall.compile_dir('ivle', quiet=True)
     compileall.compile_dir('services', quiet=True)
-    compileall.compile_dir('jail/opt/ivle/lib', quiet=True)
-
-    # Set up ivle.pth inside the jail
-    # Need to set /opt/ivle/lib to be on the import path
-    ivle_pth = \
-        "jail/usr/lib/python%s/site-packages/ivle.pth" % PYTHON_VERSION
-    f = open(ivle_pth, 'w')
-    f.write('/opt/ivle/lib\n')
-    f.close()
+    compileall.compile_dir(os.path.join(jail_site_packages, 'ivle'),quiet=True)
 
     return 0
 

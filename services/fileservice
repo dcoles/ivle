@@ -27,8 +27,8 @@
 # (The purpose of all of this is to let FileService read and write the user's
 # file system as them).
 
-from common import cgirequest
-import fileservice_lib
+from ivle import cgirequest
+import ivle.fileservice_lib
 
 # Use a CGIRequest object to make the CGI environment look like the normal
 # IVLE handler environment. This lets us call FileService as if it were an
@@ -36,4 +36,4 @@ import fileservice_lib
 
 req = cgirequest.CGIRequest()
 req.install_error_handler()
-fileservice_lib.handle(req)
+ivle.fileservice_lib.handle(req)

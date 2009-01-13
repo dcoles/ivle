@@ -22,7 +22,7 @@
 # User settings UI
 # (Also provides UI for administering users, given sufficient privileges).
 
-from common import util
+from ivle import util
 
 def handle(req):
     """Handler for the Settings application."""

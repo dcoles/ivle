@@ -46,9 +46,9 @@ import time
 
 import cjson
 
-from common import (db, util, console)
-import test
-import conf
+from ivle import (db, util, console)
+import ivle.conf
+import test # XXX: Really .test, not real test.
 
 # If True, getattempts or getattempt will allow browsing of inactive/disabled
 # attempts. If False, will not allow this.
@@ -135,7 +135,7 @@ def handle_test(req, exercise, code, fields):
             "The exercise was not found.")
 
     # Start a console to run the tests on
-    jail_path = os.path.join(conf.jail_base, req.user.login)
+    jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
     working_dir = os.path.join("/home", req.user.login)
     cons = console.Console(req.user.unixid, jail_path, working_dir)
 

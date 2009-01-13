@@ -29,8 +29,8 @@ import uuid
 
 import cjson
 
-from common import (util, studpath, chat, console)
-import conf
+from ivle import (util, studpath, chat, console)
+import ivle.conf
 import errno
 
 def handle(req):
@@ -78,7 +78,7 @@ def handle_start(req):
     req.write_html_head_foot = False
 
     # Start the server
-    jail_path = os.path.join(conf.jail_base, req.user.login)
+    jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
     cons = console.Console(uid, jail_path, working_dir)
 
     # Assemble the key and return it.
@@ -95,7 +95,7 @@ def handle_chat(req, kind = "chat"):
     # It simply acts as a proxy to the console server
     if req.method != "POST":
         req.throw_error(req.HTTP_BAD_REQUEST)
-    jail_path = os.path.join(conf.jail_base, req.user.login)
+    jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
     working_dir = os.path.join("/home", req.user.login)   # Within jail
     uid = req.user.unixid
     fields = req.get_fieldstorage()

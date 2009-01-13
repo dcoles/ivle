@@ -22,12 +22,12 @@
 # This is an IVLE application.
 # A SMF forum application for IVLE.
 
-from common import util
-from common import interpret
-from os import path
 import os
 import urlparse
 import re
+
+from ivle import util
+from ivle import interpret
 
 def handle(req):
     """
@@ -68,7 +68,7 @@ def handle(req):
     if board or topic:
         location = forum_page + framequery
     
-    frameurl = util.make_path(path.join(forum_base,location))
+    frameurl = util.make_path(os.path.join(forum_base,location))
     req.content_type = "text/html"
     req.write_html_head_foot = True
     req.write('<object class="fullscreen" type="text/html" data="%s">'%

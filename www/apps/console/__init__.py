@@ -23,7 +23,7 @@
 # Presents a Python console as a complete app. (This simply imports the
 # Console plugin - see plugins/console).
 
-from common import util
+from ivle import util
 import plugins.console
 
 def handle(req):

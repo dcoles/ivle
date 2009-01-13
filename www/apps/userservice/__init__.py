@@ -144,16 +144,13 @@ import time
 import cjson
 import pg
 
-import common
-import common.db
-import common.makeuser
-from common import (util, chat, caps)
-import conf
+import ivle.db
+import ivle.makeuser
+from ivle import (util, chat, caps)
+from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 
-from conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
-
-from auth import authenticate
-from auth.autherror import AuthError
+from ivle.auth import authenticate
+from ivle.auth.autherror import AuthError
 import urllib
 
 # The user must send this declaration message to ensure they acknowledge the
@@ -197,7 +194,7 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         if req.method != "POST":
             req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
@@ -326,8 +323,8 @@ def handle_create_user(req, fields):
         else:
             pass
 
-    common.makeuser.make_user_db(**create)
-    user = common.db.DB().get_user(create["login"])
+    ivle.makeuser.make_user_db(**create)
+    user = ivle.db.DB().get_user(create["login"])
     req.content_type = "text/plain"
     req.write(str(user.unixid))
 
@@ -387,7 +384,7 @@ def handle_update_user(req, fields):
 
     update['login'] = login
 
-    db = common.db.DB()
+    db = ivle.db.DB()
     db.update_user(**update)
 
     # Re-read the user's details from the DB so we can update their session
@@ -427,7 +424,7 @@ def handle_get_user(req, fields):
         login = req.user.login
 
     # Just talk direct to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     user = db.get_user(login)
     db.close()
     user = dict(user)
@@ -481,7 +478,7 @@ def handle_get_enrolments(req, fields):
         login = req.user.login
 
     # Just talk direct to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     enrolments = db.get_enrolment(login)
     for e in enrolments:
         e['groups'] = db.get_enrolment_groups(login, e['offeringid'])
@@ -507,7 +504,7 @@ def handle_get_active_offerings(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST,
             "subjectid must be a integer")
     
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         offerings = db.get_offering_semesters(subjectid)
     finally:
@@ -534,7 +531,7 @@ def handle_get_project_groups(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be a integer")
     
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         projectsets = db.get_projectsets_by_offering(offeringid)
         for p in projectsets:
@@ -569,7 +566,7 @@ def handle_create_project_set(req, fields):
             "Required: offeringid, max_students_per_group")
 
     # Talk to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     dbquery = db.return_insert(
         {
             'offeringid': offeringid,
@@ -620,7 +617,7 @@ def handle_create_project(req, fields):
             req.throw_error(req.HTTP_BAD_REQUEST, e.message)
 
     # Talk to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         dbquery = db.return_insert(
             {
@@ -675,7 +672,7 @@ def handle_create_group(req, fields):
     nick = fields.getfirst('nick')
 
     # Talk to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     # Other fields
     createdby = db.get_user_loginid(req.user.login)
     epoch = time.localtime()
@@ -768,7 +765,7 @@ def handle_get_group_membership(req, fields):
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be an int")
 
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         offeringmembers = db.get_offering_members(offeringid)
         groupmembers = db.get_projectgroup_members(groupid)
@@ -808,10 +805,10 @@ def handle_assign_group(req, fields):
     groupid = int(groupid)
 
     # Talk to the DB
-    db = common.db.DB()
+    db = ivle.db.DB()
     try:
         loginid = db.get_user_loginid(login)
-    except common.db.DBException, e:
+    except ivle.db.DBException, e:
         req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
 
     # Add assignment to database
