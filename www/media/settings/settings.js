@@ -106,12 +106,27 @@ function populate(user)
         p.appendChild(document.createTextNode("Change password"))
         changepassword.appendChild(p);
         p = document.createElement("p");
-        p.appendChild(document.createTextNode("Please type your new password "
-            + "twice, to make sure you remember it."))
+        
+        p.appendChild(document.createTextNode("Please type your old password, "
+                + "and new password twice, for verification."));
         changepassword.appendChild(p);
 
         table = document.createElement("table");
         tbody = document.createElement("tbody");
+
+        tr = document.createElement("tr");
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode("Old password:"))
+        tr.appendChild(td);
+        td = document.createElement("td");
+        inputbox = document.createElement("input");
+        inputbox.setAttribute("type", "password");
+        inputbox.setAttribute("name", "oldpass");
+        inputbox.setAttribute("id", "oldpass");
+        inputbox.setAttribute("size", "40");
+        td.appendChild(inputbox)
+        tr.appendChild(td);
+        tbody.appendChild(tr);
 
         tr = document.createElement("tr");
         td = document.createElement("td");
@@ -197,6 +212,7 @@ function save_settings()
     /* Textbox (input) elements */
     try
     {
+        var oldpass = document.getElementById("oldpass");
         var newpass = document.getElementById("newpass");
         var repeatpass = document.getElementById("repeatpass");
     }
@@ -209,6 +225,7 @@ function save_settings()
     var email = document.getElementById("email");
 
     /* Check */
+    oldpassval = oldpass == null ? null : oldpass.value;
     newpassval = newpass == null ? null : newpass.value;
     repeatpassval = repeatpass == null ? null : repeatpass.value;
     nickval = nick.value;
@@ -255,16 +272,22 @@ function save_settings()
             dom_removechildren(usernick);
             usernick.appendChild(document.createTextNode(nickval));
         }
+        else if (xhr.getResponseHeader("X-IVLE-Action-Error"))
+        {
+            set_result(decodeURIComponent(xhr.getResponseHeader(
+                                     "X-IVLE-Action-Error").toString()), true);        
+        }
         else
         {
             set_result("There was a problem updating the details."
-                + " Your changes have not been saved.");
+                + " Your changes have not been saved.", true);
         }
     }
     data = {
         "login": user_data.login,
         "nick": nickval,
         "email": emailval,
+        "oldpass": oldpassval,
     }
     if (newpassval != null && newpassval != "")
         data['password'] = newpassval;

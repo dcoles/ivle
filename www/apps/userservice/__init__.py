@@ -152,6 +152,10 @@ import conf
 
 from conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 
+from auth import authenticate
+from auth.autherror import AuthError
+import urllib
+
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
@@ -363,12 +367,24 @@ def handle_update_user(req, fields):
 
     # Make a dict of fields to update
     update = {}
+    oldpassword = fields.getfirst('oldpass')
+    
     for f in fieldlist:
         val = fields.getfirst(f)
         if val is not None:
             update[f] = val
         else:
             pass
+
+    if 'password' in update:
+        try:
+            authenticate.authenticate(login, oldpassword)
+        except AuthError:
+            req.headers_out['X-IVLE-Action-Error'] = \
+                urllib.quote("Old password incorrect.")
+            req.status = req.HTTP_BAD_REQUEST
+            return
+
     update['login'] = login
 
     db = common.db.DB()
