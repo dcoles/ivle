@@ -54,16 +54,16 @@ def write_html_head(req):
     # Write inline JavaScript which gives the client code access to certain
     # server-side variables.
     if req.user:
-        username = repr(req.user.login)
+        username = '"%s"' % req.user.login
     else:
         username = "null"
     if req.write_javascript_settings:
         req.write("""  <script type="text/javascript">
-    root_dir = %s;
-    public_host = %s;
+    root_dir = "%s";
+    public_host = "%s";
     username = %s;
   </script>
-""" % (repr(ivle.conf.root_dir), repr(ivle.conf.public_host), username))
+""" % (ivle.conf.root_dir, ivle.conf.public_host, username))
     iconurl = get_icon_url(req.app, small=True)
     if iconurl:
         req.write("""  <link rel="shortcut icon" href="%s" />

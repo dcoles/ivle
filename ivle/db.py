@@ -401,30 +401,6 @@ class DB:
         # Execute the query.
         return self.insert(fields, "login", self.login_fields, dry=dry)
 
-    def update_user(self, login, dry=False, **kwargs):
-        """Updates fields of a particular user. login is the name of the user
-        to update. The dict contains the fields which will be modified, and
-        their new values. If any value is omitted from the dict, it does not
-        get modified. login and studentid may not be modified.
-        Passhash may be modified by supplying a "password" field, in
-        cleartext, not a hashed password.
-
-        Note that no checking is done. It is expected this function is called
-        by a trusted source. In particular, it allows the password to be
-        changed without knowing the old password. The caller should check
-        that the user knows the existing password before calling this function
-        with a new one.
-        """
-        if 'passhash' in kwargs:
-            raise DBException("Supplied arguments include passhash (invalid) (2).")
-        if "password" in kwargs:
-            kwargs = copy.copy(kwargs)
-            kwargs['passhash'] = _passhash(kwargs['password'])
-            del kwargs['password']
-        return self.update({"login": login}, kwargs, "login",
-            self.login_fields, self.login_primary, ["login", "studentid"],
-            dry=dry)
-
     def get_user(self, login, dry=False):
         """Given a login, returns a User object containing details looked up
         in the DB.

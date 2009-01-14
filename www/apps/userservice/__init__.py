@@ -145,6 +145,7 @@ import cjson
 import pg
 
 import ivle.db
+import ivle.database
 import ivle.makeuser
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
@@ -156,6 +157,14 @@ import urllib
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
+
+# List of fields returned as part of the user JSON dictionary
+# (as returned by the get_user action)
+user_fields_list = (
+    "login", "state", "unixid", "email", "nick", "fullname",
+    "rolenm", "studentid", "acct_exp", "pass_exp", "last_login",
+    "svn_pass"
+)
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
@@ -194,7 +203,6 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-    db = ivle.db.DB()
     try:
         if req.method != "POST":
             req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
@@ -211,22 +219,19 @@ def handle_activate_me(req, fields):
         # Make sure the user's status is "no_agreement", and set status to
         # pending, within the one transaction. This ensures we only do this
         # one time.
-        db.start_transaction()
         try:
-
-            user_details = db.get_user(req.user.login)
             # Check that the user's status is "no_agreement".
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
-            if user_details.state != "no_agreement":
+            if req.user.state != "no_agreement":
                 req.throw_error(req.HTTP_BAD_REQUEST,
                 "You have already agreed to the terms.")
             # Write state "pending" to ensure we don't try this again
-            db.update_user(req.user.login, state="pending")
+            req.user.state = u"pending"
         except:
-            db.rollback()
+            req.store.rollback()
             raise
-        db.commit()
+        req.store.commit()
 
         # Get the arguments for usermgt.activate_user from the session
         # (The user must have already logged in to use this app)
@@ -234,6 +239,9 @@ def handle_activate_me(req, fields):
             "login": req.user.login,
         }
         msg = {'activate_user': args}
+
+        # Release our lock on the db so usrmgt can write
+        req.store.rollback()
 
         # Try and contact the usrmgt server
         try:
@@ -249,23 +257,18 @@ def handle_activate_me(req, fields):
             status = 'failure'
         
         if status == 'okay':
-            req.user.state = "enabled"
+            req.user.state = u"enabled"
         else:
             # Reset the user back to no agreement
-            req.user.state = "no_agreement"
-            db.update_user(req.user.login, state="no_agreement")
-
-
-        # Update the users state
-        session = req.get_session()
-        session['user'] = req.user
-        session.save()
+            req.user.state = u"no_agreement"
+            req.store.commit()
 
         # Write the response
         req.content_type = "text/plain"
         req.write(cjson.encode(response))
-    finally:
-        db.close()
+    except:
+        req.store.rollback()
+        raise
 
 create_user_fields_required = [
     'login', 'fullname', 'rolenm'
@@ -363,41 +366,31 @@ def handle_update_user(req, fields):
         login = req.user.login
 
     # Make a dict of fields to update
-    update = {}
     oldpassword = fields.getfirst('oldpass')
     
     for f in fieldlist:
         val = fields.getfirst(f)
         if val is not None:
-            update[f] = val
+            # Note: May be rolled back if auth check below fails
+            user = ivle.database.User.get_by_login(req.store, login)
+            setattr(user, f, val.value.decode('utf-8'))
         else:
             pass
 
-    if 'password' in update:
+    # If the user is trying to set a new password, check that they have
+    # entered old password and it authenticates.
+    if fields.getfirst('password') is not None:
         try:
             authenticate.authenticate(login, oldpassword)
         except AuthError:
             req.headers_out['X-IVLE-Action-Error'] = \
                 urllib.quote("Old password incorrect.")
             req.status = req.HTTP_BAD_REQUEST
+            # Cancel all the changes made to user (including setting new pass)
+            req.store.rollback()
             return
 
-    update['login'] = login
-
-    db = ivle.db.DB()
-    db.update_user(**update)
-
-    # Re-read the user's details from the DB so we can update their session
-    # XXX potentially-unsafe session write
-    if login == req.user.login:
-        user = db.get_user(login)
-        session = req.get_session()
-        session.lock()
-        session['user'] = user
-        session.save()
-        session.unlock()
-
-    db.close()
+    req.store.commit()
 
     req.content_type = "text/plain"
     req.write('')
@@ -424,33 +417,13 @@ def handle_get_user(req, fields):
         login = req.user.login
 
     # Just talk direct to the DB
-    db = ivle.db.DB()
-    user = db.get_user(login)
-    db.close()
-    user = dict(user)
-    if 'role' in user:
-        user['rolenm'] = str(user['role'])
-        del user['role']
-    try:
-        del user['svn_pass']
-    except KeyError:
-        pass
+    user = ivle.database.User.get_by_login(req.store, login)
+    user = ivle.util.object_to_dict(user_fields_list, user)
     # Convert time stamps to nice strings
-    try:
-        if user['pass_exp'] is not None:
-            user['pass_exp'] = str(user['pass_exp'])
-    except KeyError:
-        pass
-    try:
-        if user['acct_exp'] is not None:
-            user['acct_exp'] = str(user['acct_exp'])
-    except KeyError:
-        pass
-    try:
-        if user['last_login'] is not None:
-            user['last_login'] = str(user['last_login'])
-    except KeyError:
-        pass
+    for k in 'pass_exp', 'acct_exp', 'last_login':
+        if user[k] is not None:
+            user[k] = unicode(user[k])
+
     response = cjson.encode(user)
     req.content_type = "text/plain"
     req.write(response)
@@ -674,7 +647,7 @@ def handle_create_group(req, fields):
     # Talk to the DB
     db = ivle.db.DB()
     # Other fields
-    createdby = db.get_user_loginid(req.user.login)
+    createdby = req.user.id
     epoch = time.localtime()
 
     # Begin transaction since things can go wrong
@@ -804,12 +777,10 @@ def handle_assign_group(req, fields):
             "Required: login, groupid")
     groupid = int(groupid)
 
+    loginid = ivle.database.User.get_by_login(req.store, login).id
+
     # Talk to the DB
     db = ivle.db.DB()
-    try:
-        loginid = db.get_user_loginid(login)
-    except ivle.db.DBException, e:
-        req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
 
     # Add assignment to database
     # We can't use a transaction here, as usrmgt-server needs to see the

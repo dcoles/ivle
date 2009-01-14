@@ -129,8 +129,9 @@ def rebuild_svn_group_config():
     os.rename(ivle.conf.svn_group_conf + ".new", ivle.conf.svn_group_conf)
     chown_to_webserver(ivle.conf.svn_group_conf)
 
-def make_svn_auth(login, throw_on_error=True):
+def make_svn_auth(store, login, throw_on_error=True):
     """Setup svn authentication for the given user.
+       Uses the given DB store object. Does not commit to the db.
        FIXME: create local.auth entry
     """
     passwd = md5.new(uuid.uuid4().bytes).digest().encode('hex')
@@ -139,7 +140,8 @@ def make_svn_auth(login, throw_on_error=True):
     else:
         create = "c"
 
-    ivle.db.DB().update_user(login, svn_pass=passwd)
+    user = ivle.database.User.get_by_login(store, login)
+    user.svn_pass = unicode(passwd)
 
     res = os.system("htpasswd -%smb %s %s %s" % (create,
                                               ivle.conf.svn_auth_ivle,

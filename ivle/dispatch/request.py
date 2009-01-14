@@ -303,7 +303,9 @@ class Request:
         httpcode: An HTTP response status code. Pass a constant from the
         Request class.
         """
-        mod_python.util.redirect(self.apache_req, location)
+        # Note: location may be a unicode, but it MUST only have ASCII
+        # characters (non-ascii characters should be URL-encoded).
+        mod_python.util.redirect(self.apache_req, location.encode("ascii"))
 
     def add_cookie(self, cookie, value=None, **attributes):
         """Inserts a cookie into this request object's headers."""

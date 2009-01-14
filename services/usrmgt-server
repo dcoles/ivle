@@ -5,7 +5,7 @@ import sys
 import logging
 
 import ivle.conf
-import ivle.db
+import ivle.database
 import ivle.chat
 import ivle.makeuser
 
@@ -40,13 +40,14 @@ def activate_user(props):
 
     login = props['login']
 
-    db = ivle.db.DB()
+    store = ivle.database.get_store()
 
     try:
 
         # FIXME: check we're pending
 
-        details = db.get_user(login)
+        # Get the full User object from the db associated with this
+        user = ivle.database.User.get_by_login(store, login)
 
         # make svn config/auth
 
@@ -57,19 +58,22 @@ def activate_user(props):
         rebuild_svn_config(props)
 
         logging.debug("Adding Subversion authentication")
-        passwd = ivle.makeuser.make_svn_auth(login, throw_on_error=True)
+        passwd = ivle.makeuser.make_svn_auth(store, login,
+                                             throw_on_error=True)
         logging.debug("passwd: %s" % passwd)
 
         logging.debug("Creating jail")
-        ivle.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
+        ivle.makeuser.make_jail(login, user.unixid, svn_pass=passwd)
 
         logging.info("Enabling user")
-        db.update_user(login, state='enabled')
+        user.state = u'enabled'
+
+        store.commit()
 
         return {"response": "okay"}
 
     finally:
-        db.close()
+        store.close()
 
 def rebuild_svn_config(props):
     """Rebuilds the svn config file

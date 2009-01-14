@@ -90,7 +90,7 @@ class User(object):
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.login)
 
-    def has_cap(self, capability):
+    def hasCap(self, capability):
         """Given a capability (which is a Role object), returns True if this
         User has that capability, False otherwise.
         """
@@ -117,4 +117,4 @@ class User(object):
         Get the User from the db associated with a given store and
         login.
         """
-        return store.find(cls, cls.login == login).one()
+        return store.find(cls, cls.login == unicode(login)).one()

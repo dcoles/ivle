@@ -26,8 +26,9 @@ import time
 from mod_python import Session
 
 import ivle.conf
-from ivle import (util, db, caps, forumutil)
+from ivle import (util, caps, forumutil)
 from ivle.auth import authenticate, autherror
+import ivle.database
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -46,19 +47,19 @@ def login(req):
     """
     # Get the user details from the session, if already logged in
     # (None means not logged in yet)
-    login_details = get_user_details(req)
+    user = get_user_details(req)
 
     # Check the session to see if someone is logged in. If so, go with it.
     # No security is required here. You must have already been authenticated
     # in order to get a 'login_name' variable in the session.
-    if login_details is not None and login_details.state == "enabled":
+    if user is not None and user.state == "enabled":
         # Only allow users to authenticate if their account is ENABLED
-        return login_details
+        return user
 
     badlogin = None
 
     # Check if there is any postdata containing login information
-    if login_details is None and req.method == 'POST':
+    if user is None and req.method == 'POST':
         fields = req.get_fieldstorage()
         username = fields.getfirst('user')
         password = fields.getfirst('pass')
@@ -70,27 +71,27 @@ def login(req):
                 badlogin = "No password supplied."
             else:
                 try:
-                    login_details = \
+                    user = \
                         authenticate.authenticate(username.value, password.value)
                 # NOTE: Can't catch AuthError, since each module throws a
                 # different identity of AuthError.
                 except Exception, msg:
                     badlogin = msg
-                if login_details is None:
+                if user is None:
                     # Must have got an error. Do not authenticate.
                     pass
-                elif login_details.pass_expired():
+                elif user.pass_expired():
                     badlogin = "Your password has expired."
-                elif login_details.acct_expired():
+                elif user.acct_expired():
                     badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA
                     session = req.get_session()
-                    session['user'] = login_details
+                    session['login'] = user.login
                     session.save()
-                    db.DB().update_user(username.value,
-                                        last_login = time.localtime())
-                    req.add_cookie(forumutil.make_forum_cookie(login_details))
+                    user.last_login = time.localtime()
+                    req.store.commit()
+                    req.add_cookie(forumutil.make_forum_cookie(user))
                     req.throw_redirect(req.uri)
 
     # Present the HTML login page
@@ -99,30 +100,31 @@ def login(req):
     req.write_html_head_foot = True
 
     # User is not logged in or their account is not enabled.
-    if login_details is not None:
+    if user is not None:
         # Only possible if no errors occured thus far
-        if login_details.state == "no_agreement":
+        if user.state == "no_agreement":
             # User has authenticated but has not accepted the TOS.
             # Present them with the TOS page.
             # First set their username for display at the top, but make sure
             # the apps tabs are not displayed
-            req.user = login_details
+            req.user = user
             # IMPORTANT NOTE FOR HACKERS: You can't simply disable this check
             # if you are not planning to display a TOS page - the TOS
             # acceptance process actually calls usermgt to create the user
             # jails and related stuff.
-            present_tos(req, login_details.fullname)
+            present_tos(req, user.fullname)
             return None
-        elif login_details.state == "disabled":
+        elif user.state == "disabled":
             # User has authenticated but their account is disabled
             badlogin = "Your account has been disabled."
-        elif login_details.state == "pending":
+        elif user.state == "pending":
             # FIXME: this isn't quite the right answer, but it
             # should be more robust in the short term.
             session = req.get_session()
             session.invalidate()
             session.delete()
-            db.DB().update_user(login_details.login, state='no_agreement')
+            user.state = u'no_agreement'
+            req.store.commit()
             req.throw_redirect(req.uri)
 
     # Write the HTML for the login page
@@ -159,12 +161,13 @@ def get_user_details(req):
     session = req.get_session()
 
     # Check the session to see if someone is logged in. If so, go with it.
-    # No security is required here. You must have already been authenticated
-    # in order to get a 'login_name' variable in the session.
     try:
-        return session['user']
+        login = session['login']
     except KeyError:
         return None
+
+    # Get the full User object from the db associated with this login
+    return ivle.database.User.get_by_login(req.store, login)
 
 def present_tos(req, fullname):
     """Present the Terms of Service screen to the user (who has just logged in
