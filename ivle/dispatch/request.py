@@ -1,5 +1,5 @@
 # IVLE - Informatics Virtual Learning Environment
-# Copyright (C) 2007-2008 The University of Melbourne
+# Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,19 +15,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: dispatch.request
 # Author: Matt Giuca
-# Date:   12/12/2007
 
-# Builds an IVLE request object from a mod_python request object.
-# See design notes/apps/dispatch.txt for a full specification of this request
-# object.
+"""
+IVLE Request Object
+
+Builds an IVLE request object from a mod_python request object.
+See design notes/apps/dispatch.txt for a full specification of this request
+object.
+"""
 
 import mod_python
 from mod_python import (util, Session, Cookie)
 
 import ivle.util
 import ivle.conf
+import ivle.database
 import plugins.console # XXX: Relies on www/ being in the Python path.
 
 class Request:
@@ -48,6 +51,9 @@ class Request:
         user (read)
             User object. Details of the user who is currently logged in, or
             None.
+        store (read)
+            storm.store.Store instance. Holds a database transaction open,
+            which is available for the entire lifetime of the request.
         hostname (read)
             String. Hostname the server is running on.
         headers_in (read)
@@ -192,6 +198,10 @@ class Request:
         self.headers_in = req.headers_in
         self.headers_out = req.headers_out
 
+        # Open a database connection and transaction, keep it around for users
+        # of the Request object to use
+        self.store = ivle.database.get_store()
+
         # Default values for the output members
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
@@ -205,6 +215,10 @@ class Request:
         # and public FQDN) in the output HTML. In that case, set this to 0.
         self.write_javascript_settings = True
         self.got_common_vars = False
+
+    def __del__(self):
+        """Cleanup."""
+        self.store.close()
 
     def __writeheaders(self):
         """Writes out the HTTP and HTML headers before any real data is
