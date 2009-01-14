@@ -29,6 +29,7 @@ import ivle.conf
 from ivle import (util, caps, forumutil)
 from ivle.auth import authenticate, autherror
 import ivle.database
+from ivle.auth.autherror import AuthError
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -73,9 +74,7 @@ def login(req):
                 try:
                     user = \
                         authenticate.authenticate(username.value, password.value)
-                # NOTE: Can't catch AuthError, since each module throws a
-                # different identity of AuthError.
-                except Exception, msg:
+                except AuthError, msg:
                     badlogin = msg
                 if user is None:
                     # Must have got an error. Do not authenticate.
