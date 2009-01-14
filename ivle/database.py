@@ -24,9 +24,11 @@ This module provides all of the classes which map to database tables.
 It also provides miscellaneous utility functions for database interaction.
 """
 
-from storm.locals import create_database, Store
+from storm.locals import create_database, Store, Int, Unicode, DateTime, \
+                         Reference
 
 import ivle.conf
+import ivle.caps
 
 def get_conn_string():
     """
@@ -42,3 +44,48 @@ def get_store():
     instance connected to the configured IVLE database.
     """
     return Store(create_database(get_conn_string()))
+
+class User(object):
+    """
+    Represents an IVLE user.
+    """
+    __storm_table__ = "login"
+
+    id = Int(primary=True, name="loginid")
+    login = Unicode()
+    passhash = Unicode()
+    state = Unicode()
+    rolenm = Unicode()
+    unixid = Int()
+    nick = Unicode()
+    pass_exp = DateTime()
+    acct_exp = DateTime()
+    last_login = DateTime()
+    svn_pass = Unicode()
+    email = Unicode()
+    fullname = Unicode()
+    studentid = Unicode()
+    settings = Unicode()
+
+    def _get_role(self):
+        if self.rolenm is None:
+            return None
+        return ivle.caps.Role(self.rolenm)
+    def _set_role(self, value):
+        if not isinstance(value, ivle.caps.Role):
+            raise TypeError("role must be an ivle.caps.Role")
+        self.rolenm = unicode(value)
+    role = property(_get_role, _set_role)
+
+    def __init__(self, **kwargs):
+        """
+        Create a new User object. Supply any columns as a keyword argument.
+        """
+        for k,v in kwargs.items():
+            if k.startswith('_') or not hasattr(self, k):
+                raise TypeError("User got an unexpected keyword argument '%s'"
+                    % k)
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return "<%s '%s'>" % (type(self).__name__, self.login)
