@@ -43,7 +43,7 @@
 import sys
 import os
 
-from autherror import AuthError
+from ivle.auth import AuthError
 import ivle.conf
 import ivle.db
 import ivle.user

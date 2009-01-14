@@ -27,9 +27,9 @@ from mod_python import Session
 
 import ivle.conf
 from ivle import (util, caps, forumutil)
-from ivle.auth import authenticate, autherror
+from ivle.auth import authenticate
 import ivle.database
-from ivle.auth.autherror import AuthError
+from ivle.auth import AuthError
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),

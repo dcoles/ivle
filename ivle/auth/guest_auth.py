@@ -30,7 +30,7 @@
 # This module is NOT active implicitly - it must be specified in the
 # "auth_modules" config string.
 
-from autherror import AuthError
+from ivle.auth import AuthError
 from ivle.user import User
 from ivle.caps import Role
 

@@ -150,8 +150,7 @@ import ivle.makeuser
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 
-from ivle.auth import authenticate
-from ivle.auth.autherror import AuthError
+from ivle.auth import AuthError, authenticate
 import urllib
 
 # The user must send this declaration message to ensure they acknowledge the

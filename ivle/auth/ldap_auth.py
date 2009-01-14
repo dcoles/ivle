@@ -27,7 +27,7 @@
 
 import ldap
 
-from autherror import AuthError
+from ivle.auth import AuthError
 import ivle.conf
 
 def auth(dbconn, login, password, user):
