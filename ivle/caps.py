@@ -50,7 +50,7 @@ class Role(object):
         # Internally, stored as an int
         if isinstance(role, Role):
             self._role = role._role
-        elif isinstance(role, str):
+        elif isinstance(role, basestring):
             try:
                 self._role = Role._roles_to_int[role.lower()]
             except KeyError:
