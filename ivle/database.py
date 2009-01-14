@@ -110,3 +110,11 @@ class User(object):
         """
         fieldval = self.acct_exp
         return fieldval is not None and time.localtime() > fieldval
+
+    @classmethod
+    def get_by_login(cls, store, login):
+        """
+        Get the User from the db associated with a given store and
+        login.
+        """
+        return store.find(cls, cls.login == login).one()
