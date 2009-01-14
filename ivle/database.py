@@ -89,3 +89,24 @@ class User(object):
 
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.login)
+
+    def has_cap(self, capability):
+        """Given a capability (which is a Role object), returns True if this
+        User has that capability, False otherwise.
+        """
+        return self.role.hasCap(capability)
+
+    # XXX Should be @property
+    def pass_expired(self):
+        """Determines whether the pass_exp field indicates that
+           login should be denied.
+        """
+        fieldval = self.pass_exp
+        return fieldval is not None and time.localtime() > fieldval
+    # XXX Should be @property
+    def acct_expired(self):
+        """Determines whether the acct_exp field indicates that
+           login should be denied.
+        """
+        fieldval = self.acct_exp
+        return fieldval is not None and time.localtime() > fieldval
