@@ -24,6 +24,7 @@
 # Important: This application should be removed from a production system.
 
 import os
+import cgi
 
 from ivle import util
 import ivle.conf
@@ -70,8 +71,6 @@ def handle(req):
         ("user", req.user),
         ("hostname", req.hostname),
     ])
-    if req.user is not None:
-        print_table(req, "req.user", dict(req.user).items(), "h4")
 
     # Violate encapsulation here to print out the hidden properties
     print_table(req, "Apache (Hidden) Request Properties", [
@@ -88,9 +87,6 @@ def handle(req):
         getfieldvalues(req.get_fieldstorage().items()))
     session = req.get_session()
     print_table(req, "Session Variables", session.items())
-    if 'user' in session:
-        print_table(req, "session['user']", dict(session['user']).items(),
-            "h4")
 
     print_table(req, "HTTP Request Headers",
         req.apache_req.headers_in.items())
@@ -124,6 +120,7 @@ def print_table(req, tablename, mapping, head_elem="h3"):
     req.write("<%s>%s</%s>\n" % (head_elem, tablename, head_elem))
     req.write('<table border="1">\n')
     for (k,v) in mapping:
-        req.write("<tr><th>%s</th><td>%s</td></tr>\n" % (str(k), repr(v)))
+        req.write("<tr><th>%s</th><td>%s</td></tr>\n" %
+                  (cgi.escape(str(k)), cgi.escape(repr(v))))
     req.write("</table>\n")
 
