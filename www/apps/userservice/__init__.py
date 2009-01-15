@@ -326,9 +326,10 @@ def handle_create_user(req, fields):
             pass
 
     ivle.makeuser.make_user_db(**create)
-    user = ivle.db.DB().get_user(create["login"])
+    unixid = ivle.database.User.get_by_login(req.store,create['login']).unixid
+
     req.content_type = "text/plain"
-    req.write(str(user.unixid))
+    req.write(str(unixid))
 
 update_user_fields_anyone = [
     'password', 'nick', 'email'
