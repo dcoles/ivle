@@ -37,7 +37,7 @@ import copy
 import time
 
 import ivle.conf
-from ivle import (caps, user)
+from ivle import caps
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -400,29 +400,6 @@ class DB:
             del fields['local_password']
         # Execute the query.
         return self.insert(fields, "login", self.login_fields, dry=dry)
-
-    def get_user(self, login, dry=False):
-        """Given a login, returns a User object containing details looked up
-        in the DB.
-
-        Raises a DBException if the login is not found in the DB.
-        """
-        userdict = self.get_single({"login": login}, "login",
-            self.login_fields, self.login_primary,
-            error_notfound="get_user: No user with that login name", dry=dry)
-        if dry:
-            return userdict     # Query string
-        # Package into a User object
-        return user.User(**userdict)
-
-    def get_users(self, dry=False):
-        """Returns a list of all users in the DB, as User objects.
-        """
-        userdicts = self.get_all("login", self.login_fields, dry=dry)
-        if dry:
-            return userdicts    # Query string
-        # Package into User objects
-        return [user.User(**userdict) for userdict in userdicts]
 
     def get_user_loginid(self, login, dry=False):
         """Given a login, returns the integer loginid for this user.
