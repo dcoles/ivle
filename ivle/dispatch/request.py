@@ -267,7 +267,7 @@ class Request:
             for cookie in all_cookies:
                 if cookie in ivle_cookies:
                     self.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
-        self.throw_redirect(common.util.make_path('')) 
+        self.throw_redirect(ivle.util.make_path('')) 
 
 
     def flush(self):
