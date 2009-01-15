@@ -437,27 +437,6 @@ class DB:
             return userdict     # Query string
         return userdict['loginid']
 
-    def user_authenticate(self, login, password, dry=False):
-        """Performs a password authentication on a user. Returns True if
-        "passhash" is the correct passhash for the given login, False
-        if the passhash does not match the password in the DB,
-        and None if the passhash in the DB is NULL.
-        Also returns False if the login does not exist (so if you want to
-        differentiate these cases, use get_user and catch an exception).
-        """
-        query = ("SELECT passhash FROM login WHERE login = %s;"
-            % _escape(login))
-        if dry: return query
-        result = self.db.query(query)
-        if result.ntuples() == 1:
-            # Valid username. Check password.
-            passhash = result.getresult()[0][0]
-            if passhash is None:
-                return None
-            return _passhash(password) == passhash
-        else:
-            return False
-
     # PROBLEM AND PROBLEM ATTEMPT FUNCTIONS #
 
     def get_problem_problemid(self, exercisename, dry=False):

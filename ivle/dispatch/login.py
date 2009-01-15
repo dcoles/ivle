@@ -21,15 +21,14 @@
 
 # Provides services for checking logins and presenting the login page.
 import os
-import time
+import datetime
 
 from mod_python import Session
 
 import ivle.conf
 from ivle import (util, caps, forumutil)
-from ivle.auth import authenticate
+from ivle.auth import authenticate, AuthError
 import ivle.database
-from ivle.auth import AuthError
 
 def login(req):
     """Determines whether the user is logged in or not (looking at sessions),
@@ -72,8 +71,8 @@ def login(req):
                 badlogin = "No password supplied."
             else:
                 try:
-                    user = \
-                        authenticate.authenticate(username.value, password.value)
+                    user = authenticate.authenticate(req.store,
+                                username.value, password.value)
                 except AuthError, msg:
                     badlogin = msg
                 if user is None:
@@ -88,7 +87,7 @@ def login(req):
                     session = req.get_session()
                     session['login'] = user.login
                     session.save()
-                    user.last_login = time.localtime()
+                    user.last_login = datetime.datetime.now()
                     req.store.commit()
                     req.add_cookie(forumutil.make_forum_cookie(user))
                     req.throw_redirect(req.uri)

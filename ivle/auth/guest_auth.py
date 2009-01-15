@@ -31,13 +31,13 @@
 # "auth_modules" config string.
 
 from ivle.auth import AuthError
-from ivle.user import User
+from ivle.database import User
 from ivle.caps import Role
 
 # XXX: What to put here
 GUEST_UID = 4000
 
-def auth(dbconn, login, password, user):
+def auth(store, login, password, user):
     """
     A plugin auth function, as described above.
     This one authenticates against a "guest"/"guest" account.
@@ -51,5 +51,5 @@ def auth(dbconn, login, password, user):
         return user
 
     # Create a guest user
-    return User(login="guest", fullname="Guest Account", nick="Guest",
-        role=Role.ANYONE, state="no_agreement", unixid=GUEST_UID)
+    return User(login=u"guest", fullname=u"Guest Account", nick=u"Guest",
+        role=Role.ANYONE, state=u"no_agreement", unixid=GUEST_UID)
