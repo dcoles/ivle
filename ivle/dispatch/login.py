@@ -78,9 +78,9 @@ def login(req):
                 if user is None:
                     # Must have got an error. Do not authenticate.
                     pass
-                elif user.pass_expired():
+                elif user.password_expired:
                     badlogin = "Your password has expired."
-                elif user.acct_expired():
+                elif user.account_expired:
                     badlogin = "Your account has expired."
                 else:
                     # Success - Set the session and redirect to avoid POSTDATA

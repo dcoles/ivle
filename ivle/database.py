@@ -25,6 +25,7 @@ It also provides miscellaneous utility functions for database interaction.
 """
 
 import md5
+import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference
@@ -109,20 +110,15 @@ class User(object):
         """
         return self.role.hasCap(capability)
 
-    # XXX Should be @property
-    def pass_expired(self):
-        """Determines whether the pass_exp field indicates that
-           login should be denied.
-        """
+    @property
+    def password_expired(self):
         fieldval = self.pass_exp
-        return fieldval is not None and time.localtime() > fieldval
-    # XXX Should be @property
-    def acct_expired(self):
-        """Determines whether the acct_exp field indicates that
-           login should be denied.
-        """
+        return fieldval is not None and datetime.datetime.now() > fieldval
+
+    @property
+    def account_expired(self):
         fieldval = self.acct_exp
-        return fieldval is not None and time.localtime() > fieldval
+        return fieldval is not None and datetime.datetime.now() > fieldval
 
     @staticmethod
     def hash_password(password):
