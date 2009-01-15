@@ -27,6 +27,7 @@ import cgi
 
 from ivle import (util, caps)
 import ivle.db
+from ivle.database import Enrolment, Subject, Semester, Offering
 
 def handle(req):
     # Set request attributes
@@ -43,18 +44,13 @@ def handle(req):
     # Show a group panel per enrolment
     db = ivle.db.DB()
     try:
-        subjects = db.get_enrolment(req.user.login)
-        # Sort by year,semester,subj_code (newer subjects first)
-        # Leave all fields as strings, just in case (eg. semester='y')
-        subjects.sort(key=lambda(subject):
-                          (subject["year"],subject["semester"],subject["subj_code"]),
-                      reverse=True)
-        if len(subjects) == 0:
+        enrolments = req.user.active_enrolments
+        if enrolments.count() == 0:
             req.write("<p>Error: You are not currently enrolled in any subjects."
                       "</p>\n")
-        for subject in subjects:
-            show_subject_panel(req, db, subject['offeringid'],
-                subject['subj_name'])
+        for enrolment in enrolments:
+            show_subject_panel(req, db, enrolment.offering.id,
+                enrolment.offering.subject.name)
         if req.user.hasCap(caps.CAP_MANAGEGROUPS):
             show_groupadmin_panel(req, db)
         

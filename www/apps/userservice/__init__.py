@@ -439,24 +439,34 @@ def handle_get_enrolments(req, fields):
     ##fullpowers = req.user.hasCap(caps.CAP_GETUSER)
 
     try:
-        login = fields.getfirst('login')
-        if login is None:
+        user = ivle.database.User.get_by_login(req.store,
+                    fields.getfirst('login'))
+        if user is None:
             raise AttributeError()
-        if not fullpowers and login != req.user.login:
+        if not fullpowers and user != req.user:
             # Not allowed to edit other users
             req.throw_error(req.HTTP_FORBIDDEN,
             "You do not have permission to see another user's subjects.")
     except AttributeError:
         # If login not specified, update yourself
-        login = req.user.login
+        user = req.user
 
-    # Just talk direct to the DB
     db = ivle.db.DB()
-    enrolments = db.get_enrolment(login)
-    for e in enrolments:
-        e['groups'] = db.get_enrolment_groups(login, e['offeringid'])
+    dict_enrolments = []
+    for e in user.active_enrolments:
+        dict_enrolments.append({
+            'offeringid':      e.offering.id,
+            'subj_code':       e.offering.subject.code,
+            'subj_name':       e.offering.subject.name,
+            'subj_short_name': e.offering.subject.short_name,
+            'url':             e.offering.subject.url,
+            'year':            e.offering.semester.year,
+            'semester':        e.offering.semester.semester,
+            'groups':          db.get_enrolment_groups(user.login,
+                                        e.offering.id),
+        })
     db.close()
-    response = cjson.encode(enrolments)
+    response = cjson.encode(dict_enrolments)
     req.content_type = "text/plain"
     req.write(response)
 
