@@ -26,8 +26,8 @@ import os
 import urllib
 import cgi
 
+import ivle.database
 from ivle import util
-import ivle.db
 
 def handle(req):
     """Handler for the Subjects application. Links to subject home pages."""
@@ -44,17 +44,19 @@ def handle_toplevel_menu(req):
     if req.uri[-1] != '/':
         req.throw_redirect(req.uri + '/')
 
-    (enrolled_subjects, unenrolled_subjects) = \
-              ivle.db.DB().get_subjects_status(req.user.login)
+    enrolled_subjects = req.user.subjects
+    unenrolled_subjects = [subject for subject in
+                           req.store.find(ivle.database.Subject)
+                           if subject not in enrolled_subjects]
 
     def print_subject(subject):
-        if subject['url'] is None:
+        if subject.url is None:
             req.write('  <li>%s (no home page)</li>\n'
-                % cgi.escape(subject['subj_name']))
+                % cgi.escape(subject.name))
         else:
             req.write('  <li><a href="%s">%s</a></li>\n'
-                % (cgi.escape(subject['url']),
-                   cgi.escape(subject['subj_name'])))
+                % (cgi.escape(subject.url),
+                   cgi.escape(subject.name)))
 
     req.content_type = "text/html"
     req.write_html_head_foot = True

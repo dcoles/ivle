@@ -42,6 +42,7 @@ import cjson
 from ivle import util
 import ivle.conf
 import ivle.db
+import ivle.database
 
 from rst import rst
 
@@ -150,13 +151,15 @@ def handle_toplevel_menu(req):
   Please select a subject from the list below to select a worksheet
   for that subject.</p>\n""")
 
-    (enrolled_subjects, unenrolled_subjects) = \
-              ivle.db.DB().get_subjects_status(req.user.login)
+    enrolled_subjects = req.user.subjects
+    unenrolled_subjects = [subject for subject in
+                           req.store.find(ivle.database.Subject)
+                           if subject not in enrolled_subjects]
 
     def print_subject(subject):
         req.write('  <li><a href="%s">%s</a></li>\n'
-            % (urllib.quote(subject['subj_code']) + '/',
-               cgi.escape(subject['subj_name'])))
+            % (urllib.quote(subject.code) + '/',
+               cgi.escape(subject.name)))
 
     req.write("<h2>Subjects</h2>\n<ul>\n")
     for subject in enrolled_subjects:
