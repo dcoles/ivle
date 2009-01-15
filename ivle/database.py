@@ -28,7 +28,7 @@ import md5
 import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
-                         Reference, Bool
+                         Reference, ReferenceSet, Bool, Storm
 
 import ivle.conf
 import ivle.caps
@@ -55,7 +55,7 @@ def get_store():
     """
     return Store(create_database(get_conn_string()))
 
-class User(object):
+class User(Storm):
     """
     Represents an IVLE user.
     """
@@ -76,6 +76,8 @@ class User(object):
     fullname = Unicode()
     studentid = Unicode()
     settings = Unicode()
+
+    enrolments = ReferenceSet(id, 'Enrolment.user_id')
 
     def _get_role(self):
         if self.rolenm is None:
@@ -131,7 +133,7 @@ class User(object):
         """
         return store.find(cls, cls.login == unicode(login)).one()
 
-class Subject(object):
+class Subject(Storm):
     __storm_table__ = "subject"
 
     id = Int(primary=True, name="subjectid")
@@ -140,12 +142,14 @@ class Subject(object):
     short_name = Unicode(name="subj_short_name")
     url = Unicode()
 
+    offerings = ReferenceSet(id, 'Offering.subject_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.short_name)
 
-class Semester(object):
+class Semester(Storm):
     __storm_table__ = "semester"
 
     id = Int(primary=True, name="semesterid")
@@ -153,12 +157,14 @@ class Semester(object):
     semester = Unicode()
     active = Bool()
 
+    offerings = ReferenceSet(id, 'Offering.semester_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %s/%s>" % (type(self).__name__, self.year, self.semester)
 
-class Offering(object):
+class Offering(Storm):
     __storm_table__ = "offering"
 
     id = Int(primary=True, name="offeringid")
@@ -168,8 +174,27 @@ class Offering(object):
     semester = Reference(semester_id, Semester.id)
     groups_student_permissions = Unicode()
 
+    enrolments = ReferenceSet(id, 'Enrolment.offering_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.subject,
                                   self.semester)
+
+class Enrolment(Storm):
+    __storm_table__ = "enrolment"
+    __storm_primary__ = "user_id", "offering_id"
+
+    user_id = Int(name="loginid")
+    user = Reference(user_id, User.id)
+    offering_id = Int(name="offeringid")
+    offering = Reference(offering_id, Offering.id)
+    notes = Unicode()
+    active = Bool()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %r in %r>" % (type(self).__name__, self.user,
+                                  self.offering)
