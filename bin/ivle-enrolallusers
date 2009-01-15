@@ -35,6 +35,7 @@ import optparse
 import logging
 
 import ivle.db
+import ivle.database
 import ivle.pulldown_subj
 
 p = optparse.OptionParser()
@@ -54,18 +55,11 @@ if os.getuid() != 0:
     print >> sys.stderr, "%s must be run as root" % sys.argv[0]
     sys.exit(1)
 
-try:
-    db = ivle.db.DB()
-    if options.user is None:
-        users = db.get_users()
-    else:
-        users = [db.get_user(options.user)]
-    def repack(user):
-        return (user.login, user.unixid)
-    uids = dict(map(repack,users))
-except Exception, message:
-    logging.error(str(message))
-    sys.exit(1)
+store = ivle.database.get_store()
+if options.user is None:
+    users = store.find(ivle.database.User).order_by(ivle.database.User.login)
+else:
+    users = [ivle.database.User.get_by_login(store, options.user)]
 
 if options.user is None:
     logging.info("enrolment started")
@@ -76,7 +70,6 @@ if options.year is not None and not options.year.isdigit():
     logging.error("Year must be numeric")
     sys.exit(1)
 
-users.sort(key=lambda user: user.login)
 for user in users:
     try:
         # Get all subjects this user is enrolled in, and add them to the DB if
