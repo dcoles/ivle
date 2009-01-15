@@ -182,7 +182,7 @@ def generate_manifest(basedir, targetdir, parent=''):
     return (to_add, to_remove)
 
 
-def make_jail(username, uid, force=True, svn_pass=None):
+def make_jail(user, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -193,17 +193,8 @@ def make_jail(username, uid, force=True, svn_pass=None):
 
     Chowns the user's directory within the jail to the given UID.
 
-    Note: This takes separate username and uid arguments. The UID need not
-    *necessarily* correspond to a Unix username at all, if all you are
-    planning to do is setuid to it. This allows the caller the freedom of
-    deciding the binding between username and uid, if any.
-
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
-
-    svn_pass: If provided this will be a string, the randomly-generated
-    Subversion password for this user (if you happen to already have it).
-    If not provided, it will be read from the database.
     """
     # MUST run as root or some of this may fail
     if os.getuid() != 0:
@@ -216,9 +207,9 @@ def make_jail(username, uid, force=True, svn_pass=None):
     elif not os.path.isdir(tempdir):
         os.unlink(tempdir)
         os.mkdir(tempdir)
-    userdir = os.path.join(ivle.conf.jail_src_base, username)
+    userdir = os.path.join(ivle.conf.jail_src_base, user.login)
     homedir = os.path.join(userdir, 'home')
-    userhomedir = os.path.join(homedir, username)   # Return value
+    userhomedir = os.path.join(homedir, user.login)   # Return value
 
     if os.path.exists(userdir):
         if not force:
@@ -239,30 +230,26 @@ def make_jail(username, uid, force=True, svn_pass=None):
         shutil.move(homebackup, homedir)
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
-            %(username, uid))
-        os.chown(userhomedir, uid, uid)
+            %(user.login, user.unixid))
+        os.chown(userhomedir, user.unixid, user.unixid)
         for root, dirs, files in os.walk(userhomedir):
             for fsobj in dirs + files:
-                os.chown(os.path.join(root, fsobj), uid, uid)
+                os.chown(os.path.join(root, fsobj), user.unixid, user.unixid)
     else:
         # No user jail exists
         # Set up the user's home directory
         os.makedirs(userhomedir)
         # Chown (and set the GID to the same as the UID).
-        os.chown(userhomedir, uid, uid)
+        os.chown(userhomedir, user.unixid, user.unixid)
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    # There are 2 special files which need to be generated specific to this
-    # user: ${python_site_packages}/lib/conf/conf.py and /etc/passwd.
-    # "__" username "__" users are exempt (special)
-    if not (username.startswith("__") and username.endswith("__")):
-        make_conf_py(username, userdir, ivle.conf.jail_system, svn_pass)
-        make_etc_passwd(username, userdir, ivle.conf.jail_system, uid)
+    make_conf_py(user.login, userdir, ivle.conf.jail_system, user.svn_pass)
+    make_etc_passwd(user.login, userdir, ivle.conf.jail_system, user.unixid)
 
     return userhomedir
 
-def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
+def make_conf_py(username, user_jail_dir, staging_dir, svn_pass):
     """
     Creates (overwriting any existing file, and creating directories) a
     file ${python_site_packages}/ivle/conf/conf.py in a given user's jail.
@@ -278,12 +265,6 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     conf_path = os.path.join(user_jail_dir,
             ivle.conf.python_site_packages[1:], "ivle/conf/conf.py")
     os.makedirs(os.path.dirname(conf_path))
-
-    # If svn_pass isn't supplied, grab it from the DB
-    if svn_pass is None:
-        dbconn = ivle.db.DB()
-        svn_pass = dbconn.get_user(username).svn_pass
-        dbconn.close()
 
     # Read the contents of the template conf file
     try:

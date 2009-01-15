@@ -57,7 +57,7 @@ def activate_user(store, props):
                                          throw_on_error=True)
 
     logging.debug("Creating jail")
-    ivle.makeuser.make_jail(login, user.unixid, svn_pass=passwd)
+    ivle.makeuser.make_jail(user)
 
     logging.info("Enabling user")
     user.state = u'enabled'
