@@ -27,7 +27,7 @@ import sys
 import os
 import getopt
 
-import ivle.db
+import ivle.database
 
 # Options processing
 def usage():
@@ -56,15 +56,10 @@ if os.getuid() != 0:
     print "Must run listusers.py as root."
     sys.exit()
 
-try:
-    db = ivle.db.DB()
-    list = db.get_users()
-except Exception, message:
-    print "Error: " + str(message)
-    sys.exit(1)
+store = ivle.database.get_store()
+users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 
-list.sort(key=lambda user: user.login)
-for user in list:
+for user in users:
     if justnames:
         print user.login
     else:

@@ -29,7 +29,7 @@ import os.path
 import optparse
 import logging
 
-import ivle.db
+import ivle.database
 import ivle.conf
 
 p = optparse.OptionParser()
@@ -49,21 +49,12 @@ if os.getuid() != 0:
                           os.path.basename(sys.argv[0])
     sys.exit(1)
 
-try:
-    db = ivle.db.DB()
-    list = db.get_users()
-    res = db.get_all('login', ['login', 'unixid'])
-    def repack(flds):
-        return (flds['login'], flds['unixid'])
-    uids = dict(map(repack,res))
-except Exception, message:
-    logging.error(str(message))
-    sys.exit(1)
+store = ivle.database.get_store()
+users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 
 logging.info("mass aufs mount started")
 
-list.sort(key=lambda user: user.login)
-for user in list:
+for user in users:
     login = user.login
     # This is where we'll mount to...
     destdir = os.path.join(ivle.conf.jail_base, login)
