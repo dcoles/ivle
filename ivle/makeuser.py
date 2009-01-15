@@ -132,7 +132,6 @@ def rebuild_svn_group_config():
 def make_svn_auth(store, login, throw_on_error=True):
     """Setup svn authentication for the given user.
        Uses the given DB store object. Does not commit to the db.
-       FIXME: create local.auth entry
     """
     passwd = md5.new(uuid.uuid4().bytes).digest().encode('hex')
     if os.path.exists(ivle.conf.svn_auth_ivle):
@@ -343,22 +342,6 @@ def make_user_db(throw_on_error = True, **kwargs):
     dbconn = ivle.db.DB()
     dbconn.create_user(**kwargs)
     dbconn.close()
-
-    if kwargs['password']:
-        if os.path.exists(ivle.conf.svn_auth_local):
-            create = ""
-        else:
-            create = "c"
-        res = os.system("htpasswd -%smb %s %s %s" % (create,
-                                                     ivle.conf.svn_auth_local,
-                                                     kwargs['login'],
-                                                     kwargs['password']))
-        if res != 0 and throw_on_error:
-            raise Exception("Unable to create local-auth for %s" % kwargs['login'])
-
-    # Make sure the file is owned by the web server
-    if create == "c":
-        chown_to_webserver(ivle.conf.svn_auth_local)
 
     # Pulldown subjects and add enrolments
     ivle.pulldown_subj.enrol_user(kwargs['login'])

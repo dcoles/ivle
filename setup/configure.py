@@ -574,8 +574,4 @@ svn_repo_path = os.path.join(svn_path, 'repositories')
 # The location of the password file used to authenticate users
 # of the subversion repository from the ivle server.
 svn_auth_ivle = os.path.join(svn_path, 'ivle.auth')
-
-# The location of the password file used to authenticate local users
-# of the subversion repository.
-svn_auth_local = os.path.join(svn_path, 'local.auth')
 """)
