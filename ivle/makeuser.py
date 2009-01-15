@@ -73,11 +73,10 @@ def make_svn_repo(path, throw_on_error=True):
 
     chown_to_webserver(path)
 
-def rebuild_svn_config():
+def rebuild_svn_config(store):
     """Build the complete SVN configuration file.
     """
-    conn = ivle.db.DB()
-    users = conn.get_users()
+    users = store.find(ivle.database.User)
     groups = {}
     for u in users:
         role = str(u.role)
@@ -103,7 +102,7 @@ def rebuild_svn_config():
     os.rename(ivle.conf.svn_conf + ".new", ivle.conf.svn_conf)
     chown_to_webserver(ivle.conf.svn_conf)
 
-def rebuild_svn_group_config():
+def rebuild_svn_group_config(store):
     """Build the complete SVN configuration file for groups
     """
     conn = ivle.db.DB()
