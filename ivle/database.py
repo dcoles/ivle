@@ -28,7 +28,7 @@ import md5
 import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
-                         Reference, ReferenceSet, Bool, Storm
+                         Reference, ReferenceSet, Bool, Storm, Desc
 
 import ivle.conf
 import ivle.caps
@@ -120,6 +120,21 @@ class User(Storm):
     def account_expired(self):
         fieldval = self.acct_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
+
+    @property
+    def active_enrolments(self):
+        '''A sanely ordered list of the user's active enrolments.'''
+        return Store.of(self).find(Enrolment,
+            Enrolment.user_id == self.id,
+            Enrolment.active == True,
+            Enrolment.offering_id == Offering.id,
+            Offering.semester_id == Semester.id,
+            Offering.subject_id == Subject.id).order_by(
+                Desc(Semester.year),
+                Desc(Semester.semester),
+                Desc(Subject.code)
+            )
+
 
     @staticmethod
     def hash_password(password):
