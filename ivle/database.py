@@ -77,8 +77,6 @@ class User(Storm):
     studentid = Unicode()
     settings = Unicode()
 
-    enrolments = ReferenceSet(id, 'Enrolment.user_id')
-
     def _get_role(self):
         if self.rolenm is None:
             return None
@@ -121,12 +119,10 @@ class User(Storm):
         fieldval = self.acct_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
 
-    @property
-    def active_enrolments(self):
-        '''A sanely ordered list of the user's active enrolments.'''
+    def _get_enrolments(self, justactive):
         return Store.of(self).find(Enrolment,
             Enrolment.user_id == self.id,
-            Enrolment.active == True,
+            (Enrolment.active == True) if justactive else True,
             Enrolment.offering_id == Offering.id,
             Offering.semester_id == Semester.id,
             Offering.subject_id == Subject.id).order_by(
@@ -135,6 +131,15 @@ class User(Storm):
                 Desc(Subject.code)
             )
 
+    @property
+    def active_enrolments(self):
+        '''A sanely ordered list of the user's active enrolments.'''
+        return self._get_enrolments(True)
+
+    @property
+    def enrolments(self):
+        '''A sanely ordered list of all of the user's enrolments.'''
+        return self._get_enrolments(False) 
 
     @staticmethod
     def hash_password(password):
