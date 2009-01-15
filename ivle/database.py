@@ -24,6 +24,8 @@ This module provides all of the classes which map to database tables.
 It also provides miscellaneous utility functions for database interaction.
 """
 
+import md5
+
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference
 
@@ -90,6 +92,17 @@ class User(object):
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.login)
 
+    def authenticate(self, password):
+        """Validate a given password against this user.
+
+        Returns True if the given password matches the password hash for this
+        User, False if it doesn't match, and None if there is no hash for the
+        user.
+        """
+        if self.passhash is None:
+            return None
+        return self.hash_password(password) == self.passhash
+
     def hasCap(self, capability):
         """Given a capability (which is a Role object), returns True if this
         User has that capability, False otherwise.
@@ -110,6 +123,10 @@ class User(object):
         """
         fieldval = self.acct_exp
         return fieldval is not None and time.localtime() > fieldval
+
+    @staticmethod
+    def hash_password(password):
+        return md5.md5(password).hexdigest()
 
     @classmethod
     def get_by_login(cls, store, login):
