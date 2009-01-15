@@ -28,10 +28,17 @@ import md5
 import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
-                         Reference
+                         Reference, Bool
 
 import ivle.conf
 import ivle.caps
+
+def _kwarg_init(self, **kwargs):
+    for k,v in kwargs.items():
+        if k.startswith('_') or not hasattr(self, k):
+            raise TypeError("%s got an unexpected keyword argument '%s'"
+                % self.__class__.__name__, k)
+        setattr(self, k, v)
 
 def get_conn_string():
     """
@@ -80,15 +87,7 @@ class User(object):
         self.rolenm = unicode(value)
     role = property(_get_role, _set_role)
 
-    def __init__(self, **kwargs):
-        """
-        Create a new User object. Supply any columns as a keyword argument.
-        """
-        for k,v in kwargs.items():
-            if k.startswith('_') or not hasattr(self, k):
-                raise TypeError("User got an unexpected keyword argument '%s'"
-                    % k)
-            setattr(self, k, v)
+    __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.login)
@@ -131,3 +130,46 @@ class User(object):
         login.
         """
         return store.find(cls, cls.login == unicode(login)).one()
+
+class Subject(object):
+    __storm_table__ = "subject"
+
+    id = Int(primary=True, name="subjectid")
+    code = Unicode(name="subj_code")
+    name = Unicode(name="subj_name")
+    short_name = Unicode(name="subj_short_name")
+    url = Unicode()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s '%s'>" % (type(self).__name__, self.short_name)
+
+class Semester(object):
+    __storm_table__ = "semester"
+
+    id = Int(primary=True, name="semesterid")
+    year = Unicode()
+    semester = Unicode()
+    active = Bool()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s/%s>" % (type(self).__name__, self.year, self.semester)
+
+class Offering(object):
+    __storm_table__ = "offering"
+
+    id = Int(primary=True, name="offeringid")
+    subject_id = Int(name="subject")
+    subject = Reference(subject_id, Subject.id)
+    semester_id = Int(name="semesterid")
+    semester = Reference(semester_id, Semester.id)
+    groups_student_permissions = Unicode()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %r in %r>" % (type(self).__name__, self.subject,
+                                  self.semester)
