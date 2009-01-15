@@ -364,14 +364,14 @@ def handle_update_user(req, fields):
         # If login not specified, update yourself
         login = req.user.login
 
+    user = ivle.database.User.get_by_login(req.store, login)
+
     # Make a dict of fields to update
     oldpassword = fields.getfirst('oldpass')
-    
     for f in fieldlist:
         val = fields.getfirst(f)
         if val is not None:
             # Note: May be rolled back if auth check below fails
-            user = ivle.database.User.get_by_login(req.store, login)
             setattr(user, f, val.value.decode('utf-8'))
         else:
             pass
