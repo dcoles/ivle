@@ -132,6 +132,14 @@ class User(Storm):
             )
 
     @property
+    def subjects(self):
+        return Store.of(self).find(Subject,
+            Enrolment.user_id == self.id,
+            Enrolment.active == True,
+            Offering.id == Enrolment.offering_id,
+            Subject.id == Offering.subject_id).config(distinct=True)
+
+    @property
     def active_enrolments(self):
         '''A sanely ordered list of the user's active enrolments.'''
         return self._get_enrolments(True)
