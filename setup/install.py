@@ -170,7 +170,7 @@ def __install(dry=False,nojail=False,nosubjects=False):
         try:
             conf = open(ivle_revision_record_file, "w")
 
-            conf.write("""# SVN revision r%d
+            conf.write("""# SVN revision r%s
 # Source tree location: %s
 # Modified files:
 """ % (util.get_svn_revision(), os.getcwd()))
