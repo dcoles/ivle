@@ -37,6 +37,7 @@ __all__ = ['get_store',
             'User',
             'Subject', 'Semester', 'Offering', 'Enrolment',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
+            'Exercise', 'Worksheet',
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -319,4 +320,34 @@ class ProjectGroupMembership(Storm):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.project_group)
 
+# WORKSHEETS AND EXERCISES #
 
+class Exercise(Storm):
+    # Note: Table "problem" is called "Exercise" in the Object layer, since
+    # it's called that everywhere else.
+    __storm_table__ = "problem"
+
+    id = Int(primary=True, name="problemid")
+    name = Unicode(name="identifier")
+    spec = Unicode()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s>" % (type(self).__name__, self.name)
+
+class Worksheet(Storm):
+    __storm_table__ = "worksheet"
+
+    id = Int(primary=True, name="worksheetid")
+    # XXX subject is not linked to a Subject object. This is a property of
+    # the database, and will be refactored.
+    subject = Unicode()
+    name = Unicode(name="identifier")
+    assessable = Bool()
+    mtime = DateTime()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s>" % (type(self).__name__, self.name)
