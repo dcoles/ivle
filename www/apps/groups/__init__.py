@@ -49,8 +49,7 @@ def handle(req):
             req.write("<p>Error: You are not currently enrolled in any subjects."
                       "</p>\n")
         for enrolment in enrolments:
-            show_subject_panel(req, db, enrolment.offering.id,
-                enrolment.offering.subject.name)
+            show_subject_panel(req, db, enrolment.offering)
         if req.user.hasCap(caps.CAP_MANAGEGROUPS):
             show_groupadmin_panel(req)
         
@@ -76,24 +75,23 @@ def show_groupadmin_panel(req):
         onclick=\"manage_subject()\" />\n")
     req.write("<div id=\"subject_div\"></div>")
 
-def show_subject_panel(req, db, offeringid, subj_name):
+def show_subject_panel(req, db, offering):
     """
     Show the group management panel for a particular subject.
     Prints to req.
     """
     # Get the groups this user is in, for this offering
-    groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
-    if len(groups) == 0:
+    groups = req.user.get_groups(offering)
+    if groups.count() == 0:
         return
 
-    req.write("<div id=\"subject%d\"class=\"subject\">"%offeringid)
-    req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
-    for groupid, groupnm, group_nick, is_member in groups:
-        if group_nick is None:
-            group_nick = "";
+    req.write("<div id=\"subject%d\"class=\"subject\">"%offering.id)
+    req.write("<h1>%s</h1>\n" % cgi.escape(offering.subject.name))
+    for group in groups:
         req.write("<h2>%s (%s)</h2>\n" %
-            (cgi.escape(group_nick), cgi.escape(groupnm)))
-        if is_member:
+            (cgi.escape(group.nick if group.nick else ''),
+             cgi.escape(group.name)))
+        if True: # XXX - was is_member (whether real member or just invited)
             req.write('<p>You are a member of this group.</p>\n')
         else:
             req.write('<p>You have been invited to this group.</p>\n')
@@ -104,10 +102,10 @@ def show_subject_panel(req, db, offeringid, subj_name):
                 '<input type="button" '
                 'onclick="decline(&quot;%(groupnm)s&quot;)" '
                 'value="Decline" />\n'
-                '</p>\n' % {"groupnm": cgi.escape(groupnm)})
+                '</p>\n' % {"groupnm": cgi.escape(group.name)})
         req.write("<h3>Members</h3>\n")
         req.write("<ul>\n")
-        for user in db.get_projectgroup_members(groupid):
+        for user in db.get_projectgroup_members(group.id):
             req.write("<li>%s (%s)</li>" %
                       (cgi.escape(user['fullname']),
                        cgi.escape(user['login'])))

@@ -871,16 +871,6 @@ INSERT INTO enrolment (loginid, offeringid)
 
     # SUBJECTS AND ENROLEMENT
 
-    def get_subjects(self, dry=False):
-        """
-        Get all subjects in IVLE.
-        Returns a list of dicts (all values strings), with the keys:
-        subj_code, subj_name, subj_short_name, url
-        """
-        return self.get_all("subject",
-            ("subjectid", "subj_code", "subj_name", "subj_short_name", "url"),
-            dry)
-
     def get_offering_semesters(self, subjectid, dry=False):
         """
         Get the semester information for a subject as well as providing 
