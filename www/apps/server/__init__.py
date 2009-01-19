@@ -29,6 +29,7 @@ import mimetypes
 
 from ivle import (util, studpath, interpret)
 import ivle.conf
+from ivle.database import User
 
 serveservice_path = os.path.join(ivle.conf.share_path, 'services/serveservice')
 interpretservice_path = os.path.join(ivle.conf.share_path,
@@ -45,16 +46,14 @@ def handle(req):
 
     # Get the username of the student whose work we are browsing, and the path
     # on the local machine where the file is stored.
-    (user, path) = studpath.url_to_local(req.path)
+    (login, path) = studpath.url_to_local(req.path)
 
-    try:
-        interpret.get_uid(user)
-    except KeyError:
+    if not User.get_by_login(req.store, login):
         # There is no user.
         req.throw_error(req.HTTP_NOT_FOUND,
             "The path specified is invalid.")
 
-    serve_file(req, user, path)
+    serve_file(req, login, path)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
