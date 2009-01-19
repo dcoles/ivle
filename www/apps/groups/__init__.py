@@ -52,25 +52,25 @@ def handle(req):
             show_subject_panel(req, db, enrolment.offering.id,
                 enrolment.offering.subject.name)
         if req.user.hasCap(caps.CAP_MANAGEGROUPS):
-            show_groupadmin_panel(req, db)
+            show_groupadmin_panel(req)
         
         req.write("</div>\n")
     finally:
         db.close()
 
-def show_groupadmin_panel(req, db):
+def show_groupadmin_panel(req):
     """
     Shows the group admin panel
     """
     req.write("<hr/>\n")
     req.write("<h1>Group Administration</h1>")
     # Choose subject
-    subjects = db.get_subjects()
+    subjects = req.store.find(Subject)
     req.write("<label for=\"subject_select\">Subject:</label>\n")
     req.write("<select id=\"subject_select\">\n")
     for s in subjects:
         req.write("    <option value=\"%d\">%s (%s)</option>\n"%
-            (s['subjectid'], s['subj_name'], s['subj_code']))
+            (s.id, s.name, s.code))
     req.write("</select>\n")
     req.write("<input type=\"button\" value=\"Manage\" \
         onclick=\"manage_subject()\" />\n")
