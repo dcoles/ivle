@@ -337,6 +337,12 @@ class Exercise(Storm):
     name = Unicode(name="identifier")
     spec = Unicode()
 
+    worksheets = ReferenceSet(id,
+        'WorksheetExercise.exercise_id',
+        'WorksheetExercise.worksheet_id',
+        'Worksheet.id'
+    )
+
     __init__ = _kwarg_init
 
     def __repr__(self):
@@ -352,6 +358,16 @@ class Worksheet(Storm):
     name = Unicode(name="identifier")
     assessable = Bool()
     mtime = DateTime()
+
+    exercises = ReferenceSet(id,
+        'WorksheetExercise.worksheet_id',
+        'WorksheetExercise.exercise_id',
+        Exercise.id)
+    # Use worksheet_exercises to get access to the WorksheetExercise objects
+    # binding worksheets to exercises. This is required to access the
+    # "optional" field.
+    worksheet_exercises = ReferenceSet(id,
+        'WorksheetExercise.worksheet_id')
 
     __init__ = _kwarg_init
 
@@ -369,3 +385,19 @@ class Worksheet(Storm):
         """
         return store.find(cls, cls.subject == unicode(subjectname),
             cls.name == unicode(worksheetname)).one()
+
+class WorksheetExercise(Storm):
+    __storm_table__ = "worksheet_problem"
+    __storm_primary__ = "worksheet_id", "exercise_id"
+
+    worksheet_id = Int(name="worksheetid")
+    worksheet = Reference(worksheet_id, Worksheet.id)
+    exercise_id = Int(name="problemid")
+    exercise = Reference(exercise_id, Exercise.id)
+    optional = Bool()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
+                                  self.worksheet.name)
