@@ -43,6 +43,7 @@ from ivle import util
 import ivle.conf
 import ivle.db
 import ivle.database
+import ivle.worksheet
 
 from rst import rst
 
@@ -362,37 +363,35 @@ def present_table_of_contents(req, node, exerciseid):
 <h2>Worksheet Contents</h2>
 <ul>
 """)
-    db = ivle.db.DB()
-    try:
-        for tag, xml in find_all_nodes(req, node):
-            if tag == "ex":
-                # Exercise node
-                # Fragment ID is an accumulating exerciseid
-                # (The same algorithm is employed when presenting exercises)
-                fragment_id = "exercise%d" % exerciseid
-                exerciseid += 1
-                exercisesrc = xml.getAttribute("src")
-                # Optionality: Defaults to False
-                exerciseoptional = xml.getAttribute("optional") == "true"
-                # Record the name and optionality for returning in the list
-                exercise_list.append((exercisesrc, exerciseoptional))
-                # TODO: Get proper exercise title
-                title = exercisesrc
-                # Get the completion status of this exercise
-                complete, _ = db.get_problem_status(req.user.login,
-                    exercisesrc)
-                req.write('  <li class="%s" id="toc_li_%s"><a href="#%s">%s'
-                    '</a></li>\n'
-                    % ("complete" if complete else "incomplete",
-                        fragment_id, fragment_id, cgi.escape(title)))
-            else:
-                # Heading node
-                fragment_id = getID(xml)
-                title = getTextData(xml)
-                req.write('  <li><a href="#%s">%s</a></li>\n'
-                    % (fragment_id, cgi.escape(title)))
-    finally:
-        db.close()
+    for tag, xml in find_all_nodes(req, node):
+        if tag == "ex":
+            # Exercise node
+            # Fragment ID is an accumulating exerciseid
+            # (The same algorithm is employed when presenting exercises)
+            fragment_id = "exercise%d" % exerciseid
+            exerciseid += 1
+            exercisesrc = xml.getAttribute("src")
+            # Optionality: Defaults to False
+            exerciseoptional = xml.getAttribute("optional") == "true"
+            # Record the name and optionality for returning in the list
+            exercise_list.append((exercisesrc, exerciseoptional))
+            # TODO: Get proper exercise title
+            title = exercisesrc
+            # Get the completion status of this exercise
+            exercise = ivle.database.Exercise.get_by_name(req.store,
+                            exercisesrc)
+            complete, _ = ivle.worksheet.get_exercise_status(req.store,
+                            req.user, exercise)
+            req.write('  <li class="%s" id="toc_li_%s"><a href="#%s">%s'
+                '</a></li>\n'
+                % ("complete" if complete else "incomplete",
+                    fragment_id, fragment_id, cgi.escape(title)))
+        else:
+            # Heading node
+            fragment_id = getID(xml)
+            title = getTextData(xml)
+            req.write('  <li><a href="#%s">%s</a></li>\n'
+                % (fragment_id, cgi.escape(title)))
     req.write('</ul>\n</div>\n')
     return exercise_list
 
@@ -492,6 +491,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     """
     req.write('<div class="exercise" id="exercise%d">\n'
         % exerciseid)
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
     exercisefile = util.open_exercise_file(exercisesrc)
     if exercisefile is None:
         req.write("<p><b>Server Error</b>: "
@@ -534,11 +534,11 @@ def present_exercise(req, exercisesrc, exerciseid):
     try:
         saved_text = db.get_problem_stored_text(login=req.user.login,
             exercisename=exercisesrc)
-        # Also get the number of attempts taken and whether this is complete.
-        complete, attempts = db.get_problem_status(login=req.user.login,
-            exercisename=exercisesrc)
     finally:
         db.close()
+    # Also get the number of attempts taken and whether this is complete.
+    complete, attempts = ivle.worksheet.get_exercise_status(req.store,
+        req.user, exercise)
     if saved_text is not None:
         # Important: We got the string from the DB encoded in UTF-8
         # Make it a unicode string.

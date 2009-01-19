@@ -47,6 +47,7 @@ import time
 import cjson
 
 from ivle import (db, util, console)
+import ivle.worksheet
 import ivle.conf
 import test # XXX: Really .test, not real test.
 
@@ -126,10 +127,10 @@ def handle_save(req, exercise, code, fields):
     finally:
         conn.close()
 
-def handle_test(req, exercise, code, fields):
+def handle_test(req, exercisesrc, code, fields):
     """Handles a test action."""
 
-    exercisefile = util.open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercisesrc)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
@@ -150,26 +151,29 @@ def handle_test(req, exercise, code, fields):
     # Close the console
     cons.close()
 
+    # Get the Exercise from the database
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
+
     conn = db.DB()
     try:
         conn.insert_problem_attempt(
             login = req.user.login,
-            exercisename = exercise,
+            exercisename = exercisesrc,
             date = time.localtime(),
             complete = test_results['passed'],
             attempt = code)
-
-        # Query the DB to get an updated score on whether or not this problem
-        # has EVER been completed (may be different from "passed", if it has
-        # been completed before), and the total number of attempts.
-        completed, attempts = conn.get_problem_status(req.user.login,
-            exercise)
-        test_results["completed"] = completed
-        test_results["attempts"] = attempts
-
-        req.write(cjson.encode(test_results))
     finally:
         conn.close()
+
+    # Query the DB to get an updated score on whether or not this problem
+    # has EVER been completed (may be different from "passed", if it has
+    # been completed before), and the total number of attempts.
+    completed, attempts = ivle.worksheet.get_exercise_status(req.store,
+        req.user, exercise)
+    test_results["completed"] = completed
+    test_results["attempts"] = attempts
+
+    req.write(cjson.encode(test_results))
 
 def handle_getattempts(req, exercise):
     """Handles a getattempts action."""

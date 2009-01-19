@@ -606,7 +606,7 @@ class DB:
         else:
             return None
 
-    def get_problem_status(self, login, exercisename, dry=False):
+    def _get_problem_status(self, login, exercisename, dry=False):
         """Given a login name and exercise name, returns information about the
         user's performance on that problem.
         Returns a tuple of:
@@ -679,7 +679,7 @@ class DB:
             result = self.db.query(query)
             # Now get the student's pass/fail for each problem in this worksheet
             for problemid, optional in result.getresult():
-                done, _ = self.get_problem_status(login, problemid)
+                done, _ = self._get_problem_status(login, problemid)
                 # done is a bool, whether this student has completed that
                 # problem
                 if _parse_boolean(optional):
