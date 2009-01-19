@@ -425,3 +425,50 @@ class WorksheetExercise(Storm):
     def __repr__(self):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
                                   self.worksheet.name)
+
+class ExerciseSave(Storm):
+    """
+    Represents a potential solution to an exercise that a user has submitted
+    to the server for storage.
+    A basic ExerciseSave is just the current saved text for this exercise for
+    this user (doesn't count towards their attempts).
+    ExerciseSave may be extended with additional semantics (such as
+    ExerciseAttempt).
+    """
+    __storm_table__ = "problem_save"
+    __storm_primary__ = "exercise_id", "user_id", "date"
+
+    exercise_id = Int(name="problemid")
+    exercise = Reference(exercise_id, Exercise.id)
+    user_id = Int(name="loginid")
+    user = Reference(user_id, User.id)
+    date = DateTime()
+    text = Unicode()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s by %s at %s>" % (type(self).__name__,
+            self.exercise.name, self.user.login, self.date.strftime("%c"))
+
+class ExerciseAttempt(ExerciseSave):
+    """
+    An ExerciseAttempt is a special case of an ExerciseSave. Like an
+    ExerciseSave, it constitutes exercise solution data that the user has
+    submitted to the server for storage.
+    In addition, it contains additional information about the submission.
+    complete - True if this submission was successful, rendering this exercise
+        complete for this user.
+    active - True if this submission is "active" (usually true). Submissions
+        may be de-activated by privileged users for special reasons, and then
+        they won't count (either as a penalty or success), but will still be
+        stored.
+    """
+    __storm_table__ = "problem_attempt"
+    __storm_primary__ = "exercise_id", "user_id", "date"
+
+    # The "text" field is the same but has a different name in the DB table
+    # for some reason.
+    text = Unicode(name="attempt")
+    complete = Bool()
+    active = Bool()
