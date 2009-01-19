@@ -305,6 +305,12 @@ class ProjectGroup(Storm):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
 
+    @property
+    def members(self):
+        return Store.of(self).find(User,
+            ProjectGroupMembership.project_group_id == self.id,
+            User.id == ProjectGroupMembership.user_id)
+
 class ProjectGroupMembership(Storm):
     __storm_table__ = "group_member"
     __storm_primary__ = "user_id", "project_group_id"
