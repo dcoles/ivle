@@ -25,8 +25,8 @@
 
 import cgi
 
-from ivle import (util, caps)
-from ivle.database import Enrolment, Subject, Semester, Offering
+from ivle import caps
+from ivle.database import Subject
 
 def handle(req):
     # Set request attributes
