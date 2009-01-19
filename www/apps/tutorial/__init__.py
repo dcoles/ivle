@@ -216,77 +216,83 @@ def handle_subject_menu(req, subject):
                 worksheetdom.getAttribute("assessable") == "true")
             worksheets.append(worksheet)
 
-    db = ivle.db.DB()
-    try:
-        # Now all the errors are out the way, we can begin writing
-        req.title = "Tutorial - %s" % subject
-        req.write_html_head_foot = True
-        req.write('<div id="ivle_padding">\n')
-        req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
-        req.write('<h2>Worksheets</h2>\n<ul id="tutorial-toc">\n')
-        # As we go, calculate the total score for this subject
-        # (Assessable worksheets only, mandatory problems only)
-        problems_done = 0
-        problems_total = 0
-        for worksheet in worksheets:
-            req.write('  <li><a href="%s">%s</a>'
-                % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
-            try:
-                # If the assessable status of this worksheet has changed,
-                # update the DB
-                # (Note: This fails the try block if the worksheet is not yet
-                # in the DB, which is fine. The author should visit the
-                # worksheet page to get it into the DB).
-                if (db.worksheet_is_assessable(subject, worksheet.id) !=
-                    worksheet.assessable):
-                    db.set_worksheet_assessable(subject, worksheet.id,
-                        assessable=worksheet.assessable)
-                if worksheet.assessable:
+    # Now all the errors are out the way, we can begin writing
+    req.title = "Tutorial - %s" % subject
+    req.write_html_head_foot = True
+    req.write('<div id="ivle_padding">\n')
+    req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
+    req.write('<h2>Worksheets</h2>\n<ul id="tutorial-toc">\n')
+    # As we go, calculate the total score for this subject
+    # (Assessable worksheets only, mandatory problems only)
+    problems_done = 0
+    problems_total = 0
+    for worksheet_from_xml in worksheets:
+        worksheet = ivle.database.Worksheet.get_by_name(req.store,
+            subject, worksheet_from_xml.id)
+        # If worksheet is not in database yet, we'll simply not display
+        # data about it yet (it should be added as soon as anyone visits
+        # the worksheet itself).
+        req.write('  <li><a href="%s">%s</a>'
+            % (urllib.quote(worksheet_from_xml.id),
+                cgi.escape(worksheet_from_xml.name)))
+        if worksheet is not None:
+            # If the assessable status of this worksheet has changed,
+            # update the DB
+            # (Note: This fails the try block if the worksheet is not yet
+            # in the DB, which is fine. The author should visit the
+            # worksheet page to get it into the DB).
+            if worksheet.assessable != worksheet_from_xml.assessable:
+                # XXX If statement to avoid unnecessary database writes.
+                # Is this necessary, or will Storm check for us?
+                worksheet.assessable = worksheet_from_xml.assessable
+                req.store.commit()
+            if worksheet.assessable:
+                # XXX Refactor ivle.db
+                db = ivle.db.DB()
+                try:
                     mand_done, mand_total, opt_done, opt_total = (
                         db.calculate_score_worksheet(req.user.login, subject,
-                            worksheet.id))
-                    if opt_total > 0:
-                        optional_message = " (excluding optional exercises)"
-                    else:
-                        optional_message = ""
-                    if mand_done >= mand_total:
-                        complete_class = "complete"
-                    elif mand_done > 0:
-                        complete_class = "semicomplete"
-                    else:
-                        complete_class = "incomplete"
-                    problems_done += mand_done
-                    problems_total += mand_total
-                    req.write('\n    <ul><li class="%s">'
-                            'Completed %d/%d%s</li></ul>\n  '
-                            % (complete_class, mand_done, mand_total,
-                                optional_message))
-            except ivle.db.DBException:
-                # Worksheet is probably not in database yet
-                pass
-            req.write('</li>\n')
-        req.write("</ul>\n")
-        if problems_total > 0:
-            if problems_done >= problems_total:
-                complete_class = "complete"
-            elif problems_done > 0:
-                complete_class = "semicomplete"
-            else:
-                complete_class = "incomplete"
-            problems_pct = (100 * problems_done) / problems_total       # int
-            req.write('<ul><li class="%s">Total exercises completed: %d/%d '
-                        '(%d%%)</li></ul>\n'
-                % (complete_class, problems_done, problems_total,
-                    problems_pct))
-            # XXX Marks calculation (should be abstracted out of here!)
-            # percent / 16, rounded down, with a maximum mark of 5
-            max_mark = 5
-            mark = min(problems_pct / 16, max_mark)
-            req.write('<p style="font-weight: bold">Worksheet mark: %d/%d'
-                        '</p>\n' % (mark, max_mark))
-        req.write("</div>\n")   # tutorialbody
-    finally:
-        db.close()
+                            worksheet.name))
+                finally:
+                    db.close()
+                # XXX End ivle.db
+                if opt_total > 0:
+                    optional_message = " (excluding optional exercises)"
+                else:
+                    optional_message = ""
+                if mand_done >= mand_total:
+                    complete_class = "complete"
+                elif mand_done > 0:
+                    complete_class = "semicomplete"
+                else:
+                    complete_class = "incomplete"
+                problems_done += mand_done
+                problems_total += mand_total
+                req.write('\n    <ul><li class="%s">'
+                        'Completed %d/%d%s</li></ul>\n  '
+                        % (complete_class, mand_done, mand_total,
+                            optional_message))
+        req.write('</li>\n')
+    req.write("</ul>\n")
+    if problems_total > 0:
+        if problems_done >= problems_total:
+            complete_class = "complete"
+        elif problems_done > 0:
+            complete_class = "semicomplete"
+        else:
+            complete_class = "incomplete"
+        problems_pct = (100 * problems_done) / problems_total       # int
+        req.write('<ul><li class="%s">Total exercises completed: %d/%d '
+                    '(%d%%)</li></ul>\n'
+            % (complete_class, problems_done, problems_total,
+                problems_pct))
+        # XXX Marks calculation (should be abstracted out of here!)
+        # percent / 16, rounded down, with a maximum mark of 5
+        max_mark = 5
+        mark = min(problems_pct / 16, max_mark)
+        req.write('<p style="font-weight: bold">Worksheet mark: %d/%d'
+                    '</p>\n' % (mark, max_mark))
+    req.write("</div>\n")   # tutorialbody
 
 def handle_worksheet(req, subject, worksheet):
     # Subject and worksheet names must be valid identifiers
