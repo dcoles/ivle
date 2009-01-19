@@ -48,6 +48,8 @@ import ivle.conf
 import ivle.db
 import ivle.pulldown_subj
 
+from ivle.database import ProjectGroup
+
 def chown_to_webserver(filename):
     """
     Chowns a file so the web server user owns it.
@@ -105,24 +107,19 @@ def rebuild_svn_config(store):
 def rebuild_svn_group_config(store):
     """Build the complete SVN configuration file for groups
     """
-    conn = ivle.db.DB()
-    groups = conn.get_all('project_group',
-        ['groupid', 'groupnm', 'projectsetid'])
     f = open(ivle.conf.svn_group_conf + ".new", "w")
     f.write("# IVLE SVN Group Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
     f.write("\n")
-    for g in groups:
-        projectsetid = g['projectsetid']
-        offeringinfo = conn.get_offering_info(projectsetid)
-        subj_short_name = offeringinfo['subj_short_name']
-        year = offeringinfo['year']
-        semester = offeringinfo['semester']
-        reponame = "_".join([subj_short_name, year, semester, g['groupnm']])
+    for group in store.find(ProjectGroup):
+        offering = group.project_set.offering
+        reponame = "_".join([offering.subject.short_name,
+                             offering.semester.year,
+                             offering.semester.semester,
+                             group.name])
         f.write("[%s:/]\n"%reponame)
-        users = conn.get_projectgroup_members(g['groupid'])
-        for u in users:
-            f.write("%s = rw\n"%u['login'])
+        for user in group.members:
+            f.write("%s = rw\n" % user.login)
         f.write("\n")
     f.close()
     os.rename(ivle.conf.svn_group_conf + ".new", ivle.conf.svn_group_conf)
