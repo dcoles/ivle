@@ -513,61 +513,6 @@ class DB:
                 frozenset(['date', 'text']),
                 frozenset(['problemid', 'loginid']))
 
-    def get_problem_attempts(self, login, exercisename, allow_inactive=True,
-                             dry=False):
-        """Given a login name and exercise name, returns a list of dicts, one
-        for each attempt made for that exercise.
-        Dicts are {'date': 'formatted_time', 'complete': bool}.
-        Ordered with the newest first.
-        
-        Note: By default, returns de-activated problem attempts.
-        If allow_inactive is False, will not return disabled attempts.
-
-        Note: Even if dry, will still physically call get_problem_problemid,
-        which may mutate the DB, and get_user_loginid, which may fail.
-        """
-        problemid = self.get_problem_problemid(exercisename)
-        loginid = self.get_user_loginid(login)  # May raise a DBException
-        andactive = '' if allow_inactive else ' AND active'
-        query = """SELECT date, complete FROM problem_attempt
-    WHERE loginid = %d AND problemid = %d%s
-    ORDER BY date DESC;""" % (loginid, problemid, andactive)
-        if dry: return query
-        result = self.db.query(query).getresult()
-        # Make into dicts (could use dictresult, but want to convert values)
-        return [{'date': date, 'complete': _parse_boolean(complete)}
-                for date, complete in result]
-
-    def get_problem_attempt(self, login, exercisename, as_of,
-        allow_inactive=True, dry=False):
-        """Given a login name, exercise name, and struct_time, returns the
-        text of the submitted attempt for this question as of that date.
-        Returns None if the user had not made an attempt on this problem at
-        that date.
-        
-        Note: By default, returns de-activated problem attempts.
-        If allow_inactive is False, will not return disabled attempts.
-
-        Note: Even if dry, will still physically call get_problem_problemid,
-        which may mutate the DB, and get_user_loginid, which may fail.
-        """
-        problemid = self.get_problem_problemid(exercisename)
-        loginid = self.get_user_loginid(login)  # May raise a DBException
-        # Very similar to query in get_problem_stored_text, but without
-        # looking in problem_save, and restricting to a certain date.
-        andactive = '' if allow_inactive else ' AND active'
-        query = """SELECT attempt FROM problem_attempt
-    WHERE loginid = %d AND problemid = %d%s AND date <= %s
-    ORDER BY date DESC
-    LIMIT 1;""" % (loginid, problemid, andactive, _escape(as_of))
-        if dry: return query
-        result = self.db.query(query)
-        if result.ntuples() == 1:
-            # The user has made at least 1 attempt. Return the newest.
-            return result.getresult()[0][0]
-        else:
-            return None
-
     def _get_problem_status(self, login, exercisename, dry=False):
         """Given a login name and exercise name, returns information about the
         user's performance on that problem.

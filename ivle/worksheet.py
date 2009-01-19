@@ -63,10 +63,9 @@ def get_exercise_status(store, user, exercise):
     return first_success is not None, num_attempts
 
 def get_exercise_stored_text(store, user, exercise):
-    """Given a storm.store, User and Exercise, returns the text of the last
-    saved/submitted attempt for this question, as an
-    ivle.database.ExerciseSave object (note that ExerciseAttempt is a subclass
-    of ExerciseSave).
+    """Given a storm.store, User and Exercise, returns an
+    ivle.database.ExerciseSave object for the last saved/submitted attempt for
+    this question (note that ExerciseAttempt is a subclass of ExerciseSave).
     Returns None if the user has not saved or made an attempt on this
     problem.
     If the user has both saved and submitted, it returns whichever was
@@ -98,3 +97,45 @@ def get_exercise_stored_text(store, user, exercise):
             return attempt
         else:
             return None
+
+def _get_exercise_attempts(store, user, exercise, as_of=None,
+        allow_inactive=False):
+    """Same as get_exercise_attempts, but doesn't convert Storm's iterator
+    into a list."""
+    ExerciseAttempt = ivle.database.ExerciseAttempt
+
+    # Get the most recent attempt before as_of, or None
+    return store.find(ExerciseAttempt,
+            ExerciseAttempt.user_id == user.id,
+            ExerciseAttempt.exercise_id == exercise.id,
+            True if allow_inactive else ExerciseAttempt.active == True,
+            True if as_of is None else ExerciseAttempt.date <= as_of,
+        ).order_by(Desc(ExerciseAttempt.date))
+
+def get_exercise_attempts(store, user, exercise, as_of=None,
+        allow_inactive=False):
+    """Given a storm.store, User and Exercise, returns a list of
+    ivle.database.ExerciseAttempt objects, one for each attempt made for the
+    exercise, sorted from latest to earliest.
+
+    as_of: Optional datetime.datetime object. If supplied, only returns
+        attempts made before or at this time.
+    allow_inactive: If True, will return disabled attempts.
+    """
+    return list(_get_exercise_attempts(store, user, exercise, as_of,
+        allow_inactive))
+
+def get_exercise_attempt(store, user, exercise, as_of=None,
+        allow_inactive=False):
+    """Given a storm.store, User and Exercise, returns an
+    ivle.database.ExerciseAttempt object for the last submitted attempt for
+    this question.
+    Returns None if the user has not made an attempt on this
+    problem.
+
+    as_of: Optional datetime.datetime object. If supplied, only returns
+        attempts made before or at this time.
+    allow_inactive: If True, will return disabled attempts.
+    """
+    return _get_exercise_attempts(store, user, exercise, as_of,
+        allow_inactive).first()

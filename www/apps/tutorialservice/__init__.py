@@ -43,10 +43,14 @@
 
 import os
 import time
+import datetime
 
 import cjson
 
-from ivle import (db, util, console)
+from ivle import db
+from ivle import util
+from ivle import console
+import ivle.database
 import ivle.worksheet
 import ivle.conf
 import test # XXX: Really .test, not real test.
@@ -95,7 +99,7 @@ def handle(req):
         # The time *should* be in the same format as the DB (since it should
         # be bounced back to us from the getattempts output). Assume this.
         try:
-            date = time.strptime(date, db.TIMESTAMP_FORMAT)
+            date = datetime.datetime.strptime(date, db.TIMESTAMP_FORMAT)
         except ValueError:
             # Date was not in correct format
             req.throw_error(req.HTTP_BAD_REQUEST)
@@ -175,28 +179,24 @@ def handle_test(req, exercisesrc, code, fields):
 
     req.write(cjson.encode(test_results))
 
-def handle_getattempts(req, exercise):
+def handle_getattempts(req, exercisename):
     """Handles a getattempts action."""
-    conn = db.DB()
-    try:
-        attempts = conn.get_problem_attempts(
-            login=req.user.login,
-            exercisename=exercise,
-            allow_inactive=HISTORY_ALLOW_INACTIVE)
-        req.write(cjson.encode(attempts))
-    finally:
-        conn.close()
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    attempts = ivle.worksheet.get_exercise_attempts(req.store, req.user,
+        exercise, allow_inactive=HISTORY_ALLOW_INACTIVE)
+    # attempts is a list of ExerciseAttempt objects. Convert to dictionaries.
+    time_fmt = lambda dt: datetime.datetime.strftime(dt, db.TIMESTAMP_FORMAT)
+    attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
+                for a in attempts]
+    req.write(cjson.encode(attempts))
 
-def handle_getattempt(req, exercise, date):
-    """Handles a getattempts action. Date is a struct_time."""
+def handle_getattempt(req, exercisename, date):
+    """Handles a getattempts action. Date is a datetime.datetime."""
     conn = db.DB()
-    try:
-        attempt = conn.get_problem_attempt(
-            login=req.user.login,
-            exercisename=exercise,
-            as_of=date,
-            allow_inactive=HISTORY_ALLOW_INACTIVE)
-        # attempt may be None; will write "null"
-        req.write(cjson.encode({'code': attempt}))
-    finally:
-        conn.close()
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    attempt = ivle.worksheet.get_exercise_attempt(req.store, req.user,
+        exercise, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
+    if attempt is not None:
+        attempt = attempt.text
+    # attempt may be None; will write "null"
+    req.write(cjson.encode({'code': attempt}))
