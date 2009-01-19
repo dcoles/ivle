@@ -655,28 +655,6 @@ class DB:
 
     # WORKSHEET/PROBLEM ASSOCIATION AND MARKS CALCULATION
 
-    def get_worksheet_mtime(self, subject, worksheet, dry=False):
-        """
-        For a given subject/worksheet name, gets the time the worksheet was
-        last updated in the DB, if any.
-        This can be used to check if there is a newer version on disk.
-        Returns the timestamp as a time.struct_time, or None if the worksheet
-        is not found or has no stored mtime.
-        """
-        try:
-            r = self.get_single(
-                {"subject": subject, "identifier": worksheet},
-                "worksheet", ["mtime"], ["subject", "identifier"],
-                dry=dry)
-        except DBException:
-            # Assume the worksheet is not in the DB
-            return None
-        if dry:
-            return r
-        if r["mtime"] is None:
-            return None
-        return time.strptime(r["mtime"], TIMESTAMP_FORMAT)
-
     def create_worksheet(self, subject, worksheet, problems=None,
         assessable=None):
         """
@@ -923,6 +901,8 @@ WHERE login.login=%s
         if dry:
             return query
         return self.db.query(query).dictresult()
+
+    # PROJECT GROUPS
 
     def get_offering_info(self, projectsetid, dry=False):
         """Takes information from projectset and returns useful information 

@@ -357,3 +357,15 @@ class Worksheet(Storm):
 
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
+
+    # XXX Refactor this - make it an instance method of Subject rather than a
+    # class method of Worksheet. Can't do that now because Subject isn't
+    # linked referentially to the Worksheet.
+    @classmethod
+    def get_by_name(cls, store, subjectname, worksheetname):
+        """
+        Get the Worksheet from the db associated with a given store, subject
+        name and worksheet name.
+        """
+        return store.find(cls, cls.subject == unicode(subjectname),
+            cls.name == unicode(worksheetname)).one()

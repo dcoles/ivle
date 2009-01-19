@@ -30,7 +30,7 @@
 
 import os
 import os.path
-import time
+import datetime
 import cgi
 import urllib
 import re
@@ -304,7 +304,7 @@ def handle_worksheet(req, subject, worksheet):
     except:
         req.throw_error(req.HTTP_NOT_FOUND,
             "Worksheet file not found.")
-    worksheetmtime = time.localtime(worksheetmtime)
+    worksheetmtime = datetime.datetime.fromtimestamp(worksheetmtime)
 
     worksheetdom = minidom.parse(worksheetfile)
     worksheetfile.close()
@@ -326,7 +326,8 @@ def handle_worksheet(req, subject, worksheet):
     # If the database is missing this worksheet or out of date, update its
     # details about this worksheet
     # Note: Do NOT set assessable (this is done at the subject level).
-    update_db_worksheet(subject, worksheet, worksheetmtime, exercise_list)
+    update_db_worksheet(req.store, subject, worksheet, worksheetmtime,
+        exercise_list)
 
     # Write each element
     exerciseid = 0
@@ -613,12 +614,12 @@ onclick="close_previous(&quot;exercise%d&quot;)">Close attempts</a></p>
 """ % (exerciseid, filename, exerciseid, exerciseid, filename, rows))
     req.write("</div>\n")
 
-def update_db_worksheet(subject, worksheet, file_mtime,
+def update_db_worksheet(store, subject, worksheetname, file_mtime,
     exercise_list=None, assessable=None):
     """
     Determines if the database is missing this worksheet or out of date,
     and inserts or updates its details about the worksheet.
-    file_mtime is a time.struct_time with the modification time of the XML
+    file_mtime is a datetime.datetime with the modification time of the XML
     file. The database will not be updated unless worksheetmtime is newer than
     the mtime in the database.
     exercise_list is a list of (filename, optional) pairs as returned by
@@ -628,10 +629,13 @@ def update_db_worksheet(subject, worksheet, file_mtime,
     the existing data. If the worksheet does not yet exist, and assessable
     is omitted, it defaults to False.
     """
-    db = ivle.db.DB()
-    try:
-        db_mtime = db.get_worksheet_mtime(subject, worksheet)
-        if db_mtime is None or file_mtime > db_mtime:
-            db.create_worksheet(subject, worksheet, exercise_list, assessable)
-    finally:
-        db.close()
+    worksheet = ivle.database.Worksheet.get_by_name(store, subject,
+                                                    worksheetname)
+    db_mtime = worksheet.mtime if worksheet is not None else None
+    if db_mtime is None or file_mtime > db_mtime:
+        db = ivle.db.DB()
+        try:
+            db.create_worksheet(subject, worksheetname, exercise_list,
+                                assessable)
+        finally:
+            db.close()
