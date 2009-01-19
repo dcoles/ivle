@@ -139,6 +139,23 @@ class User(Storm):
             Offering.id == Enrolment.offering_id,
             Subject.id == Offering.subject_id).config(distinct=True)
 
+    # TODO: Invitations should be listed too?
+    def get_groups(self, offering=None):
+        preds = [
+            ProjectGroupMembership.user_id == self.id,
+            ProjectGroup.id == ProjectGroupMembership.project_group_id,
+        ]
+        if offering:
+            preds.extend([
+                ProjectSet.offering_id == offering.id,
+                ProjectGroup.project_set_id == ProjectSet.id,
+            ])
+        return Store.of(self).find(ProjectGroup, *preds)
+
+    @property
+    def groups(self):
+        return self.get_groups()
+
     @property
     def active_enrolments(self):
         '''A sanely ordered list of the user's active enrolments.'''
@@ -226,3 +243,68 @@ class Enrolment(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
+
+class ProjectSet(Storm):
+    __storm_table__ = "project_set"
+
+    id = Int(name="projectsetid", primary=True)
+    offering_id = Int(name="offeringid")
+    offering = Reference(offering_id, Offering.id)
+    max_students_per_group = Int()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %d in %r>" % (type(self).__name__, self.id,
+                                  self.offering)
+
+class Project(Storm):
+    __storm_table__ = "project"
+
+    id = Int(name="projectid", primary=True)
+    synopsis = Unicode()
+    url = Unicode()
+    project_set_id = Int(name="projectsetid")
+    project_set = Reference(project_set_id, ProjectSet.id)
+    deadline = DateTime()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s '%s' in %r>" % (type(self).__name__, self.synopsis,
+                                  self.project_set.offering)
+
+class ProjectGroup(Storm):
+    __storm_table__ = "project_group"
+
+    id = Int(name="groupid", primary=True)
+    name = Unicode(name="groupnm")
+    project_set_id = Int(name="projectsetid")
+    project_set = Reference(project_set_id, ProjectSet.id)
+    nick = Unicode()
+    created_by_id = Int(name="createdby")
+    created_by = Reference(created_by_id, User.id)
+    epoch = DateTime()
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %s in %r>" % (type(self).__name__, self.name,
+                                  self.project_set.offering)
+
+class ProjectGroupMembership(Storm):
+    __storm_table__ = "group_member"
+    __storm_primary__ = "user_id", "project_group_id"
+
+    user_id = Int(name="loginid")
+    user = Reference(user_id, User.id)
+    project_group_id = Int(name="groupid")
+    project_group = Reference(project_group_id, ProjectGroup.id)
+
+    __init__ = _kwarg_init
+
+    def __repr__(self):
+        return "<%s %r in %r>" % (type(self).__name__, self.user,
+                                  self.project_group)
+
+
