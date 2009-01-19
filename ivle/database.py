@@ -348,6 +348,13 @@ class Exercise(Storm):
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
+    @classmethod
+    def get_by_name(cls, store, name):
+        """
+        Get the Exercise from the db associated with a given store and name.
+        """
+        return store.find(cls, cls.name == unicode(name)).one()
+
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
 
@@ -385,6 +392,15 @@ class Worksheet(Storm):
         """
         return store.find(cls, cls.subject == unicode(subjectname),
             cls.name == unicode(worksheetname)).one()
+
+    def remove_all_exercises(self, store):
+        """
+        Remove all exercises from this worksheet.
+        This does not delete the exercises themselves. It just removes them
+        from the worksheet.
+        """
+        store.find(WorksheetExercise,
+            WorksheetExercise.worksheet == self).remove()
 
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_problem"

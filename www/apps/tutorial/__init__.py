@@ -30,7 +30,7 @@
 
 import os
 import os.path
-import datetime
+from datetime import datetime
 import cgi
 import urllib
 import re
@@ -310,7 +310,7 @@ def handle_worksheet(req, subject, worksheet):
     except:
         req.throw_error(req.HTTP_NOT_FOUND,
             "Worksheet file not found.")
-    worksheetmtime = datetime.datetime.fromtimestamp(worksheetmtime)
+    worksheetmtime = datetime.fromtimestamp(worksheetmtime)
 
     worksheetdom = minidom.parse(worksheetfile)
     worksheetfile.close()
@@ -637,11 +637,45 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
     """
     worksheet = ivle.database.Worksheet.get_by_name(store, subject,
                                                     worksheetname)
-    db_mtime = worksheet.mtime if worksheet is not None else None
-    if db_mtime is None or file_mtime > db_mtime:
-        db = ivle.db.DB()
-        try:
-            db.create_worksheet(subject, worksheetname, exercise_list,
-                                assessable)
-        finally:
-            db.close()
+
+    updated_database = False
+    if worksheet is None:
+        # If assessable is not supplied, default to False.
+        if assessable is None:
+            assessable = False
+        # Create a new Worksheet
+        worksheet = ivle.database.Worksheet(subject=subject,
+            name=worksheetname, assessable=assessable, mtime=datetime.now())
+        store.add(worksheet)
+        updated_database = True
+    else:
+        if file_mtime > worksheet.mtime:
+            # File on disk is newer than database. Need to update.
+            worksheet.mtime = datetime.now()
+            if exercise_list is not None:
+                # exercise_list is supplied, so delete any existing problems
+                worksheet.remove_all_exercises(store)
+            if assessable is not None:
+                worksheet.assessable = assessable
+            updated_database = True
+
+    if updated_database and exercise_list is not None:
+        # Insert each exercise into the worksheet
+        for exercise_tuple in exercise_list:
+            if isinstance(exercise_tuple, tuple):
+                exercise_name = exercise_tuple[0]
+                try:
+                    optional = exercise_tuple[1]
+                except IndexError:
+                    optional = False
+            else:
+                exercise_name = exercise_tuple
+                optional = False
+            # Get the Exercise from the DB
+            # XXX What if this fails?
+            exercise = ivle.database.Exercise.get_by_name(store,exercise_name)
+            # Create a new binding between the worksheet and the exercise
+            worksheetexercise = ivle.database.WorksheetExercise(
+                    worksheet=worksheet, exercise=exercise, optional=optional)
+
+    store.commit()
