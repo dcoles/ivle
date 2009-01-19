@@ -661,18 +661,8 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
 
     if updated_database and exercise_list is not None:
         # Insert each exercise into the worksheet
-        for exercise_tuple in exercise_list:
-            if isinstance(exercise_tuple, tuple):
-                exercise_name = exercise_tuple[0]
-                try:
-                    optional = exercise_tuple[1]
-                except IndexError:
-                    optional = False
-            else:
-                exercise_name = exercise_tuple
-                optional = False
+        for exercise_name, optional in exercise_list:
             # Get the Exercise from the DB
-            # XXX What if this fails?
             exercise = ivle.database.Exercise.get_by_name(store,exercise_name)
             # Create a new binding between the worksheet and the exercise
             worksheetexercise = ivle.database.WorksheetExercise(
