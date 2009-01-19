@@ -33,8 +33,8 @@ import os.path
 import pwd
 import optparse
 import logging
+import datetime
 
-import ivle.db
 import ivle.database
 import ivle.pulldown_subj
 
@@ -70,15 +70,21 @@ if options.year is not None and not options.year.isdigit():
     logging.error("Year must be numeric")
     sys.exit(1)
 
+if options.year is None:
+    options.year = datetime.datetime.now().year
+
+options.year = unicode(options.year)
+
 for user in users:
     try:
         # Get all subjects this user is enrolled in, and add them to the DB if
         # they match one of our local subject codes
-        res = ivle.pulldown_subj.enrol_user(user.login, options.year)
+        res = ivle.pulldown_subj.enrol_user(store, user, options.year)
         logging.info("Enrolled user %s in %d subject%s." % (user.login, res,
                         '' if res == 1 else 's'))
     except Exception, message:
         logging.warning(str(message))
         continue
     
+store.commit()
 logging.info("enrolment completed successfully")
