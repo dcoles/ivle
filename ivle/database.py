@@ -38,7 +38,8 @@ __all__ = ['get_store',
             'Subject', 'Semester', 'Offering', 'Enrolment',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
-            'ExerciseSave', 'ExerciseAttempt'
+            'ExerciseSave', 'ExerciseAttempt',
+            'AlreadyEnrolledError'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -239,6 +240,18 @@ class Offering(Storm):
         return "<%s %r in %r>" % (type(self).__name__, self.subject,
                                   self.semester)
 
+    def enrol(self, user):
+        '''Enrol a user in this offering.'''
+        # We'll get a horrible database constraint violation error if we try
+        # to add a second enrolment.
+        if Store.of(self).find(Enrolment,
+                               Enrolment.user_id == user.id,
+                               Enrolment.offering_id == self.id).count() == 1:
+            raise AlreadyEnrolledError()
+
+        e = Enrolment(user=user, offering=self, active=True)
+        self.enrolments.add(e)
+
 class Enrolment(Storm):
     __storm_table__ = "enrolment"
     __storm_primary__ = "user_id", "offering_id"
@@ -255,6 +268,9 @@ class Enrolment(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
+
+class AlreadyEnrolledError(Exception):
+    pass
 
 # PROJECTS #
 
