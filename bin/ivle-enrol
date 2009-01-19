@@ -25,13 +25,39 @@
 import os
 import sys
 
-import ivle.db
+from ivle.database import get_store, Subject, Semester, Offering, User, \
+                          AlreadyEnrolledError
+
+def die(error):
+    print >> sys.stderr, '%s: %s' % (os.path.basename(sys.argv[0]), error)
+    sys.exit(1)
 
 if len(sys.argv) != 5:
-    print >> sys.stderr, "usage: %s <login> <subjectcode> <semester> <year>" \
+    print >> sys.stderr, "usage: %s <login> <subjectcode> <year> <semester>" \
                          % os.path.basename(sys.argv[0])
-    sys.exit(1)
+    sys.exit()
 
-if not ivle.db.DB().add_enrolment(*sys.argv[1:]):
-    print >> sys.stderr, "enrolment failed!"
-    sys.exit(1)
+store = get_store()
+
+user = User.get_by_login(store, sys.argv[1])
+if user is None:
+    die("user not found")
+
+offering = store.find(Offering,
+                    Subject.code == unicode(sys.argv[2]),
+                    Semester.year == unicode(sys.argv[3]),
+                    Semester.semester == unicode(sys.argv[4]),
+                    Offering.subject_id == Subject.id,
+                    Offering.semester_id == Semester.id).one()
+if not offering:
+    die("subject offering not found")
+
+if not offering.semester.active:
+    die("cannot enrol - semester inactive")
+    
+try:
+    offering.enrol(user)
+except AlreadyEnrolledError:
+    die("already enrolled")
+
+store.commit()
