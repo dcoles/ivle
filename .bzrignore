@@ -1,0 +1,10 @@
+*.pyc
+*.pyo
+.*.swp
+/jail
+/bin/timount/timount
+/bin/trampoline/conf.h
+/bin/trampoline/trampoline
+/ivle/conf/conf.py
+/ivle/conf/jailconf.py
+/www/php/phpBB3/config.php
