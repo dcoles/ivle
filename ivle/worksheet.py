@@ -143,3 +143,34 @@ def get_exercise_attempt(store, user, exercise, as_of=None,
     """
     return _get_exercise_attempts(store, user, exercise, as_of,
         allow_inactive).first()
+
+def calculate_score(store, user, worksheet):
+    """
+    Given a storm.store, User, Exercise and Worksheet, calculates a score for
+    the user on the given worksheet.
+    Returns a 4-tuple of ints, consisting of:
+    (No. mandatory exercises completed,
+     Total no. mandatory exercises,
+     No. optional exercises completed,
+     Total no. optional exercises)
+    """
+    mand_done = 0
+    mand_total = 0
+    opt_done = 0
+    opt_total = 0
+
+    # Get the student's pass/fail for each exercise in this worksheet
+    for worksheet_exercise in worksheet.worksheet_exercises:
+        exercise = worksheet_exercise.exercise
+        optional = worksheet_exercise.optional
+
+        done, _ = get_exercise_status(store, user, exercise)
+        # done is a bool, whether this student has completed that problem
+        if optional:
+            opt_total += 1
+            if done: opt_done += 1
+        else:
+            mand_total += 1
+            if done: mand_done += 1
+
+    return mand_done, mand_total, opt_done, opt_total

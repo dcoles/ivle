@@ -41,7 +41,6 @@ import cjson
 
 from ivle import util
 import ivle.conf
-import ivle.db
 import ivle.database
 import ivle.worksheet
 
@@ -248,15 +247,10 @@ def handle_subject_menu(req, subject):
                 worksheet.assessable = worksheet_from_xml.assessable
                 req.store.commit()
             if worksheet.assessable:
-                # XXX Refactor ivle.db
-                db = ivle.db.DB()
-                try:
-                    mand_done, mand_total, opt_done, opt_total = (
-                        db.calculate_score_worksheet(req.user.login, subject,
-                            worksheet.name))
-                finally:
-                    db.close()
-                # XXX End ivle.db
+                # Calculate the user's score for this worksheet
+                mand_done, mand_total, opt_done, opt_total = (
+                    ivle.worksheet.calculate_score(req.store, req.user,
+                        worksheet))
                 if opt_total > 0:
                     optional_message = " (excluding optional exercises)"
                 else:

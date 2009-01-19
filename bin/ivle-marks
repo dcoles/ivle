@@ -31,6 +31,8 @@ import time
 from xml.dom import minidom
 
 import ivle.db
+import ivle.database
+import ivle.worksheet
 import ivle.conf
 
 if os.getuid() != 0:
@@ -110,7 +112,7 @@ def get_marks_header(worksheets):
     """
     return worksheets + ["Total %", "Mark"]
 
-def get_marks_user(subject, worksheets, user):
+def get_marks_user(subject, worksheet_names, user):
     """
     Given a subject, a list of strings (the assessable worksheets), and a user
     object, returns the user's percentage for each worksheet, overall, and
@@ -127,18 +129,15 @@ def get_marks_user(subject, worksheets, user):
     problems_done = 0
     problems_total = 0
 
-    for worksheet in worksheets:
-        try:
-            # We simply ignore optional exercises here
-            mand_done, mand_total, _, _ = (
-                db.calculate_score_worksheet(user.login, subject,
-                    worksheet))
-            worksheet_pcts.append(float(mand_done) / mand_total)
-            problems_done += mand_done
-            problems_total += mand_total
-        except ivle.db.DBException:
-            # Worksheet is probably not in database yet
-            pass
+    for worksheet_name in worksheet_names:
+        worksheet = ivle.database.Worksheet.get_by_name(store,
+            subject, worksheet_name)
+        # We simply ignore optional exercises here
+        mand_done, mand_total, _, _ = (
+            ivle.worksheet.calculate_score(store, user, worksheet))
+        worksheet_pcts.append(float(mand_done) / mand_total)
+        problems_done += mand_done
+        problems_total += mand_total
     problems_pct = float(problems_done) / problems_total
     problems_pct_int = (100 * problems_done) / problems_total
     # XXX Marks calculation (should be abstracted out of here!)
@@ -157,6 +156,7 @@ try:
     # and the list of all users from the DB.
     worksheets = get_assessable_worksheets(subject)
     db = ivle.db.DB()
+    store = ivle.database.get_store()
     list = db.get_users()
 except Exception, message:
     print >>sys.stderr, "Error: " + str(message)
