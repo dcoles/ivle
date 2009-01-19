@@ -924,49 +924,6 @@ WHERE login.login=%s
             return query
         return self.db.query(query).dictresult()
 
-
-    # PROJECT GROUPS
-    def get_groups_by_user(self, login, offeringid=None, dry=False):
-        """
-        Get all project groups the student is in, corresponding to a
-        particular subject offering (or all offerings, if omitted).
-        Returns a list of tuples:
-        (int groupid, str groupnm, str group_nick, bool is_member).
-        (Note: If is_member is false, it means they have just been invited to
-        this group, not a member).
-        """
-        if offeringid is None:
-            and_offering = ""
-        else:
-            and_projectset_table = ", project_set"
-            and_offering = """
-AND project_group.projectsetid = project_set.projectsetid
-AND project_set.offeringid = %s""" % _escape(offeringid)
-        # Union both the groups this user is a member of, and the groups this
-        # user is invited to.
-        query = """\
-    SELECT project_group.groupid, groupnm, project_group.nick, True
-    FROM project_group, group_member, login %(and_projectset_table)s
-    WHERE project_group.groupid = group_member.groupid
-      AND group_member.loginid = login.loginid
-      AND login = %(login)s
-      %(and_offering)s
-UNION
-    SELECT project_group.groupid, groupnm, project_group.nick, False
-    FROM project_group, group_invitation, login %(and_projectset_table)s
-    WHERE project_group.groupid = group_invitation.groupid
-      AND group_invitation.loginid = login.loginid
-      AND login = %(login)s
-      %(and_offering)s
-;""" % {"login": _escape(login), "and_offering": and_offering,
-        "and_projectset_table": and_projectset_table}
-        if dry:
-            return query
-        # Convert 't' -> True, 'f' -> False
-        return [(groupid, groupnm, nick, ismember == 't')
-                for groupid, groupnm, nick, ismember
-                in self.db.query(query).getresult()]
-
     def get_offering_info(self, projectsetid, dry=False):
         """Takes information from projectset and returns useful information 
         about the subject and semester. Returns as a dictionary.
