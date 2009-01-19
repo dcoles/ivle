@@ -26,6 +26,10 @@ This module provides functions for tutorial and worksheet computations.
 from storm.locals import And, Asc, Desc
 import ivle.database
 
+__all__ = ['get_exercise_status', 'get_exercise_stored_text',
+           'get_exercise_attempts', 'get_exercise_attempt',
+          ]
+
 def get_exercise_status(store, user, exercise):
     """Given a storm.store, User and Exercise, returns information about
     the user's performance on that problem.

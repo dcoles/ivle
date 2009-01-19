@@ -37,7 +37,8 @@ __all__ = ['get_store',
             'User',
             'Subject', 'Semester', 'Offering', 'Enrolment',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
-            'Exercise', 'Worksheet',
+            'Exercise', 'Worksheet', 'WorksheetExercise',
+            'ExerciseSave', 'ExerciseAttempt'
         ]
 
 def _kwarg_init(self, **kwargs):
