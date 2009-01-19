@@ -48,9 +48,6 @@ import html
 from request import Request
 import plugins.console # XXX: Relies on www/ being in the Python path.
 
-# List of cookies that IVLE uses (to be removed at logout)
-ivle_cookies = ["ivleforumcookie", "clipboard"]
-
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
     Intended to be called by mod_python, as a handler.
@@ -93,12 +90,8 @@ def handler_(req, apachereq):
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in ivle.conf.apps.app_url:
-        # Maybe it is a special app!
-        if req.app == 'logout':
-            logout(req)
-        else:
-            req.throw_error(Request.HTTP_NOT_FOUND,
-                "There is no application called %s." % repr(req.app))
+        req.throw_error(Request.HTTP_NOT_FOUND,
+            "There is no application called %s." % repr(req.app))
 
     # Special handling for public mode - only allow the public app, call it
     # and get out.
@@ -169,19 +162,6 @@ def handler_(req, apachereq):
     # Note: Apache will not write custom HTML error messages here.
     # Use req.throw_error to do that.
     return req.OK
-
-def logout(req):
-    """Log out the current user (if any) by destroying the session state.
-    Then redirect to the top-level IVLE page."""
-    session = req.get_session()
-    session.invalidate()
-    session.delete()
-    # Invalidates all IVLE cookies
-    all_cookies = Cookie.get_cookies(req)
-    for cookie in all_cookies:
-        if cookie in ivle_cookies:
-            req.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
-    req.throw_redirect(util.make_path('')) 
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """

@@ -267,6 +267,23 @@ class Request:
             # This includes binary strings.
             self.apache_req.write(string, flush)
 
+    def logout(self):
+        """Log out the current user by destroying the session state.
+        Then redirect to the top-level IVLE page."""
+        # List of cookies that IVLE uses (to be removed at logout)
+        ivle_cookies = ["ivleforumcookie", "clipboard"]
+        
+        if hasattr(self, 'session'):
+            self.session.invalidate()
+            self.session.delete()
+            # Invalidates all IVLE cookies
+            all_cookies = Cookie.get_cookies(self)
+            for cookie in all_cookies:
+                if cookie in ivle_cookies:
+                    self.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+        self.throw_redirect(ivle.util.make_path('')) 
+
+
     def flush(self):
         """Flushes the output buffer."""
         self.apache_req.flush()
