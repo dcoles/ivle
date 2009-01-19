@@ -42,7 +42,7 @@ __all__ = ['get_store',
 
 def _kwarg_init(self, **kwargs):
     for k,v in kwargs.items():
-        if k.startswith('_') or not hasattr(self, k):
+        if k.startswith('_') or not hasattr(self.__class__, k):
             raise TypeError("%s got an unexpected keyword argument '%s'"
                 % (self.__class__.__name__, k))
         setattr(self, k, v)
