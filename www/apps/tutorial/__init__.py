@@ -529,20 +529,13 @@ def present_exercise(req, exercisesrc, exerciseid):
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
-    saved_text = None
-    db = ivle.db.DB()
-    try:
-        saved_text = db.get_problem_stored_text(login=req.user.login,
-            exercisename=exercisesrc)
-    finally:
-        db.close()
+    saved_text = ivle.worksheet.get_exercise_stored_text(req.store,
+        req.user, exercise)
     # Also get the number of attempts taken and whether this is complete.
     complete, attempts = ivle.worksheet.get_exercise_status(req.store,
         req.user, exercise)
     if saved_text is not None:
-        # Important: We got the string from the DB encoded in UTF-8
-        # Make it a unicode string.
-        exercisepartial = saved_text.decode('utf-8')
+        exercisepartial = saved_text.text
 
     # Print this exercise out to HTML 
     req.write("<p><b>Exercise:</b> %s</p>\n" % cgi.escape(exercisename))

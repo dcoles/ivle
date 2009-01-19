@@ -61,3 +61,40 @@ def get_exercise_status(store, user, exercise):
         num_attempts = store.find(ExerciseAttempt, is_relevant).count()
 
     return first_success is not None, num_attempts
+
+def get_exercise_stored_text(store, user, exercise):
+    """Given a storm.store, User and Exercise, returns the text of the last
+    saved/submitted attempt for this question, as an
+    ivle.database.ExerciseSave object (note that ExerciseAttempt is a subclass
+    of ExerciseSave).
+    Returns None if the user has not saved or made an attempt on this
+    problem.
+    If the user has both saved and submitted, it returns whichever was
+    made last.
+    """
+    ExerciseSave = ivle.database.ExerciseSave
+    ExerciseAttempt = ivle.database.ExerciseAttempt
+
+    # Get the saved text, or None
+    saved = store.find(ExerciseSave,
+                ExerciseSave.user_id == user.id,
+                ExerciseSave.exercise_id == exercise.id).one()
+
+    # Get the most recent attempt, or None
+    attempt = store.find(ExerciseAttempt,
+            ExerciseAttempt.user_id == user.id,
+            ExerciseAttempt.exercise_id == exercise.id,
+            ExerciseAttempt.active == True,
+        ).order_by(Asc(ExerciseAttempt.date)).last()
+
+    # Pick the most recent of these two
+    if saved is not None:
+        if attempt is not None:
+            return saved if saved.date > attempt.date else attempt
+        else:
+            return saved
+    else:
+        if attempt is not None:
+            return attempt
+        else:
+            return None

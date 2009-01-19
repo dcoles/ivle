@@ -513,42 +513,6 @@ class DB:
                 frozenset(['date', 'text']),
                 frozenset(['problemid', 'loginid']))
 
-    def get_problem_stored_text(self, login, exercisename, dry=False):
-        """Given a login name and exercise name, returns the text of the
-        last saved/submitted attempt for this question.
-        Returns None if the user has not saved or made an attempt on this
-        problem.
-        (If the user has both saved and submitted, it returns whichever was
-        made last).
-
-        Note: Even if dry, will still physically call get_problem_problemid,
-        which may mutate the DB, and get_user_loginid, which may fail.
-        """
-        problemid = self.get_problem_problemid(exercisename)
-        loginid = self.get_user_loginid(login)  # May raise a DBException
-        # This very complex query finds all submissions made by this user for
-        # this problem, as well as the save made by this user for this
-        # problem, and returns the text of the newest one.
-        # (Whichever is newer out of the save or the submit).
-        query = """SELECT text FROM
-    (
-        (SELECT * FROM problem_save WHERE loginid = %d AND problemid = %d)
-    UNION
-        (SELECT problemid, loginid, date, text FROM problem_attempt
-         AS problem_attempt (problemid, loginid, date, text)
-         WHERE loginid = %d AND problemid = %d AND active)
-    )
-    AS _
-    ORDER BY date DESC
-    LIMIT 1;""" % (loginid, problemid, loginid, problemid)
-        if dry: return query
-        result = self.db.query(query)
-        if result.ntuples() == 1:
-            # The user has made at least 1 attempt. Return the newest.
-            return result.getresult()[0][0]
-        else:
-            return None
-
     def get_problem_attempts(self, login, exercisename, allow_inactive=True,
                              dry=False):
         """Given a login name and exercise name, returns a list of dicts, one
@@ -556,8 +520,7 @@ class DB:
         Dicts are {'date': 'formatted_time', 'complete': bool}.
         Ordered with the newest first.
         
-        Note: By default, returns de-activated problem attempts (unlike
-        get_problem_stored_text).
+        Note: By default, returns de-activated problem attempts.
         If allow_inactive is False, will not return disabled attempts.
 
         Note: Even if dry, will still physically call get_problem_problemid,
@@ -582,8 +545,7 @@ class DB:
         Returns None if the user had not made an attempt on this problem at
         that date.
         
-        Note: By default, returns de-activated problem attempts (unlike
-        get_problem_stored_text).
+        Note: By default, returns de-activated problem attempts.
         If allow_inactive is False, will not return disabled attempts.
 
         Note: Even if dry, will still physically call get_problem_problemid,
