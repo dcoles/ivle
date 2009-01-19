@@ -545,10 +545,24 @@ function set_action_state(names, which, allow_on_revision)
     }
 }
 
+/* Updates the list of available actions based on files selected */
 function update_actions()
 {
     var file;
     var numsel = selected_files.length;
+    var svn_selection = false;
+    
+    if (numsel > 0)
+    {
+        svn_selection = true;
+        for (var i = 0; i < selected_files.length; i++){
+            if (file_listing[selected_files[i]]["svnstatus"] == "unversioned")
+            {
+                svn_selection = false;        
+            }
+        }
+    }
+    
     if (numsel <= 1)
     {
         if (numsel == 0)
@@ -619,8 +633,8 @@ function update_actions()
      */
     var run = document.getElementById("act_run");
      
-    if (!file.isdir && file.type == "text/x-python" && numsel <= 1
-        && current_file.svnstatus != 'revision')
+    if (numsel <= 1 && !file.isdir && file.type == "text/x-python" 
+            && current_file.svnstatus != 'revision')
     {
         if (numsel == 0)
         {
@@ -703,7 +717,6 @@ function update_actions()
     var pubcond = numsel <= 1 && file.isdir;
     if (pubcond)
     {
-        /* TODO: Work out of file is svn'd */
         /* If this dir is already published, call it "Unpublish" */
         if (file.published)
         {
@@ -742,8 +755,11 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state(["svnadd", "svnremove", "svnrevert", "svncommit"], numsel >= 1 && current_file.svnstatus);
-
+    set_action_state(["svnadd",], numsel >= 1 && current_file.svnstatus);
+    /* And these are only usefull is ALL the selected files are versioned */
+    set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
+            "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);
+    
     /* Diff, log and update only support one path at the moment, so we must
      * have 0 or 1 versioned files selected. If 0, the directory must be
      * versioned. */
@@ -868,6 +884,12 @@ function handle_moreactions()
         break;
     case "svnlog":
         window.location = path_join(app_path('svnlog'), current_path, selected_files[0] || '');
+        break;
+    case "svncopy":
+        action_svncopy(selected_files);
+        break;
+    case "svncut":
+        action_svncut(selected_files);
         break;
     }
 }

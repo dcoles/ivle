@@ -145,15 +145,42 @@ function action_paste()
 {
     /* Get the "clipboard" object from the browser cookie */
     var clip_obj = read_cookie("clipboard");
+    var under_subversion;
+    
     if (clip_obj == null)
     {
         alert("No files have been cut or copied.");
         return false;
     }
+
+    if (clip_obj.mode == "svnmove" || clip_obj.mode == "svncopy")
+    {
+        under_subversion = ("svnstatus" in current_file) && 
+                                (current_file.svnstatus != "unversioned");
+        if (!under_subversion)
+        {
+            alert("Cannot perform an Subversion Move outside of"
+                                                + " Permanent directories!");
+            return false;
+        }        
+    }
+    
     /* The clip_obj is exactly what we want to pass, plus the current path
      * as destination. */
     clip_obj.dst = ".";
     do_action("paste", current_path, clip_obj);
+    return false;
+}
+
+function action_svncopy(files)
+{
+    action_copy_or_cut(files, "svncopy");
+    return false;
+}
+
+function action_svncut(files)
+{
+    action_copy_or_cut(files, "svnmove");
     return false;
 }
 
@@ -689,13 +716,10 @@ function handle_dir_listing(path, listing)
         row.appendChild(td);
         td = document.createElement("td");
         td.setAttribute("class", "thincol");
-        if (under_subversion)
-        {
-            var icon = svnstatus_to_icon(file.svnstatus);
-            if (icon)
-                td.appendChild(dom_make_img(icon, icon_size, icon_size,
-                    svnstatus_to_string(file.svnstatus)));
-        }
+        var icon = svnstatus_to_icon(file.svnstatus);
+        if (icon)
+            td.appendChild(dom_make_img(icon, icon_size, icon_size,
+                                        svnstatus_to_string(file.svnstatus)));
         row.appendChild(td);
 
         /* Column 3: Filename */

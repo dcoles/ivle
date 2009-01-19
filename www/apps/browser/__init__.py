@@ -174,14 +174,16 @@ def present_actions1(req):
         ('upload',  ['Upload File',      'Upload a file to the current directory'])
       ]),
       ('Subversion', True, [
-        ('svnadd',      ['Add',          'Schedule the selected temporary files to be added permanently']),
-        ('svnremove',   ['Remove',       'Schedule the selected permanent files to be removed']),
-        ('svndiff',     ['Diff',         'View any changes to the selected file since its last committed state']),
-        ('svnrevert',   ['Revert',       'Restore the selected files back to their last committed state']),
-        ('svnupdate',   ['Update',       'Update your files with changes from the permanent repository']),
-        ('svncommit',   ['Commit',       'Commit any changes to the permanent repository']),
-        ('svnresolved', ['Mark Resolved','Mark a conflicted file as being resolved']),
-        ('svnlog',      ['View Log',     'View the log of commits of the selected file']),
+        ('svncut',      ['Svn Cut',      'Prepare to move the selected files to another directory, maintaining history']),
+        ('svncopy',     ['Svn Copy',     'Prepare to copy the selected files to another directory, maintaining history']),
+        ('svnadd',      ['Add',            'Schedule the selected temporary files to be added permanently']),
+        ('svnremove',   ['Remove',         'Schedule the selected permanent files to be removed']),
+        ('svndiff',     ['Diff',           'View any changes to the selected file since its last committed state']),
+        ('svnrevert',   ['Revert',         'Restore the selected files back to their last committed state']),
+        ('svnupdate',   ['Update',         'Update your files with changes from the permanent repository']),
+        ('svncommit',   ['Commit',         'Commit any changes to the permanent repository']),
+        ('svnresolved', ['Mark Resolved',  'Mark a conflicted file as being resolved']),
+        ('svnlog',      ['View Log',       'View the log of commits of the selected file']),
       ])
     ]
 

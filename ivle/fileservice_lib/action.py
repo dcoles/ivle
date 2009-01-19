@@ -263,6 +263,35 @@ def movefile(req, frompath, topath, copy=False):
     except shutil.Error:
         raise ActionError("Could not move the file specified")
 
+def svn_movefile(req, frompath, topath, copy=False):
+    """Performs an svn move, resolving filenames, checking for any errors,
+    and throwing ActionErrors if necessary. Can also be used to do a copy
+    operation instead.
+
+    frompath and topath are straight paths from the client. Will be checked.
+    """
+    if frompath is None or topath is None:
+        raise ActionError("Required field missing")
+    frompath = actionpath_to_local(req, frompath)
+    topath = actionpath_to_local(req, topath)
+    if not os.path.exists(frompath):
+        raise ActionError("The source file does not exist")
+    if os.path.exists(topath):
+        if frompath == topath:
+            raise ActionError("Source and destination are the same")
+        raise ActionError("A file already exists with that name")
+
+    try:
+        if copy:
+            svnclient.copy(frompath, topath)
+        else:
+            svnclient.move(frompath, topath)
+    except OSError:
+        raise ActionError("Could not move the file specified")
+    except pysvn.ClientError:
+        raise ActionError("Could not move the file specified")  
+
+
 ### ACTIONS ###
 
 def action_delete(req, fields):
@@ -444,12 +473,7 @@ def action_paste(req, fields):
     files = fields.getlist('file')
     if dst is None or src is None or mode is None:
         raise ActionError("Required field missing")
-    if mode == "copy":
-        copy = True
-    elif mode == "move":
-        copy = False
-    else:
-        raise ActionError("Invalid mode (must be 'copy' or 'move')")
+
     dst_local = actionpath_to_local(req, dst)
     if not os.path.isdir(dst_local):
         raise ActionError("dst is not a directory")
@@ -464,7 +488,16 @@ def action_paste(req, fields):
         # The destination is found by taking just the basename of the file
         topath = os.path.join(dst, os.path.basename(file))
         try:
-            movefile(req, frompath, topath, copy)
+            if mode == "copy":
+                movefile(req, frompath, topath, True)
+            elif mode == "move":
+                movefile(req, frompath, topath, False)
+            elif mode == "svncopy":
+                svn_movefile(req, frompath, topath, True)
+            elif mode == "svnmove":
+                svn_movefile(req, frompath, topath, False)
+            else:
+                raise ActionError("Invalid mode (must be '(svn)copy' or '(svn)move')")
         except ActionError, message:
             # Store the error for later; we want to copy as many as possible
             if errormsg is None:
@@ -709,6 +742,7 @@ def action_svnrepostat(req, fields):
             raise util.IVLEError(404, 'The specified repository path does not exist')
         else:
             raise ActionError(str(e[0]))
+            
 
 # Table of all action functions #
 # Each function has the interface f(req, fields).
