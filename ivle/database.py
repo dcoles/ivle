@@ -33,6 +33,12 @@ from storm.locals import create_database, Store, Int, Unicode, DateTime, \
 import ivle.conf
 import ivle.caps
 
+__all__ = ['get_store',
+            'User',
+            'Subject', 'Semester', 'Offering', 'Enrolment',
+            'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
+        ]
+
 def _kwarg_init(self, **kwargs):
     for k,v in kwargs.items():
         if k.startswith('_') or not hasattr(self, k):
@@ -54,6 +60,8 @@ def get_store():
     instance connected to the configured IVLE database.
     """
     return Store(create_database(get_conn_string()))
+
+# USERS #
 
 class User(Storm):
     """
@@ -178,6 +186,8 @@ class User(Storm):
         """
         return store.find(cls, cls.login == unicode(login)).one()
 
+# SUBJECTS AND ENROLMENTS #
+
 class Subject(Storm):
     __storm_table__ = "subject"
 
@@ -243,6 +253,8 @@ class Enrolment(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
+
+# PROJECTS #
 
 class ProjectSet(Storm):
     __storm_table__ = "project_set"
