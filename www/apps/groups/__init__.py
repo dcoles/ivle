@@ -26,7 +26,6 @@
 import cgi
 
 from ivle import (util, caps)
-import ivle.db
 from ivle.database import Enrolment, Subject, Semester, Offering
 
 def handle(req):
@@ -41,21 +40,18 @@ def handle(req):
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     req.write('<div id="ivle_padding">\n')
+
     # Show a group panel per enrolment
-    db = ivle.db.DB()
-    try:
-        enrolments = req.user.active_enrolments
-        if enrolments.count() == 0:
-            req.write("<p>Error: You are not currently enrolled in any subjects."
-                      "</p>\n")
-        for enrolment in enrolments:
-            show_subject_panel(req, db, enrolment.offering)
-        if req.user.hasCap(caps.CAP_MANAGEGROUPS):
-            show_groupadmin_panel(req)
-        
-        req.write("</div>\n")
-    finally:
-        db.close()
+    enrolments = req.user.active_enrolments
+    if enrolments.count() == 0:
+        req.write("<p>Error: You are not currently enrolled in any subjects."
+                  "</p>\n")
+    for enrolment in enrolments:
+        show_subject_panel(req, enrolment.offering)
+    if req.user.hasCap(caps.CAP_MANAGEGROUPS):
+        show_groupadmin_panel(req)
+
+    req.write("</div>\n")
 
 def show_groupadmin_panel(req):
     """
@@ -75,7 +71,7 @@ def show_groupadmin_panel(req):
         onclick=\"manage_subject()\" />\n")
     req.write("<div id=\"subject_div\"></div>")
 
-def show_subject_panel(req, db, offering):
+def show_subject_panel(req, offering):
     """
     Show the group management panel for a particular subject.
     Prints to req.
@@ -105,10 +101,10 @@ def show_subject_panel(req, db, offering):
                 '</p>\n' % {"groupnm": cgi.escape(group.name)})
         req.write("<h3>Members</h3>\n")
         req.write("<ul>\n")
-        for user in db.get_projectgroup_members(group.id):
+        for user in group.members:
             req.write("<li>%s (%s)</li>" %
-                      (cgi.escape(user['fullname']),
-                       cgi.escape(user['login'])))
+                      (cgi.escape(user.fullname),
+                       cgi.escape(user.login)))
         req.write("</ul>\n")
 
     req.write("</div>")
