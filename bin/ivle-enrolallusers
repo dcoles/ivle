@@ -33,7 +33,6 @@ import os.path
 import pwd
 import optparse
 import logging
-import datetime
 
 import ivle.database
 import ivle.pulldown_subj
@@ -69,9 +68,6 @@ else:
 if options.year is not None and not options.year.isdigit():
     logging.error("Year must be numeric")
     sys.exit(1)
-
-if options.year is None:
-    options.year = datetime.datetime.now().year
 
 options.year = unicode(options.year)
 

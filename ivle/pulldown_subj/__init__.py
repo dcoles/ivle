@@ -28,6 +28,7 @@
 
 import os
 import sys
+import datetime
 
 from subjecterror import SubjectError
 import ivle.conf
@@ -62,6 +63,9 @@ def enrol_user(store, user, year=None):
     Returns the number of subjects the user was enrolled in (not including
     subjects outside the system, or subjects already enrolled).
     """
+    if year is None:
+        year = unicode(datetime.datetime.now().year)
+
     count = 0
     for subject, semester in get_subjects(user.login):
         offering = store.find(Offering,
