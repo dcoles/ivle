@@ -78,30 +78,6 @@ def _escape(val):
         raise DBException("Attempt to insert an unsupported type "
             "into the database (%s)" % repr(type(val)))
 
-def _parse_boolean(val):
-    """
-    Accepts a boolean as output from the DB (either the string 't' or 'f').
-    Returns a boolean value True or False.
-    Also accepts other values which mean True or False in PostgreSQL.
-    If none match, raises a DBException.
-    """
-    # On a personal note, what sort of a language allows 7 different values
-    # to denote each of True and False?? (A: SQL)
-    if isinstance(val, bool):
-        return val
-    elif val == 't':
-        return True
-    elif val == 'f':
-        return False
-    elif val == 'true' or val == 'y' or val == 'yes' or val == '1' \
-        or val == 1:
-        return True
-    elif val == 'false' or val == 'n' or val == 'no' or val == '0' \
-        or val == 0:
-        return False
-    else:
-        raise DBException("Invalid boolean value returned from DB")
-
 class DBException(Exception):
     """A DBException is for bad conditions in the database or bad input to
     these methods. If Postgres throws an exception it does not get rebadged.
@@ -185,40 +161,6 @@ class DB:
         if dry: return query
         self.db.query(query)
 
-    def return_insert(self, dict, tablename, tablefields, returning,
-        disallowed=frozenset([]), dry=False):
-        """Inserts a new row in a table, using data from a supplied
-        dictionary (which will be checked by check_dict) and returns certain 
-        fields as a dict.
-        dict: Dictionary mapping column names to values. The values may be
-            any of the following types:
-            str, int, long, float, NoneType.
-        tablename: String, name of the table to insert into. Will NOT be
-            escaped - must be a valid identifier.
-        returning: List of fields to return, not escaped
-        tablefields, disallowed: see check_dict.
-        dry: Returns the SQL query as a string, and does not execute it.
-        Raises a DBException if the dictionary contains invalid fields.
-        """
-        if not DB.check_dict(dict, tablefields, disallowed):
-            extras = set(dict.keys()) - tablefields
-            raise DBException("Supplied dictionary contains invalid fields. (%s)" % (repr(extras)))
-        # Build two lists concurrently: field names and values, as SQL strings
-        fieldnames = []
-        values = []
-        for k,v in dict.items():
-            fieldnames.append(k)
-            values.append(_escape(v))
-        if len(fieldnames) == 0: return
-        fieldnames = ', '.join(fieldnames)
-        values = ', '.join(values)
-        returns = ', '.join(returning)
-        query = ("INSERT INTO %s (%s) VALUES (%s) RETURNING (%s);"
-            % (tablename, fieldnames, values, returns))
-        if dry: return query
-        return self.db.query(query)
-
-
     def update(self, primarydict, updatedict, tablename, tablefields,
         primary_keys, disallowed_update=frozenset([]), dry=False):
         """Updates a row in a table, matching against primarydict to find the
@@ -291,30 +233,6 @@ class DB:
             raise DBException(error_notfound)
         # Return as a dictionary
         return result.dictresult()[0]
-
-    def start_transaction(self, dry=False):
-        """Starts a DB transaction.
-        Will not commit any changes until self.commit() is called.
-        """
-        query = "START TRANSACTION;"
-        if dry: return query
-        self.db.query(query)
-
-    def commit(self, dry=False):
-        """Commits (ends) a DB transaction.
-        Commits all changes since the call to start_transaction.
-        """
-        query = "COMMIT;"
-        if dry: return query
-        self.db.query(query)
-
-    def rollback(self, dry=False):
-        """Rolls back (ends) a DB transaction, undoing all changes since the
-        call to start_transaction.
-        """
-        query = "ROLLBACK;"
-        if dry: return query
-        self.db.query(query)
 
     # PROBLEM AND PROBLEM ATTEMPT FUNCTIONS #
 

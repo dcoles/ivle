@@ -22,7 +22,6 @@
 # Runs a student script in a safe execution environment.
 
 from ivle import studpath
-from ivle import db
 from ivle.util import IVLEError, IVLEJailError
 import ivle.conf
 
