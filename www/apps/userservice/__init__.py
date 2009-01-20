@@ -149,6 +149,8 @@ from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 import ivle.pulldown_subj
 
+from ivle.rpc.decorators import require_method, require_cap
+
 from ivle.auth import AuthError, authenticate
 import urllib
 
@@ -183,6 +185,7 @@ def handle(req):
         "%s is not a valid userservice action." % repr(req.path))
     func(req, fields)
 
+@require_method('POST')
 def handle_activate_me(req, fields):
     """Create the jail, svn, etc, for the currently logged in user (this is
     put in the queue for usermgt to do).
@@ -202,9 +205,6 @@ def handle_activate_me(req, fields):
     their acceptance). It must only be called through a POST request.
     """
     try:
-        if req.method != "POST":
-            req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to activate_me.")
         try:
             declaration = fields.getfirst('declaration')
         except AttributeError:
@@ -274,6 +274,9 @@ create_user_fields_required = [
 create_user_fields_optional = [
     'password', 'nick', 'email', 'studentid'
 ]
+
+@require_method('POST')
+@require_cap(caps.CAP_UPDATEUSER)
 def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
     This does not create the user's jail, just an entry in the database which
@@ -300,14 +303,6 @@ def handle_create_user(req, fields):
                       STRING OPTIONAL
        Return Value: the uid associated with the user. INT
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_UPDATEUSER
-    if not req.user.hasCap(caps.CAP_UPDATEUSER):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to create users.")
-
     # Make a dict of fields to create
     create = {}
     for f in create_user_fields_required:
@@ -339,15 +334,13 @@ update_user_fields_admin = [
     'password', 'nick', 'email', 'rolenm', 'unixid', 'fullname',
     'studentid'
 ]
+
+@require_method('POST')
 def handle_update_user(req, fields):
     """Update a user's account details.
     This can be done in a limited form by any user, on their own account,
     or with full powers by a user with CAP_UPDATEUSER on any account.
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-        "Only POST requests are valid methods to update_user.")
-
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
     # List of fields that may be changed
@@ -533,6 +526,8 @@ def handle_get_project_groups(req, fields):
     response = cjson.encode(dict_projectsets)
     req.write(response)
 
+@require_method('POST')
+@require_cap(caps.CAP_MANAGEGROUPS)
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
     Creates a project group in a specific project set
@@ -543,13 +538,6 @@ def handle_create_group(req, fields):
     Returns:
         groupid
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this is allowed to manage groups
-    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage groups.")
     # Get required fields
     projectsetid = fields.getfirst('projectsetid').value
     groupnm = fields.getfirst('groupnm').value
@@ -661,19 +649,14 @@ def handle_get_group_membership(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+@require_method('POST')
+@require_cap(caps.CAP_MANAGEGROUPS)
 def handle_assign_group(req, fields):
     """ Required cap: CAP_MANAGEGROUPS
     Assigns a user to a project group
     Required:
         login, groupid
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user is allowed to manage groups
-    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage groups.")
     # Get required fields
     login = fields.getfirst('login')
     groupid = fields.getfirst('groupid')
