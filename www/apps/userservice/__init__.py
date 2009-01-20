@@ -144,9 +144,7 @@ import datetime
 import cjson
 import pg
 
-import ivle.db
 import ivle.database
-import ivle.makeuser
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 import ivle.pulldown_subj
@@ -682,25 +680,16 @@ def handle_assign_group(req, fields):
     if login is None or groupid is None:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: login, groupid")
-    groupid = int(groupid)
 
-    loginid = ivle.database.User.get_by_login(req.store, login).id
+    group = req.store.get(ivle.database.ProjectGroup, int(groupid))
+    user = ivle.database.User.get_by_login(req.store, login)
 
-    # Talk to the DB
-    db = ivle.db.DB()
-
-    # Add assignment to database
-    # We can't use a transaction here, as usrmgt-server needs to see the
-    # changes!
+    # Add membership to database
+    # We can't keep a transaction open until the end here, as usrmgt-server
+    # needs to see the changes!
     try:
-        dbquery = db.insert(
-            {
-                'loginid': loginid,
-                'groupid': groupid,
-            },
-            "group_member", # table
-            frozenset(["loginid", "groupid"]), # fields
-        )
+        group.members.add(user)
+        req.store.commit()
 
         # Rebuild the svn config file
         # Contact the usrmgt server
@@ -716,8 +705,6 @@ def handle_assign_group(req, fields):
                     "Failure creating repository: %s"%str(usrmgt))
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
 
     return(cjson.encode({'response': 'okay'}))
 
