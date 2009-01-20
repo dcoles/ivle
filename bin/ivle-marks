@@ -27,10 +27,8 @@ import sys
 import os
 import re
 import csv
-import time
 from xml.dom import minidom
 
-import ivle.db
 import ivle.database
 import ivle.worksheet
 import ivle.conf
@@ -65,7 +63,7 @@ def get_userdata(user):
     (This is not marks, it's other user data).
     """
     last_login = (None if user.last_login is None else
-                    time.strftime("%d/%m/%y", user.last_login))
+                    user.last_login.strftime("%d/%m/%y"))
     return [user.studentid, user.login, user.fullname, last_login]
 userdata_header = ["Student ID", "Login", "Full name", "Last login"]
 
@@ -152,12 +150,9 @@ def writeuser(subject, worksheets, user, csvfile):
     csvfile.writerow(userdata + marksdata)
 
 try:
-    # Get the list of assessable worksheets from the subject.xml file,
-    # and the list of all users from the DB.
+    # Get the list of assessable worksheets from the subject.xml file.
     worksheets = get_assessable_worksheets(subject)
-    db = ivle.db.DB()
     store = ivle.database.get_store()
-    list = db.get_users()
 except Exception, message:
     print >>sys.stderr, "Error: " + str(message)
     sys.exit(1)
@@ -166,7 +161,6 @@ except Exception, message:
 csvfile = csv.writer(sys.stdout)
 csvfile.writerow(userdata_header + get_marks_header(worksheets))
 
-list.sort(key=lambda user: user.login)
-for user in list:
+for user in store.find(ivle.database.User).order_by(ivle.database.User.login):
     writeuser(subject, worksheets, user, csvfile)
 
