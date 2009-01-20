@@ -24,7 +24,7 @@ class require_cap(object):
 
     def __call__(self, func):
         def cap_or_die(req, *args, **kwargs):
-           if not req.user.hasCap(self.cap):
+           if not req.user or not req.user.hasCap(self.cap):
                req.throw_error(req.HTTP_FORBIDDEN,
                "You do not have permission to use this action.")
            func(req, *args, **kwargs)
