@@ -124,7 +124,7 @@ def handle_save(req, exercise, code, fields):
 
     try:
         conn.write_problem_save(
-            login = req.user.login,
+            user = req.user,
             exercisename = exercise,
             date = time.localtime(),
             text = code)
@@ -161,7 +161,7 @@ def handle_test(req, exercisesrc, code, fields):
     conn = db.DB()
     try:
         conn.insert_problem_attempt(
-            login = req.user.login,
+            user = req.user,
             exercisename = exercisesrc,
             date = time.localtime(),
             complete = test_results['passed'],

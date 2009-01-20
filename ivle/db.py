@@ -316,23 +316,6 @@ class DB:
         if dry: return query
         self.db.query(query)
 
-    # USER MANAGEMENT FUNCTIONS #
-
-    login_primary = frozenset(["login"])
-
-    def get_user_loginid(self, login, dry=False):
-        """Given a login, returns the integer loginid for this user.
-
-        Raises a DBException if the login is not found in the DB.
-        """
-        userdict = self.get_single({"login": login}, "login",
-            ['loginid'], self.login_primary,
-            error_notfound="get_user_loginid: No user with that login name",
-            dry=dry)
-        if dry:
-            return userdict     # Query string
-        return userdict['loginid']
-
     # PROBLEM AND PROBLEM ATTEMPT FUNCTIONS #
 
     def get_problem_problemid(self, exercisename, dry=False):
@@ -368,27 +351,25 @@ class DB:
 
         return d['problemid']
 
-    def insert_problem_attempt(self, login, exercisename, date, complete,
+    def insert_problem_attempt(self, user, exercisename, date, complete,
         attempt, dry=False):
         """Inserts the details of a problem attempt into the database.
         exercisename: Name of the exercise. (identifier field of problem
             table). If this exercise does not exist, also creates a new row in
             the problem table for this exercise name.
-        login: Name of the user submitting the attempt. (login field of the
-            login table).
+        user: The user submitting the attempt.
         date: struct_time, the date this attempt was made.
         complete: bool. Whether the test passed or not.
         attempt: Text of the attempt.
 
         Note: Even if dry, will still physically call get_problem_problemid,
-        which may mutate the DB, and get_user_loginid, which may fail.
+        which may mutate the DB.
         """
         problemid = self.get_problem_problemid(exercisename)
-        loginid = self.get_user_loginid(login)  # May raise a DBException
 
         return self.insert({
                 'problemid': problemid,
-                'loginid': loginid,
+                'loginid': user.id,
                 'date': date,
                 'complete': complete,
                 'attempt': attempt,
@@ -396,19 +377,18 @@ class DB:
             frozenset(['problemid','loginid','date','complete','attempt']),
             dry=dry)
 
-    def write_problem_save(self, login, exercisename, date, text, dry=False):
+    def write_problem_save(self, user, exercisename, date, text, dry=False):
         """Writes text to the problem_save table (for when the user saves an
         exercise). Creates a new row, or overwrites an existing one if the
         user has already saved that problem.
         (Unlike problem_attempt, does not keep historical records).
         """
         problemid = self.get_problem_problemid(exercisename)
-        loginid = self.get_user_loginid(login)  # May raise a DBException
 
         try:
             return self.insert({
                     'problemid': problemid,
-                    'loginid': loginid,
+                    'loginid': user.id,
                     'date': date,
                     'text': text,
                 }, 'problem_save',
@@ -423,7 +403,7 @@ class DB:
                 raise
             self.update({
                     'problemid': problemid,
-                    'loginid': loginid,
+                    'loginid': user.id,
                 },
                 {
                     'date': date,
