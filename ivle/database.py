@@ -327,17 +327,16 @@ class ProjectGroup(Storm):
     created_by = Reference(created_by_id, User.id)
     epoch = DateTime()
 
+    members = ReferenceSet(id,
+                           "ProjectGroupMembership.project_group_id",
+                           "ProjectGroupMembership.user_id",
+                           "User.id")
+
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
-
-    @property
-    def members(self):
-        return Store.of(self).find(User,
-            ProjectGroupMembership.project_group_id == self.id,
-            User.id == ProjectGroupMembership.user_id)
 
 class ProjectGroupMembership(Storm):
     __storm_table__ = "group_member"
