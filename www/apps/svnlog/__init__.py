@@ -35,7 +35,7 @@ def handle(req):
         req.throw_redirect(os.path.join(req.uri, req.user.login))
     interpreter = ivle.interpret.interpreter_objects["cgi-python"]
     jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
-    ivle.interpret.interpret_file(req, req.user.login, jail_dir,
+    ivle.interpret.interpret_file(req, req.user, jail_dir,
           os.path.join(ivle.conf.share_path, 'services/svnlogservice'),
           interpreter)
 

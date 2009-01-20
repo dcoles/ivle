@@ -61,5 +61,5 @@ def handle(req):
     else:
         interp_object = ivle.interpret.interpreter_objects["cgi-python"]
         user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
-        ivle.interpret.interpret_file(req, req.user.login, user_jail_dir,
+        ivle.interpret.interpret_file(req, req.user, user_jail_dir,
             fileservice_path, interp_object, gentle=False)

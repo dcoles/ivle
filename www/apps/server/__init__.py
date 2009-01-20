@@ -48,12 +48,13 @@ def handle(req):
     # on the local machine where the file is stored.
     (login, path) = studpath.url_to_local(req.path)
 
-    if not User.get_by_login(req.store, login):
+    owner = User.get_by_login(req.store, login)
+    if not owner:
         # There is no user.
         req.throw_error(req.HTTP_NOT_FOUND,
             "The path specified is invalid.")
 
-    serve_file(req, login, path)
+    serve_file(req, owner, path)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
@@ -75,9 +76,9 @@ def serve_file(req, owner, filename, download=False):
     serving it directly, or denying it and returning a 403 Forbidden error.
     No return value. Writes to req (possibly throwing a server error exception
     using req.throw_error).
-    
+
     req: An IVLE request object.
-    owner: Username of the user who owns the file being served.
+    owner: The user who owns the file being served.
     filename: Filename in the local file system.
     download:  Should the file be viewed in browser or downloaded
     """
@@ -85,12 +86,12 @@ def serve_file(req, owner, filename, download=False):
     # We need a no-op trampoline run to ensure that the jail is mounted.
     # Otherwise we won't be able to authorise for public mode!
     noop_object = interpret.interpreter_objects["noop"]
-    user_jail_dir = os.path.join(ivle.conf.jail_base, owner)
+    user_jail_dir = os.path.join(ivle.conf.jail_base, owner.login)
     interpret.interpret_file(req, owner, user_jail_dir, '', noop_object)
 
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
     authorize(req)
-    
+
     # Jump into the jail
     interp_object = interpret.interpreter_objects["cgi-python"]
     if download:
