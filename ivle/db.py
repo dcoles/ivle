@@ -102,9 +102,6 @@ def _parse_boolean(val):
     else:
         raise DBException("Invalid boolean value returned from DB")
 
-def _passhash(password):
-    return md5.md5(password).hexdigest()
-
 class DBException(Exception):
     """A DBException is for bad conditions in the database or bad input to
     these methods. If Postgres throws an exception it does not get rebadged.
@@ -322,55 +319,6 @@ class DB:
     # USER MANAGEMENT FUNCTIONS #
 
     login_primary = frozenset(["login"])
-    login_fields_list = [
-        "login", "passhash", "state", "unixid", "email", "nick", "fullname",
-        "rolenm", "studentid", "acct_exp", "pass_exp", "last_login", "svn_pass"
-    ]
-    login_fields = frozenset(login_fields_list)
-
-    def create_user(self, user_obj=None, dry=False, **kwargs):
-        """Creates a user login entry in the database.
-        Two ways to call this - passing a user object, or passing
-        all fields as separate arguments.
-
-        Either pass a "user_obj" as the first argument (in which case other
-        fields will be ignored), or pass all fields as arguments.
-
-        All user fields are to be passed as args. The argument names
-        are the field names of the "login" table of the DB schema.
-        However, instead of supplying a "passhash", you must supply a
-        "password" argument, which will be hashed internally.
-        Also "state" must not given explicitly; it is implicitly set to
-        "no_agreement".
-        Raises an exception if the user already exists, or the dict contains
-        invalid keys or is missing required keys.
-        """
-        if 'passhash' in kwargs:
-            raise DBException("Supplied arguments include passhash (invalid) (1).")
-        # Make a copy of the dict. Change password to passhash (hashing it),
-        # and set 'state' to "no_agreement".
-        if user_obj is None:
-            # Use the kwargs
-            fields = copy.copy(kwargs)
-        else:
-            # Use the user object
-            fields = dict(user_obj)
-        if 'password' in fields:
-            fields['passhash'] = _passhash(fields['password'])
-            del fields['password']
-        if 'role' in fields:
-            # Convert role to rolenm
-            fields['rolenm'] = str(user_obj.role)
-            del fields['role']
-        if user_obj is None:
-            fields['state'] = "no_agreement"
-            # else, we'll trust the user, but it SHOULD be "no_agreement"
-            # (We can't change it because then the user object would not
-            # reflect the DB).
-        if 'local_password' in fields:
-            del fields['local_password']
-        # Execute the query.
-        return self.insert(fields, "login", self.login_fields, dry=dry)
 
     def get_user_loginid(self, login, dry=False):
         """Given a login, returns the integer loginid for this user.
