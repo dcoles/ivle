@@ -465,8 +465,8 @@ def handle_get_enrolments(req, fields):
             'url':             e.offering.subject.url,
             'year':            e.offering.semester.year,
             'semester':        e.offering.semester.semester,
-            'groups':          db.get_enrolment_groups(user.login,
-                                        e.offering.id),
+            'groups':          [{'name': group.name,
+                                 'nick': group.nick} for group in e.groups]
         })
     db.close()
     response = cjson.encode(dict_enrolments)

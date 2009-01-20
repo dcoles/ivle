@@ -275,6 +275,14 @@ class Enrolment(Storm):
     notes = Unicode()
     active = Bool()
 
+    @property
+    def groups(self):
+        return Store.of(self).find(ProjectGroup,
+                ProjectSet.offering_id == self.offering.id,
+                ProjectGroup.project_set_id == ProjectSet.id,
+                ProjectGroupMembership.project_group_id == ProjectGroup.id,
+                ProjectGroupMembership.user_id == self.user.id)
+
     __init__ = _kwarg_init
 
     def __repr__(self):
