@@ -193,9 +193,17 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         httpcode = None
         req.status = apache.HTTP_INTERNAL_SERVER_ERROR
     try:
+        publicmode = req.publicmode
+    except AttributeError:
+        pass
+    try:
         login = req.user.login
     except AttributeError:
         login = None
+    try:
+        role = req.user.role
+    except AttributeError:
+        role = None
 
     # Log File
     try:
@@ -291,31 +299,37 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 
         # Logging
         logging.error('%s\n%s'%(str(msg), tb))
-
+        # Error messages are only displayed is the user is NOT a student,
+        # or if there has been a problem logging the error message
+        show_errors = (not publicmode) and (not login or \
+                            (not str(role) == "student") or logfail)
         req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">                                      
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>IVLE Internal Server Error</title></head>
 <body>
 <h1>IVLE Internal Server Error""")
-        if (codename is not None
-            and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
-            req.write(": %s" % cgi.escape(codename))
+        if (show_errors):
+            if (codename is not None
+                        and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
+                req.write(": %s" % cgi.escape(codename))
+        
         req.write("""</h1>
 <p>An error has occured which is the fault of the IVLE developers or
-administration.</p>
+administration. The developers have been notified.</p>
 """)
-        if msg is not None:
-            req.write("<p>%s</p>\n" % cgi.escape(msg))
-        if httpcode is not None:
-            req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
-        req.write("""
-<p>Please report this to <a href="mailto:%s">%s</a> (the system
-administrator). Include the following information:</p>
-""" % (cgi.escape(admin_email), cgi.escape(admin_email)))
+        if (show_errors):
+            if msg is not None:
+                req.write("<p>%s</p>\n" % cgi.escape(msg))
+            if httpcode is not None:
+                req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
+            req.write("""
+    <p>Please report this to <a href="mailto:%s">%s</a> (the system
+    administrator). Include the following information:</p>
+    """ % (cgi.escape(admin_email), cgi.escape(admin_email)))
 
-        req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
-        if logfail:
-            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
-                %cgi.escape(logfile))
+            req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
+            if logfail:
+                req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
+                    %cgi.escape(logfile))
         req.write("</body></html>")
