@@ -139,7 +139,7 @@
 
 import os
 import sys
-import time
+import datetime
 
 import cjson
 import pg
@@ -652,61 +652,43 @@ def handle_create_group(req, fields):
         req.throw_error(req.HTTP_FORBIDDEN,
         "You do not have permission to manage groups.")
     # Get required fields
-    projectsetid = fields.getfirst('projectsetid')
-    groupnm = fields.getfirst('groupnm')
+    projectsetid = fields.getfirst('projectsetid').value
+    groupnm = fields.getfirst('groupnm').value
     if projectsetid is None or groupnm is None:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: projectsetid, groupnm")
+    groupnm = unicode(groupnm)
     try:
         projectsetid = int(projectsetid)
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "projectsetid must be an int")
     # Get optional fields
-    nick = fields.getfirst('nick')
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    # Other fields
-    createdby = req.user.id
-    epoch = time.localtime()
+    nick = fields.getfirst('nick').value
+    if nick is not None:
+        nick = unicode(nick)
 
     # Begin transaction since things can go wrong
-    db.start_transaction()
     try:
-        dbquery = db.return_insert(
-            {
-                'groupnm': groupnm,
-                'projectsetid': projectsetid,
-                'nick': nick,
-                'createdby': createdby,
-                'epoch': epoch,
-            },
-            "project_group", # table
-            frozenset(["groupnm", "projectsetid", "nick", "createdby",
-                "epoch"]), # fields
-            ["groupid"], # returns
-        )
- 
-        singlerow = dbquery.dictresult()[0]
-        groupid = singlerow['groupid']
+        group = ivle.database.ProjectGroup(name=groupnm,
+                                           project_set_id=projectsetid,
+                                           nick=nick,
+                                           created_by=req.user,
+                                           epoch=datetime.datetime.now())
+        req.store.add(group)
 
-        # Create the groups repository
-        # Get the arguments for usermgt.activate_user from the session
-        # (The user must have already logged in to use this app)
-    
-        # Find the rest of the parameters we need
-        offeringinfo = db.get_offering_info(projectsetid)
-                
-        subj_short_name = offeringinfo['subj_short_name']
-        year = offeringinfo['year']
-        semester = offeringinfo['semester']
+        # Create the group repository
+        # Yes, this is ugly, and it would be nice to just pass in the groupid,
+        # but the object isn't visible to the extra transaction in
+        # usrmgt-server until we commit, which we only do once the repo is
+        # created.
+        offering = group.project_set.offering
 
         args = {
-            "subj_short_name": subj_short_name,
-            "year": year,
-            "semester": semester,
-            "groupnm": groupnm,
+            "subj_short_name": offering.subject.short_name,
+            "year": offering.semester.year,
+            "semester": offering.semester.semester,
+            "groupnm": group.name,
         }
         msg = {'create_group_repository': args}
 
@@ -722,18 +704,13 @@ def handle_create_group(req, fields):
                 "Failure creating repository: %s"%str(usrmgt))
     
         # Everything went OK. Lock it in
-        db.commit()
+        req.store.commit()
 
     except Exception, e:
-        db.rollback()
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
-
-    response = cjson.encode(singlerow)
 
     req.content_type = "text/plain"
-    req.write(response)
+    req.write('')
 
 def handle_get_group_membership(req, fields):
     """ Required cap: None

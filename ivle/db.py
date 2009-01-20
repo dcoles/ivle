@@ -452,24 +452,6 @@ WHERE login.login=%s
             return query
         return self.db.query(query).dictresult()
 
-    # PROJECT GROUPS
-
-    def get_offering_info(self, projectsetid, dry=False):
-        """Takes information from projectset and returns useful information 
-        about the subject and semester. Returns as a dictionary.
-        """
-        query = """\
-SELECT subjectid, subj_code, subj_name, subj_short_name, url, year, semester, 
-active
-FROM subject, offering, semester, project_set
-WHERE offering.subject = subject.subjectid AND
-    offering.semesterid = semester.semesterid AND
-    project_set.offeringid = offering.offeringid AND
-    project_set.projectsetid = %d;"""%projectsetid
-        if dry:
-            return query
-        return self.db.query(query).dictresult()[0]
-
     def close(self):
         """Close the DB connection. Do not call any other functions after
         this. (The behaviour of doing so is undefined).
