@@ -259,23 +259,6 @@ class DB:
         if dry: return query
         self.db.query(query)
 
-    def delete(self, primarydict, tablename, primary_keys, dry=False):
-        """Deletes a row in the table, matching against primarydict to find
-        the row.
-        primarydict, tablename, primary_keys: See update.
-        """
-        if not DB.check_dict(primarydict, primary_keys, must=True):
-            raise DBException("Supplied dictionary contains invalid or missing fields (2).")
-        wherelist = []
-        for k,v in primarydict.items():
-            wherelist.append("%s = %s" % (k, _escape(v)))
-        if len(wherelist) == 0:
-            return
-        wherestring = ' AND '.join(wherelist)
-        query = ("DELETE FROM %s WHERE %s;" % (tablename, wherestring))
-        if dry: return query
-        self.db.query(query)
-
     def get_single(self, primarydict, tablename, getfields, primary_keys,
         error_notfound="No rows found", dry=False):
         """Retrieves a single row from a table, returning it as a dictionary
@@ -311,18 +294,6 @@ class DB:
             raise DBException(error_notfound)
         # Return as a dictionary
         return result.dictresult()[0]
-
-    def get_all(self, tablename, getfields, dry=False):
-        """Retrieves all rows from a table, returning it as a list of
-        dictionaries mapping field names to values.
-        tablename, getfields: See get_single.
-        """
-        if len(getfields) == 0:
-            return
-        getstring = ', '.join(getfields)
-        query = ("SELECT %s FROM %s;" % (getstring, tablename))
-        if dry: return query
-        return self.db.query(query).dictresult()
 
     def start_transaction(self, dry=False):
         """Starts a DB transaction.
