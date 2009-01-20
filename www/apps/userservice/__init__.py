@@ -535,102 +535,6 @@ def handle_get_project_groups(req, fields):
     response = cjson.encode(dict_projectsets)
     req.write(response)
 
-def handle_create_project_set(req, fields):
-    """Required cap: CAP_MANAGEPROJECTS
-    Creates a project set for a offering - returns the projectsetid
-    Required:
-        offeringid, max_students_per_group
-    """
-    
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_MANAGEPROJECTS
-    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage projects.")
-    # Get required fields
-    offeringid = fields.getfirst('offeringid')
-    max_students_per_group = fields.getfirst('max_students_per_group')
-    if offeringid is None or max_students_per_group is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: offeringid, max_students_per_group")
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    dbquery = db.return_insert(
-        {
-            'offeringid': offeringid,
-            'max_students_per_group': max_students_per_group,
-        },
-        "project_set",
-        frozenset(["offeringid", "max_students_per_group"]),
-        ["projectsetid"],
-    )
-    db.close()
-    
-    response = cjson.encode(dbquery.dictresult()[0])
-
-    req.content_type = "text/plain"
-    req.write(response)
-
-def handle_create_project(req, fields):
-    """Required cap: CAP_MANAGEPROJECTS
-    Creates a project in a specific project set
-    Required:
-        projectsetid
-    Optional:
-        synopsis, url, deadline
-    Returns:
-        projectid
-    """
-    
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_MANAGEPROJECTS
-    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage projects.")
-    # Get required fields
-    projectsetid = fields.getfirst('projectsetid')
-    if projectsetid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: projectsetid")
-    # Get optional fields
-    synopsis = fields.getfirst('synopsis')
-    url = fields.getfirst('url')
-    deadline = fields.getfirst('deadline')
-    if deadline is not None:
-        try:
-            deadline = util.parse_iso8601(deadline).timetuple()
-        except ValueError, e:
-            req.throw_error(req.HTTP_BAD_REQUEST, e.message)
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    try:
-        dbquery = db.return_insert(
-            {
-                'projectsetid': projectsetid,
-                'synopsis': synopsis,
-                'url': url,
-                'deadline': deadline,
-            },
-            "project", # table
-            frozenset(["projectsetid", "synopsis", "url", "deadline"]),
-            ["projectid"], # returns
-        )
-    except Exception, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
-    
-    response = cjson.encode(dbquery.dictresult()[0])
-
-    req.content_type = "text/plain"
-    req.write(response)
-
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
     Creates a project group in a specific project set
@@ -828,8 +732,6 @@ actions_map = {
     "get_active_offerings": handle_get_active_offerings,
     "get_project_groups": handle_get_project_groups,
     "get_group_membership": handle_get_group_membership,
-    "create_project_set": handle_create_project_set,
-    "create_project": handle_create_project,
     "create_group": handle_create_group,
     "assign_group": handle_assign_group,
 }
