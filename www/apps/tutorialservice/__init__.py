@@ -192,7 +192,6 @@ def handle_getattempts(req, exercisename):
 
 def handle_getattempt(req, exercisename, date):
     """Handles a getattempts action. Date is a datetime.datetime."""
-    conn = db.DB()
     exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
     attempt = ivle.worksheet.get_exercise_attempt(req.store, req.user,
         exercise, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
