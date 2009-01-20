@@ -498,16 +498,6 @@ ORDER BY login.login;"""%groupid
             return query
         return self.db.query(query).dictresult()
 
-    def get_projectsets_by_offering(self, offeringid, dry=False):
-        """Returns all the projectsets in a particular offering"""
-        query = """\
-SELECT projectsetid, max_students_per_group
-FROM project_set
-WHERE project_set.offeringid = %d;"""%offeringid
-        if dry:
-            return query
-        return self.db.query(query).dictresult()
-
     def get_groups_by_projectset(self, projectsetid, dry=False):
         """Returns all the groups that are in a particular projectset"""
         query = """\

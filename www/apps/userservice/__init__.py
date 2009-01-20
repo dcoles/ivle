@@ -516,18 +516,24 @@ def handle_get_project_groups(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be a integer")
-    
+
+    offering = req.store.get(ivle.database.Offering, offeringid)
+
     db = ivle.db.DB()
+    dict_projectsets = []
     try:
-        projectsets = db.get_projectsets_by_offering(offeringid)
-        for p in projectsets:
-            p['groups'] = db.get_groups_by_projectset(p['projectsetid'])
+        for p in offering.project_sets:
+            dict_projectsets.append({
+                'projectsetid': p.id,
+                'max_students_per_group': p.max_students_per_group,
+                'groups': db.get_groups_by_projectset(p.id),
+            })
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
     finally:
         db.close()
 
-    response = cjson.encode(projectsets)
+    response = cjson.encode(dict_projectsets)
     req.write(response)
 
 def handle_create_project_set(req, fields):
