@@ -454,7 +454,6 @@ def handle_get_enrolments(req, fields):
         # If login not specified, update yourself
         user = req.user
 
-    db = ivle.db.DB()
     dict_enrolments = []
     for e in user.active_enrolments:
         dict_enrolments.append({
@@ -468,7 +467,6 @@ def handle_get_enrolments(req, fields):
             'groups':          [{'name': group.name,
                                  'nick': group.nick} for group in e.groups]
         })
-    db.close()
     response = cjson.encode(dict_enrolments)
     req.content_type = "text/plain"
     req.write(response)
@@ -489,14 +487,16 @@ def handle_get_active_offerings(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "subjectid must be a integer")
-    
-    db = ivle.db.DB()
-    try:
-        offerings = db.get_offering_semesters(subjectid)
-    finally:
-        db.close()
 
-    response = cjson.encode([o for o in offerings if o['active']])
+    subject = req.store.get(ivle.database.Subject, subjectid)
+
+    response = cjson.encode([{'offeringid': offering.id,
+                              'subj_name': offering.subject.name,
+                              'year': offering.semester.year,
+                              'semester': offering.semester.semester,
+                              'active': offering.semester.active
+                             } for offering in subject.offerings
+                                    if offering.semester.active])
     req.content_type = "text/plain"
     req.write(response)
 
@@ -519,7 +519,6 @@ def handle_get_project_groups(req, fields):
 
     offering = req.store.get(ivle.database.Offering, offeringid)
 
-    db = ivle.db.DB()
     dict_projectsets = []
     try:
         for p in offering.project_sets:
@@ -532,8 +531,6 @@ def handle_get_project_groups(req, fields):
             })
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
 
     response = cjson.encode(dict_projectsets)
     req.write(response)

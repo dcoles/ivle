@@ -412,27 +412,6 @@ class DB:
                 frozenset(['date', 'text']),
                 frozenset(['problemid', 'loginid']))
 
-    # SUBJECTS AND ENROLEMENT
-
-    def get_offering_semesters(self, subjectid, dry=False):
-        """
-        Get the semester information for a subject as well as providing 
-        information about if the subject is active and which semester it is in.
-        """
-        query = """\
-SELECT offeringid, subj_name, year, semester, active
-FROM semester, offering, subject
-WHERE offering.semesterid = semester.semesterid AND
-    offering.subject = subject.subjectid AND
-    offering.subject = %d;"""%subjectid
-        if dry:
-            return query
-        results = self.db.query(query).dictresult()
-        # Parse boolean varibles
-        for result in results:
-            result['active'] = _parse_boolean(result['active'])
-        return results
-
     def close(self):
         """Close the DB connection. Do not call any other functions after
         this. (The behaviour of doing so is undefined).
