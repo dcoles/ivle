@@ -240,6 +240,10 @@ class Offering(Storm):
     groups_student_permissions = Unicode()
 
     enrolments = ReferenceSet(id, 'Enrolment.offering_id')
+    members = ReferenceSet(id,
+                           'Enrolment.offering_id',
+                           'Enrolment.user_id',
+                           'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
 
     __init__ = _kwarg_init

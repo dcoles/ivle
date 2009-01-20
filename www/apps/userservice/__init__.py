@@ -753,19 +753,27 @@ def handle_get_group_membership(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "groupid must be an int")
+    group = req.store.get(ivle.database.ProjectGroup, groupid)
+
     try:
         offeringid = int(offeringid)
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be an int")
+    offering = req.store.get(ivle.database.Offering, offeringid)
 
-    db = ivle.db.DB()
-    try:
-        offeringmembers = db.get_offering_members(offeringid)
-        groupmembers = db.get_projectgroup_members(groupid)
-    finally:
-        db.close()
-    
+
+    offeringmembers = [{'login': user.login,
+                        'fullname': user.fullname
+                       } for user in offering.members.order_by(
+                            ivle.database.User.login)
+                      ]
+    groupmembers = [{'login': user.login,
+                        'fullname': user.fullname
+                       } for user in group.members.order_by(
+                            ivle.database.User.login)
+                      ]
+
     # Make sure we don't include members in both lists
     for member in groupmembers:
         if member in offeringmembers:

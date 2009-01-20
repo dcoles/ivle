@@ -433,21 +433,6 @@ WHERE offering.semesterid = semester.semesterid AND
             result['active'] = _parse_boolean(result['active'])
         return results
 
-    def get_offering_members(self, offeringid, dry=False):
-        """
-        Gets the logins of all the people enroled in an offering
-        """
-        query = """\
-SELECT login.login AS login, login.fullname AS fullname
-FROM login, enrolment
-WHERE login.loginid = enrolment.loginid AND
-    enrolment.offeringid = %d
-    ORDER BY login.login;"""%offeringid
-        if dry:
-            return query
-        return self.db.query(query).dictresult()
-
-
     def get_enrolment_groups(self, login, offeringid, dry=False):
         """
         Get all groups the user is member of in the given offering.
@@ -484,19 +469,6 @@ WHERE offering.subject = subject.subjectid AND
         if dry:
             return query
         return self.db.query(query).dictresult()[0]
-
-    def get_projectgroup_members(self, groupid, dry=False):
-        """Returns the logins of all students in a project group
-        """
-        query = """\
-SELECT login.login as login, login.fullname as fullname
-FROM login, group_member
-WHERE login.loginid = group_member.loginid AND
-    group_member.groupid = %d
-ORDER BY login.login;"""%groupid
-        if dry:
-            return query
-        return self.db.query(query).dictresult()
 
     def close(self):
         """Close the DB connection. Do not call any other functions after
