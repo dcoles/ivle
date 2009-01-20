@@ -45,7 +45,6 @@ import warnings
 import filecmp
 import logging
 import ivle.conf
-import ivle.db
 import ivle.pulldown_subj
 
 from ivle.database import ProjectGroup
@@ -304,24 +303,6 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
     passwd_file.write('%s:x:%d:%d::/home/%s:/bin/bash'
                       % (username, unixid, unixid, username))
     passwd_file.close()
-
-def make_user_db(throw_on_error = True, **kwargs):
-    """Creates a user's entry in the database, filling in all the fields.
-    All arguments must be keyword args. They are the fields in the table.
-    However, instead of supplying a "passhash", you must supply a
-    "password" argument, which will be hashed internally.
-    Also do not supply a state. All users are created in the "no_agreement"
-    state.
-    Also pulls the user's subjects using the configured subject pulldown
-    module, and adds enrolments to the DB.
-    Throws an exception if the user already exists.
-    """
-    dbconn = ivle.db.DB()
-    dbconn.create_user(**kwargs)
-    dbconn.close()
-
-    # Pulldown subjects and add enrolments
-    ivle.pulldown_subj.enrol_user(kwargs['login'])
 
 def mount_jail(login):
     # This is where we'll mount to...

@@ -149,6 +149,7 @@ import ivle.database
 import ivle.makeuser
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
+import ivle.pulldown_subj
 
 from ivle.auth import AuthError, authenticate
 import urllib
@@ -325,11 +326,13 @@ def handle_create_user(req, fields):
         else:
             pass
 
-    ivle.makeuser.make_user_db(**create)
-    unixid = ivle.database.User.get_by_login(req.store,create['login']).unixid
+    user = ivle.database.User(**create)
+    req.store.add(user)
+    ivle.pulldown_subj.enrol_user(req.store, user)
+    req.store.commit()
 
     req.content_type = "text/plain"
-    req.write(str(unixid))
+    req.write(str(user.unixid))
 
 update_user_fields_anyone = [
     'password', 'nick', 'email'
