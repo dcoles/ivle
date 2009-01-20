@@ -144,6 +144,22 @@ def get_exercise_attempt(store, user, exercise, as_of=None,
     return _get_exercise_attempts(store, user, exercise, as_of,
         allow_inactive).first()
 
+def save_exercise(store, user, exercise, text, date):
+    """Save an exercise for a user.
+
+    Given a store, User, Exercise and text and date, save the text to the
+    database. This will create the ExerciseSave if needed.
+    """
+    saved = store.find(ivle.database.ExerciseSave,
+                ivle.database.ExerciseSave.user_id == user.id,
+                ivle.database.ExerciseSave.exercise_id == exercise.id).one()
+    if saved is None:
+        saved = ivle.database.ExerciseSave(user=user, exercise=exercise)
+        store.add(saved)
+
+    saved.date = date
+    saved.text = text
+
 def calculate_score(store, user, worksheet):
     """
     Given a storm.store, User, Exercise and Worksheet, calculates a score for

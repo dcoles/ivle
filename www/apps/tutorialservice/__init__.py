@@ -47,7 +47,6 @@ import datetime
 
 import cjson
 
-from ivle import db
 from ivle import util
 from ivle import console
 import ivle.database
@@ -58,6 +57,9 @@ import test # XXX: Really .test, not real test.
 # If True, getattempts or getattempt will allow browsing of inactive/disabled
 # attempts. If False, will not allow this.
 HISTORY_ALLOW_INACTIVE = False
+
+TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 def handle(req):
     """Handler for Ajax backend TutorialService app."""
@@ -99,7 +101,7 @@ def handle(req):
         # The time *should* be in the same format as the DB (since it should
         # be bounced back to us from the getattempts output). Assume this.
         try:
-            date = datetime.datetime.strptime(date, db.TIMESTAMP_FORMAT)
+            date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
         except ValueError:
             # Date was not in correct format
             req.throw_error(req.HTTP_BAD_REQUEST)
@@ -107,29 +109,24 @@ def handle(req):
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def handle_save(req, exercise, code, fields):
+def handle_save(req, exercisename, code, fields):
     """Handles a save action. This saves the user's code without executing it.
     """
     # Need to open JUST so we know this is a real exercise.
     # (This avoids users submitting code for bogus exercises).
-    exercisefile = util.open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercisename)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
     exercisefile.close()
 
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    ivle.worksheet.save_exercise(req.store, req.user, exercise,
+                                 unicode(code), datetime.datetime.now())
+    req.store.commit()
+
     req.write('{"result": "ok"}')
 
-    conn = db.DB()
-
-    try:
-        conn.write_problem_save(
-            user = req.user,
-            exercisename = exercise,
-            date = time.localtime(),
-            text = code)
-    finally:
-        conn.close()
 
 def handle_test(req, exercisesrc, code, fields):
     """Handles a test action."""
@@ -182,7 +179,7 @@ def handle_getattempts(req, exercisename):
     attempts = ivle.worksheet.get_exercise_attempts(req.store, req.user,
         exercise, allow_inactive=HISTORY_ALLOW_INACTIVE)
     # attempts is a list of ExerciseAttempt objects. Convert to dictionaries.
-    time_fmt = lambda dt: datetime.datetime.strftime(dt, db.TIMESTAMP_FORMAT)
+    time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
     attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
                 for a in attempts]
     req.write(cjson.encode(attempts))
