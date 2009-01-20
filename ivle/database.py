@@ -142,6 +142,13 @@ class User(Storm):
                 Desc(Subject.code)
             )
 
+    def _set_password(self, password):
+        if password is None:
+            self.passhash = None
+        else:
+            self.passhash = unicode(User.hash_password(password))
+    password = property(fset=_set_password)
+
     @property
     def subjects(self):
         return Store.of(self).find(Subject,
