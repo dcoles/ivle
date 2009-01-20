@@ -498,16 +498,6 @@ ORDER BY login.login;"""%groupid
             return query
         return self.db.query(query).dictresult()
 
-    def get_groups_by_projectset(self, projectsetid, dry=False):
-        """Returns all the groups that are in a particular projectset"""
-        query = """\
-SELECT groupid, groupnm, nick, createdby, epoch
-FROM project_group
-WHERE project_group.projectsetid = %d;"""%projectsetid
-        if dry:
-            return query
-        return self.db.query(query).dictresult()
-
     def close(self):
         """Close the DB connection. Do not call any other functions after
         this. (The behaviour of doing so is undefined).

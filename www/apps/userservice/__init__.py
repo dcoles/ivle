@@ -526,7 +526,9 @@ def handle_get_project_groups(req, fields):
             dict_projectsets.append({
                 'projectsetid': p.id,
                 'max_students_per_group': p.max_students_per_group,
-                'groups': db.get_groups_by_projectset(p.id),
+                'groups': [{'groupid': g.id,
+                            'groupnm': g.name,
+                            'nick': g.nick} for g in p.project_groups]
             })
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))

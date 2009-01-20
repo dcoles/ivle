@@ -290,6 +290,9 @@ class ProjectSet(Storm):
     offering = Reference(offering_id, Offering.id)
     max_students_per_group = Int()
 
+    projects = ReferenceSet(id, 'Project.project_set_id')
+    project_groups = ReferenceSet(id, 'ProjectGroup.project_set_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
