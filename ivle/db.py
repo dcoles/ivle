@@ -269,32 +269,6 @@ class DB:
 
         return d['problemid']
 
-    def insert_problem_attempt(self, user, exercisename, date, complete,
-        attempt, dry=False):
-        """Inserts the details of a problem attempt into the database.
-        exercisename: Name of the exercise. (identifier field of problem
-            table). If this exercise does not exist, also creates a new row in
-            the problem table for this exercise name.
-        user: The user submitting the attempt.
-        date: struct_time, the date this attempt was made.
-        complete: bool. Whether the test passed or not.
-        attempt: Text of the attempt.
-
-        Note: Even if dry, will still physically call get_problem_problemid,
-        which may mutate the DB.
-        """
-        problemid = self.get_problem_problemid(exercisename)
-
-        return self.insert({
-                'problemid': problemid,
-                'loginid': user.id,
-                'date': date,
-                'complete': complete,
-                'attempt': attempt,
-            }, 'problem_attempt',
-            frozenset(['problemid','loginid','date','complete','attempt']),
-            dry=dry)
-
     def write_problem_save(self, user, exercisename, date, text, dry=False):
         """Writes text to the problem_save table (for when the user saves an
         exercise). Creates a new row, or overwrites an existing one if the

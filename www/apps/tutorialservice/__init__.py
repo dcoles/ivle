@@ -158,17 +158,14 @@ def handle_test(req, exercisesrc, code, fields):
     # Get the Exercise from the database
     exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
 
-    conn = db.DB()
-    try:
-        conn.insert_problem_attempt(
-            user = req.user,
-            exercisename = exercisesrc,
-            date = time.localtime(),
-            complete = test_results['passed'],
-            attempt = code)
-    finally:
-        conn.close()
+    attempt = ivle.database.ExerciseAttempt(user=req.user,
+                                            exercise=exercise,
+                                            date=datetime.datetime.now(),
+                                            complete=test_results['passed'],
+                                            text=unicode(code)) # XXX
 
+    req.store.add(attempt)
+    req.store.commit()
     # Query the DB to get an updated score on whether or not this problem
     # has EVER been completed (may be different from "passed", if it has
     # been completed before), and the total number of attempts.
