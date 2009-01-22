@@ -237,6 +237,11 @@ def get_dirlisting(req, svnclient, path):
         try:
             for filename in os.listdir(path):
                 listing[filename.decode('utf-8')] = file_to_fileinfo(path, filename)[1]
+                try:
+                    svnclient.status(os.path.join(path, filename), recurse = False)
+                    listing[filename.decode('utf-8')]['svnstatus'] = 'normal'
+                except:
+                    pass
         except OSError:
             # Non-directories will error - that's OK, we just want the "."
             pass
