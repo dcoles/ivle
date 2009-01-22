@@ -122,8 +122,7 @@ def handle(req):
         try:
             action.handle_action(req, act, fields)
         except action.ActionError, message:
-            req.headers_out['X-IVLE-Action-Error'] = \
-                urllib.quote(str(message))
+            req.headers_out['X-IVLE-Action-Error'] = urllib.quote(str(message))
 
     return_type = fields.getfirst('return')
     listing.handle_return(req, return_type == "contents")

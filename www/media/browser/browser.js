@@ -377,6 +377,11 @@ function upload_callback()
     upload_callback_count++;
     if (upload_callback_count >= 2)
     {
+        myFrame = frames['upload_iframe'].document;
+        data = myFrame.firstChild.childNodes[1].firstChild.firstChild.nodeValue;
+        data = JSON.parse(data);
+        if ('Error' in data)
+            alert("Error: " + decodeURIComponent(data['Error']));
         document.getElementsByName('data')[0].value = '';
         refresh();
     }
