@@ -195,7 +195,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     try:
         publicmode = req.publicmode
     except AttributeError:
-        pass
+        publicmode = True
     try:
         login = req.user.login
     except AttributeError:
