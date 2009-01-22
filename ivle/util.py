@@ -292,3 +292,14 @@ def incomplete_utf8_sequence(byteseq):
     elif count < expect:
         # Incomplete
         return count
+
+def object_to_dict(attrnames, obj):
+    """
+    Convert an object into a dictionary. This takes a shallow copy of the
+    object.
+    attrnames: Set (or iterable) of names of attributes to be copied into the
+        dictionary. (We don't auto-lookup, because this function needs to be
+        used on magical objects).
+    """
+    return dict((k, getattr(obj, k))
+        for k in attrnames if not k.startswith('_'))

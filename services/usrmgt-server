@@ -5,7 +5,7 @@ import sys
 import logging
 
 import ivle.conf
-import ivle.db
+import ivle.database
 import ivle.chat
 import ivle.makeuser
 
@@ -27,7 +27,7 @@ import ivle.makeuser
 #   - Rebuild svn auth file
 #   - Rebuild passwd + push to nodes.
 
-def activate_user(props):
+def activate_user(store, props):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
        Expected properties:
@@ -40,57 +40,50 @@ def activate_user(props):
 
     login = props['login']
 
-    db = ivle.db.DB()
+    # FIXME: check we're pending
 
-    try:
+    # Get the full User object from the db associated with this
+    user = ivle.database.User.get_by_login(store, login)
 
-        # FIXME: check we're pending
+    # make svn config/auth
+    repopath = os.path.join(ivle.conf.svn_repo_path, 'users', login)
+    logging.debug("Creating user's Subversion repository")
+    ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
-        details = db.get_user(login)
+    rebuild_svn_config(store, props)
 
-        # make svn config/auth
+    logging.debug("Adding Subversion authentication")
+    passwd = ivle.makeuser.make_svn_auth(store, login,
+                                         throw_on_error=True)
 
-        repopath = os.path.join(ivle.conf.svn_repo_path, 'users', login)
-        logging.debug("Creating user's Subversion repository")
-        ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
+    logging.debug("Creating jail")
+    ivle.makeuser.make_jail(user)
 
-        rebuild_svn_config(props)
+    logging.info("Enabling user")
+    user.state = u'enabled'
 
-        logging.debug("Adding Subversion authentication")
-        passwd = ivle.makeuser.make_svn_auth(login, throw_on_error=True)
-        logging.debug("passwd: %s" % passwd)
+    return {"response": "okay"}
 
-        logging.debug("Creating jail")
-        ivle.makeuser.make_jail(login, details.unixid, svn_pass=passwd)
-
-        logging.info("Enabling user")
-        db.update_user(login, state='enabled')
-
-        return {"response": "okay"}
-
-    finally:
-        db.close()
-
-def rebuild_svn_config(props):
+def rebuild_svn_config(store, props):
     """Rebuilds the svn config file
     Return value:
         response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_config()
+        ivle.makeuser.rebuild_svn_config(store)
     except Exception, e:
         logging.warning('Rebuild of Subversion authorization config failed!')
         return{'response': 'failure', 'msg': repr(e)}
 
     return {'response': 'okay'}
 
-def rebuild_svn_group_config(props):
+def rebuild_svn_group_config(store, props):
     """Rebuilds the svn group config file
     Return value:
         response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_group_config()
+        ivle.makeuser.rebuild_svn_group_config(store)
     except Exception, e:
         logging.warning(
             'Rebuild of Subversion group authorization config failed!')
@@ -98,7 +91,7 @@ def rebuild_svn_group_config(props):
 
     return {'response': 'okay'}
 
-def create_group_repository(props):
+def create_group_repository(store, props):
     """Creates on disk repository for the given group
     Expected properties:
         subj_short_name, year, semester, groupnm
@@ -141,8 +134,17 @@ def initializer():
 
 def dispatch(props):
     logging.debug(repr(props))
+
+    store = ivle.database.get_store()
     action = props.keys()[0]
-    return actions[action](props[action])
+    res = actions[action](store, props[action])
+
+    if res['response'] == 'okay':
+        store.commit()
+    else:
+        store.rollback()
+    store.close()
+    return res
 
 if __name__ == "__main__":
     pid = os.getpid()

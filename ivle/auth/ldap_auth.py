@@ -27,10 +27,10 @@
 
 import ldap
 
-from autherror import AuthError
+from ivle.auth import AuthError
 import ivle.conf
 
-def auth(dbconn, login, password, user):
+def auth(store, login, password, user):
     """
     A plugin auth function, as described above.
     This one authenticates against an LDAP server.

@@ -23,7 +23,8 @@ sudo apt-get install rsync subversion build-essential debootstrap       \
                      apache2 libapache2-mod-python libapache2-svn       \
                      python2.5-dev python-svn python-webpy python-cjson \
                      postgresql python-pygresql php5 php5-pgsql         \
-                     python-docutils python-epydoc python-ldap
+                     python-docutils python-epydoc python-ldap          \
+                     python-storm python-psycopg2
 
 ##########################################################################
 # Configure postgres

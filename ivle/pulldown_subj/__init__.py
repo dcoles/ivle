@@ -28,10 +28,12 @@
 
 import os
 import sys
+import datetime
 
 from subjecterror import SubjectError
 import ivle.conf
-import ivle.db
+
+from ivle.database import Subject, Offering, Semester, AlreadyEnrolledError
 
 def get_subjects(login):
     """
@@ -45,7 +47,7 @@ def get_subjects(login):
             return result
     return []
 
-def enrol_user(login, year=None):
+def enrol_user(store, user, year=None):
     """
     Looks up the student in whatever modules are available.
     The pulldown does not tell us what year to enrol the student for, so the
@@ -61,10 +63,27 @@ def enrol_user(login, year=None):
     Returns the number of subjects the user was enrolled in (not including
     subjects outside the system, or subjects already enrolled).
     """
+    if year is None:
+        year = unicode(datetime.datetime.now().year)
+
     count = 0
-    db = ivle.db.DB()
-    for subject, semester in get_subjects(login):
-        count += db.add_enrolment(login, subject, semester, year)
+    for subject, semester in get_subjects(user.login):
+        offering = store.find(Offering,
+                              Subject.code == subject,
+                              Offering.subject_id == Subject.id,
+                              Semester.year == year,
+                              Semester.semester == semester,
+                              Offering.semester_id == Semester.id).one()
+
+        # We can't find a matching offering, so we don't care about it.
+        if not offering:
+            continue
+
+        try:
+            offering.enrol(user)
+            count += 1
+        except AlreadyEnrolledError:
+            pass
     return count
 
 # Allow imports to get files from this directory.

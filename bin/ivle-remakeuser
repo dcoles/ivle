@@ -29,7 +29,7 @@ import os
 import optparse
 import logging
 
-import ivle.db
+import ivle.database
 import ivle.makeuser
 
 p = optparse.OptionParser()
@@ -48,42 +48,25 @@ if os.getuid() != 0:
                           os.path.basename(sys.argv[0])
     sys.exit(1)
 
-try:
-    db = ivle.db.DB()
-    if options.all:
-        list = db.get_users()
-    else:
-        if len(arguments) == 0:
-            print >> sys.stderr, "must be run with -a or a username"
-            sys.exit(1)
-        list = [db.get_user(arguments[0])]
-    res = db.get_all('login', ['login', 'unixid'])
-    def repack(flds):
-        return (flds['login'], flds['unixid'])
-    uids = dict(map(repack,res))
-except Exception, message:
-    logging.error(str(message))
-    sys.exit(1)
+store = ivle.database.get_store()
+
+if options.all:
+    users = store.find(ivle.database.User).order_by(ivle.database.User.login)
+else:
+    if len(arguments) == 0:
+        print >> sys.stderr, "must be run with -a or a username"
+        sys.exit(1)
+    users = [ivle.database.User.get_by_login(store, arguments[0])]
 
 logging.info("rebuild started")
 
-list.sort(key=lambda user: user.login)
-for user in list:
-    login = user.login
-
+for user in users:
     try:
-        # Resolve the user's login into a UID
-        try:
-            uid = uids[login]
-        except KeyError:
-            raise Exception("user %s does not have a unixid in the database"
-                % login)
-        # Remake the user's jail
-        ivle.makeuser.make_jail(login, uid)
+        ivle.makeuser.make_jail(user)
     except Exception, message:
         logging.warning(str(message))
         continue
 
-    logging.debug("recreated user %s's jail." % login)
+    logging.debug("recreated user %s's jail." % user.login)
     
 logging.info("rebuild completed successfully")

@@ -25,8 +25,8 @@
 
 import cgi
 
-from ivle import (util, caps)
-import ivle.db
+from ivle import caps
+from ivle.database import Subject
 
 def handle(req):
     # Set request attributes
@@ -40,64 +40,54 @@ def handle(req):
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     req.write('<div id="ivle_padding">\n')
-    # Show a group panel per enrolment
-    db = ivle.db.DB()
-    try:
-        subjects = db.get_enrolment(req.user.login)
-        # Sort by year,semester,subj_code (newer subjects first)
-        # Leave all fields as strings, just in case (eg. semester='y')
-        subjects.sort(key=lambda(subject):
-                          (subject["year"],subject["semester"],subject["subj_code"]),
-                      reverse=True)
-        if len(subjects) == 0:
-            req.write("<p>Error: You are not currently enrolled in any subjects."
-                      "</p>\n")
-        for subject in subjects:
-            show_subject_panel(req, db, subject['offeringid'],
-                subject['subj_name'])
-        if req.user.hasCap(caps.CAP_MANAGEGROUPS):
-            show_groupadmin_panel(req, db)
-        
-        req.write("</div>\n")
-    finally:
-        db.close()
 
-def show_groupadmin_panel(req, db):
+    # Show a group panel per enrolment
+    enrolments = req.user.active_enrolments
+    if enrolments.count() == 0:
+        req.write("<p>Error: You are not currently enrolled in any subjects."
+                  "</p>\n")
+    for enrolment in enrolments:
+        show_subject_panel(req, enrolment.offering)
+    if req.user.hasCap(caps.CAP_MANAGEGROUPS):
+        show_groupadmin_panel(req)
+
+    req.write("</div>\n")
+
+def show_groupadmin_panel(req):
     """
     Shows the group admin panel
     """
     req.write("<hr/>\n")
     req.write("<h1>Group Administration</h1>")
     # Choose subject
-    subjects = db.get_subjects()
+    subjects = req.store.find(Subject)
     req.write("<label for=\"subject_select\">Subject:</label>\n")
     req.write("<select id=\"subject_select\">\n")
     for s in subjects:
         req.write("    <option value=\"%d\">%s (%s)</option>\n"%
-            (s['subjectid'], s['subj_name'], s['subj_code']))
+            (s.id, s.name, s.code))
     req.write("</select>\n")
     req.write("<input type=\"button\" value=\"Manage\" \
         onclick=\"manage_subject()\" />\n")
     req.write("<div id=\"subject_div\"></div>")
 
-def show_subject_panel(req, db, offeringid, subj_name):
+def show_subject_panel(req, offering):
     """
     Show the group management panel for a particular subject.
     Prints to req.
     """
     # Get the groups this user is in, for this offering
-    groups = db.get_groups_by_user(req.user.login, offeringid=offeringid)
-    if len(groups) == 0:
+    groups = req.user.get_groups(offering)
+    if groups.count() == 0:
         return
 
-    req.write("<div id=\"subject%d\"class=\"subject\">"%offeringid)
-    req.write("<h1>%s</h1>\n" % cgi.escape(subj_name))
-    for groupid, groupnm, group_nick, is_member in groups:
-        if group_nick is None:
-            group_nick = "";
+    req.write("<div id=\"subject%d\"class=\"subject\">"%offering.id)
+    req.write("<h1>%s</h1>\n" % cgi.escape(offering.subject.name))
+    for group in groups:
         req.write("<h2>%s (%s)</h2>\n" %
-            (cgi.escape(group_nick), cgi.escape(groupnm)))
-        if is_member:
+            (cgi.escape(group.nick if group.nick else ''),
+             cgi.escape(group.name)))
+        if True: # XXX - was is_member (whether real member or just invited)
             req.write('<p>You are a member of this group.</p>\n')
         else:
             req.write('<p>You have been invited to this group.</p>\n')
@@ -108,13 +98,13 @@ def show_subject_panel(req, db, offeringid, subj_name):
                 '<input type="button" '
                 'onclick="decline(&quot;%(groupnm)s&quot;)" '
                 'value="Decline" />\n'
-                '</p>\n' % {"groupnm": cgi.escape(groupnm)})
+                '</p>\n' % {"groupnm": cgi.escape(group.name)})
         req.write("<h3>Members</h3>\n")
         req.write("<ul>\n")
-        for user in db.get_projectgroup_members(groupid):
+        for user in group.members:
             req.write("<li>%s (%s)</li>" %
-                      (cgi.escape(user['fullname']),
-                       cgi.escape(user['login'])))
+                      (cgi.escape(user.fullname),
+                       cgi.escape(user.login)))
         req.write("</ul>\n")
 
     req.write("</div>")

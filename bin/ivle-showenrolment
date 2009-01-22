@@ -25,26 +25,28 @@
 import os
 import sys
 
-import ivle.db
+import ivle.database
 
 if len(sys.argv) != 2:
     print >> sys.stderr, "usage: %s <login>" % os.path.basename(sys.argv[0])
     sys.exit(1)
 
-db = ivle.db.DB()
-try:
-    user = db.get_user(sys.argv[1])
-except ivle.db.DBException:
-    print >> sys.stderr, "cannot retrieve user - probably doesn't exist"
-    sys.exit(1)
-enrols = db.get_enrolment(sys.argv[1])
-db.close()
+store = ivle.database.get_store()
+user = ivle.database.User.get_by_login(store, sys.argv[1])
 
-if len(enrols) > 0:
-    print 'Showing enrolment for %s (%s):' % (sys.argv[1], user.fullname)
+if not user:
+    print>>sys.stderr, "%s: user does not exist"%os.path.basename(sys.argv[0])
+    sys.exit(1)
+
+if user.enrolments.count() > 0:
+    print 'IVLE enrolment for %s (%s):' % (user.login, user.fullname)
     print '    Code       Name Semester Year'
     print '-------- ---------- -------- ----'
-    for enrol in enrols:
-        print '%(subj_code)8s %(subj_short_name)10s %(semester)8s %(year)4s' % enrol
+    for e in user.enrolments:
+        print '%8s %10s %8s %4s' % (
+                e.offering.subject.code, e.offering.subject.short_name,
+                e.offering.semester.semester, e.offering.semester.year
+                )
 else:
-    print '%s (%s) is not enrolled in any offerings' % (sys.argv[1], user.fullname)
+    print '%s (%s) is not enrolled in any IVLE offerings' % (
+                        user.login, user.fullname)

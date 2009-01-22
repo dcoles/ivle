@@ -151,7 +151,8 @@ def get_login(_realm, existing_login, _may_save):
     # If we're being asked again, then it means the credentials failed for
     # some reason and we should just fail. (This is not desirable, but it's
     # better than being asked an infinite number of times).
-    return (existing_login != "", ivle.conf.login, ivle.conf.svn_pass, True)
+    return (existing_login != "", str(ivle.conf.login),
+                                  str(ivle.conf.svn_pass), True)
 
 # Make a Subversion client object
 svnclient = pysvn.Client()

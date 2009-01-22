@@ -25,8 +25,8 @@
 # Has a plugin interface for authentication modules.
 # An authentication module is a Python module with an "auth" function,
 # which accepts 3 positional arguments.
-# plugin_module.auth(dbconn, login, password, user)
-# dbconn is an open connection to the IVLE database.
+# plugin_module.auth(store, login, password, user)
+# store is an open store connected to the IVLE database.
 # login and password are required strings, password is cleartext.
 # user is a User object or None.
 # If it's a User object, it must return the same object if it returns a user.
@@ -43,17 +43,19 @@
 import sys
 import os
 
-from autherror import AuthError
+from ivle.auth import AuthError
 import ivle.conf
-import ivle.db
-import ivle.user
+import ivle.database
 
-def authenticate(login, password):
+def authenticate(store, login, password):
     """Determines whether a particular login/password combination is
-    valid. The password is in cleartext.
+    valid for the given database. The password is in cleartext.
 
     Returns a User object containing the user's details on success.
     Raises an AuthError containing an appropriate error message on failure.
+
+    'store' is expected to be a storm.store.Store connected to the IVLE
+    database to which we should authenticate.
 
     The User returned is guaranteed to be in the IVLE database.
     This could be from reading or writing to the DB. If authenticate can't
@@ -68,47 +70,37 @@ def authenticate(login, password):
     # Spawn a DB object just for making this call.
     # (This should not spawn a DB connection on each page reload, only when
     # there is no session object to begin with).
-    dbconn = ivle.db.DB()
 
-    try:
-        user = dbconn.get_user(login)
-    except ivle.db.DBException:
-        # If our attempt to get the named user from the db fails,
-        # then set user to None.
-        # We may still auth (eg. by pulling details from elsewhere and writing
-        # to DB).
-        user = None
-    try:
-        for modname, m in auth_modules:
-            # May raise an AuthError - allow to propagate
-            auth_result = m(dbconn, login, password, user)
-            if auth_result is None:
-                # Can't auth with this module; try another
-                pass
-            elif auth_result == False:
-                return None
-            elif isinstance(auth_result, ivle.user.User):
-                if user is not None and auth_result is not user:
-                    # If user is not None, then it must return the same user
-                    raise AuthError("Internal error: "
-                        "Bad authentication module %s (changed user)"
-                        % repr(modname))
-                elif user is None:
-                    # We just got ourselves some user details from an external
-                    # source. Put them in the DB.
-                    dbconn.create_user(auth_result)
-                    pass
-                return auth_result
-            else:
+    user = ivle.database.User.get_by_login(store, login)
+
+    for modname, m in auth_modules:
+        # May raise an AuthError - allow to propagate
+        auth_result = m(store, login, password, user)
+        if auth_result is None:
+            # Can't auth with this module; try another
+            pass
+        elif auth_result == False:
+            return None
+        elif isinstance(auth_result, ivle.database.User):
+            if user is not None and auth_result is not user:
+                # If user is not None, then it must return the same user
                 raise AuthError("Internal error: "
-                    "Bad authentication module %s (bad return type)"
+                    "Bad authentication module %s (changed user)"
                     % repr(modname))
-        # No auths checked out; fail.
-        raise AuthError()
-    finally:
-        dbconn.close()
+            elif user is None:
+                # We just got ourselves some user details from an external
+                # source. Put them in the DB.
+                store.add(auth_result)
+                pass
+            return auth_result
+        else:
+            raise AuthError("Internal error: "
+                "Bad authentication module %s (bad return type)"
+                % repr(modname))
+    # No auths checked out; fail.
+    raise AuthError()
 
-def simple_db_auth(dbconn, login, password, user):
+def simple_db_auth(store, login, password, user):
     """
     A plugin auth function, as described above.
     This one just authenticates against the local database.
@@ -120,7 +112,11 @@ def simple_db_auth(dbconn, login, password, user):
         # The login doesn't exist. Therefore return None so we can try other
         # means of authentication.
         return None
-    auth_result = dbconn.user_authenticate(login, password)
+
+    # They should always match, but it's best to be sure!
+    assert(user.login == login)
+
+    auth_result = user.authenticate(password)
     # auth_result is either True, False (fail) or None (try another)
     if auth_result is None:
         return None

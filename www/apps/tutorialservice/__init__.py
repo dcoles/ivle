@@ -43,16 +43,23 @@
 
 import os
 import time
+import datetime
 
 import cjson
 
-from ivle import (db, util, console)
+from ivle import util
+from ivle import console
+import ivle.database
+import ivle.worksheet
 import ivle.conf
 import test # XXX: Really .test, not real test.
 
 # If True, getattempts or getattempt will allow browsing of inactive/disabled
 # attempts. If False, will not allow this.
 HISTORY_ALLOW_INACTIVE = False
+
+TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 def handle(req):
     """Handler for Ajax backend TutorialService app."""
@@ -94,7 +101,7 @@ def handle(req):
         # The time *should* be in the same format as the DB (since it should
         # be bounced back to us from the getattempts output). Assume this.
         try:
-            date = time.strptime(date, db.TIMESTAMP_FORMAT)
+            date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
         except ValueError:
             # Date was not in correct format
             req.throw_error(req.HTTP_BAD_REQUEST)
@@ -102,34 +109,29 @@ def handle(req):
     else:
         req.throw_error(req.HTTP_BAD_REQUEST)
 
-def handle_save(req, exercise, code, fields):
+def handle_save(req, exercisename, code, fields):
     """Handles a save action. This saves the user's code without executing it.
     """
     # Need to open JUST so we know this is a real exercise.
     # (This avoids users submitting code for bogus exercises).
-    exercisefile = util.open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercisename)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
     exercisefile.close()
 
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    ivle.worksheet.save_exercise(req.store, req.user, exercise,
+                                 unicode(code), datetime.datetime.now())
+    req.store.commit()
+
     req.write('{"result": "ok"}')
 
-    conn = db.DB()
 
-    try:
-        conn.write_problem_save(
-            login = req.user.login,
-            exercisename = exercise,
-            date = time.localtime(),
-            text = code)
-    finally:
-        conn.close()
-
-def handle_test(req, exercise, code, fields):
+def handle_test(req, exercisesrc, code, fields):
     """Handles a test action."""
 
-    exercisefile = util.open_exercise_file(exercise)
+    exercisefile = util.open_exercise_file(exercisesrc)
     if exercisefile is None:
         req.throw_error(req.HTTP_NOT_FOUND,
             "The exercise was not found.")
@@ -150,49 +152,44 @@ def handle_test(req, exercise, code, fields):
     # Close the console
     cons.close()
 
-    conn = db.DB()
-    try:
-        conn.insert_problem_attempt(
-            login = req.user.login,
-            exercisename = exercise,
-            date = time.localtime(),
-            complete = test_results['passed'],
-            attempt = code)
+    # Get the Exercise from the database
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
 
-        # Query the DB to get an updated score on whether or not this problem
-        # has EVER been completed (may be different from "passed", if it has
-        # been completed before), and the total number of attempts.
-        completed, attempts = conn.get_problem_status(req.user.login,
-            exercise)
-        test_results["completed"] = completed
-        test_results["attempts"] = attempts
+    attempt = ivle.database.ExerciseAttempt(user=req.user,
+                                            exercise=exercise,
+                                            date=datetime.datetime.now(),
+                                            complete=test_results['passed'],
+                                            text=unicode(code)) # XXX
 
-        req.write(cjson.encode(test_results))
-    finally:
-        conn.close()
+    req.store.add(attempt)
+    req.store.commit()
+    # Query the DB to get an updated score on whether or not this problem
+    # has EVER been completed (may be different from "passed", if it has
+    # been completed before), and the total number of attempts.
+    completed, attempts = ivle.worksheet.get_exercise_status(req.store,
+        req.user, exercise)
+    test_results["completed"] = completed
+    test_results["attempts"] = attempts
 
-def handle_getattempts(req, exercise):
+    req.write(cjson.encode(test_results))
+
+def handle_getattempts(req, exercisename):
     """Handles a getattempts action."""
-    conn = db.DB()
-    try:
-        attempts = conn.get_problem_attempts(
-            login=req.user.login,
-            exercisename=exercise,
-            allow_inactive=HISTORY_ALLOW_INACTIVE)
-        req.write(cjson.encode(attempts))
-    finally:
-        conn.close()
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    attempts = ivle.worksheet.get_exercise_attempts(req.store, req.user,
+        exercise, allow_inactive=HISTORY_ALLOW_INACTIVE)
+    # attempts is a list of ExerciseAttempt objects. Convert to dictionaries.
+    time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
+    attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
+                for a in attempts]
+    req.write(cjson.encode(attempts))
 
-def handle_getattempt(req, exercise, date):
-    """Handles a getattempts action. Date is a struct_time."""
-    conn = db.DB()
-    try:
-        attempt = conn.get_problem_attempt(
-            login=req.user.login,
-            exercisename=exercise,
-            as_of=date,
-            allow_inactive=HISTORY_ALLOW_INACTIVE)
-        # attempt may be None; will write "null"
-        req.write(cjson.encode({'code': attempt}))
-    finally:
-        conn.close()
+def handle_getattempt(req, exercisename, date):
+    """Handles a getattempts action. Date is a datetime.datetime."""
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisename)
+    attempt = ivle.worksheet.get_exercise_attempt(req.store, req.user,
+        exercise, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
+    if attempt is not None:
+        attempt = attempt.text
+    # attempt may be None; will write "null"
+    req.write(cjson.encode({'code': attempt}))

@@ -45,8 +45,9 @@ import warnings
 import filecmp
 import logging
 import ivle.conf
-import ivle.db
 import ivle.pulldown_subj
+
+from ivle.database import ProjectGroup
 
 def chown_to_webserver(filename):
     """
@@ -73,11 +74,10 @@ def make_svn_repo(path, throw_on_error=True):
 
     chown_to_webserver(path)
 
-def rebuild_svn_config():
+def rebuild_svn_config(store):
     """Build the complete SVN configuration file.
     """
-    conn = ivle.db.DB()
-    users = conn.get_users()
+    users = store.find(ivle.database.User)
     groups = {}
     for u in users:
         role = str(u.role)
@@ -103,35 +103,30 @@ def rebuild_svn_config():
     os.rename(ivle.conf.svn_conf + ".new", ivle.conf.svn_conf)
     chown_to_webserver(ivle.conf.svn_conf)
 
-def rebuild_svn_group_config():
+def rebuild_svn_group_config(store):
     """Build the complete SVN configuration file for groups
     """
-    conn = ivle.db.DB()
-    groups = conn.get_all('project_group',
-        ['groupid', 'groupnm', 'projectsetid'])
     f = open(ivle.conf.svn_group_conf + ".new", "w")
     f.write("# IVLE SVN Group Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
     f.write("\n")
-    for g in groups:
-        projectsetid = g['projectsetid']
-        offeringinfo = conn.get_offering_info(projectsetid)
-        subj_short_name = offeringinfo['subj_short_name']
-        year = offeringinfo['year']
-        semester = offeringinfo['semester']
-        reponame = "_".join([subj_short_name, year, semester, g['groupnm']])
+    for group in store.find(ProjectGroup):
+        offering = group.project_set.offering
+        reponame = "_".join([offering.subject.short_name,
+                             offering.semester.year,
+                             offering.semester.semester,
+                             group.name])
         f.write("[%s:/]\n"%reponame)
-        users = conn.get_projectgroup_members(g['groupid'])
-        for u in users:
-            f.write("%s = rw\n"%u['login'])
+        for user in group.members:
+            f.write("%s = rw\n" % user.login)
         f.write("\n")
     f.close()
     os.rename(ivle.conf.svn_group_conf + ".new", ivle.conf.svn_group_conf)
     chown_to_webserver(ivle.conf.svn_group_conf)
 
-def make_svn_auth(login, throw_on_error=True):
+def make_svn_auth(store, login, throw_on_error=True):
     """Setup svn authentication for the given user.
-       FIXME: create local.auth entry
+       Uses the given DB store object. Does not commit to the db.
     """
     passwd = md5.new(uuid.uuid4().bytes).digest().encode('hex')
     if os.path.exists(ivle.conf.svn_auth_ivle):
@@ -139,7 +134,8 @@ def make_svn_auth(login, throw_on_error=True):
     else:
         create = "c"
 
-    ivle.db.DB().update_user(login, svn_pass=passwd)
+    user = ivle.database.User.get_by_login(store, login)
+    user.svn_pass = unicode(passwd)
 
     res = os.system("htpasswd -%smb %s %s %s" % (create,
                                               ivle.conf.svn_auth_ivle,
@@ -182,7 +178,7 @@ def generate_manifest(basedir, targetdir, parent=''):
     return (to_add, to_remove)
 
 
-def make_jail(username, uid, force=True, svn_pass=None):
+def make_jail(user, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -193,17 +189,8 @@ def make_jail(username, uid, force=True, svn_pass=None):
 
     Chowns the user's directory within the jail to the given UID.
 
-    Note: This takes separate username and uid arguments. The UID need not
-    *necessarily* correspond to a Unix username at all, if all you are
-    planning to do is setuid to it. This allows the caller the freedom of
-    deciding the binding between username and uid, if any.
-
     force: If false, exception if jail already exists for this user.
     If true (default), overwrites it, but preserves home directory.
-
-    svn_pass: If provided this will be a string, the randomly-generated
-    Subversion password for this user (if you happen to already have it).
-    If not provided, it will be read from the database.
     """
     # MUST run as root or some of this may fail
     if os.getuid() != 0:
@@ -216,9 +203,9 @@ def make_jail(username, uid, force=True, svn_pass=None):
     elif not os.path.isdir(tempdir):
         os.unlink(tempdir)
         os.mkdir(tempdir)
-    userdir = os.path.join(ivle.conf.jail_src_base, username)
+    userdir = os.path.join(ivle.conf.jail_src_base, user.login)
     homedir = os.path.join(userdir, 'home')
-    userhomedir = os.path.join(homedir, username)   # Return value
+    userhomedir = os.path.join(homedir, user.login)   # Return value
 
     if os.path.exists(userdir):
         if not force:
@@ -239,30 +226,26 @@ def make_jail(username, uid, force=True, svn_pass=None):
         shutil.move(homebackup, homedir)
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
-            %(username, uid))
-        os.chown(userhomedir, uid, uid)
+            %(user.login, user.unixid))
+        os.chown(userhomedir, user.unixid, user.unixid)
         for root, dirs, files in os.walk(userhomedir):
             for fsobj in dirs + files:
-                os.chown(os.path.join(root, fsobj), uid, uid)
+                os.chown(os.path.join(root, fsobj), user.unixid, user.unixid)
     else:
         # No user jail exists
         # Set up the user's home directory
         os.makedirs(userhomedir)
         # Chown (and set the GID to the same as the UID).
-        os.chown(userhomedir, uid, uid)
+        os.chown(userhomedir, user.unixid, user.unixid)
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    # There are 2 special files which need to be generated specific to this
-    # user: ${python_site_packages}/lib/conf/conf.py and /etc/passwd.
-    # "__" username "__" users are exempt (special)
-    if not (username.startswith("__") and username.endswith("__")):
-        make_conf_py(username, userdir, ivle.conf.jail_system, svn_pass)
-        make_etc_passwd(username, userdir, ivle.conf.jail_system, uid)
+    make_conf_py(user.login, userdir, ivle.conf.jail_system, user.svn_pass)
+    make_etc_passwd(user.login, userdir, ivle.conf.jail_system, user.unixid)
 
     return userhomedir
 
-def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
+def make_conf_py(username, user_jail_dir, staging_dir, svn_pass):
     """
     Creates (overwriting any existing file, and creating directories) a
     file ${python_site_packages}/ivle/conf/conf.py in a given user's jail.
@@ -278,12 +261,6 @@ def make_conf_py(username, user_jail_dir, staging_dir, svn_pass=None):
     conf_path = os.path.join(user_jail_dir,
             ivle.conf.python_site_packages[1:], "ivle/conf/conf.py")
     os.makedirs(os.path.dirname(conf_path))
-
-    # If svn_pass isn't supplied, grab it from the DB
-    if svn_pass is None:
-        dbconn = ivle.db.DB()
-        svn_pass = dbconn.get_user(username).svn_pass
-        dbconn.close()
 
     # Read the contents of the template conf file
     try:
@@ -326,40 +303,6 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
     passwd_file.write('%s:x:%d:%d::/home/%s:/bin/bash'
                       % (username, unixid, unixid, username))
     passwd_file.close()
-
-def make_user_db(throw_on_error = True, **kwargs):
-    """Creates a user's entry in the database, filling in all the fields.
-    All arguments must be keyword args. They are the fields in the table.
-    However, instead of supplying a "passhash", you must supply a
-    "password" argument, which will be hashed internally.
-    Also do not supply a state. All users are created in the "no_agreement"
-    state.
-    Also pulls the user's subjects using the configured subject pulldown
-    module, and adds enrolments to the DB.
-    Throws an exception if the user already exists.
-    """
-    dbconn = ivle.db.DB()
-    dbconn.create_user(**kwargs)
-    dbconn.close()
-
-    if kwargs['password']:
-        if os.path.exists(ivle.conf.svn_auth_local):
-            create = ""
-        else:
-            create = "c"
-        res = os.system("htpasswd -%smb %s %s %s" % (create,
-                                                     ivle.conf.svn_auth_local,
-                                                     kwargs['login'],
-                                                     kwargs['password']))
-        if res != 0 and throw_on_error:
-            raise Exception("Unable to create local-auth for %s" % kwargs['login'])
-
-    # Make sure the file is owned by the web server
-    if create == "c":
-        chown_to_webserver(ivle.conf.svn_auth_local)
-
-    # Pulldown subjects and add enrolments
-    ivle.pulldown_subj.enrol_user(kwargs['login'])
 
 def mount_jail(login):
     # This is where we'll mount to...

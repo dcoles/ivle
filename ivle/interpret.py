@@ -22,7 +22,6 @@
 # Runs a student script in a safe execution environment.
 
 from ivle import studpath
-from ivle import db
 from ivle.util import IVLEError, IVLEJailError
 import ivle.conf
 
@@ -39,24 +38,6 @@ import cgi
 
 CGI_BLOCK_SIZE = 65535
 
-uids = {}
-
-def get_uid(login):
-    """Get the unix uid corresponding to the given login name.
-       If it is not in the dictionary of uids, then consult the
-       database and retrieve an update of the user table."""
-    global uids
-    if login in uids:
-        return uids[login]
-
-    conn = db.DB()
-    res = conn.get_all('login', ['login', 'unixid'])
-    def repack(flds):
-        return (flds['login'], flds['unixid'])
-    uids = dict(map(repack,res))
-
-    return uids[login]
-
 def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     """Serves a file by interpreting it using one of IVLE's builtin
     interpreters. All interpreters are intended to run in the user's jail. The
@@ -64,7 +45,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     to the individual interpreters to create the jail.
 
     req: An IVLE request object.
-    owner: Username of the user who owns the file being served.
+    owner: The user who owns the file being served.
     jail_dir: Absolute path to the user's jail.
     filename: Absolute filename within the user's jail.
     interpreter: A function object to call.
@@ -79,11 +60,9 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
         filename_abs = os.path.join(os.sep, filename)
         filename_rel = filename
 
-    # Get the UID of the owner of the file
     # (Note: files are executed by their owners, not the logged in user.
     # This ensures users are responsible for their own programs and also
     # allows them to be executed by the public).
-    uid = get_uid(owner)
 
     # Split up req.path again, this time with respect to the jail
     (working_dir, _) = os.path.split(filename_abs)
@@ -94,7 +73,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     # (Note that paths "relative" to the jail actually begin with a '/' as
     # they are absolute in the jailspace)
 
-    return interpreter(uid, jail_dir, working_dir, filename_abs, req,
+    return interpreter(owner.unixid, jail_dir, working_dir, filename_abs, req,
                        gentle)
 
 class CGIFlags:

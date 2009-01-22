@@ -139,23 +139,32 @@
 
 import os
 import sys
-import time
+import datetime
 
 import cjson
 import pg
 
-import ivle.db
-import ivle.makeuser
+import ivle.database
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
+import ivle.pulldown_subj
 
-from ivle.auth import authenticate
-from ivle.auth.autherror import AuthError
+from ivle.rpc.decorators import require_method, require_cap
+
+from ivle.auth import AuthError, authenticate
 import urllib
 
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
+
+# List of fields returned as part of the user JSON dictionary
+# (as returned by the get_user action)
+user_fields_list = (
+    "login", "state", "unixid", "email", "nick", "fullname",
+    "rolenm", "studentid", "acct_exp", "pass_exp", "last_login",
+    "svn_pass"
+)
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
@@ -176,6 +185,7 @@ def handle(req):
         "%s is not a valid userservice action." % repr(req.path))
     func(req, fields)
 
+@require_method('POST')
 def handle_activate_me(req, fields):
     """Create the jail, svn, etc, for the currently logged in user (this is
     put in the queue for usermgt to do).
@@ -194,11 +204,7 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-    db = ivle.db.DB()
     try:
-        if req.method != "POST":
-            req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to activate_me.")
         try:
             declaration = fields.getfirst('declaration')
         except AttributeError:
@@ -211,22 +217,19 @@ def handle_activate_me(req, fields):
         # Make sure the user's status is "no_agreement", and set status to
         # pending, within the one transaction. This ensures we only do this
         # one time.
-        db.start_transaction()
         try:
-
-            user_details = db.get_user(req.user.login)
             # Check that the user's status is "no_agreement".
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
-            if user_details.state != "no_agreement":
+            if req.user.state != "no_agreement":
                 req.throw_error(req.HTTP_BAD_REQUEST,
                 "You have already agreed to the terms.")
             # Write state "pending" to ensure we don't try this again
-            db.update_user(req.user.login, state="pending")
+            req.user.state = u"pending"
         except:
-            db.rollback()
+            req.store.rollback()
             raise
-        db.commit()
+        req.store.commit()
 
         # Get the arguments for usermgt.activate_user from the session
         # (The user must have already logged in to use this app)
@@ -234,6 +237,9 @@ def handle_activate_me(req, fields):
             "login": req.user.login,
         }
         msg = {'activate_user': args}
+
+        # Release our lock on the db so usrmgt can write
+        req.store.rollback()
 
         # Try and contact the usrmgt server
         try:
@@ -249,23 +255,18 @@ def handle_activate_me(req, fields):
             status = 'failure'
         
         if status == 'okay':
-            req.user.state = "enabled"
+            req.user.state = u"enabled"
         else:
             # Reset the user back to no agreement
-            req.user.state = "no_agreement"
-            db.update_user(req.user.login, state="no_agreement")
-
-
-        # Update the users state
-        session = req.get_session()
-        session['user'] = req.user
-        session.save()
+            req.user.state = u"no_agreement"
+            req.store.commit()
 
         # Write the response
         req.content_type = "text/plain"
         req.write(cjson.encode(response))
-    finally:
-        db.close()
+    except:
+        req.store.rollback()
+        raise
 
 create_user_fields_required = [
     'login', 'fullname', 'rolenm'
@@ -273,6 +274,9 @@ create_user_fields_required = [
 create_user_fields_optional = [
     'password', 'nick', 'email', 'studentid'
 ]
+
+@require_method('POST')
+@require_cap(caps.CAP_UPDATEUSER)
 def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
     This does not create the user's jail, just an entry in the database which
@@ -299,14 +303,6 @@ def handle_create_user(req, fields):
                       STRING OPTIONAL
        Return Value: the uid associated with the user. INT
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_UPDATEUSER
-    if not req.user.hasCap(caps.CAP_UPDATEUSER):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to create users.")
-
     # Make a dict of fields to create
     create = {}
     for f in create_user_fields_required:
@@ -323,8 +319,11 @@ def handle_create_user(req, fields):
         else:
             pass
 
-    ivle.makeuser.make_user_db(**create)
-    user = ivle.db.DB().get_user(create["login"])
+    user = ivle.database.User(**create)
+    req.store.add(user)
+    ivle.pulldown_subj.enrol_user(req.store, user)
+    req.store.commit()
+
     req.content_type = "text/plain"
     req.write(str(user.unixid))
 
@@ -335,15 +334,13 @@ update_user_fields_admin = [
     'password', 'nick', 'email', 'rolenm', 'unixid', 'fullname',
     'studentid'
 ]
+
+@require_method('POST')
 def handle_update_user(req, fields):
     """Update a user's account details.
     This can be done in a limited form by any user, on their own account,
     or with full powers by a user with CAP_UPDATEUSER on any account.
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-        "Only POST requests are valid methods to update_user.")
-
     # Only give full powers if this user has CAP_UPDATEUSER
     fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
     # List of fields that may be changed
@@ -362,42 +359,32 @@ def handle_update_user(req, fields):
         # If login not specified, update yourself
         login = req.user.login
 
+    user = ivle.database.User.get_by_login(req.store, login)
+
     # Make a dict of fields to update
-    update = {}
     oldpassword = fields.getfirst('oldpass')
-    
     for f in fieldlist:
         val = fields.getfirst(f)
         if val is not None:
-            update[f] = val
+            # Note: May be rolled back if auth check below fails
+            setattr(user, f, val.value.decode('utf-8'))
         else:
             pass
 
-    if 'password' in update:
+    # If the user is trying to set a new password, check that they have
+    # entered old password and it authenticates.
+    if fields.getfirst('password') is not None:
         try:
             authenticate.authenticate(login, oldpassword)
         except AuthError:
             req.headers_out['X-IVLE-Action-Error'] = \
                 urllib.quote("Old password incorrect.")
             req.status = req.HTTP_BAD_REQUEST
+            # Cancel all the changes made to user (including setting new pass)
+            req.store.rollback()
             return
 
-    update['login'] = login
-
-    db = ivle.db.DB()
-    db.update_user(**update)
-
-    # Re-read the user's details from the DB so we can update their session
-    # XXX potentially-unsafe session write
-    if login == req.user.login:
-        user = db.get_user(login)
-        session = req.get_session()
-        session.lock()
-        session['user'] = user
-        session.save()
-        session.unlock()
-
-    db.close()
+    req.store.commit()
 
     req.content_type = "text/plain"
     req.write('')
@@ -424,33 +411,13 @@ def handle_get_user(req, fields):
         login = req.user.login
 
     # Just talk direct to the DB
-    db = ivle.db.DB()
-    user = db.get_user(login)
-    db.close()
-    user = dict(user)
-    if 'role' in user:
-        user['rolenm'] = str(user['role'])
-        del user['role']
-    try:
-        del user['svn_pass']
-    except KeyError:
-        pass
+    user = ivle.database.User.get_by_login(req.store, login)
+    user = ivle.util.object_to_dict(user_fields_list, user)
     # Convert time stamps to nice strings
-    try:
-        if user['pass_exp'] is not None:
-            user['pass_exp'] = str(user['pass_exp'])
-    except KeyError:
-        pass
-    try:
-        if user['acct_exp'] is not None:
-            user['acct_exp'] = str(user['acct_exp'])
-    except KeyError:
-        pass
-    try:
-        if user['last_login'] is not None:
-            user['last_login'] = str(user['last_login'])
-    except KeyError:
-        pass
+    for k in 'pass_exp', 'acct_exp', 'last_login':
+        if user[k] is not None:
+            user[k] = unicode(user[k])
+
     response = cjson.encode(user)
     req.content_type = "text/plain"
     req.write(response)
@@ -466,24 +433,32 @@ def handle_get_enrolments(req, fields):
     ##fullpowers = req.user.hasCap(caps.CAP_GETUSER)
 
     try:
-        login = fields.getfirst('login')
-        if login is None:
+        user = ivle.database.User.get_by_login(req.store,
+                    fields.getfirst('login'))
+        if user is None:
             raise AttributeError()
-        if not fullpowers and login != req.user.login:
+        if not fullpowers and user != req.user:
             # Not allowed to edit other users
             req.throw_error(req.HTTP_FORBIDDEN,
             "You do not have permission to see another user's subjects.")
     except AttributeError:
         # If login not specified, update yourself
-        login = req.user.login
+        user = req.user
 
-    # Just talk direct to the DB
-    db = ivle.db.DB()
-    enrolments = db.get_enrolment(login)
-    for e in enrolments:
-        e['groups'] = db.get_enrolment_groups(login, e['offeringid'])
-    db.close()
-    response = cjson.encode(enrolments)
+    dict_enrolments = []
+    for e in user.active_enrolments:
+        dict_enrolments.append({
+            'offeringid':      e.offering.id,
+            'subj_code':       e.offering.subject.code,
+            'subj_name':       e.offering.subject.name,
+            'subj_short_name': e.offering.subject.short_name,
+            'url':             e.offering.subject.url,
+            'year':            e.offering.semester.year,
+            'semester':        e.offering.semester.semester,
+            'groups':          [{'name': group.name,
+                                 'nick': group.nick} for group in e.groups]
+        })
+    response = cjson.encode(dict_enrolments)
     req.content_type = "text/plain"
     req.write(response)
 
@@ -503,14 +478,16 @@ def handle_get_active_offerings(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "subjectid must be a integer")
-    
-    db = ivle.db.DB()
-    try:
-        offerings = db.get_offering_semesters(subjectid)
-    finally:
-        db.close()
 
-    response = cjson.encode([o for o in offerings if o['active']])
+    subject = req.store.get(ivle.database.Subject, subjectid)
+
+    response = cjson.encode([{'offeringid': offering.id,
+                              'subj_name': offering.subject.name,
+                              'year': offering.semester.year,
+                              'semester': offering.semester.semester,
+                              'active': offering.semester.active
+                             } for offering in subject.offerings
+                                    if offering.semester.active])
     req.content_type = "text/plain"
     req.write(response)
 
@@ -530,116 +507,27 @@ def handle_get_project_groups(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be a integer")
-    
-    db = ivle.db.DB()
+
+    offering = req.store.get(ivle.database.Offering, offeringid)
+
+    dict_projectsets = []
     try:
-        projectsets = db.get_projectsets_by_offering(offeringid)
-        for p in projectsets:
-            p['groups'] = db.get_groups_by_projectset(p['projectsetid'])
+        for p in offering.project_sets:
+            dict_projectsets.append({
+                'projectsetid': p.id,
+                'max_students_per_group': p.max_students_per_group,
+                'groups': [{'groupid': g.id,
+                            'groupnm': g.name,
+                            'nick': g.nick} for g in p.project_groups]
+            })
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
 
-    response = cjson.encode(projectsets)
+    response = cjson.encode(dict_projectsets)
     req.write(response)
 
-def handle_create_project_set(req, fields):
-    """Required cap: CAP_MANAGEPROJECTS
-    Creates a project set for a offering - returns the projectsetid
-    Required:
-        offeringid, max_students_per_group
-    """
-    
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_MANAGEPROJECTS
-    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage projects.")
-    # Get required fields
-    offeringid = fields.getfirst('offeringid')
-    max_students_per_group = fields.getfirst('max_students_per_group')
-    if offeringid is None or max_students_per_group is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: offeringid, max_students_per_group")
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    dbquery = db.return_insert(
-        {
-            'offeringid': offeringid,
-            'max_students_per_group': max_students_per_group,
-        },
-        "project_set",
-        frozenset(["offeringid", "max_students_per_group"]),
-        ["projectsetid"],
-    )
-    db.close()
-    
-    response = cjson.encode(dbquery.dictresult()[0])
-
-    req.content_type = "text/plain"
-    req.write(response)
-
-def handle_create_project(req, fields):
-    """Required cap: CAP_MANAGEPROJECTS
-    Creates a project in a specific project set
-    Required:
-        projectsetid
-    Optional:
-        synopsis, url, deadline
-    Returns:
-        projectid
-    """
-    
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user has CAP_MANAGEPROJECTS
-    if not req.user.hasCap(caps.CAP_MANAGEPROJECTS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage projects.")
-    # Get required fields
-    projectsetid = fields.getfirst('projectsetid')
-    if projectsetid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: projectsetid")
-    # Get optional fields
-    synopsis = fields.getfirst('synopsis')
-    url = fields.getfirst('url')
-    deadline = fields.getfirst('deadline')
-    if deadline is not None:
-        try:
-            deadline = util.parse_iso8601(deadline).timetuple()
-        except ValueError, e:
-            req.throw_error(req.HTTP_BAD_REQUEST, e.message)
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    try:
-        dbquery = db.return_insert(
-            {
-                'projectsetid': projectsetid,
-                'synopsis': synopsis,
-                'url': url,
-                'deadline': deadline,
-            },
-            "project", # table
-            frozenset(["projectsetid", "synopsis", "url", "deadline"]),
-            ["projectid"], # returns
-        )
-    except Exception, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
-    
-    response = cjson.encode(dbquery.dictresult()[0])
-
-    req.content_type = "text/plain"
-    req.write(response)
-
+@require_method('POST')
+@require_cap(caps.CAP_MANAGEGROUPS)
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
     Creates a project group in a specific project set
@@ -650,69 +538,44 @@ def handle_create_group(req, fields):
     Returns:
         groupid
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this is allowed to manage groups
-    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage groups.")
     # Get required fields
-    projectsetid = fields.getfirst('projectsetid')
-    groupnm = fields.getfirst('groupnm')
+    projectsetid = fields.getfirst('projectsetid').value
+    groupnm = fields.getfirst('groupnm').value
     if projectsetid is None or groupnm is None:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: projectsetid, groupnm")
+    groupnm = unicode(groupnm)
     try:
         projectsetid = int(projectsetid)
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "projectsetid must be an int")
     # Get optional fields
-    nick = fields.getfirst('nick')
-
-    # Talk to the DB
-    db = ivle.db.DB()
-    # Other fields
-    createdby = db.get_user_loginid(req.user.login)
-    epoch = time.localtime()
+    nick = fields.getfirst('nick').value
+    if nick is not None:
+        nick = unicode(nick)
 
     # Begin transaction since things can go wrong
-    db.start_transaction()
     try:
-        dbquery = db.return_insert(
-            {
-                'groupnm': groupnm,
-                'projectsetid': projectsetid,
-                'nick': nick,
-                'createdby': createdby,
-                'epoch': epoch,
-            },
-            "project_group", # table
-            frozenset(["groupnm", "projectsetid", "nick", "createdby",
-                "epoch"]), # fields
-            ["groupid"], # returns
-        )
- 
-        singlerow = dbquery.dictresult()[0]
-        groupid = singlerow['groupid']
+        group = ivle.database.ProjectGroup(name=groupnm,
+                                           project_set_id=projectsetid,
+                                           nick=nick,
+                                           created_by=req.user,
+                                           epoch=datetime.datetime.now())
+        req.store.add(group)
 
-        # Create the groups repository
-        # Get the arguments for usermgt.activate_user from the session
-        # (The user must have already logged in to use this app)
-    
-        # Find the rest of the parameters we need
-        offeringinfo = db.get_offering_info(projectsetid)
-                
-        subj_short_name = offeringinfo['subj_short_name']
-        year = offeringinfo['year']
-        semester = offeringinfo['semester']
+        # Create the group repository
+        # Yes, this is ugly, and it would be nice to just pass in the groupid,
+        # but the object isn't visible to the extra transaction in
+        # usrmgt-server until we commit, which we only do once the repo is
+        # created.
+        offering = group.project_set.offering
 
         args = {
-            "subj_short_name": subj_short_name,
-            "year": year,
-            "semester": semester,
-            "groupnm": groupnm,
+            "subj_short_name": offering.subject.short_name,
+            "year": offering.semester.year,
+            "semester": offering.semester.semester,
+            "groupnm": group.name,
         }
         msg = {'create_group_repository': args}
 
@@ -728,18 +591,13 @@ def handle_create_group(req, fields):
                 "Failure creating repository: %s"%str(usrmgt))
     
         # Everything went OK. Lock it in
-        db.commit()
+        req.store.commit()
 
     except Exception, e:
-        db.rollback()
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
-
-    response = cjson.encode(singlerow)
 
     req.content_type = "text/plain"
-    req.write(response)
+    req.write('')
 
 def handle_get_group_membership(req, fields):
     """ Required cap: None
@@ -759,19 +617,27 @@ def handle_get_group_membership(req, fields):
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "groupid must be an int")
+    group = req.store.get(ivle.database.ProjectGroup, groupid)
+
     try:
         offeringid = int(offeringid)
     except:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "offeringid must be an int")
+    offering = req.store.get(ivle.database.Offering, offeringid)
 
-    db = ivle.db.DB()
-    try:
-        offeringmembers = db.get_offering_members(offeringid)
-        groupmembers = db.get_projectgroup_members(groupid)
-    finally:
-        db.close()
-    
+
+    offeringmembers = [{'login': user.login,
+                        'fullname': user.fullname
+                       } for user in offering.members.order_by(
+                            ivle.database.User.login)
+                      ]
+    groupmembers = [{'login': user.login,
+                        'fullname': user.fullname
+                       } for user in group.members.order_by(
+                            ivle.database.User.login)
+                      ]
+
     # Make sure we don't include members in both lists
     for member in groupmembers:
         if member in offeringmembers:
@@ -783,46 +649,30 @@ def handle_get_group_membership(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
+@require_method('POST')
+@require_cap(caps.CAP_MANAGEGROUPS)
 def handle_assign_group(req, fields):
     """ Required cap: CAP_MANAGEGROUPS
     Assigns a user to a project group
     Required:
         login, groupid
     """
-    if req.method != "POST":
-        req.throw_error(req.HTTP_METHOD_NOT_ALLOWED,
-            "Only POST requests are valid methods to create_user.")
-    # Check if this user is allowed to manage groups
-    if not req.user.hasCap(caps.CAP_MANAGEGROUPS):
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You do not have permission to manage groups.")
     # Get required fields
     login = fields.getfirst('login')
     groupid = fields.getfirst('groupid')
     if login is None or groupid is None:
         req.throw_error(req.HTTP_BAD_REQUEST,
             "Required: login, groupid")
-    groupid = int(groupid)
 
-    # Talk to the DB
-    db = ivle.db.DB()
-    try:
-        loginid = db.get_user_loginid(login)
-    except ivle.db.DBException, e:
-        req.throw_error(req.HTTP_BAD_REQUEST, repr(e))
+    group = req.store.get(ivle.database.ProjectGroup, int(groupid))
+    user = ivle.database.User.get_by_login(req.store, login)
 
-    # Add assignment to database
-    # We can't use a transaction here, as usrmgt-server needs to see the
-    # changes!
+    # Add membership to database
+    # We can't keep a transaction open until the end here, as usrmgt-server
+    # needs to see the changes!
     try:
-        dbquery = db.insert(
-            {
-                'loginid': loginid,
-                'groupid': groupid,
-            },
-            "group_member", # table
-            frozenset(["loginid", "groupid"]), # fields
-        )
+        group.members.add(user)
+        req.store.commit()
 
         # Rebuild the svn config file
         # Contact the usrmgt server
@@ -838,8 +688,6 @@ def handle_assign_group(req, fields):
                     "Failure creating repository: %s"%str(usrmgt))
     except Exception, e:
         req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
-    finally:
-        db.close()
 
     return(cjson.encode({'response': 'okay'}))
 
@@ -854,8 +702,6 @@ actions_map = {
     "get_active_offerings": handle_get_active_offerings,
     "get_project_groups": handle_get_project_groups,
     "get_group_membership": handle_get_group_membership,
-    "create_project_set": handle_create_project_set,
-    "create_project": handle_create_project,
     "create_group": handle_create_group,
     "assign_group": handle_assign_group,
 }

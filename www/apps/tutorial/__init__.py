@@ -30,7 +30,7 @@
 
 import os
 import os.path
-import time
+from datetime import datetime
 import cgi
 import urllib
 import re
@@ -41,7 +41,8 @@ import cjson
 
 from ivle import util
 import ivle.conf
-import ivle.db
+import ivle.database
+import ivle.worksheet
 
 from rst import rst
 
@@ -150,13 +151,15 @@ def handle_toplevel_menu(req):
   Please select a subject from the list below to select a worksheet
   for that subject.</p>\n""")
 
-    (enrolled_subjects, unenrolled_subjects) = \
-              ivle.db.DB().get_subjects_status(req.user.login)
+    enrolled_subjects = req.user.subjects
+    unenrolled_subjects = [subject for subject in
+                           req.store.find(ivle.database.Subject)
+                           if subject not in enrolled_subjects]
 
     def print_subject(subject):
         req.write('  <li><a href="%s">%s</a></li>\n'
-            % (urllib.quote(subject['subj_code']) + '/',
-               cgi.escape(subject['subj_name'])))
+            % (urllib.quote(subject.code) + '/',
+               cgi.escape(subject.name)))
 
     req.write("<h2>Subjects</h2>\n<ul>\n")
     for subject in enrolled_subjects:
@@ -213,77 +216,78 @@ def handle_subject_menu(req, subject):
                 worksheetdom.getAttribute("assessable") == "true")
             worksheets.append(worksheet)
 
-    db = ivle.db.DB()
-    try:
-        # Now all the errors are out the way, we can begin writing
-        req.title = "Tutorial - %s" % subject
-        req.write_html_head_foot = True
-        req.write('<div id="ivle_padding">\n')
-        req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
-        req.write('<h2>Worksheets</h2>\n<ul id="tutorial-toc">\n')
-        # As we go, calculate the total score for this subject
-        # (Assessable worksheets only, mandatory problems only)
-        problems_done = 0
-        problems_total = 0
-        for worksheet in worksheets:
-            req.write('  <li><a href="%s">%s</a>'
-                % (urllib.quote(worksheet.id), cgi.escape(worksheet.name)))
-            try:
-                # If the assessable status of this worksheet has changed,
-                # update the DB
-                # (Note: This fails the try block if the worksheet is not yet
-                # in the DB, which is fine. The author should visit the
-                # worksheet page to get it into the DB).
-                if (db.worksheet_is_assessable(subject, worksheet.id) !=
-                    worksheet.assessable):
-                    db.set_worksheet_assessable(subject, worksheet.id,
-                        assessable=worksheet.assessable)
-                if worksheet.assessable:
-                    mand_done, mand_total, opt_done, opt_total = (
-                        db.calculate_score_worksheet(req.user.login, subject,
-                            worksheet.id))
-                    if opt_total > 0:
-                        optional_message = " (excluding optional exercises)"
-                    else:
-                        optional_message = ""
-                    if mand_done >= mand_total:
-                        complete_class = "complete"
-                    elif mand_done > 0:
-                        complete_class = "semicomplete"
-                    else:
-                        complete_class = "incomplete"
-                    problems_done += mand_done
-                    problems_total += mand_total
-                    req.write('\n    <ul><li class="%s">'
-                            'Completed %d/%d%s</li></ul>\n  '
-                            % (complete_class, mand_done, mand_total,
-                                optional_message))
-            except ivle.db.DBException:
-                # Worksheet is probably not in database yet
-                pass
-            req.write('</li>\n')
-        req.write("</ul>\n")
-        if problems_total > 0:
-            if problems_done >= problems_total:
-                complete_class = "complete"
-            elif problems_done > 0:
-                complete_class = "semicomplete"
-            else:
-                complete_class = "incomplete"
-            problems_pct = (100 * problems_done) / problems_total       # int
-            req.write('<ul><li class="%s">Total exercises completed: %d/%d '
-                        '(%d%%)</li></ul>\n'
-                % (complete_class, problems_done, problems_total,
-                    problems_pct))
-            # XXX Marks calculation (should be abstracted out of here!)
-            # percent / 16, rounded down, with a maximum mark of 5
-            max_mark = 5
-            mark = min(problems_pct / 16, max_mark)
-            req.write('<p style="font-weight: bold">Worksheet mark: %d/%d'
-                        '</p>\n' % (mark, max_mark))
-        req.write("</div>\n")   # tutorialbody
-    finally:
-        db.close()
+    # Now all the errors are out the way, we can begin writing
+    req.title = "Tutorial - %s" % subject
+    req.write_html_head_foot = True
+    req.write('<div id="ivle_padding">\n')
+    req.write("<h1>IVLE Tutorials - %s</h1>\n" % cgi.escape(subject))
+    req.write('<h2>Worksheets</h2>\n<ul id="tutorial-toc">\n')
+    # As we go, calculate the total score for this subject
+    # (Assessable worksheets only, mandatory problems only)
+    problems_done = 0
+    problems_total = 0
+    for worksheet_from_xml in worksheets:
+        worksheet = ivle.database.Worksheet.get_by_name(req.store,
+            subject, worksheet_from_xml.id)
+        # If worksheet is not in database yet, we'll simply not display
+        # data about it yet (it should be added as soon as anyone visits
+        # the worksheet itself).
+        req.write('  <li><a href="%s">%s</a>'
+            % (urllib.quote(worksheet_from_xml.id),
+                cgi.escape(worksheet_from_xml.name)))
+        if worksheet is not None:
+            # If the assessable status of this worksheet has changed,
+            # update the DB
+            # (Note: This fails the try block if the worksheet is not yet
+            # in the DB, which is fine. The author should visit the
+            # worksheet page to get it into the DB).
+            if worksheet.assessable != worksheet_from_xml.assessable:
+                # XXX If statement to avoid unnecessary database writes.
+                # Is this necessary, or will Storm check for us?
+                worksheet.assessable = worksheet_from_xml.assessable
+                req.store.commit()
+            if worksheet.assessable:
+                # Calculate the user's score for this worksheet
+                mand_done, mand_total, opt_done, opt_total = (
+                    ivle.worksheet.calculate_score(req.store, req.user,
+                        worksheet))
+                if opt_total > 0:
+                    optional_message = " (excluding optional exercises)"
+                else:
+                    optional_message = ""
+                if mand_done >= mand_total:
+                    complete_class = "complete"
+                elif mand_done > 0:
+                    complete_class = "semicomplete"
+                else:
+                    complete_class = "incomplete"
+                problems_done += mand_done
+                problems_total += mand_total
+                req.write('\n    <ul><li class="%s">'
+                        'Completed %d/%d%s</li></ul>\n  '
+                        % (complete_class, mand_done, mand_total,
+                            optional_message))
+        req.write('</li>\n')
+    req.write("</ul>\n")
+    if problems_total > 0:
+        if problems_done >= problems_total:
+            complete_class = "complete"
+        elif problems_done > 0:
+            complete_class = "semicomplete"
+        else:
+            complete_class = "incomplete"
+        problems_pct = (100 * problems_done) / problems_total       # int
+        req.write('<ul><li class="%s">Total exercises completed: %d/%d '
+                    '(%d%%)</li></ul>\n'
+            % (complete_class, problems_done, problems_total,
+                problems_pct))
+        # XXX Marks calculation (should be abstracted out of here!)
+        # percent / 16, rounded down, with a maximum mark of 5
+        max_mark = 5
+        mark = min(problems_pct / 16, max_mark)
+        req.write('<p style="font-weight: bold">Worksheet mark: %d/%d'
+                    '</p>\n' % (mark, max_mark))
+    req.write("</div>\n")   # tutorialbody
 
 def handle_worksheet(req, subject, worksheet):
     # Subject and worksheet names must be valid identifiers
@@ -301,7 +305,7 @@ def handle_worksheet(req, subject, worksheet):
     except:
         req.throw_error(req.HTTP_NOT_FOUND,
             "Worksheet file not found.")
-    worksheetmtime = time.localtime(worksheetmtime)
+    worksheetmtime = datetime.fromtimestamp(worksheetmtime)
 
     worksheetdom = minidom.parse(worksheetfile)
     worksheetfile.close()
@@ -323,7 +327,8 @@ def handle_worksheet(req, subject, worksheet):
     # If the database is missing this worksheet or out of date, update its
     # details about this worksheet
     # Note: Do NOT set assessable (this is done at the subject level).
-    update_db_worksheet(subject, worksheet, worksheetmtime, exercise_list)
+    update_db_worksheet(req.store, subject, worksheet, worksheetmtime,
+        exercise_list)
 
     # Write each element
     exerciseid = 0
@@ -352,37 +357,35 @@ def present_table_of_contents(req, node, exerciseid):
 <h2>Worksheet Contents</h2>
 <ul>
 """)
-    db = ivle.db.DB()
-    try:
-        for tag, xml in find_all_nodes(req, node):
-            if tag == "ex":
-                # Exercise node
-                # Fragment ID is an accumulating exerciseid
-                # (The same algorithm is employed when presenting exercises)
-                fragment_id = "exercise%d" % exerciseid
-                exerciseid += 1
-                exercisesrc = xml.getAttribute("src")
-                # Optionality: Defaults to False
-                exerciseoptional = xml.getAttribute("optional") == "true"
-                # Record the name and optionality for returning in the list
-                exercise_list.append((exercisesrc, exerciseoptional))
-                # TODO: Get proper exercise title
-                title = exercisesrc
-                # Get the completion status of this exercise
-                complete, _ = db.get_problem_status(req.user.login,
-                    exercisesrc)
-                req.write('  <li class="%s" id="toc_li_%s"><a href="#%s">%s'
-                    '</a></li>\n'
-                    % ("complete" if complete else "incomplete",
-                        fragment_id, fragment_id, cgi.escape(title)))
-            else:
-                # Heading node
-                fragment_id = getID(xml)
-                title = getTextData(xml)
-                req.write('  <li><a href="#%s">%s</a></li>\n'
-                    % (fragment_id, cgi.escape(title)))
-    finally:
-        db.close()
+    for tag, xml in find_all_nodes(req, node):
+        if tag == "ex":
+            # Exercise node
+            # Fragment ID is an accumulating exerciseid
+            # (The same algorithm is employed when presenting exercises)
+            fragment_id = "exercise%d" % exerciseid
+            exerciseid += 1
+            exercisesrc = xml.getAttribute("src")
+            # Optionality: Defaults to False
+            exerciseoptional = xml.getAttribute("optional") == "true"
+            # Record the name and optionality for returning in the list
+            exercise_list.append((exercisesrc, exerciseoptional))
+            # TODO: Get proper exercise title
+            title = exercisesrc
+            # Get the completion status of this exercise
+            exercise = ivle.database.Exercise.get_by_name(req.store,
+                            exercisesrc)
+            complete, _ = ivle.worksheet.get_exercise_status(req.store,
+                            req.user, exercise)
+            req.write('  <li class="%s" id="toc_li_%s"><a href="#%s">%s'
+                '</a></li>\n'
+                % ("complete" if complete else "incomplete",
+                    fragment_id, fragment_id, cgi.escape(title)))
+        else:
+            # Heading node
+            fragment_id = getID(xml)
+            title = getTextData(xml)
+            req.write('  <li><a href="#%s">%s</a></li>\n'
+                % (fragment_id, cgi.escape(title)))
     req.write('</ul>\n</div>\n')
     return exercise_list
 
@@ -482,6 +485,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     """
     req.write('<div class="exercise" id="exercise%d">\n'
         % exerciseid)
+    exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
     exercisefile = util.open_exercise_file(exercisesrc)
     if exercisefile is None:
         req.write("<p><b>Server Error</b>: "
@@ -519,20 +523,13 @@ def present_exercise(req, exercisesrc, exerciseid):
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
-    saved_text = None
-    db = ivle.db.DB()
-    try:
-        saved_text = db.get_problem_stored_text(login=req.user.login,
-            exercisename=exercisesrc)
-        # Also get the number of attempts taken and whether this is complete.
-        complete, attempts = db.get_problem_status(login=req.user.login,
-            exercisename=exercisesrc)
-    finally:
-        db.close()
+    saved_text = ivle.worksheet.get_exercise_stored_text(req.store,
+        req.user, exercise)
+    # Also get the number of attempts taken and whether this is complete.
+    complete, attempts = ivle.worksheet.get_exercise_status(req.store,
+        req.user, exercise)
     if saved_text is not None:
-        # Important: We got the string from the DB encoded in UTF-8
-        # Make it a unicode string.
-        exercisepartial = saved_text.decode('utf-8')
+        exercisepartial = saved_text.text
 
     # Print this exercise out to HTML 
     req.write("<p><b>Exercise:</b> %s</p>\n" % cgi.escape(exercisename))
@@ -610,12 +607,12 @@ onclick="close_previous(&quot;exercise%d&quot;)">Close attempts</a></p>
 """ % (exerciseid, filename, exerciseid, exerciseid, filename, rows))
     req.write("</div>\n")
 
-def update_db_worksheet(subject, worksheet, file_mtime,
+def update_db_worksheet(store, subject, worksheetname, file_mtime,
     exercise_list=None, assessable=None):
     """
     Determines if the database is missing this worksheet or out of date,
     and inserts or updates its details about the worksheet.
-    file_mtime is a time.struct_time with the modification time of the XML
+    file_mtime is a datetime.datetime with the modification time of the XML
     file. The database will not be updated unless worksheetmtime is newer than
     the mtime in the database.
     exercise_list is a list of (filename, optional) pairs as returned by
@@ -625,10 +622,37 @@ def update_db_worksheet(subject, worksheet, file_mtime,
     the existing data. If the worksheet does not yet exist, and assessable
     is omitted, it defaults to False.
     """
-    db = ivle.db.DB()
-    try:
-        db_mtime = db.get_worksheet_mtime(subject, worksheet)
-        if db_mtime is None or file_mtime > db_mtime:
-            db.create_worksheet(subject, worksheet, exercise_list, assessable)
-    finally:
-        db.close()
+    worksheet = ivle.database.Worksheet.get_by_name(store, subject,
+                                                    worksheetname)
+
+    updated_database = False
+    if worksheet is None:
+        # If assessable is not supplied, default to False.
+        if assessable is None:
+            assessable = False
+        # Create a new Worksheet
+        worksheet = ivle.database.Worksheet(subject=subject,
+            name=worksheetname, assessable=assessable, mtime=datetime.now())
+        store.add(worksheet)
+        updated_database = True
+    else:
+        if file_mtime > worksheet.mtime:
+            # File on disk is newer than database. Need to update.
+            worksheet.mtime = datetime.now()
+            if exercise_list is not None:
+                # exercise_list is supplied, so delete any existing problems
+                worksheet.remove_all_exercises(store)
+            if assessable is not None:
+                worksheet.assessable = assessable
+            updated_database = True
+
+    if updated_database and exercise_list is not None:
+        # Insert each exercise into the worksheet
+        for exercise_name, optional in exercise_list:
+            # Get the Exercise from the DB
+            exercise = ivle.database.Exercise.get_by_name(store,exercise_name)
+            # Create a new binding between the worksheet and the exercise
+            worksheetexercise = ivle.database.WorksheetExercise(
+                    worksheet=worksheet, exercise=exercise, optional=optional)
+
+    store.commit()

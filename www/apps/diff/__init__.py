@@ -54,6 +54,6 @@ def handle(req):
             req.throw_redirect(os.path.join(req.uri,req.user.login));
         interp_object = ivle.interpret.interpreter_objects["cgi-python"]
         user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
-        ivle.interpret.interpret_file(req, req.user.login, user_jail_dir,
+        ivle.interpret.interpret_file(req, req.user, user_jail_dir,
             diffservice_path, interp_object)
 
