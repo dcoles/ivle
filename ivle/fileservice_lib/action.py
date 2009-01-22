@@ -135,7 +135,9 @@ import shutil
 import pysvn
 
 from ivle import (util, studpath, zip)
+from ivle.fileservice_lib.exceptions import WillNotOverwrite
 import ivle.conf
+
 
 def get_login(_realm, existing_login, _may_save):
     """Callback function used by pysvn for authentication.
@@ -400,7 +402,6 @@ def action_putfiles(req, fields):
 
     Reads fields: 'path', 'data' (file upload, multiple), 'unpack'
     """
-
     # Important: Data is "None" if the file submitted is empty.
     path = fields.getfirst('path')
     data = fields['data']
@@ -419,6 +420,13 @@ def action_putfiles(req, fields):
     for datum in data:
         # Each of the uploaded files
         filepath = os.path.join(path, datum.filename)
+        (_, _, filepath_local) = studpath.url_to_jailpaths(filepath)
+        if os.path.isdir(filepath_local):
+            raise ActionError("A directory already exists "
+                    + "with that name")
+        else:
+            if os.path.exists(filepath_local):
+                raise ActionError("A file already exists with that name")
         filedata = datum.file
 
         if unpack and datum.filename.lower().endswith(".zip"):
@@ -433,6 +441,8 @@ def action_putfiles(req, fields):
                 zip.unzip(abspath, filedata)
             except (OSError, IOError):
                 goterror = True
+            except WillNotOverwrite, e:
+                raise ActionError("File '" + e.filename + "' already exists.")
         else:
             # Not a zip file
             (_, _, filepath_local) = studpath.url_to_jailpaths(filepath)

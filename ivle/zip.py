@@ -27,6 +27,7 @@ import os.path
 import zipfile
 
 from ivle import studpath
+from ivle.fileservice_lib.exceptions import WillNotOverwrite
 
 def make_zip(basepath, paths, file):
     """Zips up a bunch of files on the student file space and writes it as
@@ -86,19 +87,24 @@ def make_zip(basepath, paths, file):
 
     zip.close()
 
-def unzip(path, file):
+def unzip(path, file, overwrite=False):
     """Unzips a zip file (or file-like object) into a path.
     Note: All files go directly into the path. To avoid having a "zip bomb"
     situation, the zip file should have a single directory in it with all the
     files.
     The path is an absolute path in the current filesystem
-    (if this code is executed inside the jail, then it's inside the jail,
-    if it's not then it's not).
+    (if this code is executed inside the jail, then it's inside the jail).
     """
     zip = zipfile.ZipFile(file, 'r')
     # First test the zip file
     if zip.testzip() is not None:
         raise OSError("ZIP: Bad zip file")
+
+    if (not overwrite):
+        for filename in zip.namelist():
+            localpath = os.path.join(path, filename)
+            if os.path.exists(localpath):
+                raise WillNotOverwrite(filename)
 
     for filename in zip.namelist():
         localpath = os.path.join(path, filename)
@@ -106,7 +112,7 @@ def unzip(path, file):
         (file_dir, _) = os.path.split(localpath)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-
+        
         if filename.endswith(os.sep):
             # Is a directory make the directory
             if not os.path.exists(localpath):
