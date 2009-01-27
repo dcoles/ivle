@@ -631,8 +631,9 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
         if assessable is None:
             assessable = False
         # Create a new Worksheet
-        worksheet = ivle.database.Worksheet(subject=subject,
-            name=worksheetname, assessable=assessable, mtime=datetime.now())
+        worksheet = ivle.database.Worksheet(subject=unicode(subject),
+            name=unicode(worksheetname), assessable=assessable,
+            mtime=datetime.now())
         store.add(worksheet)
         updated_database = True
     else:
