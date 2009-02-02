@@ -30,6 +30,10 @@ import cgi
 
 from ivle import util
 
+import genshi
+import genshi.core
+import genshi.template
+
 def insert_scripts_styles(scripts, styles, scripts_init):
     """Given 2 lists of strings: scripts and styles. These lists are lists of
     pathnames, as expected on the "scripts" and "styles" attributes of a
@@ -53,45 +57,14 @@ def present(req, windowpane=False):
     windowpane: If True, starts the console in "window pane" mode, where it
     will float over the page and have a "minimize" button.
     """
-    req.write("""<div id="console_body">
-  <div id="console_heading">Python Console
-""")
-    if windowpane:
-        req.write("""<span class="console_button minimize">
-      <a onclick="console_minimize()"
-        title="Minimize the Python console">
-        <img src="%s" /></a>
-    </span>
-""" % cgi.escape(util.make_path("media/images/interface/minimize.png")))
-    req.write("""</div>
-  <div id="console_body2">
-  <pre id="console_output" class='outputMsg'></pre>
-  <div id="console_input">
-    <div id="console_inputArea">
-    </div>
-    <label id="console_prompt">&gt;&gt;&gt; </label>
-    <input id="console_inputText"
-      type="text" size="80" onkeypress="return catch_input(event.keyCode)" />
-    <input type='button' value='Interrupt' onclick='set_interrupt();'/>
-    <input type='button' value='Clear Output' onclick='return clear_output();'/>
-    <input type='button' value='Reset' onclick='console_reset();'/>
-""")
-    if windowpane:
-        req.write("""<span class="console_button maximize">
-      <a onclick="console_maximize()"
-        title="Open up the Python console">
-        <img src="%s" /></a>
-    </span>
-""" % cgi.escape(util.make_path("media/images/interface/maximize.png")))
-    req.write("""</div>
-</div></div>
-""")
-    if windowpane:
-        req.write("""
-<!-- Console filler, provides extra vertical space to stop the console
-     covering over the bottom content -->
-<div id="console_filler"></div>
-""")
+    ctx = genshi.template.Context()
+    ctx['windowpane'] = windowpane
+    ctx['minimize_path'] = util.make_path("media/images/interface/minimize.png") 
+    ctx['maximize_path'] = util.make_path("media/images/interface/maximize.png")
+    loader = genshi.template.TemplateLoader(".", auto_reload=True)
+    tmpl = loader.load(util.make_local_path("plugins/console/template.html"))
+    #TODO: Make the dispatch render this
+    req.write(tmpl.generate(ctx).render('html'))
 
 def _append_if_absent(list, *values):
     """Appends an arbitray number of values to a list, but omits values that
