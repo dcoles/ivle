@@ -411,12 +411,14 @@ def handle_get_user(req, fields):
         login = req.user.login
 
     # Just talk direct to the DB
-    user = ivle.database.User.get_by_login(req.store, login)
-    user = ivle.util.object_to_dict(user_fields_list, user)
+    userobj = ivle.database.User.get_by_login(req.store, login)
+    user = ivle.util.object_to_dict(user_fields_list, userobj)
     # Convert time stamps to nice strings
     for k in 'pass_exp', 'acct_exp', 'last_login':
         if user[k] is not None:
             user[k] = unicode(user[k])
+
+    user['local_password'] = userobj.passhash is not None
 
     response = cjson.encode(user)
     req.content_type = "text/plain"
