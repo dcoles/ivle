@@ -260,7 +260,7 @@ def handle_subject_menu(req, ctx, subject):
         # XXX Marks calculation (should be abstracted out of here!)
         # percent / 16, rounded down, with a maximum mark of 5
         ctx['max_mark'] = 5
-        ctx['mark'] = min(problems_pct / 16, max_mark)
+        ctx['mark'] = min(ctx['problems_pct'] / 16, ctx['max_mark'])
 
 def get_worksheets(subjectfile):
     '''Given a subject stream, get all the worksheets and put them in ctx'''
