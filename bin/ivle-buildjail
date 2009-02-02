@@ -54,8 +54,8 @@ if options.recreate:
 
     # XXX: buildjail.sh should be reimplemented in Python, with its envvars
     # turned into config options.
-    if os.spawnvp(os.P_WAIT, 'buildjail.sh',
-                  ['buildjail.sh', ivle.conf.jail_system_build]) != 0:
+    if os.spawnvp(os.P_WAIT, 'setup/buildjail.sh',
+                  ['setup/buildjail.sh', ivle.conf.jail_system_build]) != 0:
         print >> sys.stderr, "Jail creation failed."
         sys.exit(1)
 
