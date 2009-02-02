@@ -22,6 +22,7 @@
 import optparse
 import os
 import sys
+import functools
 
 from setup import util
 
@@ -34,7 +35,6 @@ Copy bin/trampoline/trampoline to $target/bin.
 Copy bin/timount/timount to $target/bin.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
-Copy jail/ to jail_system directory (unless --nojail specified).
 Copy subjects/ to subjects directory (unless --nosubjects specified).
 """
 
@@ -43,31 +43,40 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
     parser.add_option("-n", "--dry",
         action="store_true", dest="dry",
         help="Print out the actions but don't do anything.")
-    parser.add_option("-J", "--nojail",
-        action="store_true", dest="nojail",
-        help="Don't copy jail/ to jail_system directory")
     parser.add_option("-S", "--nosubjects",
         action="store_true", dest="nosubjects",
         help="Don't copy subject/ to subjects directory.")
+    parser.add_option("-R", "--nosvnrevno",
+        action="store_true", dest="nosvnrevno",
+        help="Don't write out the Subversion revision to the share directory.")
+    parser.add_option("--root",
+        action="store", dest="rootdir",
+        help="Install into a different root directory.",
+        default='/')
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    return __install(options.dry, options.nojail, options.nosubjects)
+    return __install(options.dry, options.nosubjects, options.rootdir,
+                     options.nosvnrevno)
 
-def __install(dry=False,nojail=False,nosubjects=False):
+def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
     # We need to import the one in the working copy, not in the system path.
     confmodule = __import__("ivle/conf/conf")
     install_list = util.InstallList()
 
+    # We need to apply make_install_path with the rootdir to an awful lot of
+    # config variables, so make it easy:
+    mip = functools.partial(util.make_install_path, rootdir)
+
     # Pull the required varibles out of the config
-    lib_path = confmodule.lib_path
-    share_path = confmodule.share_path
-    bin_path = confmodule.bin_path
-    python_site_packages = confmodule.python_site_packages
-    jail_base = confmodule.jail_base
-    jail_system = confmodule.jail_system
-    subjects_base = confmodule.subjects_base
-    exercises_base = confmodule.exercises_base
+    lib_path = mip(confmodule.lib_path)
+    share_path = mip(confmodule.share_path)
+    bin_path = mip(confmodule.bin_path)
+    python_site_packages = mip(confmodule.python_site_packages)
+    jail_base = mip(confmodule.jail_base)
+    jail_system = mip(confmodule.jail_system)
+    subjects_base = mip(confmodule.subjects_base)
+    exercises_base = mip(confmodule.exercises_base)
 
     # Must be run as root or a dry run  
     if dry:
@@ -79,24 +88,24 @@ def __install(dry=False,nojail=False,nosubjects=False):
         return 1
 
     # Make some directories for data.
-    util.action_mkdir(confmodule.log_path, dry)
-    util.action_mkdir(confmodule.data_path, dry)
-    util.action_mkdir(confmodule.jail_base, dry)
-    util.action_mkdir(confmodule.jail_src_base, dry)
-    util.action_mkdir(confmodule.content_path, dry)
-    util.action_mkdir(confmodule.notices_path, dry)
-    util.action_mkdir(os.path.join(confmodule.data_path, 'sessions'), dry)
-    util.action_mkdir(confmodule.svn_path, dry)
-    util.action_mkdir(confmodule.svn_repo_path, dry)
-    util.action_mkdir(os.path.join(confmodule.svn_repo_path, 'users'), dry)
-    util.action_mkdir(os.path.join(confmodule.svn_repo_path, 'groups'), dry)
+    util.action_mkdir(mip(confmodule.log_path), dry)
+    util.action_mkdir(mip(confmodule.data_path), dry)
+    util.action_mkdir(mip(confmodule.jail_base), dry)
+    util.action_mkdir(mip(confmodule.jail_src_base), dry)
+    util.action_mkdir(mip(confmodule.content_path), dry)
+    util.action_mkdir(mip(confmodule.notices_path), dry)
+    util.action_mkdir(os.path.join(mip(confmodule.data_path), 'sessions'), dry)
+    util.action_mkdir(mip(confmodule.svn_path), dry)
+    util.action_mkdir(mip(confmodule.svn_repo_path), dry)
+    util.action_mkdir(os.path.join(mip(confmodule.svn_repo_path), 'users'),dry)
+    util.action_mkdir(os.path.join(mip(confmodule.svn_repo_path),'groups'),dry)
 
-    util.action_chown(confmodule.log_path, util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(confmodule.data_path, 'sessions'),
+    util.action_chown(mip(confmodule.log_path), util.wwwuid, util.wwwuid, dry)
+    util.action_chown(os.path.join(mip(confmodule.data_path), 'sessions'),
                       util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(confmodule.svn_repo_path, 'users'),
+    util.action_chown(os.path.join(mip(confmodule.svn_repo_path), 'users'),
                       util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(confmodule.svn_repo_path, 'groups'),
+    util.action_chown(os.path.join(mip(confmodule.svn_repo_path), 'groups'),
                       util.wwwuid, util.wwwuid, dry)
 
     # Create lib and copy the compiled files there
@@ -110,39 +119,32 @@ def __install(dry=False,nojail=False,nosubjects=False):
     timountpath = os.path.join(lib_path, 'timount')
     util.action_copyfile('bin/timount/timount', timountpath, dry)
 
-    # Create a services directory to put the usrmgt-server in.
-    util.action_mkdir(os.path.join(share_path, 'services'), dry)
-
+    # Copy in the services (only usrmgt-server is needed on the host, but
+    # the jail build requires the rest).
+    util.action_copylist(install_list.list_services, share_path, dry)
     usrmgtpath = os.path.join(share_path, 'services/usrmgt-server')
-    util.action_copyfile('services/usrmgt-server', usrmgtpath, dry)
     util.action_chmod_x(usrmgtpath, dry)
 
     # Copy the user-executable binaries using the list.
     util.action_copylist(install_list.list_user_binaries, bin_path, dry,
                          onlybasename=True)
 
-    # Copy the www and lib directories using the list
+    # Copy the www directory (using the list)
     util.action_copylist(install_list.list_www, share_path, dry)
-    util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
-    
-    # Make the config file private
-    # XXX Get rid of lib
-    configpath = os.path.join(python_site_packages, 'ivle/conf/conf.py')
-    util.action_make_private(configpath, dry)
 
-    # Copy the php directory
+    # Set appropriate permissions on the php directory
     forum_dir = "www/php/phpBB3"
     forum_path = os.path.join(share_path, forum_dir)
-    util.action_copytree(forum_dir, forum_path, dry)
     print "chown -R www-data:www-data %s" % forum_path
     if not dry:
         os.system("chown -R www-data:www-data %s" % forum_path)
 
-    if not nojail:
-        # Copy the local jail directory built by the build action
-        # to the jail_system directory (it will be used to help build
-        # all the students' jails).
-        util.action_copytree('jail', jail_system, dry)
+    # Copy the lib directory (using the list)
+    util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
+
+    # Make the config file private
+    configpath = os.path.join(python_site_packages, 'ivle/conf/conf.py')
+    util.action_make_private(configpath, dry)
 
     if not nosubjects:
         # Copy the subjects and exercises directories across
@@ -164,25 +166,26 @@ def __install(dry=False,nojail=False,nosubjects=False):
     except (IOError, OSError):
         pass
 
-    # Create the ivle working revision record file
-    ivle_revision_record_file = os.path.join(share_path, 'ivle-revision.txt')
-    if not dry:
-        try:
-            conf = open(ivle_revision_record_file, "w")
+    if not nosvnrevno:
+        # Create the ivle working revision record file
+        ivle_revision_file = os.path.join(share_path, 'revision.txt')
+        if not dry:
+            try:
+                conf = open(ivle_revision_file, "w")
 
-            conf.write("""# SVN revision r%s
+                conf.write("""# SVN revision r%s
 # Source tree location: %s
 # Modified files:
 """ % (util.get_svn_revision(), os.getcwd()))
 
-            conf.close()
-        except IOError, (errno, strerror):
-            print "IO error(%s): %s" % (errno, strerror)
-            sys.exit(1)
+                conf.close()
+            except IOError, (errno, strerror):
+                print "IO error(%s): %s" % (errno, strerror)
+                sys.exit(1)
 
-        os.system("svn status . >> %s" % ivle_revision_record_file)
+            os.system("svn status . >> %s" % ivle_revision_file)
 
-    print "Wrote IVLE code revision status to %s" % ivle_revision_record_file
+        print "Wrote IVLE code revision status to %s" % ivle_revision_file
 
     return 0
 

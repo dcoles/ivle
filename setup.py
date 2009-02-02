@@ -31,7 +31,6 @@ import setup.configure
 import setup.build
 import setup.install
 
-
 def main(argv=None):
     if argv is None:
         argv = sys.argv
@@ -81,7 +80,6 @@ def call_operator(operation):
             'config' : setup.configure.configure,
             'build' : setup.build.build,
             'install' : setup.install.install,
-            #'updatejails' : None,
         }[operation]
     except KeyError:
         print >>sys.stderr, (

@@ -1,5 +1,5 @@
 # IVLE - Informatics Virtual Learning Environment
-# Copyright (C) 2007-2008 The University of Melbourne
+# Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,11 +19,12 @@
 # Author: Matt Giuca, Refactored by David Coles
 # Date:   03/07/2008
 
-# setup/config.py
-# Configures IVLE with machine-specific details, most notably, various paths.
-# Either prompts the administrator for these details or accepts them as
-# command-line args.
-# Creates lib/conf/conf.py and bin/trampoline/conf.h.
+'''Configures IVLE with machine-specific details, most notably, various paths.
+Either prompts the administrator for these details or accepts them as
+command-line args.
+
+Creates ivle/conf/conf.py and bin/trampoline/trampoline/conf.h.
+'''
 
 import optparse
 import getopt
@@ -220,14 +221,6 @@ config_options.append(ConfigOption("usrmgt_magic", None,
 # The password for the usrmgt-server.""", ask=False))
 
 def configure(args):
-    usage = """usage: %prog config [options]
-Creates lib/conf/conf.py (and a few other config files).
-Interactively asks questions to set this up."""
-
-    # Parse arguments
-    parser = optparse.OptionParser(usage)
-    (options, args) = parser.parse_args(args)
-
     # Call the real function
     return __configure(args)
 
@@ -256,7 +249,6 @@ def __configure(args):
 
     # the files that will be created/overwritten
     conffile = os.path.join(cwd, "ivle/conf/conf.py")
-    jailconffile = os.path.join(cwd, "ivle/conf/jailconf.py")
     conf_hfile = os.path.join(cwd, "bin/trampoline/conf.h")
     phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
 
@@ -278,12 +270,11 @@ def __configure(args):
     %s
     %s
     %s
-    %s
 prompting you for details about your configuration. The file will be
 overwritten if it already exists. It will *not* install or deploy IVLE.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, jailconffile, conf_hfile, phpBBconffile)
+""" % (conffile, conf_hfile, phpBBconffile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -359,46 +350,6 @@ import sys
         sys.exit(1)
 
     print "Successfully wrote %s" % conffile
-
-    # Write conf/jailconf.py
-
-    try:
-        conf = open(jailconffile, "w")
-
-        # In the "in-jail" version of conf, we don't need MOST of the details
-        # (it would be a security risk to have them here).
-        # So we just write root_dir, and jail_base is "/".
-        # (jail_base being "/" means "jail-relative" paths are relative to "/"
-        # when inside the jail.)
-        conf.write("""# IVLE Configuration File
-# conf.py
-# Miscellaneous application settings
-# (User jail version)
-
-
-# In URL space, where in the site is IVLE located. (All URLs will be prefixed
-# with this).
-# eg. "/" or "/ivle".
-root_dir = %s
-
-# In the local file system, where are the student/user file spaces located.
-# The user jails are expected to be located immediately in subdirectories of
-# this location.
-jail_base = '/'
-
-# The hostname for serving publicly accessible pages
-public_host = %s
-
-# The URL under which the Subversion repositories are located.
-svn_addr = %s
-""" % (repr(root_dir),repr(public_host),repr(svn_addr)))
-
-        conf.close()
-    except IOError, (errno, strerror):
-        print "IO error(%s): %s" % (errno, strerror)
-        sys.exit(1)
-
-    print "Successfully wrote %s" % jailconffile
 
     # Write bin/trampoline/conf.h
 
@@ -488,7 +439,6 @@ $forum_secret = '""" + forum_secret +"""';
     print
     print "You may modify the configuration at any time by editing"
     print conffile
-    print jailconffile
     print conf_hfile
     print phpBBconffile
     print
@@ -531,6 +481,9 @@ jail_src_base = os.path.join(data_path, 'jails')
 
 # In the local file system, where the template system jail will be stored.
 jail_system = os.path.join(jail_src_base, '__base__')
+
+# In the local file system, where the template system jail will be stored.
+jail_system_build = os.path.join(jail_src_base, '__base_build__')
 
 # In the local file system, where the subject content files are located.
 # (The 'subjects' and 'exercises' directories).

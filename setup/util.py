@@ -37,7 +37,7 @@ __all__ = ['PYTHON_VERSION', 'copy_file_to_jail', 'RunError',
            'action_symlink', 'action_append', 'action_chown',
            'action_chown_setuid', 'action_chmod_x', 'action_make_private',
            'query_user', 'filter_mutate', 'get_svn_revision', 'InstallList',
-           'wwwuid']
+           'make_install_path', 'wwwuid']
 
 # Determine which Python version (2.4 or 2.5, for example) we are running,
 # and use that as the filename to the Python directory.
@@ -311,6 +311,17 @@ def build_list_py_files(dir, no_top_level=False):
             _, pylist[i] = pylist[i].split(os.sep, 1)
     return pylist
 
+def make_install_path(rootdir, path):
+    '''Combine an installation root directory and final install path.
+
+    Normalises path, and joins it to the end of rootdir, removing the leading
+    / to make it relative if required.
+    '''
+    normpath = os.path.normpath(path)
+    if normpath.startswith(os.sep):
+        normpath = normpath[1:]
+    return os.path.join(rootdir, normpath)
+
 class InstallList(object):
     # We build two separate lists, by walking www and console
     list_www = property(lambda self: build_list_py_files('www'))
@@ -331,6 +342,7 @@ class InstallList(object):
         "services/usrmgt-server",
         "services/diffservice",
         "services/svnlogservice",
+        "services/usrmgt-server", # XXX: Should be in bin/
     ]
 
     list_user_binaries = [
@@ -342,4 +354,5 @@ class InstallList(object):
         "bin/ivle-mountallusers",
         "bin/ivle-remakeuser",
         "bin/ivle-showenrolment",
+        "bin/ivle-buildjail",
     ]
