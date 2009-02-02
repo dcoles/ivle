@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+
+  <body py:strip="">
+    <div id="ivle_padding">
+      <p py:if="no_enrolments">Error: You are not currently enrolled in any subjects.</p>
+      <py:for each="enrolment in enrolments">
+        <div id="subject${enrolment.offering_id}" class="subject">
+          <h1>${enrolment.offering_name}</h1>
+          <py:for each="group in enrolment['groups']">
+            <h2>${group['nick']} (${group['name']})</h2>
+            <py:choose test="group['is_member']">
+              <py:when test="True">
+                <p>You are a member of this group.</p>
+              </py:when>
+              <py:otherwise>
+                <p>You have been invited to this group.</p>
+                <p>
+                  <input type="button" 
+                      onclick="accept(&quot;${group['name']}&quot;)" 
+                      value="Accept" />
+                  <input type="button"
+                      onclick="decline(&quot;${group['name']}&quot;)"
+                      value="Decline" />
+                </p>
+              </py:otherwise>
+            </py:choose>
+            <h3>Members</h3>
+            <ul>
+              <py:for each="member in group['members']">
+                <li>${member['fullname']} (${member['login']})</li>
+              </py:for>
+            </ul>
+          </py:for>
+        </div>
+      </py:for>
+      <py:if test="manage_groups">
+        <hr />
+        <h1>Group Administration</h1>
+        <label for="subject_select">Subject:</label>
+        <select id="subject_select">
+          <py:for each="subject in manage_subjects">
+            <option value="${subject['id']}">${subject['name']} (${subject['code']})</option>
+          </py:for>
+        </select>
+        <input type="button" value="Manage" onclick="manage_subject()" />
+        <div id="subject_div"></div>
+      </py:if>
+    </div>
+  </body>
+</html>

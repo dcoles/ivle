@@ -1,0 +1,9 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+
+  <py:choose test="whichpage">
+    <xi:include py:when="'toplevel'" href="toplevel_menu.html" />
+    <xi:include py:when="'subject'" href="subjectmenu.html" />
+  </py:choose>
+</html>

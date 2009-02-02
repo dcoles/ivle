@@ -29,57 +29,59 @@ import cgi
 import ivle.database
 from ivle import util
 
+import genshi
+import genshi.template
+
 def handle(req):
     """Handler for the Subjects application. Links to subject home pages."""
 
     req.styles = ["media/subjects/subjects.css"]
+    ctx = genshi.template.Context()
     if req.path == "":
-        handle_toplevel_menu(req)
+        # This is represented as a directory. Redirect and add a slash if it is
+        # missing.
+        if req.uri[-1] != '/':
+            req.throw_redirect(req.uri + '/')
+        ctx['whichpage'] = "toplevel"
+        handle_toplevel_menu(req, ctx)
     else:
-        handle_subject_page(req, req.path)
+        ctx['whichpage'] = "subject"
+        handle_subject_page(req, req.path, ctx)
+        
+    loader = genshi.template.TemplateLoader(".", auto_reload=True)
+    tmpl = loader.load(util.make_local_path("apps/subjects/template.html"))
+    req.write(tmpl.generate(ctx).render('html')) #'xhtml', doctype='xhtml'))
 
-def handle_toplevel_menu(req):
-    # This is represented as a directory. Redirect and add a slash if it is
-    # missing.
-    if req.uri[-1] != '/':
-        req.throw_redirect(req.uri + '/')
+def handle_toplevel_menu(req, ctx):
 
     enrolled_subjects = req.user.subjects
     unenrolled_subjects = [subject for subject in
                            req.store.find(ivle.database.Subject)
                            if subject not in enrolled_subjects]
 
-    def print_subject(subject):
-        if subject.url is None:
-            req.write('  <li>%s (no home page)</li>\n'
-                % cgi.escape(subject.name))
-        else:
-            req.write('  <li><a href="%s">%s</a></li>\n'
-                % (cgi.escape(subject.url),
-                   cgi.escape(subject.name)))
+    ctx['enrolled_subjects'] = []
+    ctx['other_subjects'] = []
 
     req.content_type = "text/html"
     req.write_html_head_foot = True
-    req.write('<div id="ivle_padding">\n')
-    req.write("<h2>IVLE Subject Homepages</h2>\n")
-    req.write("<h2>Subjects</h2>\n<ul>\n")
-    for subject in enrolled_subjects:
-        print_subject(subject)
-    req.write("</ul>\n")
-    if len(unenrolled_subjects) > 0:
-        req.write("<h3>Other Subjects</h3>\n")
-        req.write("<p>You are not currently enrolled in these subjects</p>\n")
-        req.write("<ul>\n")
-        for subject in unenrolled_subjects:
-            print_subject(subject)
-        req.write("</ul>\n")
-    req.write("</div>\n")
 
-def handle_subject_page(req, path):
+    for subject in enrolled_subjects:
+        new_subj = {}
+        new_subj['name'] = subject.name
+        new_subj['url'] = subject.url
+        ctx['enrolled_subjects'].append(new_subj)
+
+    if len(unenrolled_subjects) > 0:
+        for subject in unenrolled_subjects:
+            new_subj = {}
+            new_subj['name'] = subject.name
+            new_subj['url'] = subject.url
+            ctx['other_subjects'].append(new_subj)
+
+
+def handle_subject_page(req, path, ctx):
     req.content_type = "text/html"
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
     # Just make the iframe pointing to media/subjects
-    serve_loc = util.make_path(os.path.join('media', 'subjects', path))
-    req.write('<object class="fullscreen" type="text/html" \
-data="%s"></iframe>'% urllib.quote(serve_loc))
+    ctx['serve_loc'] = urllib.quote(util.make_path(os.path.join('media', 'subjects', path)))

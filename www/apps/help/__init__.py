@@ -28,6 +28,9 @@ import copy
 from ivle import util
 import ivle.conf
 
+import genshi
+import genshi.template
+
 # TODO: Nicer 404 errors
 
 def handle(req):
@@ -50,28 +53,28 @@ def handle(req):
 
 def show_help_menu(req):
     """Show the help menu."""
-
     # Set request attributes
     req.content_type = "text/html"
     req.write_html_head_foot = True
 
-    # Start writing data
-    req.write('<div id="ivle_padding">\n')
-    req.write("<h1>Help</h1>\n")
+    ctx = genshi.template.Context()
 
     # Write a list of links to all apps with help modules
-    req.write("<ul>\n")
+    ctx['apps'] = []
     # Tab apps, in order of tabs
     for appurl in ivle.conf.apps.apps_in_tabs:
         app = ivle.conf.apps.app_url[appurl]
         if app.hashelp:
-            req.write('  <li><a href="%s">%s</a></li>\n'
-                % (os.path.join(util.make_path("help"), appurl), app.name))
+            new_app = {}
+            new_app['appurl'] = os.path.join(util.make_path("help"), appurl)
+            new_app['name'] = app.name
+            ctx['apps'].append(new_app)
     # Terms of Service
-    req.write('  <li><a href="%s">Terms of Service</a></li>\n'
-        % (util.make_path("tos")))
-    req.write("</ul>\n")
-    req.write('</div>\n')
+    ctx['tos'] = util.make_path("tos")
+
+    loader = genshi.template.TemplateLoader(".", auto_reload=True)
+    tmpl = loader.load(util.make_local_path("apps/help/template.html"))
+    req.write(tmpl.generate(ctx).render('html')) #'xhtml', doctype='xhtml'))
 
 def show_help_app(req, app):
     """Show help for an application."""

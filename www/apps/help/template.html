@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+
+  <body py:strip="">
+  
+    <div id="ivle_padding">
+      <h1>Help</h1>
+      <ul>
+        <py:for each="app in apps">
+          <li><a href="${app['appurl']}">${app['name']}</a></li>
+        </py:for>
+        <li><a href="${tos}">Terms of Service</a></li>
+      </ul>
+    </div>
+  </body>
+</html>

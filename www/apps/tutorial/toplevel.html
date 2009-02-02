@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <head foo="bar" py:strip="">
+    <title>Tutorial - Top Level</title>
+  </head>
+  <body class="innerbody" py:strip="">
+    <div id="ivle_padding">
+      <h1>IVLE Tutorials</h1>
+      <p>
+        Welcome to the IVLE tutorial system.
+  Please select a subject from the list below to select a worksheet
+  for that subject.
+      </p>
+      <h2>Subjects</h2>
+      <ul>
+        <py:for each="subject in enrolled_subjects">
+          <li>
+            <a href="${subject.code}">${subject.name}</a>
+          </li>
+        </py:for>
+      </ul>
+      <py:if test="len(unenrolled_subjects) > 0">
+        <h3>Other Subjects</h3>
+        <p>
+          You are not currently enrolled in these subjects.
+           Your marks will not be counted.
+        </p>
+        <ul>
+          <py:for each="subject in unenrolled_subjects">
+            <li>
+              <a href="${subject.code}">${subject.name}</a>
+            </li>
+          </py:for>
+        </ul>
+      </py:if>
+    </div>
+  </body>
+</html>

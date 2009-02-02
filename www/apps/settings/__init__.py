@@ -24,6 +24,9 @@
 
 from ivle import util
 
+import genshi
+import genshi.template
+
 def handle(req):
     """Handler for the Settings application."""
 
@@ -44,30 +47,6 @@ def handle(req):
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
-    # Start writing data
-    req.write("""<div id="ivle_padding">
-
-  <h2>User Profile</h2>
-  <p><span id="login"></span></p>
-  <p id="role"></p>
-  <h3>Change settings</h3>
-  <form action="">
-    <table>
-      <tr><td>Display name:</td><td><input type="text"
-            name="nick" id="nick" size="40" /></td></tr>
-      <tr><td>Email address:</td><td><input type="text"
-            name="email" id="email" size="40" /></td></tr>
-    </table>
-    <div id="changepassword"></div>
-    <p id="result"></p>
-    <p>
-      <input value="Save" onclick="return save_settings()" id="save"
-          type="submit" />
-      <input value="Revert" onclick="return revert_settings()" id="revert"
-          type="reset" />
-    </p>
-  </form>
-
-  <div id="notices"></div>
-</div>
-""")
+    loader = genshi.template.TemplateLoader(".", auto_reload=True)
+    tmpl = loader.load(util.make_local_path("apps/settings/template.html"))
+    req.write(tmpl.generate().render('html')) #'xhtml', doctype='xhtml'))

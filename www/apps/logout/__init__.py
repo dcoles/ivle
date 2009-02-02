@@ -19,8 +19,10 @@
 # Author: Nick Chadwick
 # Date: 13/01/2009
 
-import cgi
 from ivle import util
+
+import genshi
+import genshi.template
 
 # url path for this app
 THIS_APP = "logout"
@@ -29,10 +31,10 @@ def handle(req):
     if req.method == "POST":
         req.logout()
     else:
-        req.write_html_head_foot = True
         req.content_type = "text/html"
-        req.write('<div id="ivle_padding">\n'
-                  '<h3>Are you sure you want to logout?</h3><p>'
-                  '<form action="%s" method="POST">\n'
-                  '    <input type="submit" value="Logout" />\n'
-                  '</form>\n</div>\n' % (cgi.escape(util.make_path('logout'))))
+        req.write_html_head_foot = True
+        ctx = genshi.template.Context()
+        ctx['path'] =  util.make_path('logout')
+        loader = genshi.template.TemplateLoader(".", auto_reload=True)
+        tmpl = loader.load(util.make_local_path("apps/logout/template.html"))
+        req.write(tmpl.generate(ctx).render('html')) #'xhtml', doctype='xhtml'))

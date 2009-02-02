@@ -361,21 +361,15 @@ def handle_update_user(req, fields):
 
     user = ivle.database.User.get_by_login(req.store, login)
 
-    # Make a dict of fields to update
     oldpassword = fields.getfirst('oldpass')
-    for f in fieldlist:
-        val = fields.getfirst(f)
-        if val is not None:
-            # Note: May be rolled back if auth check below fails
-            setattr(user, f, val.value.decode('utf-8'))
-        else:
-            pass
+    if oldpassword is not None: # It was specified.
+        oldpassword = oldpassword.value
 
     # If the user is trying to set a new password, check that they have
     # entered old password and it authenticates.
     if fields.getfirst('password') is not None:
         try:
-            authenticate.authenticate(login, oldpassword)
+            authenticate.authenticate(req.store, login, oldpassword)
         except AuthError:
             req.headers_out['X-IVLE-Action-Error'] = \
                 urllib.quote("Old password incorrect.")
@@ -383,6 +377,15 @@ def handle_update_user(req, fields):
             # Cancel all the changes made to user (including setting new pass)
             req.store.rollback()
             return
+
+    # Make a dict of fields to update
+    for f in fieldlist:
+        val = fields.getfirst(f)
+        if val is not None:
+            # Note: May be rolled back if auth check below fails
+            setattr(user, f, val.value.decode('utf-8'))
+        else:
+            pass
 
     req.store.commit()
 

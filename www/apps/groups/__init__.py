@@ -27,6 +27,11 @@ import cgi
 
 from ivle import caps
 from ivle.database import Subject
+from ivle import util
+
+import genshi
+import genshi.core
+import genshi.template
 
 def handle(req):
     # Set request attributes
@@ -39,39 +44,38 @@ def handle(req):
     ]
     req.write_html_head_foot = True     # Have dispatch print head and foot
 
-    req.write('<div id="ivle_padding">\n')
-
+    ctx = genshi.template.Context()
+    
+    ctx['enrolments'] = []
     # Show a group panel per enrolment
     enrolments = req.user.active_enrolments
     if enrolments.count() == 0:
-        req.write("<p>Error: You are not currently enrolled in any subjects."
-                  "</p>\n")
+        ctx['no_enrolments'] = True
+    else:
+        ctx['no_enrolments'] = False
+    
     for enrolment in enrolments:
-        show_subject_panel(req, enrolment.offering)
+        add_subject_panel(req, enrolment.offering, ctx)
+        
     if req.user.hasCap(caps.CAP_MANAGEGROUPS):
-        show_groupadmin_panel(req)
+        ctx['manage_groups'] = True
+        ctx['manage_subjects'] = []
+        subjects = req.store.find(Subject)
+        for s in subjects:
+            new_s = {}
+            new_s['id'] = s.id
+            new_s['name'] = s.name
+            new_s['code'] = s.code
+            ctx['manage_subjects'].append(new_s)
+    else:
+        ctx['manage_groups'] = False
+  
+    loader = genshi.template.TemplateLoader(".", auto_reload=True)
+    tmpl = loader.load(util.make_local_path("apps/groups/template.html"))
+    
+    req.write(tmpl.generate(ctx).render('html'))
 
-    req.write("</div>\n")
-
-def show_groupadmin_panel(req):
-    """
-    Shows the group admin panel
-    """
-    req.write("<hr/>\n")
-    req.write("<h1>Group Administration</h1>")
-    # Choose subject
-    subjects = req.store.find(Subject)
-    req.write("<label for=\"subject_select\">Subject:</label>\n")
-    req.write("<select id=\"subject_select\">\n")
-    for s in subjects:
-        req.write("    <option value=\"%d\">%s (%s)</option>\n"%
-            (s.id, s.name, s.code))
-    req.write("</select>\n")
-    req.write("<input type=\"button\" value=\"Manage\" \
-        onclick=\"manage_subject()\" />\n")
-    req.write("<div id=\"subject_div\"></div>")
-
-def show_subject_panel(req, offering):
+def add_subject_panel(req, offering, ctx):
     """
     Show the group management panel for a particular subject.
     Prints to req.
@@ -80,31 +84,29 @@ def show_subject_panel(req, offering):
     groups = req.user.get_groups(offering)
     if groups.count() == 0:
         return
-
-    req.write("<div id=\"subject%d\"class=\"subject\">"%offering.id)
-    req.write("<h1>%s</h1>\n" % cgi.escape(offering.subject.name))
+    
+    offering_groups = {}
+    
+    offering_groups['offering_id'] = offering.id
+    offering_groups['offering_name'] = offering.subject.name
+    offering_groups['groups'] = []
+    
+    #TODO: Use a better way to manage group membership and invitations
     for group in groups:
-        req.write("<h2>%s (%s)</h2>\n" %
-            (cgi.escape(group.nick if group.nick else ''),
-             cgi.escape(group.name)))
-        if True: # XXX - was is_member (whether real member or just invited)
-            req.write('<p>You are a member of this group.</p>\n')
-        else:
-            req.write('<p>You have been invited to this group.</p>\n')
-            req.write('<p>'
-                '<input type="button" '
-                'onclick="accept(&quot;%(groupnm)s&quot;)" '
-                'value="Accept" />\n'
-                '<input type="button" '
-                'onclick="decline(&quot;%(groupnm)s&quot;)" '
-                'value="Decline" />\n'
-                '</p>\n' % {"groupnm": cgi.escape(group.name)})
-        req.write("<h3>Members</h3>\n")
-        req.write("<ul>\n")
+        new_group = {}
+        new_group['nick'] = cgi.escape(group.nick if group.nick else '')
+        new_group['name'] = cgi.escape(group.name)
+        
+        # XXX - This should be set to reflect whether or not a user is invited
+        #     - or if they have accepted the offer
+        new_group['is_member'] = True
+        new_group['members'] = []
+        
         for user in group.members:
-            req.write("<li>%s (%s)</li>" %
-                      (cgi.escape(user.fullname),
-                       cgi.escape(user.login)))
-        req.write("</ul>\n")
+            member = {}
+            member['fullname'] = cgi.escape(user.fullname)
+            member['login'] = cgi.escape(user.login)
+            new_group['members'].append(member)
+        offering_groups['groups'].append(new_group)
 
-    req.write("</div>")
+    ctx['enrolments'].append(offering_groups)
