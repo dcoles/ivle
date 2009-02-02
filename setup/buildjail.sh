@@ -31,7 +31,7 @@
 
 RELEASE=hardy
 SECTIONS="main universe"
-JAIL=jail
+JAIL=$1
 SYSTEMPACKAGES="python2.5 python-cjson python-svn"
 STUDENTPACKAGES="python-numpy python-matplotlib python-scipy \
     python-beautifulsoup python-lxml python-imaging \
