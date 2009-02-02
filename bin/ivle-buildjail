@@ -83,7 +83,7 @@ os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
 # XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
 os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
 
-if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-aHAX', '--delete',
+if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
               ivle.conf.jail_system_build + '/', ivle.conf.jail_system]) != 0:
     print >> sys.stderr, "Jail copying failed."
     sys.exit(1)
