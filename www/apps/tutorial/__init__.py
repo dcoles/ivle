@@ -208,7 +208,6 @@ def handle_subject_menu(req, ctx, subject):
     # (Assessable worksheets only, mandatory problems only)
     problems_done = 0
     problems_total = 0
-    ctx['worksheetz'] = []
     for worksheet in ctx['worksheets']:
         stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
             subject, worksheet.id)
