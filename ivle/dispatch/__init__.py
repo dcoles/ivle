@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca
+# Author: Matt Giuca, Will Grant
 
 """
 This is a mod_python handler program. The correct way to call it is to have
@@ -38,6 +38,7 @@ import time
 
 import mod_python
 from mod_python import apache, Cookie
+import routes
 
 from ivle import util
 import ivle.conf
@@ -47,6 +48,31 @@ import login
 import html
 from request import Request
 import plugins.console # XXX: Relies on www/ being in the Python path.
+
+# XXX List of plugins, which will eventually be read in from conf
+# Elements are (module, classname) pairs.
+plugins_HACK = [
+    ('ivle.webapp.admin.user', 'Plugin'),
+]
+
+def get_routes_mapper():
+    """
+    Build a Mapper object for doing URL matching using 'routes', based on the
+    plugins config.
+    """
+    m = routes.Mapper()
+    for plugin_path, classname in plugins_HACK:
+        # Load the plugin module from somewhere in the Python path
+        # (Note that plugin_path is a fully-qualified Python module name).
+        plugin = getattr(__import__(plugin_path, fromlist=[classname]),
+            classname)
+        # Establish a URL pattern for each element of plugin.urls
+        for url in plugin.urls:
+            routex = url[0]
+            view_class = url[1]
+            kwargs_dict = url[2] if len(url) >= 3 else {}
+            m.connect(routex, view=view_class, **kwargs_dict)
+    return m
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -87,6 +113,28 @@ def handler_(req, apachereq):
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
         req.user = login.get_user_details(req)
+
+    ### BEGIN New plugins framework ###
+    # XXX This should be done ONCE per Python process, not per request.
+    # (Wait till WSGI)
+    # XXX No authentication is done here
+    mapper = get_routes_mapper()
+    matchdict = mapper.match(req.uri)
+    if matchdict is not None:
+        viewcls = matchdict['view']
+        # Get the remaining arguments, less 'view', 'action' and 'controller'
+        # (The latter two seem to be built-in, and we don't want them).
+        kwargs = matchdict.copy()
+        del kwargs['view']
+        del kwargs['action']
+        del kwargs['controller']
+        # Instantiate the view, which should be a BaseView class
+        view = viewcls(req, **kwargs)
+        # Render the output
+        view.render(req)
+        req.store.commit()
+        return req.OK
+    ### END New plugins framework ###
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in ivle.conf.apps.app_url:
