@@ -42,6 +42,8 @@ import routes
 from ivle import util
 import ivle.conf
 import ivle.conf.apps
+from ivle.dispatch.request import Request
+from ivle.dispatch import login
 import apps
 import html
 import plugins.console # XXX: Relies on www/ being in the Python path.
@@ -77,7 +79,6 @@ def handler(req):
 
     req: An Apache request object.
     """
-    from ivle.dispatch.request import Request
     # Make the request object into an IVLE request which can be passed to apps
     apachereq = req
     try:
@@ -107,9 +108,6 @@ def handler_(req, apachereq):
     just used to catch exceptions.
     Takes both an IVLE request and an Apache req.
     """
-    from ivle.dispatch import login
-    from ivle.dispatch.request import Request
-
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:

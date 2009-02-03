@@ -23,8 +23,6 @@
 import os
 import datetime
 
-from mod_python import Session
-
 import ivle.conf
 from ivle import (util, caps, forumutil)
 from ivle.auth import authenticate, AuthError

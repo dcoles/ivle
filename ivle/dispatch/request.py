@@ -25,8 +25,13 @@ See design notes/apps/dispatch.txt for a full specification of this request
 object.
 """
 
-import mod_python
-from mod_python import (util, Session, Cookie)
+try:
+    import mod_python.Session
+    import mod_python.Cookie
+    import mod_python.util
+except ImportError:
+    # This needs to be importable from outside Apache.
+    pass
 
 import ivle.util
 import ivle.conf
@@ -277,10 +282,10 @@ class Request:
             self.session.invalidate()
             self.session.delete()
             # Invalidates all IVLE cookies
-            all_cookies = Cookie.get_cookies(self)
+            all_cookies = mod_python.Cookie.get_cookies(self)
             for cookie in all_cookies:
                 if cookie in ivle_cookies:
-                    self.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+                    self.add_cookie(mod_python.Cookie.Cookie(cookie,'',expires=1,path='/'))
         self.throw_redirect(ivle.util.make_path('')) 
 
 
@@ -327,9 +332,9 @@ class Request:
     def add_cookie(self, cookie, value=None, **attributes):
         """Inserts a cookie into this request object's headers."""
         if value is None:
-            Cookie.add_cookie(self.apache_req, cookie)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie)
         else:
-            Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
 
     def get_session(self):
         """Returns a mod_python Session object for this request.
@@ -337,7 +342,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
-            self.session = Session.FileSession(self.apache_req,
+            self.session = mod_python.Session.FileSession(self.apache_req,
                                                timeout = 60 * 60 * 24)
         return self.session
 
@@ -347,7 +352,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the fieldstorage object
         if not hasattr(self, 'fields'):
-            self.fields = util.FieldStorage(self.apache_req)
+            self.fields = mod_python.util.FieldStorage(self.apache_req)
         return self.fields
 
     def get_cgi_environ(self):
