@@ -60,5 +60,6 @@ class JSONRESTView(RESTView):
         if req.method == 'PUT':
             outjson = self.PATCH(req, cjson.decode(req.read()))
         req.content_type = self.content_type
-        req.write(cjson.encode(outjson))
-        req.write("\n")
+        if outjson is not None:
+            req.write(cjson.encode(outjson))
+            req.write("\n")
