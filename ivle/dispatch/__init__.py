@@ -301,8 +301,8 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         logging.error('%s\n%s'%(str(msg), tb))
         # Error messages are only displayed is the user is NOT a student,
         # or if there has been a problem logging the error message
-        show_errors = (not publicmode) and (not login or \
-                            (not str(role) == "student") or logfail)
+        show_errors = (not publicmode) and ((login and \
+                            str(role) != "student") or logfail)
         req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">                                      
 <html xmlns="http://www.w3.org/1999/xhtml">
