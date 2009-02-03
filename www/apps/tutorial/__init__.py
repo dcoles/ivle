@@ -208,28 +208,29 @@ def handle_subject_menu(req, ctx, subject):
     # (Assessable worksheets only, mandatory problems only)
     problems_done = 0
     problems_total = 0
-    for worksheet_from_xml in ctx['worksheets']:
-        worksheet = ivle.database.Worksheet.get_by_name(req.store,
-            subject, worksheet_from_xml.id)
+    ctx['worksheetz'] = []
+    for worksheet in ctx['worksheets']:
+        stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
+            subject, worksheet.id)
         # If worksheet is not in database yet, we'll simply not display
         # data about it yet (it should be added as soon as anyone visits
         # the worksheet itself).
-        if worksheet is not None:
+        if stored_worksheet is not None:
             # If the assessable status of this worksheet has changed,
             # update the DB
             # (Note: This fails the try block if the worksheet is not yet
             # in the DB, which is fine. The author should visit the
             # worksheet page to get it into the DB).
-            if worksheet.assessable != worksheet_from_xml.assessable:
+            if worksheet.assessable != stored_worksheet.assessable:
                 # XXX If statement to avoid unnecessary database writes.
                 # Is this necessary, or will Storm check for us?
-                worksheet.assessable = worksheet_from_xml.assessable
+                stored_worksheet.assessable = worksheet.assessable
                 req.store.commit()
             if worksheet.assessable:
                 # Calculate the user's score for this worksheet
                 mand_done, mand_total, opt_done, opt_total = (
                     ivle.worksheet.calculate_score(req.store, req.user,
-                        worksheet))
+                        stored_worksheet))
                 if opt_total > 0:
                     optional_message = " (excluding optional exercises)"
                 else:
@@ -245,6 +246,7 @@ def handle_subject_menu(req, ctx, subject):
                 worksheet.mand_done = mand_done
                 worksheet.total = mand_total
                 worksheet.optional_message = optional_message
+
 
     ctx['problems_total'] = problems_total
     ctx['problems_done'] = problems_done

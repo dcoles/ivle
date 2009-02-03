@@ -12,7 +12,7 @@
         <h2>Worksheet Contents</h2>
         <ul>
           <py:for each="exercise in exercises">
-            <li class="${exercise['complete']}" id="#exercise${exercise['exid']}">
+            <li class="${exercise['complete']}" id="toc_li_exercise${exercise['exid']}">
               <a href="#exercise${exercise['exid']}">
                 ${exercise.name}
               </a>
