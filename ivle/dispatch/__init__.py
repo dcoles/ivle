@@ -37,16 +37,13 @@ import socket
 import time
 
 import mod_python
-from mod_python import apache, Cookie
 import routes
 
 from ivle import util
 import ivle.conf
 import ivle.conf.apps
 import apps
-import login
 import html
-from request import Request
 import plugins.console # XXX: Relies on www/ being in the Python path.
 
 # XXX List of plugins, which will eventually be read in from conf
@@ -80,6 +77,7 @@ def handler(req):
 
     req: An Apache request object.
     """
+    from ivle.dispatch.request import Request
     # Make the request object into an IVLE request which can be passed to apps
     apachereq = req
     try:
@@ -89,7 +87,7 @@ def handler(req):
         # yet.
         handle_unknown_exception(apachereq, *sys.exc_info())
         # Tell Apache not to generate its own errors as well
-        return apache.OK
+        return mod_python.apache.OK
 
     # Run the main handler, and catch all exceptions
     try:
@@ -101,7 +99,7 @@ def handler(req):
     except Exception:
         handle_unknown_exception(req, *sys.exc_info())
         # Tell Apache not to generate its own errors as well
-        return apache.OK
+        return mod_python.apache.OK
 
 def handler_(req, apachereq):
     """
@@ -109,6 +107,9 @@ def handler_(req, apachereq):
     just used to catch exceptions.
     Takes both an IVLE request and an Apache req.
     """
+    from ivle.dispatch import login
+    from ivle.dispatch.request import Request
+
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
@@ -228,10 +229,10 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     # For some reason, some versions of mod_python have "_server" instead of
     # "main_server". So we check for both.
     try:
-        admin_email = apache.main_server.server_admin
+        admin_email = mod_python.apache.main_server.server_admin
     except AttributeError:
         try:
-            admin_email = apache._server.server_admin
+            admin_email = mod_python.apache._server.server_admin
         except AttributeError:
             admin_email = ""
     try:
@@ -239,7 +240,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         req.status = httpcode
     except AttributeError:
         httpcode = None
-        req.status = apache.HTTP_INTERNAL_SERVER_ERROR
+        req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
     try:
         publicmode = req.publicmode
     except AttributeError:
@@ -359,7 +360,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 <h1>IVLE Internal Server Error""")
         if (show_errors):
             if (codename is not None
-                        and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
+                        and httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR):
                 req.write(": %s" % cgi.escape(codename))
         
         req.write("""</h1>
