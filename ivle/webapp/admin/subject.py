@@ -86,5 +86,5 @@ class Plugin(BasePlugin):
     urls = [
         ('subjects/', SubjectsView),
         ('subjects/:subject', SubjectView, {'path': ''}),
-        ('subjects/:subject/*(path)', SubjectsView),
+        ('subjects/:subject/*(path)', SubjectView),
     ]
