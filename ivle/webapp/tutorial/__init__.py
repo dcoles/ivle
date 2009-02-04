@@ -15,18 +15,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# App: tutorial
-# Author: Matt Giuca
-# Date: 25/1/2008
+# Author: Matt Giuca, Will Grant
 
-# Tutorial application.
-# Displays tutorial content with editable exercises, allowing students to test
-# and submit their solutions to exercises and have them auto-tested.
+'''Tutorial/worksheet/exercise application.
 
-# URL syntax
-# All path segments are optional (omitted path segments will show menus).
-# The first path segment is the subject code.
-# The second path segment is the worksheet name.
+Displays tutorial content with editable exercises, allowing students to test
+and submit their solutions to exercises and have them auto-tested.
+'''
 
 import os
 import os.path
@@ -38,17 +33,18 @@ from xml.dom import minidom
 import mimetypes
 
 import cjson
+import genshi
 
 from ivle import util
 import ivle.conf
 import ivle.database
+from ivle.database import Subject
 import ivle.worksheet
+from ivle.webapp.base.views import BaseView, XHTMLView
+from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.errors import NotFound, Forbidden
 
 from rst import rst
-
-import genshi
-import genshi.core
-import genshi.template
 
 THIS_APP = "tutorial"
 
@@ -83,185 +79,184 @@ def make_tutorial_path(subject=None, worksheet=None):
         else:
             return util.make_path(os.path.join(THIS_APP, subject, worksheet))
 
-def handle(req):
-    """Handler for the Tutorial application."""
+class SubjectView(XHTMLView):
+    '''The view of the index of worksheets for a subject.'''
+    app_template = 'subjectmenu.html'
+    appname = 'tutorial' # XXX
 
-    # TODO: Take this as an argument instead (refactor dispatch)
-    ctx = genshi.template.Context()
+    def __init__(self, req, subject):
+        self.subject = req.store.find(Subject, code=subject).one()
 
-    # Set request attributes
-    req.content_type = "text/html"
-    req.scripts = [
-        "media/common/util.js",
-        "media/common/json2.js",
-        "media/tutorial/tutorial.js",
-    ]
-    req.styles = [
-        "media/tutorial/tutorial.css",
-    ]
-    # Note: Don't print write_html_head_foot just yet
-    # If we encounter errors later we do not want this
+    def populate(self, req, ctx):
+        if not self.subject:
+            raise NotFound()
 
-    path_segs = req.path.split('/')
-    subject = None
-    worksheet = None
-    if len(req.path) > 0:
-        subject = path_segs[0]
-        if subject == "media":
-            # Special case: "tutorial/media" will plainly serve any path
-            # relative to "subjects/media".
-            handle_media_path(req)
-            return
-        if len(path_segs) > 2:
-            req.throw_error(req.HTTP_NOT_FOUND,
-                "Invalid tutorial path.")
-        if len(path_segs) == 2:
-            worksheet = path_segs[1]
+        # Subject names must be valid identifiers
+        if not is_valid_subjname(self.subject.code):
+            raise NotFound()
 
-    if subject == None:
-        ctx['whichmenu'] = 'toplevel'
-        handle_toplevel_menu(req, ctx)
-    elif worksheet == None:
-        ctx['whichmenu'] = 'subjectmenu'
-        handle_subject_menu(req, ctx, subject)
-    else:
-        ctx['whichmenu'] = 'worksheet'
-        handle_worksheet(req, ctx, subject, worksheet)
+        # Parse the subject description file
+        # The subject directory must have a file "subject.xml" in it,
+        # or it does not exist (404 error).
+        ctx['subject'] = self.subject.code
+        try:
+            subjectfile = open(os.path.join(ivle.conf.subjects_base,
+                                    self.subject.code, "subject.xml")).read()
+        except:
+            raise NotFound()
 
-    # Use Genshi to render out the template
-    # TODO: Dispatch should do this instead
-    loader = genshi.template.TemplateLoader(".", auto_reload=True)
-    tmpl = loader.load(util.make_local_path("apps/tutorial/template.html"))
-    req.write(tmpl.generate(ctx).render('html')) #'xhtml', doctype='xhtml'))
+        subjectfile = genshi.Stream(list(genshi.XML(subjectfile)))
 
-def handle_media_path(req):
-    """
-    Urls in "tutorial/media" will just be served directly, relative to
-    subjects. So if we came here, we just want to serve a file relative to the
-    subjects directory on the local file system.
-    """
-    # First normalise the path
-    urlpath = os.path.normpath(req.path)
-    # Now if it begins with ".." or separator, then it's illegal
-    if urlpath.startswith("..") or urlpath.startswith('/'):
-        req.throw_error(req.HTTP_FORBIDDEN,
-            "Invalid path.")
-    filename = os.path.join(ivle.conf.subjects_base, urlpath)
-    (type, _) = mimetypes.guess_type(filename)
-    if type is None:
-        type = ivle.conf.mimetypes.default_mimetype
-    ## THIS CODE taken from apps/server/__init__.py
-    if not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The requested file does not exist.")
-    if os.path.isdir(filename):
-        req.throw_error(req.HTTP_FORBIDDEN,
-            "The requested file is a directory.")
-    req.content_type = type
-    req.sendfile(filename)
+        ctx['worksheets'] = get_worksheets(subjectfile)
 
-def handle_toplevel_menu(req, ctx):
-    # This is represented as a directory. Redirect and add a slash if it is
-    # missing.
-    if req.uri[-1] != '/':
-        req.throw_redirect(make_tutorial_path())
-    req.write_html_head_foot = True
+        # As we go, calculate the total score for this subject
+        # (Assessable worksheets only, mandatory problems only)
+        problems_done = 0
+        problems_total = 0
+        for worksheet in ctx['worksheets']:
+            stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
+                self.subject.code, worksheet.id)
+            # If worksheet is not in database yet, we'll simply not display
+            # data about it yet (it should be added as soon as anyone visits
+            # the worksheet itself).
+            if stored_worksheet is not None:
+                # If the assessable status of this worksheet has changed,
+                # update the DB
+                # (Note: This fails the try block if the worksheet is not yet
+                # in the DB, which is fine. The author should visit the
+                # worksheet page to get it into the DB).
+                if worksheet.assessable != stored_worksheet.assessable:
+                    # XXX If statement to avoid unnecessary database writes.
+                    # Is this necessary, or will Storm check for us?
+                    stored_worksheet.assessable = worksheet.assessable
+                if worksheet.assessable:
+                    # Calculate the user's score for this worksheet
+                    mand_done, mand_total, opt_done, opt_total = (
+                        ivle.worksheet.calculate_score(req.store, req.user,
+                            stored_worksheet))
+                    if opt_total > 0:
+                        optional_message = " (excluding optional exercises)"
+                    else:
+                        optional_message = ""
+                    if mand_done >= mand_total:
+                        worksheet.complete_class = "complete"
+                    elif mand_done > 0:
+                        worksheet.complete_class = "semicomplete"
+                    else:
+                        worksheet.complete_class = "incomplete"
+                    problems_done += mand_done
+                    problems_total += mand_total
+                    worksheet.mand_done = mand_done
+                    worksheet.total = mand_total
+                    worksheet.optional_message = optional_message
 
-    ctx['enrolled_subjects'] = req.user.subjects
-    ctx['unenrolled_subjects'] = [subject for subject in
-                           req.store.find(ivle.database.Subject)
-                           if subject not in ctx['enrolled_subjects']]
+
+        ctx['problems_total'] = problems_total
+        ctx['problems_done'] = problems_done
+        if problems_total > 0:
+            if problems_done >= problems_total:
+                ctx['complete_class'] = "complete"
+            elif problems_done > 0:
+                ctx['complete_class'] = "semicomplete"
+            else:
+                ctx['complete_class'] = "incomplete"
+            ctx['problems_pct'] = (100 * problems_done) / problems_total
+            # TODO: Put this somewhere else! What is this on about? Why 16?
+            # XXX Marks calculation (should be abstracted out of here!)
+            # percent / 16, rounded down, with a maximum mark of 5
+            ctx['max_mark'] = 5
+            ctx['mark'] = min(ctx['problems_pct'] / 16, ctx['max_mark'])
+
+class WorksheetView(XHTMLView):
+    '''The view of a worksheet with exercises.'''
+    app_template = 'worksheet.html'
+    appname = 'tutorial' # XXX
+
+    def __init__(self, req, subject, worksheet):
+        self.subject = req.store.find(Subject, code=subject).one()
+        self.worksheetname = worksheet
+
+    def populate(self, req, ctx):
+        req.scripts = [
+            "/media/common/util.js",
+            "/media/common/json2.js",
+            "/media/tutorial/tutorial.js",
+        ]
+        req.styles = [
+            "/media/tutorial/tutorial.css",
+        ]
+
+        if not self.subject:
+            raise NotFound()
+
+        # Subject and worksheet names must be valid identifiers
+        if not is_valid_subjname(self.subject.code) or \
+           not is_valid_subjname(self.worksheetname):
+            raise NotFound()
+
+        # Read in worksheet data
+        worksheetfilename = os.path.join(ivle.conf.subjects_base,
+                               self.subject.code, self.worksheetname + ".xml")
+        try:
+            worksheetfile = open(worksheetfilename)
+            worksheetmtime = os.path.getmtime(worksheetfilename)
+        except:
+            raise NotFound()
+
+        worksheetmtime = datetime.fromtimestamp(worksheetmtime)
+        worksheetfile = worksheetfile.read()
+
+        ctx['subject'] = self.subject.code
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
+
+        #TODO: Replace this with a nice way, possibly a match template
+        generate_worksheet_data(ctx, req)
+
+        update_db_worksheet(req.store, self.subject.code, self.worksheetname,
+            worksheetmtime, ctx['exerciselist'])
+
+        ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
+
+class SubjectMediaView(BaseView):
+    '''The view of subject media files.
+
+    URIs pointing here will just be served directly, from the subject's
+    media directory.
+    '''
+
+    def __init__(self, req, subject, path):
+        self.subject = req.store.find(Subject, code=subject).one()
+        self.path = os.path.normpath(path)
+
+    def render(self, req):
+        # If the subject doesn't exist, self.subject will be None. Die.
+        if not self.subject:
+            raise NotFound()
+
+        # If it begins with ".." or separator, it's illegal. Die.
+        if self.path.startswith("..") or self.path.startswith('/'):
+            raise Forbidden()
+        subjectdir = os.path.join(ivle.conf.subjects_base,
+                                  self.subject.code, 'media')
+        filename = os.path.join(subjectdir, self.path)
+
+        # Find an appropriate MIME type.
+        (type, _) = mimetypes.guess_type(filename)
+        if type is None:
+            type = ivle.conf.mimetypes.default_mimetype
+
+        # Get out if it is unreadable or a directory.
+        if not os.access(filename, os.F_OK):
+            raise NotFound()
+        if not os.access(filename, os.R_OK) or os.path.isdir(filename):
+            raise Forbidden()
+
+        req.content_type = type
+        req.sendfile(filename)
 
 def is_valid_subjname(subject):
     m = re_ident.match(subject)
     return m is not None and m.end() == len(subject)
-
-def handle_subject_menu(req, ctx, subject):
-    # This is represented as a directory. Redirect and add a slash if it is
-    # missing.
-    if req.uri[-1] != '/':
-        req.throw_redirect(make_tutorial_path(subject))
-    # Subject names must be valid identifiers
-    if not is_valid_subjname(subject):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "Invalid subject name: %s." % repr(subject))
-    # Parse the subject description file
-    # The subject directory must have a file "subject.xml" in it,
-    # or it does not exist (404 error).
-
-    ctx['subject'] = subject
-    try:
-        subjectfile = open(os.path.join(ivle.conf.subjects_base, subject,
-            "subject.xml")).read()
-    except:
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "Subject %s not found." % repr(subject))
-
-    subjectfile = genshi.Stream(list(genshi.XML(subjectfile)))
-
-    ctx['worksheets'] = get_worksheets(subjectfile)
-    
-    # Now all the errors are out the way, we can begin writing
-
-    req.write_html_head_foot = True
-    # As we go, calculate the total score for this subject
-    # (Assessable worksheets only, mandatory problems only)
-    problems_done = 0
-    problems_total = 0
-    for worksheet in ctx['worksheets']:
-        stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
-            subject, worksheet.id)
-        # If worksheet is not in database yet, we'll simply not display
-        # data about it yet (it should be added as soon as anyone visits
-        # the worksheet itself).
-        if stored_worksheet is not None:
-            # If the assessable status of this worksheet has changed,
-            # update the DB
-            # (Note: This fails the try block if the worksheet is not yet
-            # in the DB, which is fine. The author should visit the
-            # worksheet page to get it into the DB).
-            if worksheet.assessable != stored_worksheet.assessable:
-                # XXX If statement to avoid unnecessary database writes.
-                # Is this necessary, or will Storm check for us?
-                stored_worksheet.assessable = worksheet.assessable
-                req.store.commit()
-            if worksheet.assessable:
-                # Calculate the user's score for this worksheet
-                mand_done, mand_total, opt_done, opt_total = (
-                    ivle.worksheet.calculate_score(req.store, req.user,
-                        stored_worksheet))
-                if opt_total > 0:
-                    optional_message = " (excluding optional exercises)"
-                else:
-                    optional_message = ""
-                if mand_done >= mand_total:
-                    worksheet.complete_class = "complete"
-                elif mand_done > 0:
-                    worksheet.complete_class = "semicomplete"
-                else:
-                    worksheet.complete_class = "incomplete"
-                problems_done += mand_done
-                problems_total += mand_total
-                worksheet.mand_done = mand_done
-                worksheet.total = mand_total
-                worksheet.optional_message = optional_message
-
-
-    ctx['problems_total'] = problems_total
-    ctx['problems_done'] = problems_done
-    if problems_total > 0:
-        if problems_done >= problems_total:
-            ctx['complete_class'] = "complete"
-        elif problems_done > 0:
-            ctx['complete_class'] = "semicomplete"
-        else:
-            ctx['complete_class'] = "incomplete"
-        ctx['problems_pct'] = (100 * problems_done) / problems_total
-        # TODO: Put this somewhere else! What is this on about? Why 16?
-        # XXX Marks calculation (should be abstracted out of here!)
-        # percent / 16, rounded down, with a maximum mark of 5
-        ctx['max_mark'] = 5
-        ctx['mark'] = min(ctx['problems_pct'] / 16, ctx['max_mark'])
 
 def get_worksheets(subjectfile):
     '''Given a subject stream, get all the worksheets and put them in ctx'''
@@ -282,39 +277,6 @@ def get_worksheets(subjectfile):
                 worksheets.append(Worksheet(worksheetid, worksheetname, \
                                                             worksheetasses))
     return worksheets
-
-def handle_worksheet(req, ctx, subject, worksheet):
-    # Subject and worksheet names must be valid identifiers
-    if not is_valid_subjname(subject) or not is_valid_subjname(worksheet):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "Invalid subject name %s or worksheet name %s."
-                % (repr(subject), repr(worksheet)))
-
-    # Read in worksheet data
-    worksheetfilename = os.path.join(ivle.conf.subjects_base, subject,
-            worksheet + ".xml")
-    try:
-        worksheetfile = open(worksheetfilename)
-        worksheetmtime = os.path.getmtime(worksheetfilename)
-    except:
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "Worksheet file not found.")
-    worksheetmtime = datetime.fromtimestamp(worksheetmtime)
-    worksheetfile = worksheetfile.read()
-    
-    ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
-
-    req.write_html_head_foot = True
-
-    ctx['subject'] = subject
-    
-    #TODO: Replace this with a nice way, possibly a match template
-    generate_worksheet_data(ctx, req)
-    
-    update_db_worksheet(req.store, subject, worksheet, worksheetmtime,
-        ctx['exerciselist'])
-    
-    ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
 # This generator adds in the exercises as they are required. This is returned    
 def add_exercises(stream, ctx, req):
@@ -506,3 +468,10 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
                     worksheet=worksheet, exercise=exercise, optional=optional)
 
     store.commit()
+
+class Plugin(BasePlugin):
+    urls = [
+        ('subjects/:subject/+worksheets', SubjectView),
+        ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
+        ('subjects/:subject/+worksheets/:worksheet', WorksheetView),
+    ]
