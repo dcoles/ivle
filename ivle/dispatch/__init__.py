@@ -52,6 +52,7 @@ import plugins.console # XXX: Relies on www/ being in the Python path.
 # Elements are (module, classname) pairs.
 plugins_HACK = [
     ('ivle.webapp.admin.user', 'Plugin'),
+    ('ivle.webapp.browser', 'Plugin'),
 ]
 
 def get_routes_mapper():
