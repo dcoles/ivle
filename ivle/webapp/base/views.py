@@ -19,6 +19,8 @@
 
 import cjson
 
+from ivle.webapp.errors import BadRequest
+
 class BaseView(object):
     """
     Abstract base class for all view objects.
@@ -56,9 +58,14 @@ class JSONRESTView(RESTView):
     def render(self, req):
         if req.method == 'GET':
             outjson = self.GET(req)
-        # XXX PATCH hack
-        if req.method == 'PUT':
+        elif req.method == 'PATCH' or (req.method == 'PUT' and
+              'X-IVLE-Patch-Semantics' in req.headers_in and
+              req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
             outjson = self.PATCH(req, cjson.decode(req.read()))
+        elif req.method == 'PUT':
+            outjson = self.PUT(req, cjson.decode(req.read()))
+        else:
+            raise BadRequest
         req.content_type = self.content_type
         if outjson is not None:
             req.write(cjson.encode(outjson))
