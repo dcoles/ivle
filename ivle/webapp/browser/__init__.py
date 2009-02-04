@@ -44,13 +44,11 @@ class BrowserView(XHTMLView):
         self.app_template = 'template.html'
         #XXX: Will hate me for this.
         self.appname = "files"
-        
-    
+
     def populate(self, req, ctx):
-    
-        if len(self.path) == 0:
+        if not hasattr(self, 'path'):
             # If no path specified, default to the user's home directory
-            redirectPath = util.make_path(os.path.join(THIS_APP,req.user.login))
+            redirectPath = util.make_path(os.path.join('files', req.user.login))
             req.throw_redirect(util.make_path(redirectPath))
 
         # Set request attributes
@@ -91,24 +89,24 @@ class BrowserView(XHTMLView):
         ctx['isdir'] = isdir
         self.gen_path(req, ctx)
         self.gen_actions(req, ctx)
-        
+
         ctx['fileservice_action'] = util.make_path(os.path.join("fileservice", req.path))
         ctx['filename'] = cgi.escape(req.path)
 
-      #TODO: Move all this logic into the template
+    #TODO: Move all this logic into the template
     def gen_path(self, req, ctx):
 
         href_path = util.make_path('files')
         nav_path = ""
         revision = ivle.svn.revision_from_string(
                          req.get_fieldstorage().getfirst('r'))
-        try: 
+        try:
             revno = revision.number
         except:
             revno = None
-          
+
         ctx['revno'] = revno
-        
+
         # Create all of the paths
         pathlist = self.path.split("/")
         ctx['paths'] = []
@@ -116,18 +114,17 @@ class BrowserView(XHTMLView):
             if path_seg == "":
                 continue
             new_seg = {}
-            
+
             nav_path = nav_path + path_seg
             href_path = href_path + '/' + path_seg
-            
-            new_seg['path'] = path_seg        
+
+            new_seg['path'] = path_seg
             new_seg['nav_path'] = nav_path
             new_seg['href_path'] = href_path
             if revno is not None:
                 new_seg['href_path'] += '?r=%d' % revno
-            
-            ctx['paths'].append(new_seg)
 
+            ctx['paths'].append(new_seg)
 
     def gen_actions(self, req, ctx):
         """
@@ -167,7 +164,7 @@ class BrowserView(XHTMLView):
             ('svnlog',      ['View Log',       'View the log of commits of the selected file']),
           ])
         ]
-        
+
 class Plugin(BasePlugin):
     """
     The Plugin class for the user plugin.
@@ -180,4 +177,3 @@ class Plugin(BasePlugin):
         ('files/*(path)', BrowserView),
         ('files/', BrowserView),
     ]
-    
