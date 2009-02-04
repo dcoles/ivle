@@ -111,6 +111,7 @@ class XHTMLView(BaseView):
         ctx['favicon'] = None
         ctx['root_dir'] = ivle.conf.root_dir
         ctx['public_host'] = ivle.conf.public_host
+        ctx['write_javascript_settings'] = req.write_javascript_settings
         if req.user:
             ctx['login'] = req.user.login
             ctx['logged_in'] = True

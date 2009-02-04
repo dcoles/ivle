@@ -1,38 +1,40 @@
-<!-- Base Stylesheet used to render all apps -->
 <html xmlns="http://www.w3.org/1999/xhtml"       
       xmlns:py="http://genshi.edgewall.org/"
       xmlns:xi="http://www.w3.org/2001/XInclude"
       py:strip="">
   <py:match path="head" once="true">
     <head py:attrs="select('@*')">
-      <!-- Set the appropriate title for the app -->
       <title py:with="title = list(select('title/text()'))">
-        IVLE<py:if test="title"> - ${title}</py:if>
+        <py:if test="title">${title} - </py:if>IVLE
       </title>
-      <!-- Set Content Type -->
+
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <!-- Set global Javascript variables -->
-      <script type="text/javascript">
+
+      <script py:if="write_javascript_settings" type="text/javascript">
         root_dir = "${root_dir}";
         public_host = "${public_host}";
         username = "${login}";
       </script>
+
       <link py:if="favicon" rel="shortcut icon" href="${favicon}" />
-      <!-- Global style sheet -->
+
       <link rel="stylesheet" type="text/css" href="/media/common/ivle.css" />
-      <!-- Global Javascript-->
+
       <script type="text/javascript" src="/media/common/util.js"></script>
       <script type="text/javascript" src="/media/common/json2.js"></script>
       <script type="text/javascript" src="/media/common/md5.js"></script>
       <script type="text/javascript" src="/media/common/tos.js"></script>
-      <!-- App-specific style sheets -->
+
+      <!-- Plugin style sheets and JavaScript -->
       <py:for each="style in app_styles">
         <link rel="stylesheet" type="text/css" href="${style}" />
       </py:for>
-      <!-- App-specific Javascript -->
+
       <py:for each="script in scripts">
         <script type="text/javascript" src="${script}"></script>
       </py:for>
+
+      <!-- Plugin JavaScript to be run on page load -->
       <script type="text/javascript">
         <py:for each="init_script in scripts_init">
           window.addEventListener("load", ${init_script}, false);
