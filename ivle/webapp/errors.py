@@ -30,4 +30,8 @@ class NotFound(HTTPError):
     code = 404
 
 class MethodNotAllowed(HTTPError):
+    def __init__(self, allowed, *args, **kwargs):
+        self.allowed = allowed
+        super(HTTPError, self).__init__(*args, **kwargs)
+
     code = 405

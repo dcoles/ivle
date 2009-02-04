@@ -4,14 +4,10 @@ from ivle.webapp.base.views import RESTView, JSONRESTView, named_operation
 from ivle.webapp.errors import BadRequest, MethodNotAllowed
 from ivle.webapp.testing import FakeUser, FakeRequest
 
-class JSONRESTViewTest(JSONRESTView):
-    '''A small JSON REST view for testing purposes.'''
+class JSONRESTViewTestWithoutPUT(JSONRESTView):
+    '''A small JSON REST view for testing purposes, without a PUT method.'''
     def GET(self, req):
         return {'method': 'get'}
-
-    def PUT(self, req, data):
-        return {'method': 'put',
-                'result': data['result'], 'test': data['test']}
 
     def PATCH(self, req, data):
         return {'method': 'patch',
@@ -20,6 +16,12 @@ class JSONRESTViewTest(JSONRESTView):
     @named_operation
     def do_stuff(self, what):
         return {'result': 'Did %s!' % what}
+
+class JSONRESTViewTest(JSONRESTViewTestWithoutPUT):
+    '''A small JSON REST view for testing purposes.'''
+    def PUT(self, req, data):
+        return {'method': 'put',
+                'result': data['result'], 'test': data['test']}
 
 class TestJSONRESTView:
     def testGET(self):
@@ -66,8 +68,19 @@ class TestJSONRESTView:
         view = JSONRESTViewTest(req)
         try:
             view.render(req)
-        except MethodNotAllowed:
-            pass
+        except MethodNotAllowed, e:
+            assert e.allowed == ['GET', 'PUT', 'PATCH', 'POST']
+        else:
+            raise AssertionError("did not raise MethodNotAllowed")
+
+    def testNoPUTMethod(self):
+        req = FakeRequest()
+        req.method = 'PUT'
+        view = JSONRESTViewTestWithoutPUT(req)
+        try:
+            view.render(req)
+        except MethodNotAllowed, e:
+            assert e.allowed == ['GET', 'PATCH', 'POST']
         else:
             raise AssertionError("did not raise MethodNotAllowed")
 

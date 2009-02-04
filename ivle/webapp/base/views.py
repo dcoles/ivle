@@ -62,7 +62,14 @@ class JSONRESTView(RESTView):
     """
     content_type = "application/json"
 
+    _allowed_methods = property(
+        lambda self: [m for m in ('GET', 'PUT', 'PATCH')
+                      if hasattr(self, m)] + ['POST'])
+
     def render(self, req):
+        if req.method not in self._allowed_methods:
+            raise MethodNotAllowed(allowed=self._allowed_methods)
+
         if req.method == 'GET':
             outjson = self.GET(req)
         # Since PATCH isn't yet an official HTTP method, we allow users to
@@ -100,7 +107,7 @@ class JSONRESTView(RESTView):
 
             outjson = op(**opargs)
         else:
-            raise MethodNotAllowed()
+            raise AssertionError('Unknown method somehow got through.')
 
         req.content_type = self.content_type
         if outjson is not None:
