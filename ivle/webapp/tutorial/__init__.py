@@ -412,7 +412,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     #Save the exercise details to the Table of Contents
 
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
-    tmpl = loader.load(util.make_local_path("apps/tutorial/exercise.html"))
+    tmpl = loader.load(os.path.join(os.path.dirname(__file__), "exercise.html"))
     ex_stream = tmpl.generate(curctx)
     return {'name': curctx['exercisename'], 'complete': curctx['complete'], \
               'stream': ex_stream, 'exid': exerciseid}
