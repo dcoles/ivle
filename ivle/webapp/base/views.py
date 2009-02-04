@@ -100,10 +100,27 @@ class JSONRESTView(RESTView):
                 raise BadRequest('Invalid named operation.')
 
             # Find any missing arguments, except for the first one (self).
-            argspec = inspect.getargspec(op)
-            missing = frozenset(argspec[0][1:]) - frozenset(opargs.keys())
-            if missing:
-                raise BadRequest('Missing arguments: ' + ', '.join(missing))
+            (args, vaargs, varkw, defaults) = inspect.getargspec(op)
+            args = args[1:]
+
+            # To find missing arguments, we eliminate the provided arguments
+            # from the set of remaining function signature arguments. If the
+            # remaining signature arguments are in the args[-len(defaults):],
+            # we are OK.
+            unspec = set(args) - set(opargs.keys())
+            if unspec and not defaults:
+                raise BadRequest('Missing arguments: ' + ','.join(unspec))
+
+            unspec = [k for k in unspec if k not in args[-len(defaults):]]
+
+            if unspec:
+                raise BadRequest('Missing arguments: ' + ','.join(unspec))
+
+            # We have extra arguments if the are no match args in the function
+            # signature, AND there is no **.
+            extra = set(opargs.keys()) - set(args)
+            if extra and not varkw:
+                raise BadRequest('Extra arguments: ' + ', '.join(extra))
 
             outjson = op(**opargs)
         else:

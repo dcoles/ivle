@@ -17,6 +17,10 @@ class JSONRESTViewTestWithoutPUT(JSONRESTView):
     def do_stuff(self, what):
         return {'result': 'Did %s!' % what}
 
+    @named_operation
+    def say_something(self, thing='nothing'):
+        return {'result': 'Said %s!' % thing}
+
 class JSONRESTViewTest(JSONRESTViewTestWithoutPUT):
     '''A small JSON REST view for testing purposes.'''
     def PUT(self, req, data):
@@ -154,3 +158,36 @@ class TestJSONRESTView:
             assert e.message == 'Missing arguments: what'
         else:
             raise AssertionError("did not raise BadRequest")
+
+    def testNamedOperationWithExtraArgs(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
+                                             'what': 'blah',
+                                             'toomany': 'args'})
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            assert e.message == 'Extra arguments: toomany'
+        else:
+            raise AssertionError("did not raise BadRequest")
+
+    def testNamedOperationWithDefaultArgs(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'say_something'})
+        view = JSONRESTViewTest(req)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"result": "Said nothing!"}\n'
+
+    def testNamedOperationWithOverriddenDefaultArgs(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'say_something',
+                                             'thing': 'something'})
+        view = JSONRESTViewTest(req)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"result": "Said something!"}\n'
