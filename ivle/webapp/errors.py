@@ -28,3 +28,6 @@ class Forbidden(HTTPError):
 
 class NotFound(HTTPError):
     code = 404
+
+class MethodNotAllowed(HTTPError):
+    code = 405

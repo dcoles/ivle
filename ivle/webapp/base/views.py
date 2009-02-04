@@ -18,6 +18,7 @@
 # Author: Matt Giuca, Will Grant
 
 import inspect
+import cgi
 import os.path
 
 import cjson
@@ -25,8 +26,7 @@ import genshi.template
 
 import ivle.conf
 import ivle.util
-
-from ivle.webapp.errors import BadRequest
+from ivle.webapp.errors import BadRequest, MethodNotAllowed
 
 class BaseView(object):
     """
@@ -65,19 +65,54 @@ class JSONRESTView(RESTView):
     def render(self, req):
         if req.method == 'GET':
             outjson = self.GET(req)
+        # Since PATCH isn't yet an official HTTP method, we allow users to
+        # turn a PUT into a PATCH by supplying a special header.
         elif req.method == 'PATCH' or (req.method == 'PUT' and
               'X-IVLE-Patch-Semantics' in req.headers_in and
               req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
             outjson = self.PATCH(req, cjson.decode(req.read()))
         elif req.method == 'PUT':
             outjson = self.PUT(req, cjson.decode(req.read()))
+        # POST implies named operation.
+        elif req.method == 'POST':
+            # TODO: Check Content-Type and implement multipart/form-data.
+            opargs = dict(cgi.parse_qsl(req.read()))
+            try:
+                opname = opargs['ivle.op']
+                del opargs['ivle.op']
+            except KeyError:
+                raise BadRequest('No named operation specified.')
+
+            try:
+                op = getattr(self, opname)
+            except AttributeError:
+                raise BadRequest('Invalid named operation.')
+
+            if not hasattr(op, '_rest_api_callable') or \
+               not op._rest_api_callable:
+                raise BadRequest('Invalid named operation.')
+
+            # Find any missing arguments, except for the first one (self).
+            argspec = inspect.getargspec(op)
+            missing = frozenset(argspec[0][1:]) - frozenset(opargs.keys())
+            if missing:
+                raise BadRequest('Missing arguments: ' + ', '.join(missing))
+
+            outjson = op(**opargs)
         else:
-            raise BadRequest
+            raise MethodNotAllowed()
+
         req.content_type = self.content_type
         if outjson is not None:
             req.write(cjson.encode(outjson))
             req.write("\n")
-            
+
+def named_operation(meth):
+    '''Declare a function to be accessible to HTTP users via the REST API.
+    '''
+    meth._rest_api_callable = True
+    return meth
+
 class XHTMLView(BaseView):
     """
     A view which provides a base class for views which need to return XHTML
