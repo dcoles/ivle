@@ -59,7 +59,7 @@ def get_routes_mapper():
     Build a Mapper object for doing URL matching using 'routes', based on the
     plugins config.
     """
-    m = routes.Mapper()
+    m = routes.Mapper(explicit=True)
     for pluginstr in plugins_HACK:
         plugin_path, classname = pluginstr.split('#')
         # Load the plugin module from somewhere in the Python path
@@ -118,16 +118,14 @@ def handler_(req, apachereq):
     # XXX This should be done ONCE per Python process, not per request.
     # (Wait till WSGI)
     # XXX No authentication is done here
-    mapper = get_routes_mapper()
-    matchdict = mapper.match(req.uri)
+    req.mapper = get_routes_mapper()
+    matchdict = req.mapper.match(req.uri)
     if matchdict is not None:
         viewcls = matchdict['view']
         # Get the remaining arguments, less 'view', 'action' and 'controller'
         # (The latter two seem to be built-in, and we don't want them).
         kwargs = matchdict.copy()
         del kwargs['view']
-        del kwargs['action']
-        del kwargs['controller']
         # Instantiate the view, which should be a BaseView class
         view = viewcls(req, **kwargs)
         # Render the output
