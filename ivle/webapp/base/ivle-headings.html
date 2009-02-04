@@ -2,8 +2,8 @@
       xmlns:py="http://genshi.edgewall.org/"
       xmlns:xi="http://www.w3.org/2001/XInclude"
       py:strip="">
-  <py:match path="head" once="true">
-    <head py:attrs="select('@*')">
+  <py:match path="head[@status!='done']" once="true">
+    <head status='done' py:attrs="select('@*')">
       <title py:with="title = list(select('title/text()'))">
         <py:if test="title">${title} - </py:if>IVLE
       </title>
@@ -43,8 +43,8 @@
       ${select('*[local-name()!="title"]')}
     </head>
   </py:match>    
-  <py:match path="body" once="true">
-    <body>
+  <py:match path="body[@status!='done']" once="true">
+    <body status='done'>
       <div id="ivleheader"></div>
       <div id="ivleheader_text">
         <h1>IVLE</h1>
