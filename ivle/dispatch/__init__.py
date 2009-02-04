@@ -49,10 +49,9 @@ import html
 import plugins.console # XXX: Relies on www/ being in the Python path.
 
 # XXX List of plugins, which will eventually be read in from conf
-# Elements are (module, classname) pairs.
 plugins_HACK = [
-    ('ivle.webapp.admin.user', 'Plugin'),
-    ('ivle.webapp.browser', 'Plugin'),
+    'ivle.webapp.admin.user#Plugin',
+    'ivle.webapp.browser#Plugin',
 ]
 
 def get_routes_mapper():
@@ -61,7 +60,8 @@ def get_routes_mapper():
     plugins config.
     """
     m = routes.Mapper()
-    for plugin_path, classname in plugins_HACK:
+    for pluginstr in plugins_HACK:
+        plugin_path, classname = pluginstr.split('#')
         # Load the plugin module from somewhere in the Python path
         # (Note that plugin_path is a fully-qualified Python module name).
         plugin = getattr(__import__(plugin_path, fromlist=[classname]),
