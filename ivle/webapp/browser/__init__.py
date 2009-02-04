@@ -52,7 +52,6 @@ class BrowserView(XHTMLView):
             req.throw_redirect(util.make_path(redirectPath))
 
         # Set request attributes
-        req.content_type = "text/html"
         req.styles = [
             "/media/browser/browser.css",
             "/media/browser/listing.css",
@@ -71,7 +70,6 @@ class BrowserView(XHTMLView):
             "browser_init",
         ]
 
-        # Have dispatch print head and foot
         # The page title should contain the name of the file being browsed
         req.title = self.path.rsplit('/', 1)[-1]
 

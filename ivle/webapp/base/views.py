@@ -124,6 +124,7 @@ class XHTMLView(BaseView):
           setattr(self, key, kwargs[key])
         
     def render(self, req):
+        req.content_type = 'text/html' # TODO: Detect application/xhtml+xml
         ctx = genshi.template.Context()
         self.populate(req, ctx)
         self.populate_headings(req, ctx)

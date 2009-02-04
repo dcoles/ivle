@@ -41,18 +41,16 @@ class GroupsView(XHTMLView):
         self.app_template = 'template.html'
         #XXX: Will hates me for this.
         self.appname = "groups"
-    
+
     def populate(self, req, ctx):
         # Set request attributes
-        req.content_type = "text/html"
         req.styles = ["media/groups/groups.css"]
         req.scripts = [
             "media/groups/groups.js",
             "media/common/util.js",
             "media/common/json2.js",
         ]
-        req.write_html_head_foot = True     # Have dispatch print head and foot
-        
+
         ctx['enrolments'] = []
         # Show a group panel per enrolment
         enrolments = req.user.active_enrolments
@@ -60,10 +58,10 @@ class GroupsView(XHTMLView):
             ctx['no_enrolments'] = True
         else:
             ctx['no_enrolments'] = False
-        
+
         for enrolment in enrolments:
             self.add_subject_panel(req, enrolment.offering, ctx)
-            
+
         if req.user.hasCap(caps.CAP_MANAGEGROUPS):
             ctx['manage_groups'] = True
             ctx['manage_subjects'] = []
@@ -76,7 +74,7 @@ class GroupsView(XHTMLView):
                 ctx['manage_subjects'].append(new_s)
         else:
             ctx['manage_groups'] = False
-      
+
 
     def add_subject_panel(self, req, offering, ctx):
         """
@@ -87,24 +85,24 @@ class GroupsView(XHTMLView):
         groups = req.user.get_groups(offering)
         if groups.count() == 0:
             return
-        
+
         offering_groups = {}
-        
+
         offering_groups['offering_id'] = offering.id
         offering_groups['offering_name'] = offering.subject.name
         offering_groups['groups'] = []
-        
+
         #TODO: Use a better way to manage group membership and invitations
         for group in groups:
             new_group = {}
             new_group['nick'] = cgi.escape(group.nick if group.nick else '')
             new_group['name'] = cgi.escape(group.name)
-            
+
             # XXX - This should be set to reflect whether or not a user is invited
             #     - or if they have accepted the offer
             new_group['is_member'] = True
             new_group['members'] = []
-            
+
             for user in group.members:
                 member = {}
                 member['fullname'] = cgi.escape(user.fullname)
@@ -113,7 +111,8 @@ class GroupsView(XHTMLView):
             offering_groups['groups'].append(new_group)
 
         ctx['enrolments'].append(offering_groups)
-    
+
+
 class Plugin(BasePlugin):
     """
     The Plugin class for the user plugin.
@@ -123,6 +122,5 @@ class Plugin(BasePlugin):
     # (regex str, handler class, kwargs dict)
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
-        ('groups/*(path)', GroupsView),
         ('groups/', GroupsView),
     ]
