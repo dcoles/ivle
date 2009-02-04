@@ -1,5 +1,4 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
   <div class="exercise" id="exercise${exerciseid}">
     <p><b>Exercise:</b> ${exercisename}</p>
@@ -12,9 +11,7 @@
         event.keyCode)"
         onchange="set_saved_status(&quot;exercise${exerciseid}&quot;, '${filename}',
         &quot;Save&quot;)"
-        cols="80" rows="${rows}">
-        ${exercisepartial}
-    </textarea>
+        cols="80" rows="${rows}">${exercisepartial}</textarea>
     <div class="exercisebuttons">
       <input type="button" value="Saved" disabled="disabled" id="savebutton_exercise${exerciseid}"
           onclick="saveexercise(&quot;exercise${exerciseid}&quot;, '${filename}')"
@@ -60,7 +57,7 @@
             <option></option>
           </select>
           <input type="button" value="View"
-              onclick="select_attempt(&quot;exercise${exerciseid}&quot;, '${filename})'" />
+              onclick="select_attempt(&quot;exercise${exerciseid}&quot;, '${filename}')" />
         </p>
         <p>
           <textarea readonly="readonly" class="exercisebox" cols="80" rows="${rows}"
