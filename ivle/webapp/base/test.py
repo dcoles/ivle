@@ -14,12 +14,16 @@ class JSONRESTViewTestWithoutPUT(JSONRESTView):
                 'result': data['result'], 'test': data['test']}
 
     @named_operation
-    def do_stuff(self, what):
+    def do_stuff(self, req, what):
         return {'result': 'Did %s!' % what}
 
     @named_operation
-    def say_something(self, thing='nothing'):
+    def say_something(self, req, thing='nothing'):
         return {'result': 'Said %s!' % thing}
+
+    @named_operation
+    def get_req_method(self, req):
+        return {'method': req.method}
 
 class JSONRESTViewTest(JSONRESTViewTestWithoutPUT):
     '''A small JSON REST view for testing purposes.'''
@@ -191,3 +195,12 @@ class TestJSONRESTView:
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Said something!"}\n'
+
+    def testNamedOperationUsingRequest(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'get_req_method'})
+        view = JSONRESTViewTest(req)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"method": "POST"}\n'

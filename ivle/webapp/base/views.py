@@ -99,9 +99,9 @@ class JSONRESTView(RESTView):
                not op._rest_api_callable:
                 raise BadRequest('Invalid named operation.')
 
-            # Find any missing arguments, except for the first one (self).
+            # Find any missing arguments, except for the first two (self, req)
             (args, vaargs, varkw, defaults) = inspect.getargspec(op)
-            args = args[1:]
+            args = args[2:]
 
             # To find missing arguments, we eliminate the provided arguments
             # from the set of remaining function signature arguments. If the
@@ -122,7 +122,7 @@ class JSONRESTView(RESTView):
             if extra and not varkw:
                 raise BadRequest('Extra arguments: ' + ', '.join(extra))
 
-            outjson = op(**opargs)
+            outjson = op(req, **opargs)
         else:
             raise AssertionError('Unknown method somehow got through.')
 
