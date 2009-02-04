@@ -1,8 +1,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xi="http://www.w3.org/2001/XInclude"
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
-
-  <body py:strip="">
+  <head>
+    <title>Groupz</title>
+  </head>
+  <body>
     <div id="ivle_padding">
       <p py:if="no_enrolments">Error: You are not currently enrolled in any subjects.</p>
       <py:for each="enrolment in enrolments">
