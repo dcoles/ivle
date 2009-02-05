@@ -17,7 +17,7 @@
 
 # Author: Matt Giuca, Will Grant
 
-from ivle.webapp.base.views import JSONRESTView
+from ivle.webapp.base.views import JSONRESTView, XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 import ivle.database
 import ivle.util
@@ -63,6 +63,26 @@ class UserRESTView(JSONRESTView):
             except KeyError:
                 continue
 
+class UserSettingsView(XHTMLView):
+    app_template = 'user-settings.html'
+    appname = 'settings'
+    def __init__(self, req, login):
+        self.context = ivle.database.User.get_by_login(req.store, login)
+
+    def populate(self, req, ctx):
+        if not self.context:
+            raise NotFound()
+
+        req.scripts = [
+            "/media/settings/settings.js",
+            "/media/common/json2.js",
+            "/media/common/util.js",
+        ]
+        req.scripts_init = [
+            "revert_settings"
+        ]
+        ctx['settings_login'] = self.context.login
+
 class Plugin(BasePlugin):
     """
     The Plugin class for the user plugin.
@@ -72,5 +92,6 @@ class Plugin(BasePlugin):
     # (regex str, handler class, kwargs dict)
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
-        ('api/users/:login', UserRESTView)
+        ('users/:login/+settings', UserSettingsView),
+        ('api/users/:login', UserRESTView),
     ]

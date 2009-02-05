@@ -32,7 +32,7 @@ function revert_settings()
             populate(user);
         }
     /* Just get details for the logged in user */
-    ajax_call(callback, "userservice", "get_user", {}, "GET");
+    ajax_call(callback, "userservice", "get_user", {"login": settings_login}, "GET");
     return false;
 }
 
