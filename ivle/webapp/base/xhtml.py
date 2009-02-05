@@ -34,7 +34,7 @@ class XHTMLView(BaseView):
     """
     def __init__(self, req, **kwargs):
         for key in kwargs:
-          setattr(self, key, kwargs[key])
+            setattr(self, key, kwargs[key])
 
     def render(self, req):
         req.content_type = 'text/html' # TODO: Detect application/xhtml+xml

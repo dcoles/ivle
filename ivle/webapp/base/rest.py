@@ -33,7 +33,8 @@ class RESTView(BaseView):
     content_type = "application/octet-stream"
 
     def __init__(self, req, *args, **kwargs):
-        pass
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
     def render(self, req):
         if req.method == 'GET':
