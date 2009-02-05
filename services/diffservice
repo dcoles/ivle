@@ -17,61 +17,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Script: diffservice
-# Author: David Coles
-# Date:   26/2/2008
+# Author: David Coles, Will Grant
 
-# A CGI script for generating a diff report page in HTML. It is intended to be 
-# run from the trampoline by the Diff application.
+'''
+A script for generating a Subversion diff. It is intended to be run via
+trampoline by ivle.webapp.filesystem.diff.DiffView.
+'''
 
-import cgi
-import os.path
+import os
+import sys
+
+import cjson
 import pysvn
-import re
 
-from ivle import cgirequest
 import ivle.svn
 
-def htmlfy_diff(difftext):
-    """Adds HTML markup to a udiff string"""
-    output = cgi.escape(difftext)
-    subs = {
-     r'^([\+\-]{3})\s(\S+)\s\((.+)\)$':
-         r'<span class="diff-files">\1 \2 <em>(\3)</em></span>',
-     r'^\@\@ (.*) \@\@$':
-         r'<span class="diff-range">@@ \1 @@</span>',
-     r'^\+(.*)$':
-         r'<span class="diff-add">+\1</span>',
-     r'^\-(.*)$':
-         r'<span class="diff-sub">-\1</span>',
-     r'^\\(.*)$':
-         r'<span class="diff-special">\\\1</span>'
-    }
-
-    for match in subs:
-        output = re.compile(match, re.MULTILINE).sub(subs[match], output)
-
-    return output
-
-# Use a CGIRequest object to make the CGI environment look like the normal
-# IVLE handler environment.
-
-req = cgirequest.CGIRequest()
-req.install_error_handler()
-req.content_type = "text/html"
-
-# Beginning of the page
-req.write('<div id="ivle_padding">\n')
-req.write('<h1>Diff</h1>\n')
 
 # Default revisions
 revs = [pysvn.Revision(x) for x in [pysvn.opt_revision_kind.base,
                                     pysvn.opt_revision_kind.working]]
-# Override revisions from query string
-fields = req.get_fieldstorage()
-field_r = fields.getlist("r")
-for ri in range(len(field_r)):
-    r = ivle.svn.revision_from_string(field_r[ri])
+
+# Override revisions from argv.
+for ri in range(len(sys.argv[2:4])):
+    r = ivle.svn.revision_from_string(sys.argv[ri])
     if r is not None:
         revs[ri] = r
 
@@ -80,27 +48,10 @@ try:
     svnclient = pysvn.Client()
     diff = svnclient.diff
     diff_text = diff( '/tmp/svndiff',
-        os.path.join('/home', req.path),
+        os.path.join('/home', sys.argv[1]),
         revision1=revs[0],
         revision2=revs[1]
     )
-
-    # Split up the udiff into individual files
-    diff_matcher = re.compile(
-        r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
-    )
-    split_diff = diff_matcher.findall(diff_text)
-
-    # Prints output
-    for filediff in split_diff:
-        filename = filediff[0]
-        diffbody = htmlfy_diff(filediff[1])
-        req.write('<p><b>File:</b> %s</p>\n'
-            % cgi.escape(filename))
-        req.write('<pre class="diff">%s</pre>\n' % diffbody)
-
+    print cjson.encode({'diff': diff_text})
 except pysvn._pysvn_2_5.ClientError, e:
-    req.write('<p><b>Error:</b></p>\n')
-    req.write('<pre class="diff">%s</pre>\n' % cgi.escape(str(e)))
-
-req.write('</div>\n')
+    print cjson.encode({'error': str(e)})
