@@ -15,19 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# App: groups
-# Author: Matt Giuca
-# Date: 21/7/2008
+# Author: Matt Giuca, Will Grant
 
-# Allows students and tutors to manage project groups.
+'''
+Allows students and tutors to manage project groups.
+'''
 
-# XXX Does not distinguish between current and past subjects.
-
-import cgi
+# TODO Does not distinguish between current and past subjects.
 
 from ivle import caps
 from ivle.database import Subject
-from ivle import util
 
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.base.xhtml import XHTMLView
@@ -48,76 +45,17 @@ class GroupsView(XHTMLView):
             "media/common/json2.js",
         ]
 
-        ctx['enrolments'] = []
         # Show a group panel per enrolment
-        enrolments = req.user.active_enrolments
-        if enrolments.count() == 0:
-            ctx['no_enrolments'] = True
-        else:
-            ctx['no_enrolments'] = False
-
-        for enrolment in enrolments:
-            self.add_subject_panel(req, enrolment.offering, ctx)
-
-        if req.user.hasCap(caps.CAP_MANAGEGROUPS):
-            ctx['manage_groups'] = True
-            ctx['manage_subjects'] = []
-            subjects = req.store.find(Subject)
-            for s in subjects:
-                new_s = {}
-                new_s['id'] = s.id
-                new_s['name'] = s.name
-                new_s['code'] = s.code
-                ctx['manage_subjects'].append(new_s)
-        else:
-            ctx['manage_groups'] = False
-
-
-    def add_subject_panel(self, req, offering, ctx):
-        """
-        Show the group management panel for a particular subject.
-        Prints to req.
-        """
-        # Get the groups this user is in, for this offering
-        groups = req.user.get_groups(offering)
-        if groups.count() == 0:
-            return
-
-        offering_groups = {}
-
-        offering_groups['offering_id'] = offering.id
-        offering_groups['offering_name'] = offering.subject.name
-        offering_groups['groups'] = []
-
-        #TODO: Use a better way to manage group membership and invitations
-        for group in groups:
-            new_group = {}
-            new_group['nick'] = cgi.escape(group.nick if group.nick else '')
-            new_group['name'] = cgi.escape(group.name)
-
-            # XXX - This should be set to reflect whether or not a user is invited
-            #     - or if they have accepted the offer
-            new_group['is_member'] = True
-            new_group['members'] = []
-
-            for user in group.members:
-                member = {}
-                member['fullname'] = cgi.escape(user.fullname)
-                member['login'] = cgi.escape(user.login)
-                new_group['members'].append(member)
-            offering_groups['groups'].append(new_group)
-
-        ctx['enrolments'].append(offering_groups)
+        ctx['get_user_groups'] = req.user.get_groups
+        ctx['enrolments'] = req.user.active_enrolments
+        ctx['manage_subjects'] = req.store.find(Subject) if \
+              req.user.hasCap(caps.CAP_MANAGEGROUPS) else []
 
 
 class Plugin(BasePlugin):
     """
-    The Plugin class for the user plugin.
+    The Plugin class for the group admin plugin.
     """
-    # Magic attribute: urls
-    # Sequence of pairs/triples of
-    # (regex str, handler class, kwargs dict)
-    # The kwargs dict is passed to the __init__ of the view object
     urls = [
         ('groups/', GroupsView),
     ]
