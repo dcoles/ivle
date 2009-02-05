@@ -28,7 +28,7 @@ import ivle.conf
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
-from ivle.webapp.errors import NotFound
+from ivle.webapp.errors import NotFound, BadRequest
 
 diffservice_path = os.path.join(ivle.conf.share_path, 'services/diffservice')
 

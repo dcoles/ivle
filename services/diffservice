@@ -39,13 +39,14 @@ revs = [pysvn.Revision(x) for x in [pysvn.opt_revision_kind.base,
 
 # Override revisions from argv.
 for ri in range(len(sys.argv[2:4])):
-    r = ivle.svn.revision_from_string(sys.argv[ri])
+    r = ivle.svn.revision_from_string(sys.argv[2 + ri])
     if r is not None:
         revs[ri] = r
 
 # Attempt to get the diff for these revisons
 try:
     svnclient = pysvn.Client()
+    svnclient.exception_style = 1
     diff = svnclient.diff
     diff_text = diff( '/tmp/svndiff',
         os.path.join('/home', sys.argv[1]),
@@ -53,5 +54,20 @@ try:
         revision2=revs[1]
     )
     print cjson.encode({'diff': diff_text})
-except pysvn._pysvn_2_5.ClientError, e:
-    print cjson.encode({'error': str(e)})
+except pysvn.ClientError, e:
+    error = e[0]
+
+    try:
+        code = e[1][0][1]
+        # See subversion/include/svn_error_codes.h.
+        # 155007: WC_NOT_DIRECTORY.
+        # 160013: FS_NOT_FOUND
+        # 200005: UNVERSIONED_RESOURCE
+        if code in (155007, 160013, 200005):
+            error = 'notfound'
+        else:
+            error = '%s (code %d)' % (error, code) 
+    except IndexError:
+        pass
+
+    print cjson.encode({'error': error})
