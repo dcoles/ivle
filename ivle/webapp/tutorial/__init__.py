@@ -24,18 +24,15 @@ and submit their solutions to exercises and have them auto-tested.
 '''
 
 import os
-import os.path
-from datetime import datetime
-import cgi
 import urllib
 import re
-from xml.dom import minidom
 import mimetypes
+from datetime import datetime
+from xml.dom import minidom
 
-import cjson
 import genshi
 
-from ivle import util
+import ivle.util
 import ivle.conf
 import ivle.database
 from ivle.database import Subject
@@ -45,7 +42,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound, Forbidden
 
-from rst import rst
+from ivle.webapp.tutorial.rst import rst
 
 THIS_APP = "tutorial"
 
@@ -65,20 +62,6 @@ class Worksheet:
     def __repr__(self):
         return ("Worksheet(id=%s, name=%s, assessable=%s)"
                 % (repr(self.id), repr(self.name), repr(self.assessable)))
-
-def make_tutorial_path(subject=None, worksheet=None):
-    """Creates an absolute (site-relative) path to a tutorial sheet.
-    Subject or worksheet can be None.
-    Ensures that top-level or subject-level URLs end in a '/', because they
-    are represented as directories.
-    """
-    if subject is None:
-        return util.make_path(THIS_APP + '/')
-    else:
-        if worksheet is None:
-            return util.make_path(os.path.join(THIS_APP, subject + '/'))
-        else:
-            return util.make_path(os.path.join(THIS_APP, subject, worksheet))
 
 class SubjectView(XHTMLView):
     '''The view of the index of worksheets for a subject.'''
@@ -361,7 +344,7 @@ def present_exercise(req, exercisesrc, exerciseid):
     # Retrieve the exercise details from the database
     exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
     #Open the exercise, and double-check that it exists
-    exercisefile = util.open_exercise_file(exercisesrc)
+    exercisefile = ivle.util.open_exercise_file(exercisesrc)
     if exercisefile is None:
         req.throw_error(req.HTTP_EXPECTATION_FAILED, \
                                         "Exercise file could not be opened")
