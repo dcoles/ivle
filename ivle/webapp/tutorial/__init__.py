@@ -41,10 +41,7 @@ from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound, Forbidden
-
 from ivle.webapp.tutorial.rst import rst
-
-THIS_APP = "tutorial"
 
 # Regex for valid identifiers (subject/worksheet names)
 re_ident = re.compile("[0-9A-Za-z_]+")
