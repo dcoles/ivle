@@ -37,13 +37,7 @@ class RESTView(BaseView):
             setattr(self, key, kwargs[key])
 
     def render(self, req):
-        if req.method == 'GET':
-            outstr = self.GET(req)
-        # XXX PATCH hack
-        if req.method == 'PUT':
-            outstr = self.PATCH(req, req.read())
-        req.content_type = self.content_type
-        req.write(outstr)
+        raise NotImplementedError()
 
 class JSONRESTView(RESTView):
     """
@@ -98,12 +92,12 @@ class JSONRESTView(RESTView):
             # we are OK.
             unspec = set(args) - set(opargs.keys())
             if unspec and not defaults:
-                raise BadRequest('Missing arguments: ' + ','.join(unspec))
+                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
 
             unspec = [k for k in unspec if k not in args[-len(defaults):]]
 
             if unspec:
-                raise BadRequest('Missing arguments: ' + ','.join(unspec))
+                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
 
             # We have extra arguments if the are no match args in the function
             # signature, AND there is no **.
@@ -112,8 +106,6 @@ class JSONRESTView(RESTView):
                 raise BadRequest('Extra arguments: ' + ', '.join(extra))
 
             outjson = op(req, **opargs)
-        else:
-            raise AssertionError('Unknown method somehow got through.')
 
         req.content_type = self.content_type
         if outjson is not None:

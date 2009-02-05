@@ -22,6 +22,10 @@ class JSONRESTViewTestWithoutPUT(JSONRESTView):
         return {'result': 'Said %s!' % thing}
 
     @named_operation
+    def do_say_something(self, req, what, thing='nothing'):
+        return {'result': 'Said %s and %s!' % (what, thing)}
+
+    @named_operation
     def get_req_method(self, req):
         return {'method': req.method}
 
@@ -195,6 +199,19 @@ class TestJSONRESTView:
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Said something!"}\n'
+
+    def testNamedOperationWithDefaultAndMissingArgs(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'do_say_something',
+                                             'thing': 'something'})
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            assert e.message == 'Missing arguments: what'
+        else:
+            raise AssertionError("did not raise BadRequest")
 
     def testNamedOperationUsingRequest(self):
         req = FakeRequest()
