@@ -280,7 +280,7 @@ function console_enter_line(inputbox, which)
         span.appendChild(document.createTextNode(inputline));
         output.appendChild(span);
     }
-    var args = {"ivle.op": which, "key": server_key, "text":inputline};
+    var args = {"ivle.op": "chat", "kind": which, "key": server_key, "text":inputline};
     var callback = function(xhr)
         {
             console_response(inputbox, graytimer, inputline, xhr.responseText);
@@ -361,7 +361,7 @@ function console_response(inputbox, graytimer, inputline, responseText)
         {
             var kind = "chat";
         }
-        var args = {"ivle.op": kind, "key": server_key, "text":''};
+        var args = {"ivle.op": "chat", "kind": kind, "key": server_key, "text":''};
         ajax_call(callback, "console", "service", args, "POST");
 
         // Open up the console so we can see the output
@@ -470,7 +470,7 @@ function console_reset()
     }
     else
     {
-        xhr = ajax_call(null, "console", "service", {"ivle.op": "restart", "key": server_key}, "POST");
+        xhr = ajax_call(null, "console", "service", {"ivle.op": "chat", "kind": "terminate", "key": server_key}, "POST");
         console_response(null, null, null, xhr.responseText);
     }
 }
