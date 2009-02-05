@@ -94,6 +94,6 @@ class Plugin(BasePlugin):
     # (regex str, handler class, kwargs dict)
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
-        ('users/:login/+settings', UserSettingsView),
-        ('api/users/:login', UserRESTView),
+        ('~:login/+settings', UserSettingsView),
+        ('api/~:login', UserRESTView),
     ]
