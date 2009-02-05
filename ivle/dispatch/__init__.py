@@ -53,7 +53,7 @@ plugins_HACK = [
     'ivle.webapp.admin.user#Plugin',
     'ivle.webapp.tutorial#Plugin',
     'ivle.webapp.admin.subject#Plugin',
-    'ivle.webapp.browser#Plugin',
+    'ivle.webapp.filesystem.browser#Plugin',
     'ivle.webapp.groups#Plugin',
     'ivle.webapp.console#Plugin',
     'ivle.webapp.security#Plugin',
