@@ -23,18 +23,14 @@ Provides an HTTP RPC interface to a Python console process.
 
 '''
 
-import cStringIO
-import md5
 import os
-import random
 import socket
-import sys
-import uuid
 
 import cjson
 import errno
 
-from ivle import (util, studpath, chat, console)
+import ivle.console
+import ivle.chat
 import ivle.conf
 from ivle.webapp.base.views import JSONRESTView, named_operation
 
@@ -49,7 +45,7 @@ class ConsoleServiceRESTView(JSONRESTView):
 
         # Start the server
         jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
-        cons = console.Console(uid, jail_path, working_dir)
+        cons = ivle.console.Console(uid, jail_path, working_dir)
 
         # Assemble the key and return it. Yes, it is double-encoded.
         return {'key': cjson.encode({"host": cons.host,
@@ -79,7 +75,7 @@ class ConsoleServiceRESTView(JSONRESTView):
 
         msg = {'cmd':kind, 'text':text}
         try:
-            json_response = chat.chat(host, port, msg, magic, decode = False)
+            json_response = ivle.chat.chat(host, port, msg, magic,decode=False)
 
             # Snoop the response from python-console to check that it's valid
             try:
@@ -105,31 +101,6 @@ class ConsoleServiceRESTView(JSONRESTView):
                 raise socket.error, (enumber, estring)
         return response
 
-def handle(req):
-    """Handler for the Console Service AJAX backend application."""
-    if len(req.path) > 0 and req.path[-1] == os.sep:
-        path = req.path[:-1]
-    else:
-        path = req.path
-    # The path determines which "command" we are receiving
-    if req.path == "start":
-        handle_start(req)
-    elif req.path == "interrupt":
-        handle_chat(req, kind='interrupt')
-    elif req.path == "restart":
-        handle_chat(req, kind='terminate')
-    elif req.path == "chat":
-        handle_chat(req)
-    elif req.path == "block":
-        handle_chat(req, kind="block")
-    elif req.path == "flush":
-        handle_chat(req, kind="flush")
-    elif req.path == "inspect":
-        handle_chat(req, kind="inspect")
-    else:
-        req.throw_error(req.HTTP_BAD_REQUEST)
-
-
 
 def restart_console(uid, jail_path, working_dir, reason):
     """Tells the client that it must be issued a new console since the old 
@@ -137,7 +108,7 @@ def restart_console(uid, jail_path, working_dir, reason):
     Returns the JSON response to be given to the client.
     """
     # Start a new console server console
-    cons = console.Console(uid, jail_path, working_dir)
+    cons = ivle.console.Console(uid, jail_path, working_dir)
 
     # Make a JSON object to tell the browser to restart its console client
     new_key = cjson.encode(
