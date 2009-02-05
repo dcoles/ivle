@@ -398,18 +398,18 @@ def present_exercise(req, exercisesrc, exerciseid):
             ivle.worksheet.get_exercise_status(req.store, req.user, exercise)
     if saved_text is not None:
         curctx['exercisepartial'] = saved_text.text
-    if complete:
-        curctx['complete'] = 'complete'
-    else:
-        curctx['complete'] = 'incomplete'
+    curctx['complete'] = 'Complete' if complete else 'Incomplete'
+    curctx['complete_class'] = curctx['complete'].lower()
 
     #Save the exercise details to the Table of Contents
 
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(os.path.join(os.path.dirname(__file__), "exercise.html"))
     ex_stream = tmpl.generate(curctx)
-    return {'name': curctx['exercisename'], 'complete': curctx['complete'], \
-              'stream': ex_stream, 'exid': exerciseid}
+    return {'name': curctx['exercisename'],
+            'complete': curctx['complete_class'],
+            'stream': ex_stream,
+            'exid': exerciseid}
 
 
 def update_db_worksheet(store, subject, worksheetname, file_mtime,
