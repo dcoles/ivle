@@ -60,9 +60,17 @@ class JSONRESTView(RESTView):
         elif req.method == 'PATCH' or (req.method == 'PUT' and
               'X-IVLE-Patch-Semantics' in req.headers_in and
               req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
-            outjson = self.PATCH(req, cjson.decode(req.read()))
+            try:
+                input = cjson.decode(req.read())
+            except cjson.DecodeError:
+                raise BadRequest('Invalid JSON data')
+            outjson = self.PATCH(req, input)
         elif req.method == 'PUT':
-            outjson = self.PUT(req, cjson.decode(req.read()))
+            try:
+                input = cjson.decode(req.read())
+            except cjson.DecodeError:
+                raise BadRequest('Invalid JSON data')
+            outjson = self.PUT(req, input)
         # POST implies named operation.
         elif req.method == 'POST':
             # TODO: Check Content-Type and implement multipart/form-data.

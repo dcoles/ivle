@@ -221,3 +221,40 @@ class TestJSONRESTView:
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"method": "POST"}\n'
+
+    def testInvalidPOSTData(self):
+        req = FakeRequest()
+        req.method = 'POST'
+        req.request_body = 'I am invalid&&&&'
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            print e.message
+            assert e.message == 'No named operation specified.'
+        else:
+            raise AssertionError("did not raise BadRequest")
+
+    def testInvalidPATCHData(self):
+        req = FakeRequest()
+        req.method = 'PATCH'
+        req.request_body = 'I am invalid'
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            assert e.message == 'Invalid JSON data'
+        else:
+            raise AssertionError("did not raise BadRequest")
+
+    def testInvalidPUTData(self):
+        req = FakeRequest()
+        req.method = 'PUT'
+        req.request_body = 'I am invalid'
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            assert e.message == 'Invalid JSON data'
+        else:
+            raise AssertionError("did not raise BadRequest")
