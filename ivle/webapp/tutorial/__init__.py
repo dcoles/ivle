@@ -261,15 +261,28 @@ def get_worksheets(subjectfile):
 
 # This generator adds in the exercises as they are required. This is returned    
 def add_exercises(stream, ctx, req):
-    """A filter adds exercises into the stream."""
+    """A filter which adds exercises into the stream."""
     exid = 0
     for kind, data, pos in stream:
         if kind is genshi.core.START:
-            if data[0] == 'exercise':
+            # Remove the worksheet tags, as they are not xhtml valid.
+            if data[0] == 'worksheet':
+                continue
+            # If we have an exercise node, replace it with the content of the
+            # exercise.
+            elif data[0] == 'exercise':
                 new_stream = ctx['exercises'][exid]['stream']
                 exid += 1
                 for item in new_stream:
                     yield item
+            else:
+                yield kind, data, pos
+        # Remove the end tags for exercises and worksheets
+        elif kind is genshi.core.END:
+            if data == 'exercise':
+                continue
+            elif data == 'worksheet':
+                continue
             else:
                 yield kind, data, pos
         else:
