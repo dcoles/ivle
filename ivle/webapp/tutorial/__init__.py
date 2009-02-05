@@ -40,7 +40,8 @@ import ivle.conf
 import ivle.database
 from ivle.database import Subject
 import ivle.worksheet
-from ivle.webapp.base.views import BaseView, XHTMLView
+from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound, Forbidden
 

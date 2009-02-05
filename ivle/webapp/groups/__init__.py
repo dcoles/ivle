@@ -30,7 +30,7 @@ from ivle.database import Subject
 from ivle import util
 
 from ivle.webapp.base.plugins import BasePlugin
-from ivle.webapp.base.views import XHTMLView
+from ivle.webapp.base.xhtml import XHTMLView
 
 class GroupsView(XHTMLView):
     """

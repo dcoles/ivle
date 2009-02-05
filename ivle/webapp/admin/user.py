@@ -17,7 +17,8 @@
 
 # Author: Matt Giuca, Will Grant
 
-from ivle.webapp.base.views import JSONRESTView, XHTMLView
+from ivle.webapp.base.rest import JSONRESTView
+from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 import ivle.database
 import ivle.util

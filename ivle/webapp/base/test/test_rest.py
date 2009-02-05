@@ -1,6 +1,6 @@
 import urllib
 
-from ivle.webapp.base.views import RESTView, JSONRESTView, named_operation
+from ivle.webapp.base.rest import JSONRESTView, named_operation
 from ivle.webapp.errors import BadRequest, MethodNotAllowed
 from ivle.webapp.testing import FakeUser, FakeRequest
 

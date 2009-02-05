@@ -27,7 +27,7 @@ take place in the FileService app (for handling Ajax requests).
 """
 
 from ivle.webapp.base.plugins import BasePlugin
-from ivle.webapp.base.views import XHTMLView
+from ivle.webapp.base.xhtml import XHTMLView
 
 import os.path
 import cgi

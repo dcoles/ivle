@@ -26,7 +26,7 @@ import os
 import urllib
 import cgi
 
-from ivle.webapp.base.views import XHTMLView
+from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound
 from ivle.database import Subject
