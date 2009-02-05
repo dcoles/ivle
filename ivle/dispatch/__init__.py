@@ -55,6 +55,7 @@ plugins_HACK = [
     'ivle.webapp.admin.subject#Plugin',
     'ivle.webapp.filesystem.browser#Plugin',
     'ivle.webapp.filesystem.diff#Plugin',
+    'ivle.webapp.filesystem.svnlog#Plugin',
     'ivle.webapp.groups#Plugin',
     'ivle.webapp.console#Plugin',
     'ivle.webapp.security#Plugin',

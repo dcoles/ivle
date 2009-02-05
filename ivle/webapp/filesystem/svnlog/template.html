@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Subversion Log</title>
+  </head>
+  <body>
+    <h1>Subversion Log</h1>
+    <div class="svnlogentry" py:for="log in logs">
+      <div class="svnloginfo">
+        Revision <a href="/svnlog/${path}?r=${log['revno']}"
+                    style="font-weight: bold">${log['revno']}</a>
+        by <strong>${log['author']}</strong>
+        on <strong>${log['date']}</strong> 
+        <py:choose test="revno">
+          <span py:when="log['revno']">[selected]</span>
+          <a py:otherwise="" href="${url}?r=${log['revno']}">[select]</a>
+        </py:choose>
+        <a py:if="revno" href="${url}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
+      </div>
+      <pre py:content="log['message']" />
+      <hr size="1" />
+      <h2>Changed paths:</h2>
+      <div class="svnlogpathlist">
+        <ul>
+          <li py:for="path in log['paths']">
+            ${path[1]} <a href="${path[2]}">${path[0]}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
