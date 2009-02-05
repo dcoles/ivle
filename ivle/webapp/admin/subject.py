@@ -35,8 +35,8 @@ from ivle import util
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
-    app_template = 'subjects.html'
-    appname = 'subjects'
+    template = 'subjects.html'
+    appname = 'subjects' # XXX
 
     def populate(self, req, ctx):
         req.styles = ["media/subjects/subjects.css"]
@@ -68,7 +68,7 @@ class SubjectsView(XHTMLView):
 
 class SubjectView(XHTMLView):
     '''The view of a subject.'''
-    app_template = 'subject.html'
+    template = 'subject.html'
     appname = 'subjects' # XXX
 
     def __init__(self, req, subject, path):

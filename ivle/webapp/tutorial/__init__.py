@@ -82,7 +82,7 @@ def make_tutorial_path(subject=None, worksheet=None):
 
 class SubjectView(XHTMLView):
     '''The view of the index of worksheets for a subject.'''
-    app_template = 'subjectmenu.html'
+    template = 'subjectmenu.html'
     appname = 'tutorial' # XXX
 
     def __init__(self, req, subject):
@@ -170,7 +170,7 @@ class SubjectView(XHTMLView):
 
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
-    app_template = 'worksheet.html'
+    template = 'worksheet.html'
     appname = 'tutorial' # XXX
 
     def __init__(self, req, subject, worksheet):

@@ -46,7 +46,7 @@ class XHTMLView(BaseView):
         ctx['scripts'] = req.scripts
         ctx['scripts_init'] = req.scripts_init
         app_template = os.path.join(os.path.dirname(
-                        inspect.getmodule(self).__file__), self.app_template) 
+                        inspect.getmodule(self).__file__), self.template) 
         req.write_html_head_foot = False
         loader = genshi.template.TemplateLoader(".", auto_reload=True)
         tmpl = loader.load(app_template)
@@ -72,7 +72,8 @@ class XHTMLView(BaseView):
         for urlname in ivle.conf.apps.apps_in_tabs:
             new_app = {}
             app = ivle.conf.apps.app_url[urlname]
-            new_app['this_app'] = urlname == self.appname
+            new_app['this_app'] = hasattr(self, 'appname') \
+                                  and urlname == self.appname
             if app.icon:
                 new_app['has_icon'] = True
                 icon_dir = ivle.conf.apps.app_icon_dir

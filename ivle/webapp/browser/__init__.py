@@ -39,11 +39,8 @@ class BrowserView(XHTMLView):
     """
     The view for the browser
     """
-    def __init__(self, req, **kwargs):
-        super(BrowserView, self).__init__(req, **kwargs)
-        self.app_template = 'template.html'
-        #XXX: Will hate me for this.
-        self.appname = "files"
+    template = 'template.html'
+    appname = 'files'
 
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):

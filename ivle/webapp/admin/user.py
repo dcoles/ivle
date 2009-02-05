@@ -65,8 +65,9 @@ class UserRESTView(JSONRESTView):
                 continue
 
 class UserSettingsView(XHTMLView):
-    app_template = 'user-settings.html'
+    template = 'user-settings.html'
     appname = 'settings'
+
     def __init__(self, req, login):
         self.context = ivle.database.User.get_by_login(req.store, login)
 

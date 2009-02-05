@@ -36,11 +36,8 @@ class GroupsView(XHTMLView):
     """
     The groups view
     """
-    def __init__(self, req, **kwargs):
-        super(GroupsView, self).__init__(req, **kwargs)
-        self.app_template = 'template.html'
-        #XXX: Will hates me for this.
-        self.appname = "groups"
+    template = 'template.html'
+    appname = 'groups' # XXX
 
     def populate(self, req, ctx):
         # Set request attributes
