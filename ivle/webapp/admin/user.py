@@ -83,7 +83,7 @@ class UserSettingsView(XHTMLView):
         req.scripts_init = [
             "revert_settings"
         ]
-        ctx['settings_login'] = self.context.login
+        ctx['login'] = self.context.login
 
 class Plugin(BasePlugin):
     """
