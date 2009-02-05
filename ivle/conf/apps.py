@@ -67,11 +67,6 @@ app_console =     App(dir = "console",
                     requireauth = True,
                     hashelp = True)
 
-app_consoleservice = App(dir = "consoleservice",
-                    name = "Console Service",
-                    requireauth = True,
-                    hashelp = False)
-
 app_tutorial =     App(dir = "tutorial",
                     name = "Worksheets",
                     desc = "Online tutorials and exercises for lab work.",
@@ -79,11 +74,6 @@ app_tutorial =     App(dir = "tutorial",
                     useconsole = True,
                     requireauth = True,
                     hashelp = True)
-
-app_tutorialservice = App(dir = "tutorialservice",
-                    name = "Tutorial Service",
-                    requireauth = True,
-                    hashelp = False)
 
 app_server =    App(dir = "server",
                     name = "Server",
@@ -120,32 +110,9 @@ app_tos = App(dir = "tos",
                     requireauth = False,
                     hashelp = False)
 
-app_settings = App(dir = "settings",
-                    name = "Account Settings",
-                    icon = "settings.png",
-                    requireauth = True,
-                    hashelp = True)
-
-app_groups = App(dir = "groups",
-                    name = "Group Management",
-                    icon = "groups.png",
-                    requireauth = True,
-                    hashelp = True)
-
 app_userservice = App(dir = "userservice",
                     name = "User Management Service",
                     requireauth = False,
-                    hashelp = False)
-
-app_diff = App(dir = "diff",
-                    name = "Diff",
-                    #icon = "forum.png",
-                    requireauth = True,
-                    hashelp = False)
-
-app_svnlog = App(dir = "svnlog",
-                    name = "Subversion Log",
-                    requireauth = True,
                     hashelp = False)
 
 app_subjects = App(dir = "subjects",
@@ -163,33 +130,21 @@ app_home = App(dir = "home",
                     requireauth = True,
                     hashelp = False)
 
-app_logout = App(dir = "logout",
-                    name = "Logout",
-                    requireauth = True,
-                    hashelp = False)
-
 # Mapping URL names to apps
 
 app_url = {
     "files" : app_browser,
     "fileservice" : app_fileservice,
     "console" : app_console,
-    "consoleservice" : app_consoleservice,
     "tutorial" : app_tutorial,
-    "tutorialservice" : app_tutorialservice,
     "serve" : app_server,
     "download" : app_download,
     "help" : app_help,
     "forum" : app_forum,
     "tos" : app_tos,
-    "settings" : app_settings,
-    "groups" : app_groups,
     "userservice" : app_userservice,
-    "diff" : app_diff,
-    "svnlog" : app_svnlog,
     "subjects" : app_subjects,
     "home" : app_home,
-    "logout" : app_logout,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
