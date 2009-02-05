@@ -35,23 +35,30 @@ class XHTMLView(BaseView):
     def __init__(self, req, **kwargs):
         for key in kwargs:
           setattr(self, key, kwargs[key])
-        
+
     def render(self, req):
         req.content_type = 'text/html' # TODO: Detect application/xhtml+xml
-        ctx = genshi.template.Context()
-        self.populate(req, ctx)
-        self.populate_headings(req, ctx)
-        
-        ctx['app_styles'] = req.styles
-        ctx['scripts'] = req.scripts
-        ctx['scripts_init'] = req.scripts_init
+
+        # View template
+        viewctx = genshi.template.Context()
+        self.populate(req, viewctx)
+
+        # The template is found in the directory of the module containing the
+        # view.
         app_template = os.path.join(os.path.dirname(
                         inspect.getmodule(self).__file__), self.template) 
         req.write_html_head_foot = False
         loader = genshi.template.TemplateLoader(".", auto_reload=True)
         tmpl = loader.load(app_template)
-        app = tmpl.generate(ctx)
+        app = tmpl.generate(viewctx)
+
+        # Global template
+        ctx = genshi.template.Context()
+        ctx['app_styles'] = req.styles
+        ctx['scripts'] = req.scripts
+        ctx['scripts_init'] = req.scripts_init
         ctx['app_template'] = app
+        self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
         req.write(tmpl.generate(ctx).render('xhtml', doctype='xhtml'))
