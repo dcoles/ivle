@@ -142,9 +142,5 @@ def restart_console(uid, jail_path, working_dir, reason):
     # Make a JSON object to tell the browser to restart its console client
     new_key = cjson.encode(
         {"host": cons.host, "port": cons.port, "magic": cons.magic})
-    json_restart = {
-        "restart": reason,
-        "key": new_key.encode("hex"),
-    }
-    
-    return cjson.encode(json_restart)
+
+    return {"restart": reason, "key": new_key.encode("hex")}
