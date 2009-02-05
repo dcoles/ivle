@@ -56,6 +56,7 @@ plugins_HACK = [
     'ivle.webapp.browser#Plugin',
     'ivle.webapp.groups#Plugin',
     'ivle.webapp.console#Plugin',
+    'ivle.webapp.security#Plugin',
 ]
 
 def get_routes_mapper():

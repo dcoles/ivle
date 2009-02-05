@@ -1,4 +1,4 @@
-# IVLE
+# IVLE - Informatics Virtual Learning Environment
 # Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,26 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# App: Logout
-# Author: Nick Chadwick
-# Date: 13/01/2009
+# Author: William Grant
 
-from ivle import util
+from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.security.views import LogoutView
 
-import genshi
-import genshi.template
-
-# url path for this app
-THIS_APP = "logout"
-
-def handle(req):
-    if req.method == "POST":
-        req.logout()
-    else:
-        req.content_type = "text/html"
-        req.write_html_head_foot = True
-        ctx = genshi.template.Context()
-        ctx['path'] =  util.make_path('logout')
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-        tmpl = loader.load(util.make_local_path("apps/logout/template.html"))
-        req.write(tmpl.generate(ctx).render('html')) #'xhtml', doctype='xhtml'))
+class Plugin(BasePlugin):
+    """
+    The Plugin class for the security plugin.
+    """
+    urls = [
+        ('logout', LogoutView),
+    ]
