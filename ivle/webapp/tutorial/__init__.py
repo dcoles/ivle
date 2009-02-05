@@ -42,6 +42,8 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst
+from ivle.webapp.tutorial.service import AttemptsRESTView, \
+                                        AttemptRESTView, ExerciseRESTView
 
 # Regex for valid identifiers (subject/worksheet names)
 re_ident = re.compile("[0-9A-Za-z_]+")
@@ -468,4 +470,9 @@ class Plugin(BasePlugin):
         ('subjects/:subject/+worksheets', SubjectView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/+worksheets/:worksheet', WorksheetView),
+        ('api/subjects/:subject/+worksheets/:worksheet/*exercise/'
+            '+attempts/:username', AttemptsRESTView),
+        ('api/subjects/:subject/+worksheets/:worksheet/:exercise/'
+                '+attempts/:username/:date', AttemptRESTView),
+        ('api/subjects/:subject/+worksheets/:worksheet/:exercise', ExerciseRESTView),
     ]
