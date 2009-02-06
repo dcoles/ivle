@@ -581,8 +581,6 @@ function select_attempt(exerciseid, filename)
     /* Get the "value" of the selected option */
     var date = dropdown.options[dropdown.selectedIndex].getAttribute("value");
 
-    var args = {"exercise": filename, "action": "getattempt", "date": date};
-
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
     /* AJAX callback function */
@@ -613,5 +611,5 @@ function select_attempt(exerciseid, filename)
         
     call_path = "api/subjects/" + subject + '/+worksheets/' + worksheet + '/' 
                         + filename + '/+attempts/' + username + '/' + date;
-    ajax_call(callback, call_path, "", args, "GET");
+    ajax_call(callback, call_path, "", {}, "GET");
 }
