@@ -39,8 +39,6 @@ class SubjectsView(XHTMLView):
     appname = 'subjects' # XXX
 
     def populate(self, req, ctx):
-        req.styles = ["media/subjects/subjects.css"]
-
         enrolled_subjects = req.user.subjects
         unenrolled_subjects = [subject for subject in
                                req.store.find(Subject)
