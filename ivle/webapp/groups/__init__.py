@@ -37,13 +37,8 @@ class GroupsView(XHTMLView):
     appname = 'groups' # XXX
 
     def populate(self, req, ctx):
-        # Set request attributes
-        req.styles = ["media/groups/groups.css"]
-        req.scripts = [
-            "media/groups/groups.js",
-            "media/common/util.js",
-            "media/common/json2.js",
-        ]
+        self.plugin_styles[Plugin] = ['groups.css']
+        self.plugin_scripts[Plugin] = ['groups.js']
 
         # Show a group panel per enrolment
         ctx['get_user_groups'] = req.user.get_groups
@@ -59,3 +54,5 @@ class Plugin(BasePlugin):
     urls = [
         ('groups/', GroupsView),
     ]
+
+    media = 'media'
