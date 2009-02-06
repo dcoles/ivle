@@ -33,7 +33,7 @@ class SubversionLogView(XHTMLView):
     template = 'template.html'
 
     def populate(self, req, ctx):
-        req.styles = ["/media/svn/log.css"]
+        self.plugin_styles[Plugin] = ['log.css']
 
         svnlogservice_path = os.path.join(ivle.conf.share_path,
                                           'services/svnlogservice')
@@ -75,3 +75,5 @@ class Plugin(BasePlugin):
         ('/svnlog', SubversionLogView, {'path': ''}),
         ('/svnlog/*path', SubversionLogView),
     ]
+
+    media = 'media'

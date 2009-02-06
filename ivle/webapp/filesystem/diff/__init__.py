@@ -40,7 +40,7 @@ class DiffView(XHTMLView):
         self.path = path
 
     def populate(self, req, ctx):
-        req.styles = ["/media/diff/diff.css"] # CSS styles
+        self.plugin_styles[Plugin] = ['diff.css']
 
         revfields = req.get_fieldstorage().getlist("r")
         if len(revfields) > 2:
@@ -103,3 +103,5 @@ class Plugin(BasePlugin):
         ('diff/', DiffView, {'path': ''}),
         ('diff/*(path)', DiffView),
     ]
+
+    media = 'media'
