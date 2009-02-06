@@ -59,8 +59,9 @@ def present(req, windowpane=False):
     """
     ctx = genshi.template.Context()
     ctx['windowpane'] = windowpane
-    ctx['minimize_path'] = util.make_path("media/images/interface/minimize.png") 
-    ctx['maximize_path'] = util.make_path("media/images/interface/maximize.png")
+    image_path = "+media/ivle.webapp.core/images/interface/"
+    ctx['minimize_path'] = util.make_path(image_path + "minimize.png")
+    ctx['maximize_path'] = util.make_path(image_path + "maximize.png")
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(util.make_local_path("plugins/console/template.html"))
     #TODO: Make the dispatch render this

@@ -50,6 +50,7 @@ import plugins.console # XXX: Relies on www/ being in the Python path.
 
 # XXX List of plugins, which will eventually be read in from conf
 plugins_HACK = [
+    'ivle.webapp.core#Plugin',
     'ivle.webapp.admin.user#Plugin',
     'ivle.webapp.tutorial#Plugin',
     'ivle.webapp.admin.subject#Plugin',

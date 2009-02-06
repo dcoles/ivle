@@ -206,11 +206,11 @@ tr.row2sel {
 
 /* Top Level Directory Icons */
 li.listing-dir {
-    list-style-image: url(../images/mime/dir.png);
+    list-style-image: url(../ivle.webapp.core/images/mime/dir.png);
 }
 
 li.listing-loading {
-    list-style-image: url(../images/interface/loading.gif);
+    list-style-image: url(../ivle.webapp.core/images/interface/loading.gif);
 }
 
 span.status {

@@ -29,9 +29,9 @@ class App:
                 repr(self.hashelp)))
 
 # Directory where app icons are stored, relative to the IVLE root.
-app_icon_dir = "media/images/apps"
+app_icon_dir = "+media/ivle.webapp.core/images/apps"
 # Small version of icons (16x16, for favicon)
-app_icon_dir_small = "media/images/apps/small"
+app_icon_dir_small = "+media/ivle.webapp.core/images/apps/small"
 
 # Which application to load by default (if the user navigates to the top level
 # of the site). This is the app's URL name.

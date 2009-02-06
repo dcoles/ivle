@@ -49,23 +49,15 @@ class BrowserView(XHTMLView):
             req.throw_redirect(util.make_path(redirectPath))
 
         # Set request attributes
-        req.styles = [
-            "/media/browser/browser.css",
-            "/media/browser/listing.css",
-            "/media/browser/editor.css",
-        ]
-        req.scripts = [
-            "/media/common/json2.js",
-            "/media/common/codepress/codepress.js",
-            "/media/common/util.js",
-            "/media/browser/browser.js",
-            "/media/browser/listing.js",
-            "/media/browser/editor.js",
-            "/media/browser/specialhome.js",
-        ]
-        req.scripts_init = [
-            "browser_init",
-        ]
+        self.plugin_styles[Plugin] = ['browser.css',
+                                      'listing.css',
+                                      'editor.css']
+        self.plugin_scripts[Plugin] = ['browser.js',
+                                       'listing.js',
+                                       'editor.js',
+                                       'specialhome.js']
+        req.scripts = ["/media/common/codepress/codepress.js"]
+        req.scripts_init = ["browser_init"]
 
         # The page title should contain the name of the file being browsed
         req.title = self.path.rsplit('/', 1)[-1]
@@ -172,3 +164,5 @@ class Plugin(BasePlugin):
         ('files/*(path)', BrowserView),
         ('files/', BrowserView),
     ]
+
+    media = 'media'

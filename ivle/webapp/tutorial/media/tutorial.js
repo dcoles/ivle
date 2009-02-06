@@ -529,7 +529,7 @@ function open_previous(exerciseid, filename)
                     opt.appendChild(document.createTextNode(" "));
                     var img = document.createElement("img");
                     img.setAttribute("src",
-                        make_path("media/images/tutorial/tiny/complete.png"));
+                        make_path("+media/ivle.webapp.tutorial/images/tiny/complete.png"));
                     img.setAttribute("alt", "Complete");
                     opt.appendChild(img);
                 }

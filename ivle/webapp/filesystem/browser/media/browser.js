@@ -55,8 +55,8 @@ type_icons = {
 default_type_icon = "txt.png";
 
 /* Relative to IVLE root */
-type_icons_path = "media/images/mime";
-type_icons_path_large = "media/images/mime/large";
+type_icons_path = "+media/ivle.webapp.core/images/mime";
+type_icons_path_large = "+media/ivle.webapp.core/images/mime/large";
 
 /* Mapping SVN status to icons, just the file's basename */
 svn_icons = {
@@ -87,9 +87,9 @@ svn_nice = {
 default_svn_icon = null;
 default_svn_nice = "Unknown status";
 
-svn_icons_path = "media/images/svn";
+svn_icons_path = "+media/ivle.webapp.core/images/svn";
 
-published_icon = "media/images/interface/published.png";
+published_icon = "+media/ivle.webapp.core/images/interface/published.png";
 
 /* List of MIME types considered "executable" by the system.
  * Executable files offer a "run" link, implying that the "serve"
