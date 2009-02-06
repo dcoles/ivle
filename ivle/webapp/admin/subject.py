@@ -66,25 +66,7 @@ class SubjectsView(XHTMLView):
                 ctx['other_subjects'].append(new_subj)
 
 
-class SubjectView(XHTMLView):
-    '''The view of a subject.'''
-    template = 'subject.html'
-    appname = 'subjects' # XXX
-
-    def __init__(self, req, subject, path):
-        self.subject = req.store.find(Subject, code=subject).one()
-        self.path = path
-
-    def populate(self, req, ctx):
-        if self.subject is None:
-            raise NotFound()
-
-        ctx['serve_loc'] = urllib.quote(util.make_path(os.path.join('media',
-                                    'subjects', self.subject.code, self.path)))
-
 class Plugin(BasePlugin):
     urls = [
         ('subjects/', SubjectsView),
-        ('subjects/:subject', SubjectView, {'path': ''}),
-        ('subjects/:subject/*(path)', SubjectView),
     ]
