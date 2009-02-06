@@ -59,27 +59,32 @@ plugins_HACK = [
     'ivle.webapp.groups#Plugin',
     'ivle.webapp.console#Plugin',
     'ivle.webapp.security#Plugin',
+    'ivle.webapp.media#Plugin',
 ]
 
-def get_routes_mapper():
+def generate_route_mapper(plugins):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
-    plugins config.
+    given plugin registry.
     """
     m = routes.Mapper(explicit=True)
-    for pluginstr in plugins_HACK:
-        plugin_path, classname = pluginstr.split('#')
-        # Load the plugin module from somewhere in the Python path
-        # (Note that plugin_path is a fully-qualified Python module name).
-        plugin = getattr(__import__(plugin_path, fromlist=[classname]),
-            classname)
+    for name in plugins:
         # Establish a URL pattern for each element of plugin.urls
-        for url in plugin.urls:
+        if not hasattr(plugins[name], 'urls'):
+            continue
+        for url in plugins[name].urls:
             routex = url[0]
             view_class = url[1]
             kwargs_dict = url[2] if len(url) >= 3 else {}
             m.connect(routex, view=view_class, **kwargs_dict)
     return m
+
+def get_plugin(pluginstr):
+    plugin_path, classname = pluginstr.split('#')
+    # Load the plugin module from somewhere in the Python path
+    # (Note that plugin_path is a fully-qualified Python module name).
+    return (plugin_path,
+            getattr(__import__(plugin_path, fromlist=[classname]), classname))
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -125,7 +130,10 @@ def handler_(req, apachereq):
     # XXX This should be done ONCE per Python process, not per request.
     # (Wait till WSGI)
     # XXX No authentication is done here
-    req.mapper = get_routes_mapper()
+    req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
+    req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
+    req.mapper = generate_route_mapper(req.plugins)
+
     matchdict = req.mapper.match(req.uri)
     if matchdict is not None:
         viewcls = matchdict['view']
