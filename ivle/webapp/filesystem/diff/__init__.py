@@ -17,6 +17,8 @@
 
 # Author: David Coles, Will Grant
 
+'''Components of the webapp for diffing user files.'''
+
 import os
 import re
 import cgi
@@ -30,10 +32,12 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
 from ivle.webapp.errors import NotFound, BadRequest
 
-diffservice_path = os.path.join(ivle.conf.share_path, 'services/diffservice')
-
 class DiffView(XHTMLView):
+    '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
+
+    def __init__(self, req, path):
+        self.path = path
 
     def populate(self, req, ctx):
         req.styles = ["/media/diff/diff.css"] # CSS styles
@@ -44,9 +48,10 @@ class DiffView(XHTMLView):
 
         revs = [revfield.value for revfield in revfields]
 
-        user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
-        (out, err) = ivle.interpret.execute_raw(req.user, user_jail_dir,
-                                 '/home', diffservice_path, [self.path] + revs)
+        jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        (out, err) = ivle.interpret.execute_raw(req.user, jail_dir, '/home',
+                    os.path.join(ivle.conf.share_path, 'services/diffservice'),
+                    [self.path] + revs)
         assert not err
 
         response = cjson.decode(out)
@@ -93,6 +98,7 @@ def htmlfy_diff(difftext):
     return '<pre class="diff">%s</pre>' % output
 
 class Plugin(BasePlugin):
+    '''Registration class for diff components.'''
     urls = [
         ('diff/', DiffView, {'path': ''}),
         ('diff/*(path)', DiffView),
