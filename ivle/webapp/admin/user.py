@@ -75,14 +75,9 @@ class UserSettingsView(XHTMLView):
         if not self.context:
             raise NotFound()
 
-        req.scripts = [
-            "/media/settings/settings.js",
-            "/media/common/json2.js",
-            "/media/common/util.js",
-        ]
-        req.scripts_init = [
-            "revert_settings"
-        ]
+        self.plugin_scripts[Plugin] = ['settings.js']
+        req.scripts_init = ['revert_settings']
+
         ctx['login'] = self.context.login
 
 class Plugin(BasePlugin):
@@ -97,3 +92,5 @@ class Plugin(BasePlugin):
         ('~:login/+settings', UserSettingsView),
         ('api/~:login', UserRESTView),
     ]
+
+    media = 'user-media'
