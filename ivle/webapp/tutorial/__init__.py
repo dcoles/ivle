@@ -40,6 +40,7 @@ import ivle.worksheet
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.media import MediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst
 from ivle.webapp.tutorial.service import AttemptsRESTView, \
@@ -197,7 +198,7 @@ class WorksheetView(XHTMLView):
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
-class SubjectMediaView(BaseView):
+class SubjectMediaView(MediaFileView):
     '''The view of subject media files.
 
     URIs pointing here will just be served directly, from the subject's
@@ -208,31 +209,14 @@ class SubjectMediaView(BaseView):
         self.subject = req.store.find(Subject, code=subject).one()
         self.path = os.path.normpath(path)
 
-    def render(self, req):
+    def _make_filename(self, req):
         # If the subject doesn't exist, self.subject will be None. Die.
         if not self.subject:
             raise NotFound()
 
-        # If it begins with ".." or separator, it's illegal. Die.
-        if self.path.startswith("..") or self.path.startswith('/'):
-            raise Forbidden()
         subjectdir = os.path.join(ivle.conf.subjects_base,
                                   self.subject.code, 'media')
-        filename = os.path.join(subjectdir, self.path)
-
-        # Find an appropriate MIME type.
-        (type, _) = mimetypes.guess_type(filename)
-        if type is None:
-            type = ivle.conf.mimetypes.default_mimetype
-
-        # Get out if it is unreadable or a directory.
-        if not os.access(filename, os.F_OK):
-            raise NotFound()
-        if not os.access(filename, os.R_OK) or os.path.isdir(filename):
-            raise Forbidden()
-
-        req.content_type = type
-        req.sendfile(filename)
+        return os.path.join(subjectdir, self.path)
 
 def is_valid_subjname(subject):
     m = re_ident.match(subject)
