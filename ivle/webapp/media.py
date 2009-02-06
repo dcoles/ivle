@@ -76,7 +76,7 @@ class MediaFileView(BaseView):
 
         # Get out if it is unreadable or a directory.
         if not os.access(filename, os.F_OK):
-            raise NotFound(filename)
+            raise NotFound()
         if not os.access(filename, os.R_OK) or os.path.isdir(filename):
             raise Forbidden()
 
