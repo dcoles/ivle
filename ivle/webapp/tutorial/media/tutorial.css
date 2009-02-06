@@ -1,5 +1,5 @@
 .exercise {
-    background: #b1e2be url(../images/tutorial/signature.png) no-repeat top left;
+    background: #b1e2be url(images/signature.png) no-repeat top left;
     color: navy;
     margin: 0 5% 0 1em;
     padding: 0 .5em .5em 25px;
@@ -22,44 +22,44 @@
  * bullets. */
 
 li.check {
-    list-style: url(../images/tutorial/check.png);
+    list-style: url(images/check.png);
 }
 li.cross {
-    list-style: url(../images/tutorial/cross.png);
+    list-style: url(images/cross.png);
 }
 li.pass {
-    list-style: url(../images/tutorial/pass.png);
+    list-style: url(images/pass.png);
 }
 li.fail {
-    list-style: url(../images/tutorial/fail.png);
+    list-style: url(images/fail.png);
 }
 li.semifail {
-    list-style: url(../images/tutorial/semifail.png);
+    list-style: url(images/semifail.png);
 }
 li.exception {
-    list-style: url(../images/tutorial/exception.png);
+    list-style: url(images/exception.png);
 }
 
 li.complete {
-    list-style: url(../images/tutorial/pass.png);
+    list-style: url(images/pass.png);
 }
 li.incomplete {
-    list-style: url(../images/tutorial/incomplete.png);
+    list-style: url(images/incomplete.png);
 }
 li.semicomplete {
-    list-style: url(../images/tutorial/semifail.png);
+    list-style: url(images/semifail.png);
 }
 
 #tutorial-toc li.complete {
-    list-style: url(../images/tutorial/tiny/complete.png);
+    list-style: url(images/tiny/complete.png);
     margin-left: 1.5em;
 }
 #tutorial-toc li.incomplete {
-    list-style: url(../images/tutorial/tiny/incomplete.png);
+    list-style: url(images/tiny/incomplete.png);
     margin-left: 1.5em;
 }
 #tutorial-toc li.semicomplete {
-    list-style: url(../images/tutorial/tiny/semicomplete.png);
+    list-style: url(images/tiny/semicomplete.png);
     margin-left: 1.5em;
 }
 

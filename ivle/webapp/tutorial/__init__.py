@@ -71,6 +71,8 @@ class SubjectView(XHTMLView):
         self.subject = req.store.find(Subject, code=subject).one()
 
     def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['tutorial.css']
+
         if not self.subject:
             raise NotFound()
 
@@ -160,14 +162,8 @@ class WorksheetView(XHTMLView):
         self.worksheetname = worksheet
 
     def populate(self, req, ctx):
-        req.scripts = [
-            "/media/common/util.js",
-            "/media/common/json2.js",
-            "/media/tutorial/tutorial.js",
-        ]
-        req.styles = [
-            "/media/tutorial/tutorial.css",
-        ]
+        self.plugin_scripts[Plugin] = ['tutorial.js']
+        self.plugin_styles[Plugin] = ['tutorial.css']
 
         if not self.subject:
             raise NotFound()
@@ -477,3 +473,5 @@ class Plugin(BasePlugin):
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/+worksheets/:worksheet/*exercise', ExerciseRESTView),
     ]
+
+    media = 'media'
