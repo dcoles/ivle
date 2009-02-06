@@ -1,5 +1,5 @@
 /* IVLE - Informatics Virtual Learning Environment
- * Copyright (C) 2007-2008 The University of Melbourne
+ * Copyright (C) 2007-2009 The University of Melbourne
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ function submitexercise(exerciseid, filename)
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
-    var args = {"code": code, "exercise": filename, "action": "test"};
+    var args = {'code': code};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
@@ -90,8 +90,9 @@ function submitexercise(exerciseid, filename)
             /* Close the "view previous" area (force reload) */
             close_previous(exerciseid);
         }
-    ajax_call(callback, "tutorialservice", "", args, "POST",
-        "multipart/form-data");
+    attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
+        + "/" + filename + '/+attempts/' + username;
+    ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
 }
 
 /** User clicks "Save" button. Do an Ajax call to store it.
@@ -107,7 +108,7 @@ function saveexercise(exerciseid, filename)
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
-    var args = {"code": code, "exercise": filename, "action": "save"};
+    var args = {"text": code, "ivle.op": "save"};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
@@ -117,8 +118,10 @@ function saveexercise(exerciseid, filename)
             // XXX Maybe check to see if this worked?
             set_saved_status(exerciseid, filename, "Saved");
         }
-    ajax_call(callback, "tutorialservice", "", args, "POST",
-        "multipart/form-data");
+        
+    call_path = 'api/subjects/' + subject + '/+worksheets/' + worksheet + 
+                                                                '/' + filename;
+    ajax_call(callback, call_path, "", args, "POST");
 }
 
 /** User clicks "Reset" button. Replace the contents of the user program text
@@ -471,6 +474,7 @@ function open_previous(exerciseid, filename)
     var exercisediv = document.getElementById(exerciseid);
     var divs = exercisediv.getElementsByTagName("div");
     var attempthistory;
+    var attempts_path;
     for (var i=0; i<divs.length; i++)
         if (divs[i].getAttribute("class") == "attempthistory")
             attempthistory = divs[i];
@@ -489,8 +493,6 @@ function open_previous(exerciseid, filename)
     var pleasewait = document.createElement("option");
     pleasewait.appendChild(document.createTextNode("Retrieving past attempts..."));
     dropdown.appendChild(pleasewait);
-
-    var args = {"exercise": filename, "action": "getattempts"};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
@@ -534,7 +536,9 @@ function open_previous(exerciseid, filename)
                 dropdown.appendChild(opt);
             }
         }
-    ajax_call(callback, "tutorialservice", "", args, "GET");
+    attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
+        + "/" + filename + '/+attempts/' + username;
+    ajax_call(callback, attempts_path, "", {}, "GET");
 }
 
 function close_previous(exerciseid)
@@ -565,6 +569,7 @@ function select_attempt(exerciseid, filename)
     var exercisediv = document.getElementById(exerciseid);
     var divs = exercisediv.getElementsByTagName("div");
     var attempthistory;
+    var call_path
     for (var i=0; i<divs.length; i++)
         if (divs[i].getAttribute("class") == "attempthistory")
             attempthistory = divs[i];
@@ -605,5 +610,8 @@ function select_attempt(exerciseid, filename)
             textarea.appendChild(document.createTextNode(attempt));
             textarea.setAttribute("style", "display: auto");
         }
-    ajax_call(callback, "tutorialservice", "", args, "GET");
+        
+    call_path = "api/subjects/" + subject + '/+worksheets/' + worksheet + '/' 
+                        + filename + '/+attempts/' + username + '/' + date;
+    ajax_call(callback, call_path, "", args, "GET");
 }

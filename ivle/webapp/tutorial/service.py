@@ -52,7 +52,7 @@ from ivle import console
 import ivle.database
 import ivle.worksheet
 import ivle.conf
-import test # XXX: Really .test, not real test.
+import ivle.webapp.tutorial.test # XXX: Really .test, not real test.
 
 from ivle.webapp.base.rest import JSONRESTView
 import ivle.database
@@ -81,12 +81,11 @@ class AttemptsRESTView(JSONRESTView):
         time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
         attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
                 for a in attempts]
-        attempts.append(self.exercise)
-        
+                
         return attempts
         
     def PUT(self, req, data):
-        
+        ''' Tests the given submission '''
         exercisefile = util.open_exercise_file(self.exercise)
         if exercisefile is None:
             req.throw_error(req.HTTP_NOT_FOUND,
@@ -98,24 +97,26 @@ class AttemptsRESTView(JSONRESTView):
         cons = console.Console(req.user.unixid, jail_path, working_dir)
 
         # Parse the file into a exercise object using the test suite
-        exercise_obj = test.parse_exercise_file(exercisefile, cons)
+        exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(
+                                                            exercisefile, cons)
         exercisefile.close()
 
         # Run the test cases. Get the result back as a JSONable object.
         # Return it.
-        test_results = exercise_obj.run_tests(code)
+        test_results = exercise_obj.run_tests(data['code'])
 
         # Close the console
         cons.close()
 
         # Get the Exercise from the database
-        exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
+        exercise = ivle.database.Exercise.get_by_name(req.store, self.exercise)
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
                                                 exercise=exercise,
                                                 date=datetime.datetime.now(),
                                                 complete=test_results['passed'],
-                                                text=unicode(code)) # XXX
+                                                # XXX
+                                                text=unicode(data['code']))
 
         req.store.add(attempt)
         req.store.commit()
@@ -152,7 +153,7 @@ class ExerciseRESTView(JSONRESTView):
     Handles a save action. This saves the user's code without executing it.
     '''
     @named_operation
-    def save(self, req, user, text):    
+    def save(self, req, text):
         # Need to open JUST so we know this is a real exercise.
         # (This avoids users submitting code for bogus exercises).
         exercisefile = util.open_exercise_file(self.exercise)
@@ -163,6 +164,6 @@ class ExerciseRESTView(JSONRESTView):
 
         exercise = ivle.database.Exercise.get_by_name(req.store, self.exercise)
         ivle.worksheet.save_exercise(req.store, req.user, exercise,
-                                     unicode(code), datetime.datetime.now())
+                                     unicode(text), datetime.datetime.now())
         req.store.commit()
         return {"result": "ok"}

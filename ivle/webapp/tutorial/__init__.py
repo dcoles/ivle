@@ -190,6 +190,7 @@ class WorksheetView(XHTMLView):
         worksheetfile = worksheetfile.read()
 
         ctx['subject'] = self.subject.code
+        ctx['worksheet'] = self.worksheetname
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
 
         #TODO: Replace this with a nice way, possibly a match template
@@ -472,7 +473,7 @@ class Plugin(BasePlugin):
         ('subjects/:subject/+worksheets/:worksheet', WorksheetView),
         ('api/subjects/:subject/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
-        ('api/subjects/:subject/+worksheets/:worksheet/:exercise/'
+        ('api/subjects/:subject/+worksheets/:worksheet/*exercise/'
                 '+attempts/:username/:date', AttemptRESTView),
-        ('api/subjects/:subject/+worksheets/:worksheet/:exercise', ExerciseRESTView),
+        ('api/subjects/:subject/+worksheets/:worksheet/*exercise', ExerciseRESTView),
     ]
