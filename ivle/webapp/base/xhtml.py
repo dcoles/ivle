@@ -22,6 +22,7 @@ import os.path
 
 import genshi.template
 
+from ivle.webapp.media import media_url
 from ivle.webapp.base.views import BaseView
 import ivle.conf
 import ivle.util
@@ -32,6 +33,11 @@ class XHTMLView(BaseView):
     It is expected that apps which use this view will be written using Genshi
     templates.
     """
+
+    template = 'template.html'
+    plugin_scripts = {}
+    plugin_styles = {}
+
     def __init__(self, req, **kwargs):
         for key in kwargs:
             setattr(self, key, kwargs[key])
@@ -51,6 +57,14 @@ class XHTMLView(BaseView):
         loader = genshi.template.TemplateLoader(".", auto_reload=True)
         tmpl = loader.load(app_template)
         app = tmpl.generate(viewctx)
+
+        for plugin in self.plugin_scripts:
+            for path in self.plugin_scripts[plugin]:
+                req.scripts.append(media_url(req, plugin, path))
+
+        for plugin in self.plugin_styles:
+            for path in self.plugin_styles[plugin]:
+                req.styles.append(media_url(req, plugin, path))
 
         # Global template
         ctx = genshi.template.Context()
