@@ -39,7 +39,7 @@ from ivle.database import Subject
 import ivle.worksheet
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.media import MediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst
@@ -446,7 +446,7 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
 
     store.commit()
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     urls = [
         ('subjects/:subject/+worksheets', SubjectView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),

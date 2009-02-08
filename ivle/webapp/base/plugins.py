@@ -22,3 +22,13 @@ class BasePlugin(object):
     Base class for all Plugin classes.
     """
     pass
+    
+class ViewPlugin(BasePlugin):
+    """Marker class for plugins that provide views.
+    
+    View plugins must have a 'urls' property which contains an iterable of pairs
+    or triples, like (routex string, handler class, kwargs dict). The kwargs
+    dict is optional. If present, the members of the kwargs dict will be passed
+    as keyword arguments to the constructor of the view object.
+    """
+    pass

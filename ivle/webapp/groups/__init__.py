@@ -26,7 +26,7 @@ Allows students and tutors to manage project groups.
 from ivle import caps
 from ivle.database import Subject
 
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 
 class GroupsView(XHTMLView):
@@ -47,7 +47,7 @@ class GroupsView(XHTMLView):
               req.user.hasCap(caps.CAP_MANAGEGROUPS) else []
 
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     """
     The Plugin class for the group admin plugin.
     """

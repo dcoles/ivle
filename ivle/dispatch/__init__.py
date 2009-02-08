@@ -35,6 +35,7 @@ import traceback
 import logging
 import socket
 import time
+import inspect
 
 import mod_python
 import routes
@@ -44,6 +45,7 @@ import ivle.conf
 import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
+from ivle.webapp.base.plugins import ViewPlugin
 import apps
 import html
 import plugins.console # XXX: Relies on www/ being in the Python path.
@@ -61,19 +63,18 @@ plugins_HACK = [
     'ivle.webapp.console#Plugin',
     'ivle.webapp.security#Plugin',
     'ivle.webapp.media#Plugin',
-]
+] 
 
-def generate_route_mapper(plugins):
+def generate_route_mapper(view_plugins):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
     """
     m = routes.Mapper(explicit=True)
-    for name in plugins:
+    for plugin in view_plugins:
         # Establish a URL pattern for each element of plugin.urls
-        if not hasattr(plugins[name], 'urls'):
-            continue
-        for url in plugins[name].urls:
+        assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
+        for url in plugin.urls:
             routex = url[0]
             view_class = url[1]
             kwargs_dict = url[2] if len(url) >= 3 else {}
@@ -132,8 +133,16 @@ def handler_(req, apachereq):
     # (Wait till WSGI)
     # XXX No authentication is done here
     req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
+    # Index the plugins by base class
+    req.plugin_index = {}
+    for plugin in req.plugins.values():
+        # Getmro returns a tuple of all the super-classes of the plugin
+        for base in inspect.getmro(plugin):
+            if base not in req.plugin_index:
+                req.plugin_index[base] = []
+            req.plugin_index[base].append(plugin)
     req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
-    req.mapper = generate_route_mapper(req.plugins)
+    req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin])
 
     matchdict = req.mapper.match(req.uri)
     if matchdict is not None:

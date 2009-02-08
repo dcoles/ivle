@@ -17,10 +17,10 @@
 
 # Author: William Grant
 
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.security.views import LogoutView
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     """
     The Plugin class for the security plugin.
     """

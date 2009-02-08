@@ -25,7 +25,7 @@ import mimetypes
 
 import ivle.conf
 from ivle.webapp.base.views import BaseView
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound
 
 def media_url(req, plugin, path):
@@ -83,7 +83,7 @@ class MediaFileView(BaseView):
         req.content_type = type
         req.sendfile(filename)
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     urls = [
         ('+media/:ns/*path', MediaFileView),
     ]

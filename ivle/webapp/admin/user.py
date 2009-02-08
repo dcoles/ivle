@@ -19,7 +19,7 @@
 
 from ivle.webapp.base.rest import JSONRESTView
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 import ivle.database
 import ivle.util
 
@@ -80,7 +80,7 @@ class UserSettingsView(XHTMLView):
 
         ctx['login'] = self.context.login
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     """
     The Plugin class for the user plugin.
     """

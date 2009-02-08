@@ -27,7 +27,7 @@ import urllib
 import cgi
 
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound
 from ivle.database import Subject
 from ivle import util
@@ -64,7 +64,7 @@ class SubjectsView(XHTMLView):
                 ctx['other_subjects'].append(new_subj)
 
 
-class Plugin(BasePlugin):
+class Plugin(ViewPlugin):
     urls = [
         ('subjects/', SubjectsView),
     ]
