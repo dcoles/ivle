@@ -40,32 +40,15 @@ class ForumView(XHTMLView):
 
         forum_base = "php/phpBB3"
 
-        # Process URL for special directives
-        url = urlparse.urlparse(self.path)
-        hierarchical_part = url[2]
+        ctx['url'] = ivle.util.make_path(os.path.join(forum_base, self.path))
 
-        forum_page = "" # use the default forum page
-        framequery = "?"
+class ForumBoardView(ForumView):
+    def __init__(self, req, board):
+        self.path = 'viewforum.php?f=' + board
 
-        board = re.match('board/(.*?)(/|$)',hierarchical_part)
-        if board:
-            framequery += 'f=' + board.group(1) + "&"
-            forum_page = "viewforum.php"
-
-        topic = re.search('topic/(.*?)(/|$)',hierarchical_part)
-        if topic:
-            framequery += 't=' + topic.group(1)
-            forum_page = "viewtopic.php"
-
-        # If the tail of the forum url is empty or a known special request
-        # then wrap the page in the headers and footer and load the default or
-        # special page in the ivlebody frame
-        location = self.path
-        if board or topic:
-            location = forum_page + framequery
-
-        frameurl = ivle.util.make_path(os.path.join(forum_base,location))
-        ctx['url'] = frameurl + framequery
+class ForumTopicView(ForumView):
+    def __init__(self, req, topic):
+        self.path = 'viewtopic.php?t=' + topic
 
 def make_forum_cookie(user):
     secret = ivle.conf.forum_secret
@@ -87,6 +70,8 @@ def make_forum_cookie(user):
 class Plugin(ViewPlugin, CookiePlugin):
     urls = [
         ('forum', ForumView, {'path': ''}),
+        ('forum/+board/:board', ForumBoardView),
+        ('forum/+topic/:topic', ForumTopicView),
         ('forum/*path', ForumView),
     ]
 
