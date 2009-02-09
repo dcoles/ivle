@@ -41,3 +41,13 @@ class OverlayPlugin(BasePlugin):
     views. The canonical example of a plugin of this type is the Console plugin.
     """
     pass
+
+class CookiePlugin(BasePlugin):
+    """Marker class for plugins which provide cookies.
+
+    Cookie plugins provide a 'cookies' dict mapping names to generation
+    functions. The function should return the data to store in the cookie on
+    login. If the function is None, the cookie is not created on login, just
+    deleted on logout.
+    """
+    pass

@@ -26,7 +26,7 @@ simply presents static HTML and JavaScript, and all server-side activities
 take place in the FileService app (for handling Ajax requests).
 """
 
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin
 from ivle.webapp.base.xhtml import XHTMLView
 
 import os.path
@@ -152,7 +152,7 @@ class BrowserView(XHTMLView):
           ])
         ]
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, CookiePlugin):
     """
     The Plugin class for the user plugin.
     """
@@ -164,5 +164,7 @@ class Plugin(ViewPlugin):
         ('files/*(path)', BrowserView),
         ('files/', BrowserView),
     ]
+
+    cookies = {'clipboard': None}
 
     media = 'media'

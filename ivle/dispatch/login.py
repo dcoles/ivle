@@ -23,9 +23,16 @@
 import os
 import datetime
 
+try:
+    import mod_python.Cookie
+except ImportError:
+    # This needs to be importable from outside Apache.
+    pass
+
 import ivle.conf
-from ivle import (util, caps, forumutil)
+from ivle import (util, caps)
 from ivle.auth import authenticate, AuthError
+from ivle.webapp.base.plugins import CookiePlugin
 import ivle.database
 
 def login(req):
@@ -87,7 +94,16 @@ def login(req):
                     session.save()
                     user.last_login = datetime.datetime.now()
                     req.store.commit()
-                    req.add_cookie(forumutil.make_forum_cookie(user))
+
+                    # Create cookies for plugins that might request them.
+                    for plugin in req.plugin_index[CookiePlugin]:
+                        for cookie in plugin.cookies:
+                            # The function can be None if they just need to be
+                            # deleted at logout.
+                            if plugin.cookies[cookie] is not None:
+                                req.add_cookie(mod_python.Cookie.Cookie(cookie,
+                                      plugin.cookies[cookie](user), path='/'))
+
                     req.throw_redirect(req.uri)
 
     # Present the HTML login page
