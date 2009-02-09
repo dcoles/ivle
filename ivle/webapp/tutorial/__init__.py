@@ -42,7 +42,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.media import MediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
-from ivle.webapp.tutorial.rst import rst
+from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, \
                                         AttemptRESTView, ExerciseRESTView
 
@@ -367,7 +367,8 @@ def present_exercise(req, exercisesrc, exerciseid):
     for elem in exercisedom.childNodes:
         if elem.nodeType == elem.ELEMENT_NODE:
             if elem.tagName == "desc":
-                curctx['exercisedesc'] = genshi.XML(rst(innerXML(elem).strip()))
+                curctx['exercisedesc'] = genshi.XML(
+                                              rstfunc(innerXML(elem).strip()))
             if elem.tagName == "partial":
                 curctx['exercisepartial'] = getTextData(elem) + '\n'
     curctx['exercisepartial_backup'] = curctx['exercisepartial']
