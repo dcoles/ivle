@@ -70,8 +70,13 @@
         </ul>
       </div>
       <div id="ivlebody">
-      ${select('*')}
+        ${select('*')}
       </div>
+      <div id="ivleoverlays">
+        <py:for each="overlay in overlays">
+          ${overlay}
+        </py:for>
+      </div>     
     </body>
   </py:match>
   ${app_template}

@@ -29,9 +29,14 @@ from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound
 
 def media_url(req, plugin, path):
-    '''Generates a URL to a media file.'''
-    return os.path.join(ivle.conf.root_dir, '+media',
-                        req.reverse_plugins[plugin], path)
+    '''Generates a URL to a media file.
+    
+    Plugin can be a string, in which case it is put into the path literally,
+    or a plugin object, in which case its name is looked up.'''
+    if not isinstance(plugin, basestring):
+        plugin = req.reverse_plugins[plugin]
+        
+    return os.path.join(ivle.conf.root_dir, '+media', plugin, path)
 
 class MediaFileView(BaseView):
     '''A view for media files.

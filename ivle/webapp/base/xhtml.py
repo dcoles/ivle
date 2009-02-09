@@ -24,6 +24,7 @@ import genshi.template
 
 from ivle.webapp.media import media_url
 from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.plugins import OverlayPlugin
 import ivle.conf
 import ivle.util
 
@@ -37,6 +38,7 @@ class XHTMLView(BaseView):
     template = 'template.html'
     plugin_scripts = {}
     plugin_styles = {}
+    overlay_blacklist = []
 
     def __init__(self, req, **kwargs):
         for key in kwargs:
@@ -68,6 +70,8 @@ class XHTMLView(BaseView):
 
         # Global template
         ctx = genshi.template.Context()
+        # XXX: Leave this here!! (Before req.styles is read)
+        ctx['overlays'] = self.render_overlays(req)
         ctx['app_styles'] = req.styles
         ctx['scripts'] = req.scripts
         ctx['scripts_init'] = req.scripts_init
@@ -76,6 +80,9 @@ class XHTMLView(BaseView):
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
         req.write(tmpl.generate(ctx).render('xhtml', doctype='xhtml'))
+        
+    def populate(self, req, ctx):
+        raise NotImplementedError()
 
     def populate_headings(self, req, ctx):
         ctx['favicon'] = None
@@ -108,3 +115,29 @@ class XHTMLView(BaseView):
             new_app['desc'] = app.desc
             new_app['name'] = app.name
             ctx['apps_in_tabs'].append(new_app)
+            
+    def render_overlays(self, req):
+        """Generate XML streams for the overlays.
+        
+        Returns a list of streams. Populates the scripts, styles, and 
+        scripts_init.
+        """
+        overlays = []
+        for plugin in req.plugin_index[OverlayPlugin]:
+            for overclass in plugin.overlays:
+                if overclass in self.overlay_blacklist:
+                    continue
+                overlay = overclass(req)
+                #TODO: Re-factor this to look nicer
+                for mplugin in overlay.plugin_scripts:
+                    for path in overlay.plugin_scripts[mplugin]:
+                        req.scripts.append(media_url(req, mplugin, path))
+
+                for mplugin in overlay.plugin_styles:
+                    for path in overlay.plugin_styles[mplugin]:
+                        req.styles.append(media_url(req, mplugin, path))
+                
+                req.scripts_init += overlay.plugin_scripts_init
+                
+                overlays.append(overlay.render(req))
+        return overlays

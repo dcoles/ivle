@@ -32,3 +32,12 @@ class ViewPlugin(BasePlugin):
     as keyword arguments to the constructor of the view object.
     """
     pass
+    
+class OverlayPlugin(BasePlugin):
+    """
+    Marker class for plugins which provide overlays.
+    
+    Overlay plugins provide mini-views which can be displayed on top of other
+    views. The canonical example of a plugin of this type is the Console plugin.
+    """
+    pass
