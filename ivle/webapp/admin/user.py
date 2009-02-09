@@ -39,6 +39,8 @@ class UserRESTView(JSONRESTView):
     def __init__(self, req, login):
         super(UserRESTView, self).__init__(self, req, login)
         self.context = ivle.database.User.get_by_login(req.store, login)
+        if self.context is None:
+            raise NotFound()
 
     def GET(self, req):
         # XXX Check Caps
@@ -71,11 +73,10 @@ class UserSettingsView(XHTMLView):
 
     def __init__(self, req, login):
         self.context = ivle.database.User.get_by_login(req.store, login)
-
-    def populate(self, req, ctx):
-        if not self.context:
+        if self.context is None:
             raise NotFound()
 
+    def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']
         req.scripts_init = ['revert_settings']
 
