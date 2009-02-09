@@ -3,7 +3,7 @@
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
       
   <body py:strip="">
-    <div id="console_body">
+    <div id="console_body" py:attrs="start_body_attrs">
       <div id="console_heading">Python Console<span py:if="windowpane" 
           class="console_button minimize">
           <a onclick="console_minimize()"
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <div py:if="windowpane" id="console_filler">
+    <div py:if="windowpane" id="console_filler" class="windowpane minimal">
     <!-- Console filler, provides extra vertical space to stop the console
                                             covering over the bottom content -->
     </div>

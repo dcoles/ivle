@@ -34,4 +34,5 @@ class ConsoleOverlay(XHTMLOverlay):
                                          'images/interface/maximize.png')
         ctx['minimize_path'] = media_url(req, CorePlugin, 
                                          'images/interface/minimize.png')
+        ctx['start_body_attrs'] = {'class': 'windowpane minimal'}
         return ctx
