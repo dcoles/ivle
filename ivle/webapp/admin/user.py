@@ -20,6 +20,7 @@
 from ivle.webapp.base.rest import JSONRESTView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import NotFound
 import ivle.database
 import ivle.util
 

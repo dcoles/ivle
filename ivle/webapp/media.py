@@ -26,7 +26,7 @@ import mimetypes
 import ivle.conf
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.errors import NotFound
+from ivle.webapp.errors import NotFound, Forbidden
 
 def media_url(req, plugin, path):
     '''Generates a URL to a media file.

@@ -33,6 +33,7 @@ import ivle.console
 import ivle.chat
 import ivle.conf
 from ivle.webapp.base.rest import JSONRESTView, named_operation
+from ivle.webapp.errors import BadRequest
 
 # XXX: Should be RPC view, with actions in URL?
 class ConsoleServiceRESTView(JSONRESTView):
