@@ -339,9 +339,8 @@ def present_exercise(req, exercisesrc, exerciseid):
     #Open the exercise, and double-check that it exists
     exercisefile = ivle.util.open_exercise_file(exercisesrc)
     if exercisefile is None:
-        req.throw_error(req.HTTP_EXPECTATION_FAILED, \
-                                        "Exercise file could not be opened")
-    
+        raise NotFound()
+
     # Read exercise file and present the exercise
     # Note: We do not use the testing framework because it does a lot more
     # work than we need. We just need to get the exercise name and a few other
@@ -351,11 +350,10 @@ def present_exercise(req, exercisesrc, exerciseid):
     exercisedom = minidom.parse(exercisefile)
     exercisefile.close()
     exercisedom = exercisedom.documentElement
-    if exercisedom.tagName != "exercise":
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-            "The exercise XML file's top-level element must be <exercise>.")
+    assert exercisedom.tagName == "exercise", \
+           "Exercise file top-level element must be <exercise>."
     curctx['exercisename'] = exercisedom.getAttribute("name")
-    
+
     curctx['rows'] = exercisedom.getAttribute("rows")
     if not curctx['rows']:
         curctx['rows'] = "12"

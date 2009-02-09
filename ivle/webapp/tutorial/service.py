@@ -67,8 +67,7 @@ class AttemptsRESTView(JSONRESTView):
         ''' Tests the given submission '''
         exercisefile = ivle.util.open_exercise_file(self.exercise)
         if exercisefile is None:
-            req.throw_error(req.HTTP_NOT_FOUND,
-                "The exercise was not found.")
+            raise NotFound()
 
         # Start a console to run the tests on
         jail_path = os.path.join(ivle.conf.jail_base, req.user.login)

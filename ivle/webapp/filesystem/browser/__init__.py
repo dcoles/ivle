@@ -64,8 +64,7 @@ class BrowserView(XHTMLView):
 
         _, localpath = studpath.url_to_local(self.path)
         if localpath is None:
-            req.throw_error(req.HTTP_NOT_FOUND,
-                "The path specified is invalid.")
+            raise NotFound()
 
         # Start writing data
 
