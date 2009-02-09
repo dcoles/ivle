@@ -46,6 +46,7 @@ import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
 from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import HTTPError
 import apps
 import html
 
@@ -154,9 +155,19 @@ def handler_(req, apachereq):
         # Instantiate the view, which should be a BaseView class
         view = viewcls(req, **kwargs)
         # Render the output
-        view.render(req)
-        req.store.commit()
-        return req.OK
+        try:
+            view.render(req)
+        except HTTPError, e:
+            # A view explicitly raised an HTTP error. Respect it.
+            req.status = e.code
+            req.write(e.message)
+            return e.code
+        except Exception, e:
+            # A non-HTTPError appeared. We have an unknown exception. Panic.
+            handle_unknown_exception(req, *sys.exc_info())
+        else:
+            req.store.commit()
+            return req.OK
     ### END New plugins framework ###
 
     # Check req.app to see if it is valid. 404 if not.
