@@ -21,12 +21,15 @@ class HTTPError(Exception):
     '''A base class for all HTTP errors.'''
 
 class BadRequest(HTTPError):
+    codename = 'Bad Request'
     code = 400
 
 class Forbidden(HTTPError):
+    codename = 'Forbidden'
     code = 403
 
 class NotFound(HTTPError):
+    codename = 'Not Found'
     code = 404
 
 class MethodNotAllowed(HTTPError):
@@ -34,4 +37,5 @@ class MethodNotAllowed(HTTPError):
         self.allowed = allowed
         super(HTTPError, self).__init__(*args, **kwargs)
 
+    codename = 'Method Not Allowed'
     code = 405
