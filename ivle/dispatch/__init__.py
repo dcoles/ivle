@@ -45,7 +45,7 @@ import ivle.conf
 import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, ErrorPlugin
 from ivle.webapp.errors import HTTPError
 import apps
 import html
@@ -53,6 +53,7 @@ import html
 # XXX List of plugins, which will eventually be read in from conf
 plugins_HACK = [
     'ivle.webapp.core#Plugin',
+    'ivle.webapp.base#Plugin',
     'ivle.webapp.admin.user#Plugin',
     'ivle.webapp.tutorial#Plugin',
     'ivle.webapp.admin.subject#Plugin',
@@ -88,6 +89,22 @@ def get_plugin(pluginstr):
     # (Note that plugin_path is a fully-qualified Python module name).
     return (plugin_path,
             getattr(__import__(plugin_path, fromlist=[classname]), classname))
+
+def get_error_view(req, viewcls):
+    if ErrorPlugin not in req.plugin_index:
+        return
+
+    error_plugins = req.plugin_index[ErrorPlugin]
+
+    view_map = {}
+
+    for plugin in error_plugins:
+        for src in plugin.error_views:
+            view_map[src] = plugin.error_views[src]
+
+    for cls in inspect.getmro(viewcls):
+        if cls in view_map:
+            return view_map[cls]
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -160,8 +177,16 @@ def handler_(req, apachereq):
         except HTTPError, e:
             # A view explicitly raised an HTTP error. Respect it.
             req.status = e.code
-            req.write(e.message)
-            return e.code # Should be req.OK once we have our own errviews.
+
+            # Try to find a custom error view.
+            errviewcls = get_error_view(req, viewcls)
+            if errviewcls:
+                errview = errviewcls(req, e)
+                errview.render(req)
+                return req.OK
+            else:
+                req.write(e.message)
+                return e.code
         except Exception, e:
             # A non-HTTPError appeared. We have an unknown exception. Panic.
             handle_unknown_exception(req, *sys.exc_info())

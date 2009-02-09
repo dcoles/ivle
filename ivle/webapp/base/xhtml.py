@@ -136,8 +136,17 @@ class XHTMLView(BaseView):
                 for mplugin in overlay.plugin_styles:
                     for path in overlay.plugin_styles[mplugin]:
                         req.styles.append(media_url(req, mplugin, path))
-                
+
                 req.scripts_init += overlay.plugin_scripts_init
-                
+
                 overlays.append(overlay.render(req))
         return overlays
+
+class XHTMLErrorView(XHTMLView):
+    template = 'xhtmlerror.html'
+
+    def __init__(self, req, exception):
+        self.context = exception
+
+    def populate(self, req, ctx):
+        ctx['exception'] = self.context
