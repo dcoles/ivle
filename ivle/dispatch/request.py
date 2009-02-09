@@ -36,7 +36,6 @@ except ImportError:
 import ivle.util
 import ivle.conf
 import ivle.database
-import plugins.console # XXX: Relies on www/ being in the Python path.
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -235,11 +234,6 @@ class Request:
             app = ivle.conf.apps.app_url[self.app]
         except KeyError:
             app = None
-
-        # Write any final modifications to header content
-        if app and app.useconsole and self.user:
-            plugins.console.insert_scripts_styles(self.scripts, self.styles, \
-                self.scripts_init)
 
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:

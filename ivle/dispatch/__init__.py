@@ -48,7 +48,6 @@ from ivle.dispatch import login
 from ivle.webapp.base.plugins import ViewPlugin
 import apps
 import html
-import plugins.console # XXX: Relies on www/ being in the Python path.
 
 # XXX List of plugins, which will eventually be read in from conf
 plugins_HACK = [
@@ -225,9 +224,6 @@ def handler_(req, apachereq):
 
     # When done, write out the HTML footer if the app has requested it
     if req.write_html_head_foot:
-        # Show the console if required
-        if logged_in and app.useconsole:
-            plugins.console.present(req, windowpane=True)
         html.write_html_foot(req)
 
     # Note: Apache will not write custom HTML error messages here.
