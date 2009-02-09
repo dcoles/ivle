@@ -161,10 +161,11 @@ def handler_(req, apachereq):
             # A view explicitly raised an HTTP error. Respect it.
             req.status = e.code
             req.write(e.message)
-            return e.code
+            return e.code # Should be req.OK once we have our own errviews.
         except Exception, e:
             # A non-HTTPError appeared. We have an unknown exception. Panic.
             handle_unknown_exception(req, *sys.exc_info())
+            return req.OK
         else:
             req.store.commit()
             return req.OK
