@@ -8,8 +8,6 @@ enable_debuginfo = False
 
 # Allow App objects
 # Notes:
-# desc is a full description for the front page. It isn't required
-# unless this app is in apps_on_home_page.
 # icon is a string of a file basename. The icon files are found in
 # app_icon_dir, defined below.
 class App:
@@ -123,13 +121,6 @@ app_subjects = App(dir = "subjects",
                     requireauth = False,
                     hashelp = False)
 
-app_home = App(dir = "home",
-                    name = "Home",
-                    desc = "IVLE home page",
-                    icon = "home.png",
-                    requireauth = True,
-                    hashelp = False)
-
 # Mapping URL names to apps
 
 app_url = {
@@ -144,7 +135,6 @@ app_url = {
     "tos" : app_tos,
     "userservice" : app_userservice,
     "subjects" : app_subjects,
-    "home" : app_home,
 }
 if enable_debuginfo:
     app_url["debuginfo"] = app_debuginfo
@@ -155,6 +145,3 @@ if enable_debuginfo:
 
 apps_in_tabs = ["files", "tutorial", "console",
                 "forum", "subjects", "help"]
-
-# List of apps that go in the list on the home page
-apps_on_home_page = ["subjects", "files", "tutorial", "console", "forum"]
