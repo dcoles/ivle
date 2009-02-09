@@ -95,6 +95,7 @@ class XHTMLView(BaseView):
             ctx['nick'] = req.user.nick
         else:
             ctx['login'] = None
+            ctx['logged_in'] = False
         ctx['publicmode'] = req.publicmode
         ctx['apps_in_tabs'] = []
         for urlname in ivle.conf.apps.apps_in_tabs:
