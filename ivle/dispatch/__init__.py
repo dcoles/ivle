@@ -152,10 +152,10 @@ def handler_(req, apachereq):
         # (The latter two seem to be built-in, and we don't want them).
         kwargs = matchdict.copy()
         del kwargs['view']
-        # Instantiate the view, which should be a BaseView class
-        view = viewcls(req, **kwargs)
-        # Render the output
         try:
+            # Instantiate the view, which should be a BaseView class
+            view = viewcls(req, **kwargs)
+            # Render the output
             view.render(req)
         except HTTPError, e:
             # A view explicitly raised an HTTP error. Respect it.
