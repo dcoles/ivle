@@ -46,18 +46,55 @@ def search_conffile():
         return '/etc/ivle/ivle.conf'
     raise RuntimeError("Could not find IVLE config file")
 
-conffile = search_conffile()
+try:
+    conffile = search_conffile()
+except RuntimeError, e:
+    raise ImportError(str(e))
+
 conf = configobj.ConfigObj(conffile)
 
-CONFIG_OPTIONS = ('root_dir', 'prefix', 'data_path', 'log_path',
-    'public_host', 'allowed_uids', 'db_host', 'db_port', 'db_dbname',
-    'db_forumdbname', 'db_user', 'db_password', 'auth_modules', 'ldap_url',
-    'ldap_format_string', 'subject_pulldown_modules', 'svn_addr',
-    'usrmgt_host', 'usrmgt_port', 'usrmgt_magic', 'forum_secret'
-    )
+# This dict maps legacy config option names to new config option paths
+# ('section/option_name')
+CONFIG_OPTIONS = {
+    'root_dir': 'urls/root',
+    'prefix': 'paths/prefix',
+    'data_path': 'paths/data',
+    'log_path': 'paths/logs',
+    'python_site_packages_override': 'paths/site_packages',
+    'public_host': 'urls/public_host',
+    'allowed_uids': 'os/allowed_uids',
+    'db_host': 'database/host',
+    'db_port': 'database/port',
+    'db_dbname': 'database/name',
+    'db_forumdbname': 'plugins/forum/dbname',
+    'db_user': 'database/username',
+    'db_password': 'database/password',
+    'auth_modules': 'auth/modules',
+    'ldap_url': 'auth/ldap_url',
+    'ldap_format_string': 'auth/ldap_format_string',
+    'subject_pulldown_modules': 'auth/subject_pulldown_modules',
+    'svn_addr': 'urls/svn_addr',
+    'usrmgt_host': 'usrmgt/host',
+    'usrmgt_port': 'usrmgt/port',
+    'usrmgt_magic': 'usrmgt/magic',
+    'forum_secret': 'plugins/forum/secret',
+}
 
-for opt in CONFIG_OPTIONS:
-    globals()[opt] = conf[opt]
+for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
+    # Iterate over each segment of the path, and find the value in conf file
+    try:
+        value = conf
+        for seg in newopt_path.split('/'):
+            value = value[seg]
+        globals()[legacyopt] = value
+    except KeyError:
+        globals()[legacyopt] = None
+
+# XXX Munge some nice shiny new-style values into horrible old-style values
+# IRONY: These have just been split from commas. We need to re-join it so that
+# pulldown_subj and auth_modules can re-split them.
+subject_pulldown_modules = ','.join(subject_pulldown_modules)
+auth_modules = ','.join(auth_modules)
 
 # XXX Convert db_port and usrmgt_port to int.
 # Because.
@@ -78,9 +115,12 @@ bin_path = os.path.join(prefix, 'bin')
 
 # 'site-packages' directory in Python, where Python libraries are to be
 # installed.
-PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
-python_site_packages = os.path.join(prefix,
-                           'lib/python%s/site-packages' % PYTHON_VERSION)
+if python_site_packages_override is None:
+    PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
+    python_site_packages = os.path.join(prefix,
+                               'lib/python%s/site-packages' % PYTHON_VERSION)
+else:
+    python_site_packages = python_site_packages_override
 
 # In the local file system, where the student/user jails will be mounted.
 # Only a single copy of the jail's system components will be stored here -

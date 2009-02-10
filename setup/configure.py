@@ -37,6 +37,35 @@ from setup.util import query_user
 
 import configobj
 
+# This dict maps legacy config option names to new config option paths
+# ('section/option_name')
+# NOTE: This is copied from ivle/conf/conf.py (because neither of these files
+# can see each other).
+CONFIG_OPTIONS = {
+    'root_dir': 'urls/root',
+    'prefix': 'paths/prefix',
+    'data_path': 'paths/data',
+    'log_path': 'paths/logs',
+    'python_site_packages_override': 'paths/site_packages',
+    'public_host': 'urls/public_host',
+    'allowed_uids': 'os/allowed_uids',
+    'db_host': 'database/host',
+    'db_port': 'database/port',
+    'db_dbname': 'database/name',
+    'db_forumdbname': 'plugins/forum/dbname',
+    'db_user': 'database/username',
+    'db_password': 'database/password',
+    'auth_modules': 'auth/modules',
+    'ldap_url': 'auth/ldap_url',
+    'ldap_format_string': 'auth/ldap_format_string',
+    'subject_pulldown_modules': 'auth/subject_pulldown_modules',
+    'svn_addr': 'urls/svn_addr',
+    'usrmgt_host': 'usrmgt/host',
+    'usrmgt_port': 'usrmgt/port',
+    'usrmgt_magic': 'usrmgt/magic',
+    'forum_secret': 'plugins/forum/secret',
+}
+
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
     def __init__(self, option_name, default, prompt, comment, ask=True):
@@ -332,12 +361,26 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     conf.initial_comment = ["# IVLE Configuration File"]
 
-    for opt in config_options:
-        conf[opt.option_name] = globals()[opt.option_name]
-        conf.comments[opt.option_name] = opt.comment.split('\n')
-
     # Add the forum secret to the config file (regenerated each config)
-    conf['forum_secret'] = forum_secret
+    config_options.append(ConfigOption('forum_secret', None, '', ''))
+    globals()['forum_secret'] = forum_secret
+
+    for legacyopt in config_options:
+        newopt_path = CONFIG_OPTIONS[legacyopt.option_name].split('/')
+        # Iterate over each segment of the path, and find the section in conf
+        # file to insert the value into (use all but the last path segment)
+        conf_section = conf
+        for seg in newopt_path[:-1]:
+            # Create the section if it isn't there
+            if seg not in conf_section:
+                conf_section[seg] = {}
+            conf_section = conf_section[seg]
+        # The final path segment names the key to insert into
+        keyname = newopt_path[-1]
+        value = globals()[legacyopt.option_name]
+        if value is not None:
+            conf_section[keyname] = value
+            conf_section.comments[keyname] = legacyopt.comment.split('\n')
 
     conf.write()
 
