@@ -52,12 +52,15 @@
             Close attempts
           </a>
         </p>
-        <p>
+        <p class="attemptslist" style="display: none">
           <select title="Select an attempt's time stamp from the list">
             <option></option>
           </select>
           <input type="button" value="View"
               onclick="select_attempt(&quot;exercise${exerciseid}&quot;, '${filename}')" />
+        </p>
+        <p class="noattempts" style="display: none">
+          No attempts have been made for this exercise.
         </p>
         <p>
           <textarea readonly="readonly" class="exercisebox" cols="80" rows="${rows}"

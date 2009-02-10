@@ -484,6 +484,9 @@ function open_previous(exerciseid, filename)
     var openarea = attempthistory.getElementsByTagName("div")[0];
     var dropdown = attempthistory.getElementsByTagName("select")[0];
     var textarea = attempthistory.getElementsByTagName("textarea")[0];
+    /* Further handles on the paragraphs for showing/hiding */
+    var attemptslist = openarea.getElementsByTagName("p")[1];
+    var noattempts = openarea.getElementsByTagName("p")[2];
 
     /* Clear the dropdown box */
     dom_removechildren(dropdown);
@@ -537,6 +540,14 @@ function open_previous(exerciseid, filename)
             openbutton.setAttribute("style", "display: none");
             openarea.setAttribute("style", "display: auto");
             textarea.setAttribute("style", "display: none");
+            attemptslist.setAttribute("style", "display: none");
+            noattempts.setAttribute("style", "display: none");
+            // NOTE: This must go after setting openarea to visible. For some
+            // reason, Firefox will not display these elements otherwise.
+            if (attempts.length > 0)
+                attemptslist.setAttribute("style", "display: auto");
+            else
+                noattempts.setAttribute("style", "display: auto");
         }
     attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
         + "/" + filename + '/+attempts/' + username;
@@ -581,6 +592,9 @@ function select_attempt(exerciseid, filename)
     var textarea = attempthistory.getElementsByTagName("textarea")[0];
 
     /* Get the "value" of the selected option */
+    if (dropdown.selectedIndex < 0)
+        // Nothing is selected. Fail silently (should not occur in practice).
+        return;
     var date = dropdown.options[dropdown.selectedIndex].getAttribute("value");
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
