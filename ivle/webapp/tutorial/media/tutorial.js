@@ -485,10 +485,7 @@ function open_previous(exerciseid, filename)
     var dropdown = attempthistory.getElementsByTagName("select")[0];
     var textarea = attempthistory.getElementsByTagName("textarea")[0];
 
-    /* Activate the "open" state, and clear the dropdown box */
-    openbutton.setAttribute("style", "display: none");
-    openarea.setAttribute("style", "display: auto");
-    textarea.setAttribute("style", "display: none");
+    /* Clear the dropdown box */
     dom_removechildren(dropdown);
     var pleasewait = document.createElement("option");
     pleasewait.appendChild(document.createTextNode("Retrieving past attempts..."));
@@ -535,6 +532,11 @@ function open_previous(exerciseid, filename)
                 }
                 dropdown.appendChild(opt);
             }
+
+            /* Display the page elements */
+            openbutton.setAttribute("style", "display: none");
+            openarea.setAttribute("style", "display: auto");
+            textarea.setAttribute("style", "display: none");
         }
     attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
         + "/" + filename + '/+attempts/' + username;
