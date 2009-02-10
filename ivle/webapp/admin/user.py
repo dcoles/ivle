@@ -20,7 +20,7 @@
 from ivle.webapp.base.rest import JSONRESTView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.errors import NotFound
+from ivle.webapp.errors import NotFound, Unauthorized
 import ivle.database
 import ivle.util
 
@@ -75,6 +75,10 @@ class UserSettingsView(XHTMLView):
         self.context = ivle.database.User.get_by_login(req.store, login)
         if self.context is None:
             raise NotFound()
+
+        if req.user is None or (req.user is not self.context and
+                                req.user.rolenm != 'admin'):
+            raise Unauthorized()
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']

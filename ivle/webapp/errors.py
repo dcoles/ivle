@@ -24,6 +24,10 @@ class BadRequest(HTTPError):
     codename = 'Bad Request'
     code = 400
 
+class Unauthorized(HTTPError):
+    codename = 'Unauthorized'
+    code = 401
+
 class Forbidden(HTTPError):
     codename = 'Forbidden'
     code = 403

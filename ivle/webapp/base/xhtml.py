@@ -25,7 +25,7 @@ import genshi.template
 from ivle.webapp.media import media_url
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import OverlayPlugin
-from ivle.webapp.errors import HTTPError
+from ivle.webapp.errors import HTTPError, Unauthorized
 import ivle.conf
 import ivle.util
 
@@ -146,8 +146,8 @@ class XHTMLView(BaseView):
 
     @classmethod
     def get_error_view(cls, e):
-        view_map = {HTTPError:    XHTMLErrorView,}
-                    #Unauthorized: XHTMLUnauthorizedView}
+        view_map = {HTTPError:    XHTMLErrorView,
+                    Unauthorized: XHTMLUnauthorizedView}
         for exccls in inspect.getmro(type(e)):
             if exccls in view_map:
                 return view_map[exccls]
@@ -160,3 +160,14 @@ class XHTMLErrorView(XHTMLView):
 
     def populate(self, req, ctx):
         ctx['exception'] = self.context
+
+class XHTMLUnauthorizedView(XHTMLErrorView):
+    template = 'xhtmlunauthorized.html'
+
+    def __init__(self, req, exception):
+        super(XHTMLUnauthorizedView, self).__init__(req, exception)
+        if req.user is None:
+            # Not logged in. Redirect to login page.
+            req.throw_redirect('/') # XXX: Need proper URL.
+
+        req.status = 403
