@@ -22,6 +22,7 @@
 sudo apt-get install rsync subversion build-essential debootstrap       \
                      apache2 libapache2-mod-python libapache2-svn       \
                      python-svn python-cjson python-genshi              \
+                     python-configobj                                   \
                      postgresql php5 php5-pgsql python-routes           \
                      python-docutils python-epydoc                      \
                      python-storm python-psycopg2

@@ -35,6 +35,8 @@ import uuid
 
 from setup.util import query_user
 
+import configobj
+
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
     def __init__(self, option_name, default, prompt, comment, ask=True):
@@ -248,7 +250,7 @@ def __configure(args):
     cwd = os.getcwd()
 
     # the files that will be created/overwritten
-    conffile = os.path.join(cwd, "ivle/conf/conf.py")
+    conffile = os.path.join(cwd, "etc/ivle.conf")
     conf_hfile = os.path.join(cwd, "bin/trampoline/conf.h")
     phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
 
@@ -323,27 +325,21 @@ Please hit Ctrl+C now if you do not wish to do this.
     # Generate the forum secret
     forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
-    # Write lib/conf/conf.py
+    # Write ./etc/ivle.conf
 
-    conf = open(conffile, "w")
+    conf = configobj.ConfigObj()
+    conf.filename = conffile
 
-    conf.write("""# IVLE Configuration File
-# conf.py
-# Miscellaneous application settings
+    conf.initial_comment = ["# IVLE Configuration File"]
 
-import os
-import sys
-""")
     for opt in config_options:
-        conf.write('%s\n%s = %r\n' % (opt.comment, opt.option_name,
-            globals()[opt.option_name]))
+        conf[opt.option_name] = globals()[opt.option_name]
+        conf.comments[opt.option_name] = opt.comment.split('\n')
 
     # Add the forum secret to the config file (regenerated each config)
-    conf.write('forum_secret = "%s"\n\n' % (forum_secret))
+    conf['forum_secret'] = forum_secret
 
-    write_conf_file_boilerplate(conf)
-
-    conf.close()
+    conf.write()
 
     print "Successfully wrote %s" % conffile
 
@@ -432,87 +428,3 @@ $forum_secret = '""" + forum_secret +"""';
     print
     
     return 0
-
-def write_conf_file_boilerplate(conf_file):
-    conf_file.write("""\
-### Below is boilerplate code, appended by ./setup.py config ###
-
-# Path where architecture-dependent data (including non-user-executable
-# binaries) is installed.
-lib_path = os.path.join(prefix, 'lib/ivle')
-
-# Path where arch-independent data is installed.
-share_path = os.path.join(prefix, 'share/ivle')
-
-# Path where user-executable binaries are installed.
-bin_path = os.path.join(prefix, 'bin')
-
-# 'site-packages' directory in Python, where Python libraries are to be
-# installed.
-if python_site_packages_override is None:
-    PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
-    python_site_packages = os.path.join(prefix,
-                               'lib/python%s/site-packages' % PYTHON_VERSION)
-else:
-    python_site_packages = python_site_packages_override
-
-# In the local file system, where the student/user jails will be mounted.
-# Only a single copy of the jail's system components will be stored here -
-# all user jails will be virtually mounted here.
-jail_base = os.path.join(data_path, 'jailmounts')
-
-# In the local file system, where are the student/user file spaces located.
-# The user jails are expected to be located immediately in subdirectories of
-# this location. Note that no complete jails reside here - only user
-# modifications.
-jail_src_base = os.path.join(data_path, 'jails')
-
-# In the local file system, where the template system jail will be stored.
-jail_system = os.path.join(jail_src_base, '__base__')
-
-# In the local file system, where the template system jail will be stored.
-jail_system_build = os.path.join(jail_src_base, '__base_build__')
-
-# In the local file system, where the subject content files are located.
-# (The 'subjects' and 'exercises' directories).
-content_path = os.path.join(data_path, 'content')
-
-# In the local file system, where are the per-subject file spaces located.
-# The individual subject directories are expected to be located immediately
-# in subdirectories of this location.
-subjects_base = os.path.join(content_path, 'subjects')
-
-# In the local file system, where are the subject-independent exercise sheet
-# file spaces located.
-exercises_base = os.path.join(content_path, 'exercises')
-
-# In the local file system, where the system notices are stored (such as terms
-# of service and MOTD).
-notices_path = os.path.join(data_path, 'notices')
-
-# In the local file system, where is the Terms of Service document located.
-tos_path = os.path.join(notices_path, 'tos.html')
-
-# In the local file system, where is the Message of the Day document
-# located. This is an HTML file (just the body fragment), which will
-# be displayed on the login page. It is optional.
-motd_path = os.path.join(notices_path, 'motd.html')
-
-# The location of all the subversion config and repositories.
-svn_path = os.path.join(data_path, 'svn')
-
-# The location of the subversion configuration file used by
-# apache to host the user repositories.
-svn_conf = os.path.join(svn_path, 'svn.conf')
-
-# The location of the subversion configuration file used by
-# apache to host the user repositories.
-svn_group_conf = os.path.join(svn_path, 'svn-group.conf')
-
-# The root directory for the subversion repositories.
-svn_repo_path = os.path.join(svn_path, 'repositories')
-
-# The location of the password file used to authenticate users
-# of the subversion repository from the ivle server.
-svn_auth_ivle = os.path.join(svn_path, 'ivle.auth')
-""")

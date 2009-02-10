@@ -33,6 +33,7 @@ Create target install directory ($target).
 Create $target/bin.
 Copy bin/trampoline/trampoline to $target/bin.
 Copy bin/timount/timount to $target/bin.
+Copy etc/ivle.conf to /etc/ivle/ivle.conf.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
 Copy subjects/ to subjects directory (unless --nosubjects specified).
@@ -117,6 +118,9 @@ def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
 
     timountpath = os.path.join(lib_path, 'timount')
     util.action_copyfile('bin/timount/timount', timountpath, dry)
+
+    ivleconfpath = mip('/etc/ivle/ivle.conf')
+    util.action_copyfile('etc/ivle.conf', ivleconfpath, dry)
 
     # Copy in the services (only usrmgt-server is needed on the host, but
     # the jail build requires the rest).
