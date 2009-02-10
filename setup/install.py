@@ -83,8 +83,7 @@ def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
         print "Dry run (no actions will be executed)\n"
     
     if not dry and os.geteuid() != 0:
-        print >>sys.stderr, "Must be root to run build"
-        print >>sys.stderr, "(I need to chown)."
+        print >>sys.stderr, "Must be root to run install"
         return 1
 
     # Make some directories for data.
