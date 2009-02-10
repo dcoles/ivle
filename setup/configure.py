@@ -325,45 +325,40 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Write lib/conf/conf.py
 
-    try:
-        conf = open(conffile, "w")
+    conf = open(conffile, "w")
 
-        conf.write("""# IVLE Configuration File
+    conf.write("""# IVLE Configuration File
 # conf.py
 # Miscellaneous application settings
 
 import os
 import sys
 """)
-        for opt in config_options:
-            conf.write('%s\n%s = %r\n' % (opt.comment, opt.option_name,
-                globals()[opt.option_name]))
+    for opt in config_options:
+        conf.write('%s\n%s = %r\n' % (opt.comment, opt.option_name,
+            globals()[opt.option_name]))
 
-	    # Add the forum secret to the config file (regenerated each config)
-        conf.write('forum_secret = "%s"\n\n' % (forum_secret))
+    # Add the forum secret to the config file (regenerated each config)
+    conf.write('forum_secret = "%s"\n\n' % (forum_secret))
 
-        write_conf_file_boilerplate(conf)
+    write_conf_file_boilerplate(conf)
 
-        conf.close()
-    except IOError, (errno, strerror):
-        print "IO error(%s): %s" % (errno, strerror)
-        sys.exit(1)
+    conf.close()
 
     print "Successfully wrote %s" % conffile
 
     # Write bin/trampoline/conf.h
 
-    try:
-        conf = open(conf_hfile, "w")
+    conf = open(conf_hfile, "w")
 
-        # XXX Compute jail_base, jail_src_base and jail_system. These will
-        # ALSO be done by the boilerplate code, but we need them here in order
-        # to write to the C file.
-        jail_base = os.path.join(data_path, 'jailmounts')
-        jail_src_base = os.path.join(data_path, 'jails')
-        jail_system = os.path.join(jail_src_base, '__base__')
+    # XXX Compute jail_base, jail_src_base and jail_system. These will
+    # ALSO be done by the boilerplate code, but we need them here in order
+    # to write to the C file.
+    jail_base = os.path.join(data_path, 'jailmounts')
+    jail_src_base = os.path.join(data_path, 'jails')
+    jail_system = os.path.join(jail_src_base, '__base__')
 
-        conf.write("""/* IVLE Configuration File
+    conf.write("""/* IVLE Configuration File
  * conf.h
  * Administrator settings required by trampoline.
  * Note: trampoline will have to be rebuilt in order for changes to this file
@@ -391,25 +386,21 @@ static const int allowed_uids[] = { %s };
     # However they should be the same with the exception of the outer
     # characters, which are stripped off and replaced
 
-        conf.close()
-    except IOError, (errno, strerror):
-        print "IO error(%s): %s" % (errno, strerror)
-        sys.exit(1)
+    conf.close()
 
     print "Successfully wrote %s" % conf_hfile
 
     # Write www/php/phpBB3/config.php
 
-    try:
-        conf = open(phpBBconffile, "w")
-        
-        # php-pg work around
-        if db_host == 'localhost':
-            forumdb_host = '127.0.0.1'
-        else:
-            forumdb_host = db_host
+    conf = open(phpBBconffile, "w")
+    
+    # php-pg work around
+    if db_host == 'localhost':
+        forumdb_host = '127.0.0.1'
+    else:
+        forumdb_host = db_host
 
-        conf.write( """<?php
+    conf.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
@@ -429,10 +420,7 @@ $load_extensions = '';
 $forum_secret = '""" + forum_secret +"""';
 ?>"""   )
     
-        conf.close()
-    except IOError, (errno, strerror):
-        print "IO error(%s): %s" % (errno, strerror)
-        sys.exit(1)
+    conf.close()
 
     print "Successfully wrote %s" % phpBBconffile
 
