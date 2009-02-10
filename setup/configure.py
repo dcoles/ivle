@@ -159,7 +159,6 @@ config_options.append(ConfigOption("db_host", "localhost",
 ==========================
 Hostname of the DB server:""",
     """
-### PostgreSQL Database config ###
 # Database server hostname"""))
 
 config_options.append(ConfigOption("db_port", "5432",
