@@ -51,12 +51,3 @@ class CookiePlugin(BasePlugin):
     deleted on logout.
     """
     pass
-
-class ErrorPlugin(BasePlugin):
-    """Marker class for plugins which provide views for errors.
-
-    Error plugins provide an 'error_plugins' dict mapping view classes to
-    error views classes. Whenever an error occurs in a view, the first error
-    view class matching the view class or its bases is used.
-    """
-    pass

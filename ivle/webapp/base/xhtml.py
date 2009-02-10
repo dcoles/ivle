@@ -25,6 +25,7 @@ import genshi.template
 from ivle.webapp.media import media_url
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import OverlayPlugin
+from ivle.webapp.errors import HTTPError
 import ivle.conf
 import ivle.util
 
@@ -142,6 +143,14 @@ class XHTMLView(BaseView):
 
                 overlays.append(overlay.render(req))
         return overlays
+
+    @classmethod
+    def get_error_view(cls, e):
+        view_map = {HTTPError:    XHTMLErrorView,}
+                    #Unauthorized: XHTMLUnauthorizedView}
+        for exccls in inspect.getmro(type(e)):
+            if exccls in view_map:
+                return view_map[exccls]
 
 class XHTMLErrorView(XHTMLView):
     template = 'xhtmlerror.html'
