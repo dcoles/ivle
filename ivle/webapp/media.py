@@ -25,7 +25,7 @@ import mimetypes
 
 import ivle.conf
 from ivle.webapp.base.views import BaseView
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
 
 def media_url(req, plugin, path):
@@ -35,7 +35,7 @@ def media_url(req, plugin, path):
     or a plugin object, in which case its name is looked up.'''
     if not isinstance(plugin, basestring):
         plugin = req.reverse_plugins[plugin]
-        
+
     return os.path.join(ivle.conf.root_dir, '+media', plugin, path)
 
 class MediaFileView(BaseView):
@@ -58,11 +58,10 @@ class MediaFileView(BaseView):
         except KeyError:
             raise NotFound()
 
-        try:
-            mediadir = plugin.media
-        except AttributeError:
+        if not issubclass(plugin, MediaPlugin):
             raise NotFound()
 
+        mediadir = plugin.media
         plugindir = os.path.dirname(inspect.getmodule(plugin).__file__)
 
         return os.path.join(plugindir, mediadir, self.path)

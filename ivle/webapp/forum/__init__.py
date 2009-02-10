@@ -25,7 +25,7 @@ import urlparse
 from urllib import quote
 
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin
+from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 import ivle.util
 import ivle.conf
 
@@ -67,7 +67,7 @@ def make_forum_cookie(user):
 
     return data
 
-class Plugin(ViewPlugin, CookiePlugin):
+class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
     urls = [
         ('forum', ForumView, {'path': ''}),
         ('forum/+board/:board', ForumBoardView),

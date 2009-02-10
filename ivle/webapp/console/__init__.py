@@ -1,5 +1,4 @@
-from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.base.plugins import OverlayPlugin
+from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin, MediaPlugin
 from ivle.webapp.console.service import ConsoleServiceRESTView
 from ivle.webapp.console.overlay import ConsoleOverlay
 from ivle.webapp.base.xhtml import XHTMLView
@@ -19,7 +18,7 @@ class ConsoleView(XHTMLView):
         ctx['windowpane'] = False
 
 
-class Plugin(ViewPlugin, OverlayPlugin):
+class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
     """
     The Plugin class for the console plugin.
     """

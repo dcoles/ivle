@@ -29,7 +29,7 @@ import genshi
 import ivle.conf
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
 
 class DiffView(XHTMLView):
@@ -97,7 +97,7 @@ def htmlfy_diff(difftext):
 
     return '<pre class="diff">%s</pre>' % output
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, MediaPlugin):
     '''Registration class for diff components.'''
     urls = [
         ('diff/', DiffView, {'path': ''}),

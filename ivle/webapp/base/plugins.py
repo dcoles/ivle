@@ -51,3 +51,11 @@ class CookiePlugin(BasePlugin):
     deleted on logout.
     """
     pass
+
+class MediaPlugin(BasePlugin):
+    """Marker class for plugins which provide media files.
+
+    Media plugins provide a 'media' attribute, which is a string pointing to a
+    subdirectory that contains media files to be served statically.
+    """
+    pass

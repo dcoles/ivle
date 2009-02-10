@@ -26,7 +26,7 @@ import ivle.conf
 import ivle.date
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
 
 class SubversionLogView(XHTMLView):
@@ -70,7 +70,7 @@ class SubversionLogView(XHTMLView):
                                   ivle.util.split_path(req.path)[0],
                                   pathaction[0][1:])) + '?r=%d' % log['revno'])
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('/svnlog', SubversionLogView, {'path': ''}),
         ('/svnlog/*path', SubversionLogView),

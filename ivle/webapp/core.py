@@ -17,8 +17,8 @@
 
 # Author: Will Grant
 
-from ivle.webapp.base.plugins import BasePlugin
+from ivle.webapp.base.plugins import MediaPlugin
 
-class Plugin(BasePlugin):
+class Plugin(MediaPlugin):
     '''Plugin class for IVLE common media.'''
     media = 'coremedia'
