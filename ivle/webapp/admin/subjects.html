@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Subjects</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h2>IVLE Subject Homepages</h2>
+      <py:if test="(len(enrolled_subjects) > 0)">
+        <h2>Subjects</h2>
+        <ul>
+          <py:for each="subject in enrolled_subjects">
+            <py:choose test="subject['url']">
+              <py:when test="None">
+                <li>${subject['name']} (no home page)</li>
+              </py:when>
+              <py:otherwise>
+                <li><a href="${subject['url']}">${subject['name']}</a></li>
+              </py:otherwise>
+            </py:choose>
+          </py:for>
+        </ul>
+      </py:if>
+      <py:if test="(len(other_subjects) > 0)">
+        <h3>Other Subjects</h3>
+        <p>You are not currently enrolled in these subjects</p>
+        <ul>
+          <py:for each="subject in other_subjects">
+            <py:choose test="subject['url']">
+             <py:when test="None">
+               <li>${subject['name']} (no home page)</li>
+             </py:when>
+             <py:otherwise>
+               <li><a href="${subject['url']}">${subject['name']}</a></li>
+             </py:otherwise>
+            </py:choose>
+          </py:for>
+        </ul>
+      </py:if>
+    </div>
+  </body>
+</html>

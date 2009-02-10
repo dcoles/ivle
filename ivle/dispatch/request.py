@@ -25,13 +25,18 @@ See design notes/apps/dispatch.txt for a full specification of this request
 object.
 """
 
-import mod_python
-from mod_python import (util, Session, Cookie)
+try:
+    import mod_python.Session
+    import mod_python.Cookie
+    import mod_python.util
+except ImportError:
+    # This needs to be importable from outside Apache.
+    pass
 
 import ivle.util
 import ivle.conf
 import ivle.database
-import plugins.console # XXX: Relies on www/ being in the Python path.
+from ivle.webapp.base.plugins import CookiePlugin
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -231,11 +236,6 @@ class Request:
         except KeyError:
             app = None
 
-        # Write any final modifications to header content
-        if app and app.useconsole and self.user:
-            plugins.console.insert_scripts_styles(self.scripts, self.styles, \
-                self.scripts_init)
-
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:
             self.apache_req.content_type = self.content_type
@@ -270,17 +270,17 @@ class Request:
     def logout(self):
         """Log out the current user by destroying the session state.
         Then redirect to the top-level IVLE page."""
-        # List of cookies that IVLE uses (to be removed at logout)
-        ivle_cookies = ["ivleforumcookie", "clipboard"]
-        
         if hasattr(self, 'session'):
             self.session.invalidate()
             self.session.delete()
             # Invalidates all IVLE cookies
-            all_cookies = Cookie.get_cookies(self)
-            for cookie in all_cookies:
-                if cookie in ivle_cookies:
-                    self.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+            all_cookies = mod_python.Cookie.get_cookies(self)
+
+            # Create cookies for plugins that might request them.
+            for plugin in self.plugin_index[CookiePlugin]:
+                for cookie in plugin.cookies:
+                    self.add_cookie(mod_python.Cookie.Cookie(cookie, '',
+                                                    expires=1, path='/'))
         self.throw_redirect(ivle.util.make_path('')) 
 
 
@@ -327,9 +327,9 @@ class Request:
     def add_cookie(self, cookie, value=None, **attributes):
         """Inserts a cookie into this request object's headers."""
         if value is None:
-            Cookie.add_cookie(self.apache_req, cookie)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie)
         else:
-            Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
 
     def get_session(self):
         """Returns a mod_python Session object for this request.
@@ -337,7 +337,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
-            self.session = Session.FileSession(self.apache_req,
+            self.session = mod_python.Session.FileSession(self.apache_req,
                                                timeout = 60 * 60 * 24)
         return self.session
 
@@ -347,7 +347,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the fieldstorage object
         if not hasattr(self, 'fields'):
-            self.fields = util.FieldStorage(self.apache_req)
+            self.fields = mod_python.util.FieldStorage(self.apache_req)
         return self.fields
 
     def get_cgi_environ(self):

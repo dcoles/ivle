@@ -622,14 +622,13 @@ function random_string(length)
  * \param app IVLE app to call (such as "fileservice").
  * \param path URL path to make the request to, within the application.
  * \param args Argument object, as described in parse_url and friends.
- * \param method String; "GET" or "POST"
- * \param content_type String, optional. Only applies if method is "POST".
- *      May be "application/x-www-form-urlencoded" or "multipart/form-data".
+ * \param method String; "GET", "POST", "PUT", or "PATCH"
+ * \param content_type String, optional.
  *      Defaults to "application/x-www-form-urlencoded".
  */
 function ajax_call(callback, app, path, args, method, content_type)
 {
-    if (content_type != "multipart/form-data")
+    if (!content_type)
         content_type = "application/x-www-form-urlencoded";
     path = app_path(app, path);
     var url;
@@ -659,7 +658,7 @@ function ajax_call(callback, app, path, args, method, content_type)
     }
     else
     {
-        /* POST sends the args in application/x-www-form-urlencoded */
+        /* POST & PUT & PATCH sends the args in the request body */
         url = encodeURI(path);
         xhr.open(method, url, asyncronous);
         var message;
@@ -669,10 +668,20 @@ function ajax_call(callback, app, path, args, method, content_type)
                 "multipart/form-data; boundary=" + boundary);
             message = make_multipart_formdata(args, boundary);
         }
-        else
+        else if (content_type == "application/x-www-form-urlencoded")
         {
             xhr.setRequestHeader("Content-Type", content_type);
             message = make_query_string(args);
+        }
+        else if (content_type == "application/json")
+        {
+            xhr.setRequestHeader("Content-Type", content_type);
+            message = JSON.stringify(args);
+        }
+        else
+        {
+            xhr.setRequestHeader("Content-Type", content_type);
+            message = args;
         }
         xhr.send(message);
     }

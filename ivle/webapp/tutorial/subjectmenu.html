@@ -1,0 +1,37 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Tutorial - Subject Menu</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>IVLE Tutorials - ${subject}</h1>
+      <h2>Worksheets</h2>
+      <ul id="tutorial-toc">
+        <py:for each="worksheet in worksheets">
+          <li>
+            <!-- XXX: Generate URL properly! -->
+            <a href="/subjects/${subject}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+            <py:if test="worksheet.assessable">
+              <ul>
+                <li class="${worksheet.complete_class}">
+                  Completed ${worksheet.mand_done}/${worksheet.total}${worksheet.optional_message}
+                </li>
+              </ul>
+            </py:if>
+          </li>
+        </py:for>
+      </ul>
+      <py:if test="problems_total > 0">
+        <ul>
+          <li class="${complete_class}">
+            Total exercises completed: ${problems_done}/${problems_total} (${problems_pct}%)
+          </li>
+        </ul> 
+        <p style="font-weight: bold">
+          Worksheet mark: ${mark}/${max_mark}
+        </p>
+      </py:if>
+    </div>            
+  </body>
+</html>

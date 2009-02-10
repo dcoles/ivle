@@ -1,5 +1,5 @@
-# IVLE
-# Copyright (C) 2007-2008 The University of Melbourne
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,16 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: dispatch
-# Author: Matt Giuca
-# Date: 11/12/2007
+# Author: Matt Giuca, Will Grant
 
-# This is a mod_python handler program. The correct way to call it is to have
-# Apache send all requests to be handled by the module 'dispatch'.
+"""
+This is a mod_python handler program. The correct way to call it is to have
+Apache send all requests to be handled by the module 'dispatch'.
 
-# Top-level handler. Handles all requests to all pages in IVLE.
-# Handles authentication (not authorization).
-# Then passes the request along to the appropriate ivle app.
+Top-level handler. Handles all requests to all pages in IVLE.
+Handles authentication (not authorization).
+Then passes the request along to the appropriate ivle app.
+"""
 
 import sys
 import os
@@ -35,18 +35,59 @@ import traceback
 import logging
 import socket
 import time
+import inspect
 
 import mod_python
-from mod_python import apache, Cookie
+import routes
 
 from ivle import util
 import ivle.conf
 import ivle.conf.apps
+from ivle.dispatch.request import Request
+from ivle.dispatch import login
+from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import HTTPError
 import apps
-import login
 import html
-from request import Request
-import plugins.console # XXX: Relies on www/ being in the Python path.
+
+# XXX List of plugins, which will eventually be read in from conf
+plugins_HACK = [
+    'ivle.webapp.core#Plugin',
+    'ivle.webapp.admin.user#Plugin',
+    'ivle.webapp.tutorial#Plugin',
+    'ivle.webapp.admin.subject#Plugin',
+    'ivle.webapp.filesystem.browser#Plugin',
+    'ivle.webapp.filesystem.diff#Plugin',
+    'ivle.webapp.filesystem.svnlog#Plugin',
+    'ivle.webapp.groups#Plugin',
+    'ivle.webapp.console#Plugin',
+    'ivle.webapp.security#Plugin',
+    'ivle.webapp.media#Plugin',
+    'ivle.webapp.forum#Plugin',
+] 
+
+def generate_route_mapper(view_plugins):
+    """
+    Build a Mapper object for doing URL matching using 'routes', based on the
+    given plugin registry.
+    """
+    m = routes.Mapper(explicit=True)
+    for plugin in view_plugins:
+        # Establish a URL pattern for each element of plugin.urls
+        assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
+        for url in plugin.urls:
+            routex = url[0]
+            view_class = url[1]
+            kwargs_dict = url[2] if len(url) >= 3 else {}
+            m.connect(routex, view=view_class, **kwargs_dict)
+    return m
+
+def get_plugin(pluginstr):
+    plugin_path, classname = pluginstr.split('#')
+    # Load the plugin module from somewhere in the Python path
+    # (Note that plugin_path is a fully-qualified Python module name).
+    return (plugin_path,
+            getattr(__import__(plugin_path, fromlist=[classname]), classname))
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -63,7 +104,7 @@ def handler(req):
         # yet.
         handle_unknown_exception(apachereq, *sys.exc_info())
         # Tell Apache not to generate its own errors as well
-        return apache.OK
+        return mod_python.apache.OK
 
     # Run the main handler, and catch all exceptions
     try:
@@ -75,7 +116,7 @@ def handler(req):
     except Exception:
         handle_unknown_exception(req, *sys.exc_info())
         # Tell Apache not to generate its own errors as well
-        return apache.OK
+        return mod_python.apache.OK
 
 def handler_(req, apachereq):
     """
@@ -87,6 +128,60 @@ def handler_(req, apachereq):
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
         req.user = login.get_user_details(req)
+
+    ### BEGIN New plugins framework ###
+    # XXX This should be done ONCE per Python process, not per request.
+    # (Wait till WSGI)
+    # XXX No authentication is done here
+    req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
+    # Index the plugins by base class
+    req.plugin_index = {}
+    for plugin in req.plugins.values():
+        # Getmro returns a tuple of all the super-classes of the plugin
+        for base in inspect.getmro(plugin):
+            if base not in req.plugin_index:
+                req.plugin_index[base] = []
+            req.plugin_index[base].append(plugin)
+    req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
+    req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin])
+
+    matchdict = req.mapper.match(req.uri)
+    if matchdict is not None:
+        viewcls = matchdict['view']
+        # Get the remaining arguments, less 'view', 'action' and 'controller'
+        # (The latter two seem to be built-in, and we don't want them).
+        kwargs = matchdict.copy()
+        del kwargs['view']
+        try:
+            # Instantiate the view, which should be a BaseView class
+            view = viewcls(req, **kwargs)
+            # Render the output
+            view.render(req)
+        except HTTPError, e:
+            # A view explicitly raised an HTTP error. Respect it.
+            req.status = e.code
+
+            # Try to find a custom error view.
+            if hasattr(viewcls, 'get_error_view'):
+                errviewcls = viewcls.get_error_view(e)
+            else:
+                errviewcls = None
+
+            if errviewcls:
+                errview = errviewcls(req, e)
+                errview.render(req)
+                return req.OK
+            else:
+                req.write(e.message)
+                return e.code
+        except Exception, e:
+            # A non-HTTPError appeared. We have an unknown exception. Panic.
+            handle_unknown_exception(req, *sys.exc_info())
+            return req.OK
+        else:
+            req.store.commit()
+            return req.OK
+    ### END New plugins framework ###
 
     # Check req.app to see if it is valid. 404 if not.
     if req.app is not None and req.app not in ivle.conf.apps.app_url:
@@ -154,9 +249,6 @@ def handler_(req, apachereq):
 
     # When done, write out the HTML footer if the app has requested it
     if req.write_html_head_foot:
-        # Show the console if required
-        if logged_in and app.useconsole:
-            plugins.console.present(req, windowpane=True)
         html.write_html_foot(req)
 
     # Note: Apache will not write custom HTML error messages here.
@@ -180,10 +272,10 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     # For some reason, some versions of mod_python have "_server" instead of
     # "main_server". So we check for both.
     try:
-        admin_email = apache.main_server.server_admin
+        admin_email = mod_python.apache.main_server.server_admin
     except AttributeError:
         try:
-            admin_email = apache._server.server_admin
+            admin_email = mod_python.apache._server.server_admin
         except AttributeError:
             admin_email = ""
     try:
@@ -191,7 +283,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         req.status = httpcode
     except AttributeError:
         httpcode = None
-        req.status = apache.HTTP_INTERNAL_SERVER_ERROR
+        req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
     try:
         publicmode = req.publicmode
     except AttributeError:
@@ -301,8 +393,8 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         logging.error('%s\n%s'%(str(msg), tb))
         # Error messages are only displayed is the user is NOT a student,
         # or if there has been a problem logging the error message
-        show_errors = (not publicmode) and (not login or \
-                            (not str(role) == "student") or logfail)
+        show_errors = (not publicmode) and ((login and \
+                            str(role) != "student") or logfail)
         req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">                                      
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -311,7 +403,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 <h1>IVLE Internal Server Error""")
         if (show_errors):
             if (codename is not None
-                        and httpcode != apache.HTTP_INTERNAL_SERVER_ERROR):
+                        and httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR):
                 req.write(": %s" % cgi.escape(codename))
         
         req.write("""</h1>

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # IVLE - Informatics Virtual Learning Environment
-# Copyright (C) 2008 The University of Melbourne
+# Copyright (C) 2008-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,90 +17,47 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Script: logservice
 # Author: William Grant
-# Date:   08/07/2008
 
-# A CGI script for viewing a Subversion log. Used by the svnlog app.
+'''
+A script for viewing a Subversion log. It is intended to be run via trampoline
+by ivle.webapp.filesystem.svnlog.SubversionLogView.
+'''
 
 import os
-import time
-import cgi
+import sys
+
+import cjson
 import pysvn
 
-import ivle.cgirequest
-import ivle.util
-import ivle.date
 import ivle.svn
-
-req = ivle.cgirequest.CGIRequest()
-req.install_error_handler()
-req.content_type = "text/html"
-
-req.write('<h1>Subversion Log</h1>\n')
-
-r_str = req.get_fieldstorage().getfirst("r")
-sr = ivle.svn.revision_from_string(r_str)
-
-def pretty_path(cpath, revno=None):
-    path = cpath['path']
-    # XXX: We can't assume that the repository root is always equivalent to
-    #      the current user's home directory, although it does work for our
-    #      current setup.
-    url = ivle.util.make_path(os.path.join('files',
-                              ivle.util.split_path(req.path)[0],
-                              path[1:]))
-    if revno:
-        url += '?r=%d' % revno
-    return '%s <a href="%s">%s</a>' % (cpath['action'], cgi.escape(url, True),
-                                       cgi.escape(path))
-
-def pretty_paths(paths, revno=None):
-    output = '<ul>'
-    for path in paths:
-        output += '<li>' + pretty_path(path, revno) + '</li>'
-    output += '</ul>'
-    return output
-
-def pretty_log(log):
-    revno = log.revision.number
-    author = cgi.escape(log.author)
-    message = cgi.escape(log.message)
-    result = '''
-<div class="svnlogentry">
-	<div class="svnloginfo">
-		Revision <a href="%s?r=%d" style="font-weight: bold">%d</a>
-		by <strong>%s</strong> on <strong>%s</strong>
-''' % (cgi.escape(ivle.util.make_path(os.path.join('files', req.path))),
-       revno, revno, author, ivle.date.make_date_nice(log.date))
-
-    # Now we get ugly. We need to sometimes present [select] and [diff] links.
-    if sr and sr.kind == pysvn.opt_revision_kind.number and sr.number == revno:
-        result += '[selected]'
-    else:
-        result += '<a href="%s?r=%d">[select]</a>' % (
-              cgi.escape(ivle.util.make_path(os.path.join('svnlog', req.path))),
-              revno)
-    if sr and sr.kind == pysvn.opt_revision_kind.number:
-        result += ' <a href="%s?r=%d&r=%d">[diff]</a>' % (
-              cgi.escape(ivle.util.make_path(os.path.join('diff', req.path))),
-              sr.number, revno)
-
-    result += '''
-	</div>
-	<pre>%s</pre>
-        <hr size="1"/>
-        <h2>Changed paths:</h2>
-        <div class="svnlogpathlist">
-	%s
-        </div>
-</div>''' % (message, pretty_paths(log.changed_paths, log.revision.number))
-    return result
 
 try:
     client = pysvn.Client()
-    logs = client.log(os.path.join('/home', req.path), discover_changed_paths=True)
-    [req.write(pretty_log(log)) for log in logs]
+    client.exception_style = 1
+    logs = client.log(os.path.join('/home', sys.argv[1]),
+                      discover_changed_paths=True)
+    print cjson.encode({'logs': [{'revno': log.revision.number,
+                                  'author': log.author,
+                                  'message': log.message,
+                                  'date': log.date,
+                                  'paths': [(p.path, p.action)
+                                            for p in log.changed_paths]}
+                                 for log in logs]})
 except pysvn.ClientError, e:
-    req.write('<p><b>Error:</b></p>\n')
-    req.write('<pre>%s</pre>\n' % cgi.escape(str(e)))
+    error = e[0]
+
+    try:
+        code = e[1][0][1]
+        # See subversion/include/svn_error_codes.h.
+        # 155007: WC_NOT_DIRECTORY.
+        # 160013: FS_NOT_FOUND
+        # 200005: UNVERSIONED_RESOURCE
+        if code in (155007, 160013, 200005):
+            error = 'notfound'
+        else:
+            error = '%s (code %d)' % (error, code) 
+    except IndexError:
+        pass
+
+    print cjson.encode({'error': error})

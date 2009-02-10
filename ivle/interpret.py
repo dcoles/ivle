@@ -410,3 +410,28 @@ def fixup_environ(req):
     # Additional environment variables
     username = studpath.url_to_jailpaths(req.path)[0]
     env['HOME'] = os.path.join('/home', username)
+
+class ExecutionError(Exception):
+    pass
+
+def execute_raw(user, jail_dir, working_dir, binary, args):
+    '''Execute a binary in a user's jail, returning the raw output.
+
+    The binary is executed in the given working directory with the given
+    args. A tuple of (stdout, stderr) is returned.
+    '''
+
+    tramp = location_cgi_python
+    tramp_dir = os.path.split(location_cgi_python)[0]
+
+    # Fire up trampoline. Vroom, vroom.
+    proc = subprocess.Popen(
+        [tramp, str(user.unixid), jail_dir, working_dir, binary] + args,
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
+    exitcode = proc.wait()
+
+    if exitcode != 0:
+        raise ExecutionError('subprocess ended with code %d, stderr %s' %
+                             (exitcode, proc.stderr.read()))
+    return (proc.stdout.read(), proc.stderr.read())

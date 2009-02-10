@@ -142,7 +142,6 @@ import sys
 import datetime
 
 import cjson
-import pg
 
 import ivle.database
 from ivle import (util, chat, caps)

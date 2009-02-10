@@ -1,0 +1,12 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>${exception.codename}</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>Error ${exception.code}: ${exception.codename}</h1>
+      <p py:if="exception.message">${exception.message}</p>
+    </div>
+  </body>
+</html>

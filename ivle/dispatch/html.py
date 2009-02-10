@@ -106,7 +106,8 @@ def write_html_head(req):
             '    <a href="%s">Sign out</a>\n'
             '  </p>\n' %
             (cgi.escape(nickname), cgi.escape(req.user.login),
-             cgi.escape(util.make_path('settings')),
+             cgi.escape(util.make_path(
+                        os.path.join('~' + req.user.login, '+settings'))),
              cgi.escape(get_help_url(req)),
              cgi.escape(util.make_path('logout'))))
     else:

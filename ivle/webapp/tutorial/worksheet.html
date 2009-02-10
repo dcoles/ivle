@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Tutorial - Worksheet</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        subject = "${subject}";
+        worksheet = "${worksheet}";
+    </script>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>IVLE Tutorials - ${subject}</h1>
+      <!-- Display the Table Of Contents -->
+      <div id="tutorial-toc">
+        <h2>Worksheet Contents</h2>
+        <ul>
+          <py:for each="exercise in exercises">
+            <li class="${exercise['complete']}" id="toc_li_exercise${exercise['exid']}">
+              <a href="#exercise${exercise['exid']}">
+                ${exercise.name}
+              </a>
+            </li>
+          </py:for>
+        </ul>
+      </div>
+      <!-- Display The Worksheet -->
+      <h2>${worksheetname}</h2>
+      ${worksheetstream}
+    </div>
+  </body>
+</html>
