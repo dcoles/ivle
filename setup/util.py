@@ -292,6 +292,8 @@ def get_svn_revision():
 installlist_mimetypes = ['text/x-python', 'text/html',
     'application/x-javascript', 'application/javascript',
     'text/css', 'image/png', 'image/gif', 'application/xml']
+# Filenames which will automatically be placed in the list by InstallList.
+whitelist_filenames = ['ivle-spec.conf']
 
 def build_list_py_files(dir, no_top_level=False):
     """Builds a list of all py files found in a directory and its
@@ -305,7 +307,8 @@ def build_list_py_files(dir, no_top_level=False):
         filter_mutate(lambda x: x[0] != '.', dirnames)
         # All *.py files are added to the list
         pylist += [os.path.join(dirpath, item) for item in filenames
-            if mimetypes.guess_type(item)[0] in installlist_mimetypes]
+            if mimetypes.guess_type(item)[0] in installlist_mimetypes or
+               item in whitelist_filenames]
     if no_top_level:
         for i in range(0, len(pylist)):
             _, pylist[i] = pylist[i].split(os.sep, 1)

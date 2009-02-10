@@ -79,11 +79,6 @@ for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
 subject_pulldown_modules = ','.join(subject_pulldown_modules)
 auth_modules = ','.join(auth_modules)
 
-# XXX Convert db_port and usrmgt_port to int.
-# Because.
-db_port = int(db_port)
-usrmgt_port = int(usrmgt_port)
-
 # Additional auto-generated config options
 
 # Path where architecture-dependent data (including non-user-executable

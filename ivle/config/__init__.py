@@ -24,6 +24,7 @@ Provides programmatic access to the IVLE configuration file.
 import os
 
 from configobj import ConfigObj
+from validate import Validator
 
 __all__ = ["ConfigError", "Config"]
 
@@ -55,7 +56,14 @@ class Config(ConfigObj):
     """
     The configuration object. Can be instantiated with no arguments (will
     implicitly find the ivle.conf file and load it).
+
+    Automatically validates the file against the spec (found in
+    ./ivle-spec.conf relative to this module).
     """
     def __init__(self, *args, **kwargs):
         conffile = search_conffile()
-        super(Config, self).__init__(infile=conffile, *args, **kwargs)
+        specfile = os.path.join(os.path.dirname(__file__), 'ivle-spec.conf')
+        super(Config, self).__init__(infile=conffile, configspec=specfile,
+                                     *args, **kwargs)
+        # XXX This doesn't raise errors if it doesn't validate
+        self.validate(Validator())
