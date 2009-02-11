@@ -1,5 +1,5 @@
-# IVLE
-# Copyright (C) 2007-2008 The University of Melbourne
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,32 +15,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# App: tos
-# Author: Matt Giuca
-# Date: 14/2/2008
+# Author: Matt Giuca, Will Grant
 
-# Terms of Service app
-# Displays the TOS
-# (Mostly this is here for the "Help" section)
+"""View to display the Terms of Service.
 
-import os
+This is mainly for the benefit of the link in ivle.webapp.help."""
 
-from ivle import util
+import ivle.util
+from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.base.plugins import ViewPlugin
 
-def handle(req):
-    """Handler for the TOS application."""
+class TermsOfServiceView(XHTMLView):
+    """Static view of the Terms of Service."""
+    def populate(self, req, ctx):
+        ctx['text'] = ivle.util.get_terms_of_service()
 
-    # Set request attributes
-    req.content_type = "text/html"
-    req.write_html_head_foot = True
-
-    # Start writing data
-    req.write("""<div id="ivle_padding">
-<p>When you first logged into IVLE, you agreed to the following Terms of
-Service:</p>
-<hr />
-""")
-
-    # Print out the contents of the license file
-    util.send_terms_of_service(req)
-    req.write('<hr />\n</div>\n')
+class Plugin(ViewPlugin):
+    """Registration for the Terms of Service plugin."""
+    urls = [
+        ('+tos', TermsOfServiceView),
+    ]
