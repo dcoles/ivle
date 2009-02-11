@@ -41,6 +41,7 @@ class BrowserView(XHTMLView):
     """
     template = 'template.html'
     appname = 'files'
+    help = 'Filesystem/Browser'
 
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):
@@ -165,5 +166,7 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
     ]
 
     cookies = {'clipboard': None}
+
+    help = {'Filesystem': {'Browser': 'help.html'}}
 
     media = 'media'
