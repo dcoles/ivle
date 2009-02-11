@@ -56,7 +56,7 @@
             (<span class="username">${login}</span>) |
             <a href="/~${login}/+settings">Settings</a> |
             <py:choose>
-              <a py:when='help_path' href="/+help/${help_path}">Help</a>
+              <a py:when="defined('help_path')" href="/+help/${help_path}">Help</a>
               <a py:otherwise="" href="/+help/">Help</a>
             |</py:choose>
             <a href="/logout">Sign out</a>

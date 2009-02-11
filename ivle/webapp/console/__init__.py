@@ -17,6 +17,7 @@ class ConsoleView(XHTMLView):
 
     def populate(self, req, ctx):
         ctx['windowpane'] = False
+        ctx['start_body_attrs'] = {}
 
 class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
     urls = [
