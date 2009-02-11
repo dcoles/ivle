@@ -56,3 +56,4 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     media = 'media'
+    help = {'Groups': 'help.html'}

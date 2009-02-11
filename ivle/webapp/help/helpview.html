@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml"       
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <head>
+    <title>Help</title>
+  </head>
+  <body>
+    <py:choose>
+      <py:when test='helpfile'>
+        <xi:include href="${helpfile}"/>
+      </py:when>
+      <py:otherwise>
+        <p>Error: Helpfile not found.</p>
+      </py:otherwise>
+    </py:choose>
+  </body>
+</html>

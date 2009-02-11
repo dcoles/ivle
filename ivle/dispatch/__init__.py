@@ -64,6 +64,7 @@ plugins_HACK = [
     'ivle.webapp.security#Plugin',
     'ivle.webapp.media#Plugin',
     'ivle.webapp.forum#Plugin',
+    'ivle.webapp.help#Plugin',
 ] 
 
 def generate_route_mapper(view_plugins):

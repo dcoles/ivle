@@ -99,6 +99,8 @@ class XHTMLView(BaseView):
             ctx['logged_in'] = False
         ctx['publicmode'] = req.publicmode
         ctx['apps_in_tabs'] = []
+        if hasattr(self, 'help'):
+            ctx['help_path'] = self.help
         for urlname in ivle.conf.apps.apps_in_tabs:
             new_app = {}
             app = ivle.conf.apps.app_url[urlname]

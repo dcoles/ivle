@@ -458,3 +458,4 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     media = 'media'
+    help = {'Tutorial': 'help.html'}

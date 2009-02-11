@@ -30,12 +30,15 @@ class ViewPlugin(BasePlugin):
     or triples, like (routex string, handler class, kwargs dict). The kwargs
     dict is optional. If present, the members of the kwargs dict will be passed
     as keyword arguments to the constructor of the view object.
+    
+    View plugins may also have a 'help' property, which should contain a dict
+    of dicts and help file names. This dict is then used to generate the
+    appropriate entries in the help system.
     """
     pass
     
 class OverlayPlugin(BasePlugin):
-    """
-    Marker class for plugins which provide overlays.
+    """Marker class for plugins which provide overlays.
     
     Overlay plugins provide mini-views which can be displayed on top of other
     views. The canonical example of a plugin of this type is the Console plugin.

@@ -1,0 +1,28 @@
+<html xmlns="http://www.w3.org/1999/xhtml"       
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Help Table of Contents</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>Help</h1>
+      <py:def function="show_toc(toc_part, path)">
+        <py:for each="part in toc_part">
+          <py:if test="isinstance(toc_part[part], dict)">
+            <li><strong>${part}</strong></li>
+            <ul>
+              ${show_toc(toc_part[part], path + '/' + part)}
+            </ul>
+          </py:if>
+          <py:if test="isinstance(toc_part[part], basestring)">
+            <li><a href="${path + '/' + part}">${part}</a></li>
+          </py:if>
+        </py:for>
+      </py:def>
+      <ul>
+        ${show_toc(toc, '/+help')}
+      </ul>
+      <a href="tos">Terms of Service</a>
+    </div>
+  </body>
+</html>
