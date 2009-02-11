@@ -55,8 +55,8 @@ class BrowserView(XHTMLView):
         self.plugin_scripts[Plugin] = ['browser.js',
                                        'listing.js',
                                        'editor.js',
-                                       'specialhome.js']
-        req.scripts = ["/media/common/codepress/codepress.js"]
+                                       'specialhome.js',
+                                       'codepress/codepress.js']
         req.scripts_init = ["browser_init"]
 
         # The page title should contain the name of the file being browsed
