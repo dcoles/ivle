@@ -5,13 +5,9 @@
     <title>Help</title>
   </head>
   <body>
-    <py:choose>
-      <py:when test='helpfile'>
-        <xi:include href="${helpfile}"/>
-      </py:when>
-      <py:otherwise>
-        <p>Error: Helpfile not found.</p>
-      </py:otherwise>
-    </py:choose>
+    <div id="ivle_padding">
+      <h1>Help</h1>
+      <xi:include href="${helpfile}"/>
+    </div>
   </body>
 </html>
