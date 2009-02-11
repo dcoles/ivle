@@ -4,7 +4,7 @@ import genshi
 import genshi.template
 
 import ivle.conf
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound, Forbidden
 
@@ -36,6 +36,8 @@ class HelpView(XHTMLView):
         self.paths = path.split('/')
 
     def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['help.css']
+
         helpfile = generate_toc(req.plugin_index[ViewPlugin], req)
         try:
             for path in self.paths:
@@ -61,10 +63,12 @@ class HelpToCView(XHTMLView):
         ctx['toc'] = generate_toc(req.plugin_index[ViewPlugin], req)
 
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, MediaPlugin):
     """The plugin for viewing help files."""
 
     urls = [
         ('+help', HelpToCView),
         ('+help/*path', HelpView)
     ]
+
+    media = 'media'
