@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"       
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Help Table of Contents</title>
+    <title>Help</title>
   </head>
   <body>
     <div id="ivle_padding">
@@ -9,10 +9,11 @@
       <py:def function="show_toc(toc_part, path)">
         <py:for each="part in toc_part">
           <py:if test="isinstance(toc_part[part], dict)">
-            <li><strong>${part}</strong></li>
-            <ul>
-              ${show_toc(toc_part[part], path + '/' + part)}
-            </ul>
+            <li><strong>${part}</strong>
+              <ul>
+                ${show_toc(toc_part[part], path + '/' + part)}
+              </ul>
+            </li>
           </py:if>
           <py:if test="isinstance(toc_part[part], basestring)">
             <li><a href="${path + '/' + part}">${part}</a></li>
