@@ -23,7 +23,7 @@ import inspect
 import cjson
 
 from ivle.webapp.base.views import BaseView
-from ivle.webapp.errors import BadRequest, MethodNotAllowed
+from ivle.webapp.errors import BadRequest, MethodNotAllowed, Unauthorized
 
 class RESTView(BaseView):
     """
@@ -49,23 +49,36 @@ class JSONRESTView(RESTView):
         lambda self: [m for m in ('GET', 'PUT', 'PATCH')
                       if hasattr(self, m)] + ['POST'])
 
+    def authorize(self, req):
+        return True # Real authz performed in render().
+
+    def authorize_method(self, req, op):
+        if not hasattr(op, '_rest_api_permission'):
+            raise Unauthorized()
+
+        if op._rest_api_permission not in self.get_permissions(req.user):
+            raise Unauthorized()
+
     def render(self, req):
         if req.method not in self._allowed_methods:
             raise MethodNotAllowed(allowed=self._allowed_methods)
 
         if req.method == 'GET':
+            self.authorize_method(req, self.GET)
             outjson = self.GET(req)
         # Since PATCH isn't yet an official HTTP method, we allow users to
         # turn a PUT into a PATCH by supplying a special header.
         elif req.method == 'PATCH' or (req.method == 'PUT' and
               'X-IVLE-Patch-Semantics' in req.headers_in and
               req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
+            self.authorize_method(req, self.PATCH)
             try:
                 input = cjson.decode(req.read())
             except cjson.DecodeError:
                 raise BadRequest('Invalid JSON data')
             outjson = self.PATCH(req, input)
         elif req.method == 'PUT':
+            self.authorize_method(req, self.PUT)
             try:
                 input = cjson.decode(req.read())
             except cjson.DecodeError:
@@ -89,6 +102,8 @@ class JSONRESTView(RESTView):
             if not hasattr(op, '_rest_api_callable') or \
                not op._rest_api_callable:
                 raise BadRequest('Invalid named operation.')
+
+            self.authorize_method(req, op)
 
             # Find any missing arguments, except for the first two (self, req)
             (args, vaargs, varkw, defaults) = inspect.getargspec(op)
@@ -120,9 +135,24 @@ class JSONRESTView(RESTView):
             req.write(cjson.encode(outjson))
             req.write("\n")
 
-def named_operation(meth):
+class named_operation(object):
     '''Declare a function to be accessible to HTTP users via the REST API.
     '''
-    meth._rest_api_callable = True
-    return meth
+    def __init__(self, permission):
+        self.permission = permission
+
+    def __call__(self, func):
+        func._rest_api_callable = True
+        func._rest_api_permission = self.permission
+        return func
+
+class require_permission(object):
+    '''Declare the permission required for use of a method via the REST API.
+    '''
+    def __init__(self, permission):
+        self.permission = permission
+
+    def __call__(self, func):
+        func._rest_api_permission = self.permission
+        return func
 

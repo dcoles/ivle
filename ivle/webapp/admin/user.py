@@ -17,7 +17,7 @@
 
 # Author: Matt Giuca, Will Grant
 
-from ivle.webapp.base.rest import JSONRESTView
+from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Unauthorized
@@ -42,6 +42,7 @@ class UserRESTView(JSONRESTView):
         if self.context is None:
             raise NotFound()
 
+    @require_permission('view')
     def GET(self, req):
         # XXX Check Caps
         user = ivle.util.object_to_dict(user_fields_list, self.context)
@@ -53,8 +54,8 @@ class UserRESTView(JSONRESTView):
         user['local_password'] = self.context.passhash is not None
         return user
 
+    @require_permission('edit')
     def PATCH(self, req, data):
-        # XXX Check Caps
         # XXX Admins can set extra fields
         # Note: Cannot change password here (use change_password named op)
 

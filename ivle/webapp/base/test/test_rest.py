@@ -1,36 +1,47 @@
 import urllib
 
-from ivle.webapp.base.rest import JSONRESTView, named_operation
-from ivle.webapp.errors import BadRequest, MethodNotAllowed
+from ivle.webapp.base.rest import (JSONRESTView, named_operation,
+                                   require_permission)
+from ivle.webapp.errors import BadRequest, MethodNotAllowed, Unauthorized
 from ivle.webapp.testing import FakeUser, FakeRequest
 
 class JSONRESTViewTestWithoutPUT(JSONRESTView):
     '''A small JSON REST view for testing purposes, without a PUT method.'''
+    def get_permissions(self, user):
+        if user.login == u'fakeuser':
+            return set(['view', 'edit'])
+        if user.login == u'otheruser':
+            return set(['view'])
+        return set()
+
+    @require_permission('view')
     def GET(self, req):
         return {'method': 'get'}
 
+    @require_permission('edit')
     def PATCH(self, req, data):
         return {'method': 'patch',
                 'result': data['result'], 'test': data['test']}
 
-    @named_operation
+    @named_operation('view')
     def do_stuff(self, req, what):
         return {'result': 'Did %s!' % what}
 
-    @named_operation
+    @named_operation('edit')
     def say_something(self, req, thing='nothing'):
         return {'result': 'Said %s!' % thing}
 
-    @named_operation
+    @named_operation('edit')
     def do_say_something(self, req, what, thing='nothing'):
         return {'result': 'Said %s and %s!' % (what, thing)}
 
-    @named_operation
+    @named_operation('view')
     def get_req_method(self, req):
         return {'method': req.method}
 
 class JSONRESTViewTest(JSONRESTViewTestWithoutPUT):
     '''A small JSON REST view for testing purposes.'''
+    @require_permission('edit')
     def PUT(self, req, data):
         return {'method': 'put',
                 'result': data['result'], 'test': data['test']}
@@ -258,3 +269,50 @@ class TestJSONRESTView:
             assert e.message == 'Invalid JSON data'
         else:
             raise AssertionError("did not raise BadRequest")
+
+class TestJSONRESTSecurity:
+    def testGoodMethod(self):
+        req = FakeRequest()
+        req.user.login = u'otheruser'
+        req.method = 'GET'
+        view = JSONRESTViewTest(req)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"method": "get"}\n'
+
+    def testBadMethod(self):
+        req = FakeRequest()
+        req.user.login = u'otheruser'
+        req.method = 'PUT'
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except Unauthorized, e:
+            pass
+        else:
+            raise AssertionError("did not raise Unauthorized")
+
+    def testGoodNamedOperation(self):
+        req = FakeRequest()
+        req.user.login = u'otheruser'
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
+                                             'what': 'blah'})
+        view = JSONRESTViewTest(req)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"result": "Did blah!"}\n'
+
+    def testBadNamedOperation(self):
+        req = FakeRequest()
+        req.user.login = u'otheruser'
+        req.method = 'POST'
+        req.request_body = urllib.urlencode({'ivle.op': 'say_something'})
+        view = JSONRESTViewTest(req)
+        try:
+            view.render(req)
+        except Unauthorized, e:
+            pass
+        else:
+            raise AssertionError("did not raise Unauthorized")
+
