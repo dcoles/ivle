@@ -78,6 +78,7 @@ for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
 # pulldown_subj and auth_modules can re-split them.
 subject_pulldown_modules = ','.join(subject_pulldown_modules)
 auth_modules = ','.join(auth_modules)
+allowed_uids = ','.join([str(uid) for uid in allowed_uids])
 
 # Additional auto-generated config options
 
