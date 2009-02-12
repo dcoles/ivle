@@ -525,3 +525,6 @@ class ExerciseAttempt(ExerciseSave):
     text = Unicode(name="attempt")
     complete = Bool()
     active = Bool()
+
+    def get_permissions(self, user):
+        return set(['view']) if user is self.user else set()
