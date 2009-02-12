@@ -1,4 +1,4 @@
-# IVLE
+# IVLE - Informatics Virtual Learning Environment
 # Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
@@ -15,20 +15,26 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Will Grant, Nick Chadwick
+# Author: Matt Giuca, Will Grant
 
-from ivle.webapp.base.xhtml import XHTMLView
+"""View to display the Terms of Service.
+
+This is mainly for the benefit of the link in ivle.webapp.help."""
+
 import ivle.util
+from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.base.plugins import ViewPlugin
 
-class LogoutView(XHTMLView):
-    '''A view to log the current session out.'''
-    template = 'logout.html'
-
+class TermsOfServiceView(XHTMLView):
+    """Static view of the Terms of Service."""
     def authorize(self, req):
         return req.user is not None
 
     def populate(self, req, ctx):
-        if req.method == "POST":
-            req.logout()
-        else:
-            ctx['path'] =  ivle.util.make_path('logout')
+        ctx['text'] = ivle.util.get_terms_of_service()
+
+class Plugin(ViewPlugin):
+    """Registration for the Terms of Service plugin."""
+    urls = [
+        ('+tos', TermsOfServiceView),
+    ]

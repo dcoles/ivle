@@ -202,7 +202,7 @@ menu.</p>
 <hr />
 """ % fullname)
     # Write out the text of the license
-    util.send_terms_of_service(req)
+    req.write(util.get_terms_of_service())
     req.write("""<hr />
 <div id="tos_acceptbuttons">
 <p>Please click "I Accept" to indicate that you have read and understand these

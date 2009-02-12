@@ -46,7 +46,7 @@ import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
 from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.errors import HTTPError
+from ivle.webapp.errors import HTTPError, Unauthorized
 import apps
 import html
 
@@ -64,6 +64,8 @@ plugins_HACK = [
     'ivle.webapp.security#Plugin',
     'ivle.webapp.media#Plugin',
     'ivle.webapp.forum#Plugin',
+    'ivle.webapp.help#Plugin',
+    'ivle.webapp.tos#Plugin',
 ] 
 
 def generate_route_mapper(view_plugins):
@@ -155,6 +157,11 @@ def handler_(req, apachereq):
         try:
             # Instantiate the view, which should be a BaseView class
             view = viewcls(req, **kwargs)
+
+            # Check that the request (mainly the user) is permitted to access
+            # the view.
+            if not view.authorize(req):
+                raise Unauthorized()
             # Render the output
             view.render(req)
         except HTTPError, e:

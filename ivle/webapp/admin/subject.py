@@ -38,6 +38,9 @@ class SubjectsView(XHTMLView):
     template = 'subjects.html'
     appname = 'subjects' # XXX
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         enrolled_subjects = req.user.subjects
         unenrolled_subjects = [subject for subject in

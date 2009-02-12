@@ -196,6 +196,12 @@ class User(Storm):
         """
         return store.find(cls, cls.login == unicode(login)).one()
 
+    def get_permissions(self, user):
+        if user and user.rolenm == 'admin' or user is self:
+            return set(['view', 'edit'])
+        else:
+            return set()
+
 # SUBJECTS AND ENROLMENTS #
 
 class Subject(Storm):
@@ -213,6 +219,14 @@ class Subject(Storm):
 
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.short_name)
+
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            perms.add('view')
+        if user.rolenm == 'admin':
+            perms.add('edit')
+        return perms
 
 class Semester(Storm):
     __storm_table__ = "semester"

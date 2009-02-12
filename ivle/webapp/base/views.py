@@ -21,7 +21,13 @@ class BaseView(object):
     """
     Abstract base class for all view objects.
     """
-    def __init__(self, req, **kwargs):
-        pass
     def render(self, req):
-        pass
+        raise NotImplementedError()
+
+    def get_permissions(self, user):
+        return self.context.get_permissions(user)
+
+    def authorize(self, req):
+        perms = self.get_permissions(req.user)
+
+        return self.permission is None or self.permission in perms

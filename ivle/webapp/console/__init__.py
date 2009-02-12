@@ -6,6 +6,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 
 class ConsoleView(XHTMLView):
     appname = 'console'
+    help = 'Console'
 
     plugin_scripts = {'ivle.webapp.console': ['console.js']}
     plugin_styles  = {'ivle.webapp.console': ['console.css']}
@@ -14,14 +15,14 @@ class ConsoleView(XHTMLView):
     # Don't load the console overlay when we already have a console.
     overlay_blacklist = [ConsoleOverlay]
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         ctx['windowpane'] = False
-
+        ctx['start_body_attrs'] = {}
 
 class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
-    """
-    The Plugin class for the console plugin.
-    """
     urls = [
         ('console/service', ConsoleServiceRESTView),
         ('console', ConsoleView),
@@ -30,3 +31,4 @@ class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
         ConsoleOverlay,
     ]
     media = 'media'
+    help = {'Console': 'help.html'}

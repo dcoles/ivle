@@ -32,6 +32,9 @@ from ivle.webapp.errors import NotFound, BadRequest
 class SubversionLogView(XHTMLView):
     template = 'template.html'
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['log.css']
 

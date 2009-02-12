@@ -40,7 +40,7 @@ import ivle.worksheet
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.media import MediaFileView
+from ivle.webapp.media import BaseMediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, \
@@ -67,27 +67,28 @@ class SubjectView(XHTMLView):
     '''The view of the index of worksheets for a subject.'''
     template = 'subjectmenu.html'
     appname = 'tutorial' # XXX
+    permission = 'view'
 
     def __init__(self, req, subject):
-        self.subject = req.store.find(Subject, code=subject).one()
+        self.context = req.store.find(Subject, code=subject).one()
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['tutorial.css']
 
-        if not self.subject:
+        if not self.context:
             raise NotFound()
 
         # Subject names must be valid identifiers
-        if not is_valid_subjname(self.subject.code):
+        if not is_valid_subjname(self.context.code):
             raise NotFound()
 
         # Parse the subject description file
         # The subject directory must have a file "subject.xml" in it,
         # or it does not exist (404 error).
-        ctx['subject'] = self.subject.code
+        ctx['subject'] = self.context.code
         try:
             subjectfile = open(os.path.join(ivle.conf.subjects_base,
-                                    self.subject.code, "subject.xml")).read()
+                                    self.context.code, "subject.xml")).read()
         except:
             raise NotFound()
 
@@ -101,7 +102,7 @@ class SubjectView(XHTMLView):
         problems_total = 0
         for worksheet in ctx['worksheets']:
             stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
-                self.subject.code, worksheet.id)
+                self.context.code, worksheet.id)
             # If worksheet is not in database yet, we'll simply not display
             # data about it yet (it should be added as soon as anyone visits
             # the worksheet itself).
@@ -157,26 +158,28 @@ class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
     template = 'worksheet.html'
     appname = 'tutorial' # XXX
+    permission = 'view'
 
     def __init__(self, req, subject, worksheet):
-        self.subject = req.store.find(Subject, code=subject).one()
+        # XXX: Worksheet is actually context, but it's not really there yet.
+        self.context = req.store.find(Subject, code=subject).one()
         self.worksheetname = worksheet
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
         self.plugin_styles[Plugin] = ['tutorial.css']
 
-        if not self.subject:
+        if not self.context:
             raise NotFound()
 
         # Subject and worksheet names must be valid identifiers
-        if not is_valid_subjname(self.subject.code) or \
+        if not is_valid_subjname(self.context.code) or \
            not is_valid_subjname(self.worksheetname):
             raise NotFound()
 
         # Read in worksheet data
         worksheetfilename = os.path.join(ivle.conf.subjects_base,
-                               self.subject.code, self.worksheetname + ".xml")
+                               self.context.code, self.worksheetname + ".xml")
         try:
             worksheetfile = open(worksheetfilename)
             worksheetmtime = os.path.getmtime(worksheetfilename)
@@ -186,36 +189,37 @@ class WorksheetView(XHTMLView):
         worksheetmtime = datetime.fromtimestamp(worksheetmtime)
         worksheetfile = worksheetfile.read()
 
-        ctx['subject'] = self.subject.code
+        ctx['subject'] = self.context.code
         ctx['worksheet'] = self.worksheetname
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
 
         #TODO: Replace this with a nice way, possibly a match template
         generate_worksheet_data(ctx, req)
 
-        update_db_worksheet(req.store, self.subject.code, self.worksheetname,
+        update_db_worksheet(req.store, self.context.code, self.worksheetname,
             worksheetmtime, ctx['exerciselist'])
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
-class SubjectMediaView(MediaFileView):
+class SubjectMediaView(BaseMediaFileView):
     '''The view of subject media files.
 
     URIs pointing here will just be served directly, from the subject's
     media directory.
     '''
+    permission = 'view'
 
     def __init__(self, req, subject, path):
-        self.subject = req.store.find(Subject, code=subject).one()
+        self.context = req.store.find(Subject, code=subject).one()
         self.path = os.path.normpath(path)
 
     def _make_filename(self, req):
         # If the subject doesn't exist, self.subject will be None. Die.
-        if not self.subject:
+        if not self.context:
             raise NotFound()
 
         subjectdir = os.path.join(ivle.conf.subjects_base,
-                                  self.subject.code, 'media')
+                                  self.context.code, 'media')
         return os.path.join(subjectdir, self.path)
 
 def is_valid_subjname(subject):
@@ -458,3 +462,4 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     media = 'media'
+    help = {'Tutorial': 'help.html'}

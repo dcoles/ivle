@@ -41,6 +41,10 @@ class BrowserView(XHTMLView):
     """
     template = 'template.html'
     appname = 'files'
+    help = 'Filesystem/Browser'
+
+    def authorize(self, req):
+        return req.user is not None
 
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):
@@ -55,8 +59,8 @@ class BrowserView(XHTMLView):
         self.plugin_scripts[Plugin] = ['browser.js',
                                        'listing.js',
                                        'editor.js',
-                                       'specialhome.js']
-        req.scripts = ["/media/common/codepress/codepress.js"]
+                                       'specialhome.js',
+                                       'codepress/codepress.js']
         req.scripts_init = ["browser_init"]
 
         # The page title should contain the name of the file being browsed
@@ -165,5 +169,7 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
     ]
 
     cookies = {'clipboard': None}
+
+    help = {'Filesystem': {'Browser': 'help.html'}}
 
     media = 'media'

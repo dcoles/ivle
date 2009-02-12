@@ -36,6 +36,9 @@ class GroupsView(XHTMLView):
     template = 'template.html'
     appname = 'groups' # XXX
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
@@ -56,3 +59,4 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     media = 'media'
+    help = {'Groups': 'help.html'}

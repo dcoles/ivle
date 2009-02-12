@@ -130,7 +130,7 @@ app_url = {
     "tutorial" : app_tutorial,
     "serve" : app_server,
     "download" : app_download,
-    "help" : app_help,
+    "+help" : app_help,
     "forum" : app_forum,
     "tos" : app_tos,
     "userservice" : app_userservice,
@@ -144,4 +144,4 @@ if enable_debuginfo:
 # Note: The values in this list are the URL names as seen in app_url.
 
 apps_in_tabs = ["files", "tutorial", "console",
-                "forum", "subjects", "help"]
+                "forum", "subjects", "+help"]
