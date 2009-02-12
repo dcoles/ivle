@@ -38,7 +38,13 @@ from ivle.webapp.errors import BadRequest
 # XXX: Should be RPC view, with actions in URL?
 class ConsoleServiceRESTView(JSONRESTView):
     '''An RPC interface to a Python console.'''
-    @named_operation
+    def get_permissions(self, user):
+        if user is not None:
+            return set(['use'])
+        else:
+            return set()
+
+    @named_operation('use')
     def start(self, req, cwd=''):
         working_dir = os.path.join("/home", req.user.login, cwd)
 
@@ -53,7 +59,7 @@ class ConsoleServiceRESTView(JSONRESTView):
                                      "port": cons.port,
                                      "magic": cons.magic}).encode('hex')}
 
-    @named_operation
+    @named_operation('use')
     def chat(self, req, key, text='', kind="chat"):
         # The request *should* have the following four fields:
         # key: Hex JSON dict of host and port where the console server lives,

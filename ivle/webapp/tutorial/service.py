@@ -29,7 +29,8 @@ import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
 
-from ivle.webapp.base.rest import JSONRESTView, named_operation
+from ivle.webapp.base.rest import (JSONRESTView, named_operation,
+                                   require_permission)
 from ivle.webapp.errors import NotFound
 
 # If True, getattempts or getattempt will allow browsing of inactive/disabled
@@ -47,7 +48,9 @@ class AttemptsRESTView(JSONRESTView):
         if self.user is None:
             raise NotFound()
         self.exercise = exercise
+        self.context = self.user # XXX: Not quite right.
 
+    @require_permission('edit')
     def GET(self, req):
         """Handles a GET Attempts action."""
         exercise = ivle.database.Exercise.get_by_name(req.store, 
@@ -63,6 +66,7 @@ class AttemptsRESTView(JSONRESTView):
         return attempts
 
 
+    @require_permission('edit')
     def PUT(self, req, data):
         ''' Tests the given submission '''
         exercisefile = ivle.util.open_exercise_file(self.exercise)
@@ -132,13 +136,22 @@ class AttemptRESTView(JSONRESTView):
 
         self.context = attempt
 
+    @require_permission('view')
     def GET(self, req):
         return {'code': self.context.text}
 
 
 class ExerciseRESTView(JSONRESTView):
     '''REST view of an exercise.'''
-    @named_operation
+
+    def get_permissions(self, user):
+        # XXX: Do it properly.
+        if user is not None:
+            return set(['save'])
+        else:
+            return set()
+
+    @named_operation('save')
     def save(self, req, text):
         # Need to open JUST so we know this is a real exercise.
         # (This avoids users submitting code for bogus exercises).
