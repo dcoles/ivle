@@ -24,6 +24,9 @@ class LogoutView(XHTMLView):
     '''A view to log the current session out.'''
     template = 'logout.html'
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         if req.method == "POST":
             req.logout()

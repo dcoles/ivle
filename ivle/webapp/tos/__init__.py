@@ -27,6 +27,9 @@ from ivle.webapp.base.plugins import ViewPlugin
 
 class TermsOfServiceView(XHTMLView):
     """Static view of the Terms of Service."""
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         ctx['text'] = ivle.util.get_terms_of_service()
 

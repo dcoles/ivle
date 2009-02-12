@@ -15,6 +15,9 @@ class ConsoleView(XHTMLView):
     # Don't load the console overlay when we already have a console.
     overlay_blacklist = [ConsoleOverlay]
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         ctx['windowpane'] = False
         ctx['start_body_attrs'] = {}

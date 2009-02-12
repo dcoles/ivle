@@ -35,6 +35,9 @@ class ForumView(XHTMLView):
     def __init__(self, req, path):
         self.path = path
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['forum.css']
 

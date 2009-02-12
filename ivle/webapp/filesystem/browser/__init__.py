@@ -43,6 +43,9 @@ class BrowserView(XHTMLView):
     appname = 'files'
     help = 'Filesystem/Browser'
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):
             # If no path specified, default to the user's home directory

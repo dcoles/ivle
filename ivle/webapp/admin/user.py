@@ -70,15 +70,12 @@ class UserRESTView(JSONRESTView):
 class UserSettingsView(XHTMLView):
     template = 'user-settings.html'
     appname = 'settings'
+    permission = 'edit'
 
     def __init__(self, req, login):
         self.context = ivle.database.User.get_by_login(req.store, login)
         if self.context is None:
             raise NotFound()
-
-        if req.user is None or (req.user is not self.context and
-                                req.user.rolenm != 'admin'):
-            raise Unauthorized()
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']

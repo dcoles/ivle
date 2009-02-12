@@ -38,7 +38,7 @@ def media_url(req, plugin, path):
 
     return os.path.join(ivle.conf.root_dir, '+media', plugin, path)
 
-class MediaFileView(BaseView):
+class BaseMediaFileView(BaseView):
     '''A view for media files.
 
     This serves static files from directories registered by plugins.
@@ -53,18 +53,7 @@ class MediaFileView(BaseView):
         self.path = path
 
     def _make_filename(self, req):
-        try:
-            plugin = req.plugins[self.ns]
-        except KeyError:
-            raise NotFound()
-
-        if not issubclass(plugin, MediaPlugin):
-            raise NotFound()
-
-        mediadir = plugin.media
-        plugindir = os.path.dirname(inspect.getmodule(plugin).__file__)
-
-        return os.path.join(plugindir, mediadir, self.path)
+        raise NotImplementedError()
 
     def render(self, req):
         # If it begins with ".." or separator, it's illegal. Die.
@@ -86,6 +75,36 @@ class MediaFileView(BaseView):
 
         req.content_type = type
         req.sendfile(filename)
+
+
+class MediaFileView(BaseMediaFileView):
+    '''A view for media files.
+
+    This serves static files from directories registered by plugins.
+
+    Plugins wishing to export media should declare a 'media' attribute,
+    pointing to the directory to serve (relative to the module's directory).
+    The contents of that directory will then be available under
+    /+media/python.path.to.module.
+    '''
+    permission = None
+
+    def _make_filename(self, req):
+        try:
+            plugin = req.plugins[self.ns]
+        except KeyError:
+            raise NotFound()
+
+        if not issubclass(plugin, MediaPlugin):
+            raise NotFound()
+
+        mediadir = plugin.media
+        plugindir = os.path.dirname(inspect.getmodule(plugin).__file__)
+
+        return os.path.join(plugindir, mediadir, self.path)
+
+    def get_permissions(self, user):
+        return set()
 
 class Plugin(ViewPlugin):
     urls = [
