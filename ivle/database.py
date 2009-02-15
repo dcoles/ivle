@@ -39,7 +39,7 @@ __all__ = ['get_store',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
-            'AlreadyEnrolledError'
+            'AlreadyEnrolledError', 'TestCase', 'TestSuite'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -260,6 +260,8 @@ class Offering(Storm):
                            'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
 
+    worksheets = ReferenceSet(id, 'Worksheet.offering_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
@@ -385,16 +387,22 @@ class Exercise(Storm):
     # Note: Table "problem" is called "Exercise" in the Object layer, since
     # it's called that everywhere else.
     __storm_table__ = "problem"
-
-    id = Int(primary=True, name="problemid")
-    name = Unicode(name="identifier")
-    spec = Unicode()
+#TODO: Add in a field for the user-friendly identifier
+    id = Unicode(primary=True, name="identifier")
+    name = Unicode()
+    description = Unicode()
+    partial = Unicode()
+    solution = Unicode()
+    include = Unicode()
+    num_rows = Int()
 
     worksheets = ReferenceSet(id,
         'WorksheetExercise.exercise_id',
         'WorksheetExercise.worksheet_id',
         'Worksheet.id'
     )
+    
+    test_suites = ReferenceSet(id, 'TestSuite.exercise_id')
 
     __init__ = _kwarg_init
 
@@ -423,9 +431,12 @@ class Worksheet(Storm):
     # XXX subject is not linked to a Subject object. This is a property of
     # the database, and will be refactored.
     subject = Unicode()
+    offering_id = Int(name="offeringid")
     name = Unicode(name="identifier")
     assessable = Bool()
     mtime = DateTime()
+
+    offering = Reference (offeringid, 'Offering.id')
 
     exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id',
@@ -436,6 +447,7 @@ class Worksheet(Storm):
     # "optional" field.
     worksheet_exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id')
+        
 
     __init__ = _kwarg_init
 
@@ -469,7 +481,7 @@ class WorksheetExercise(Storm):
 
     worksheet_id = Int(name="worksheetid")
     worksheet = Reference(worksheet_id, Worksheet.id)
-    exercise_id = Int(name="problemid")
+    exercise_id = Unicode(name="problemid")
     exercise = Reference(exercise_id, Exercise.id)
     optional = Bool()
 
@@ -491,12 +503,14 @@ class ExerciseSave(Storm):
     __storm_table__ = "problem_save"
     __storm_primary__ = "exercise_id", "user_id", "date"
 
-    exercise_id = Int(name="problemid")
+    exercise_id = Unicode(name="problemid")
     exercise = Reference(exercise_id, Exercise.id)
     user_id = Int(name="loginid")
     user = Reference(user_id, User.id)
     date = DateTime()
     text = Unicode()
+    worksheetid = Int()
+    worksheet = Reference(worksheetid, Worksheet.id)
 
     __init__ = _kwarg_init
 
@@ -525,6 +539,38 @@ class ExerciseAttempt(ExerciseSave):
     text = Unicode(name="attempt")
     complete = Bool()
     active = Bool()
-
+    
     def get_permissions(self, user):
         return set(['view']) if user is self.user else set()
+  
+class TestSuite(Storm):
+    """A Testsuite acts as a container for the test cases of an exercise."""
+    __storm_table__ = "test_suite"
+    __storm_primary__ = "exercise_id", "suiteid"
+    
+    suiteid = Int()
+    exercise_id = Unicode(name="problemid")
+    exercise = Reference(exercise_id, Exercise.id)
+    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
+    description = Unicode()
+    seq_no = Int()
+
+class TestCase(Storm):
+    """A TestCase is a member of a TestSuite.
+    
+    It contains the data necessary to check if an exercise is correct"""
+    __storm_table__ = "test_case"
+    __storm_primary__ = "testid", "suiteid"
+    
+    testid = Int()
+    suiteid = Int()
+    suite = Reference(suiteid, TestSuite.suiteid)
+    passmsg = Unicode()
+    failmsg = Unicode()
+    init = Unicode()
+    code_type = Unicode()
+    code = Unicode()
+    testtype = Unicode()
+    seq_no = Int()
+    
+    __init__ = _kwarg_init

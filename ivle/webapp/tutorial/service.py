@@ -68,7 +68,7 @@ class AttemptsRESTView(JSONRESTView):
 
     @require_permission('edit')
     def PUT(self, req, data):
-        ''' Tests the given submission '''
+        """ Tests the given submission """
         exercisefile = ivle.util.open_exercise_file(self.exercise)
         if exercisefile is None:
             raise NotFound()

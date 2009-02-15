@@ -1,0 +1,146 @@
+#!/usr/bin/python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Author:  Nicholas Chadwick
+
+"""Script to upload an exercise file into the database"""
+
+import os, sys
+import xml.dom.minidom as minidom
+
+from ivle.database import Exercise, TestSuite, TestCase, get_store
+
+class XMLMalformedError(Exception):
+    """Error thrown when encountering malformed data."""
+    
+    def __init__(self, text):
+        self.msg = text
+
+def getTextData(element):
+    """ Get the text and cdata inside an element
+    Leading and trailing whitespace are stripped
+    """
+    data = ''
+    for child in element.childNodes:
+        if child.nodeType == child.CDATA_SECTION_NODE:
+            data += child.data
+        if child.nodeType == child.TEXT_NODE:
+            data += child.data
+
+    return data.strip()
+
+def add_test_suite(suite_node, suite_num, store):
+    """Given a test suite element, get all the cases it contains."""
+    cases = []
+    case_num = 0
+    for case_node in suite_node.getElementsByTagName('function'):
+        case_num += 1
+        cases.append(add_test_case(case_node, case_num, store))
+    new_suite = TestSuite()
+    new_suite.description = suite_node.getAttribute('name')
+    new_suite.seq_no = suite_num
+    for testcase in cases:
+        new_suite.test_cases.add(testcase)
+    store.add(new_suite)
+    return new_suite
+
+
+def add_test_case(case_node, case_num, store):
+    """Given a test case, generate its data"""
+    # First perform basic error checks
+    if not case_node.tagName == 'function': 
+        raise XMLMalformedError(case_node.tagName + ' node')
+    case_data = case_node.getElementsByTagName('code')
+    if not case_data:
+        case_data = case_node.getElementsByTagName('stdout')
+    if not case_data:
+        raise XMLMalformedError()
+    case_data = case_data[0]
+    #Now create the object to hold the data
+    new_test_case = TestCase()
+    new_test_case.passmsg = case_node.getAttribute('pass')
+    new_test_case.failmsg = case_node.getAttribute('fail')
+    new_test_case.init = case_node.getAttribute('default')
+    new_test_case.code_type = case_data.getAttribute('type')
+    new_test_case.code = getTextData(case_data)
+    new_test_case.testtype = case_data.tagName
+    new_test_case.seq_no = case_num
+    store.add(new_test_case)
+    return new_test_case
+
+xmlfile = sys.argv[1]
+try:
+    filedom = minidom.parse(xmlfile)
+except IOError, e:
+    sys.exit('ivle-addexercise: error opening file ' + xmlfile + ': ' + e[1])
+
+
+for child in filedom.childNodes:
+    if child.nodeType == child.ELEMENT_NODE and child.tagName == 'exercise':
+        exercise = child
+    else:
+        sys.exit('ivle-addexercise: error parsing XML: root node must be "exercise"')
+
+exercisename = exercise.getAttribute('name')
+solution = None
+partial_solution = None
+include_code = None
+description = None
+test_suite_nodes = []
+for child in exercise.childNodes:
+    if child.nodeType != child.ELEMENT_NODE:
+        continue
+    if child.tagName == 'solution':
+        if solution is not None:
+            sys.exit('ivle-addexercise: error parsing XML: multiple "solution" nodes')
+        solution = getTextData(child)
+    elif child.tagName == 'include':
+        if include_code is not None:
+            sys.exit('ivle-addexercise: error parsing XML: multiple "include" nodes')
+        include_code = getTextData(child)
+    elif child.tagName == 'partial':
+        if partial_solution is not None:
+            sys.exit('ivle-addexercise: error parsing XML: multiple "include" nodes')
+        partial_solution = getTextData(child)
+    elif child.tagName == 'case':
+        test_suite_nodes.append(child)
+    elif child.tagName == 'desc':
+        description = getTextData(child)
+
+if solution is None:
+    sys.exit("ivle-addexercise: error parsing XML: No solution given")
+if len(test_suite_nodes) == 0:
+    sys.exit("ivle-addexercise: error parsing XML:")
+
+store = get_store()
+new_exercise = Exercise()
+new_exercise.id = unicode(xmlfile)
+new_exercise.name = exercisename
+new_exercise.partial = partial_solution
+new_exercise.solution = solution
+new_exercise.include = include_code
+new_exercise.description = description
+new_exercise.partial = partial_solution
+store.add(new_exercise)
+suite_num = 0
+for suite in test_suite_nodes:
+    new_exercise.test_suites.add(add_test_suite(suite, suite_num, store))
+    suite_num += 1
+
+store.add(new_exercise)
+store.commit()
