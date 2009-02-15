@@ -61,7 +61,7 @@ if options.recreate:
         os.environ['MIRROR'] = options.apt_mirror
 
     os.system('rm -rf --one-file-system ' + build_path)
-    ivle.jailbuilder.debian.debootstrap_create_jail('hardy',
+    ivle.jailbuilder.debian.debootstrap_create_jail(conf['jail']['suite'],
               build_path, mirror=options.apt_mirror)
 
     # Add any extra site apt sources.
