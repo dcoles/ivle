@@ -436,7 +436,7 @@ class Worksheet(Storm):
     assessable = Bool()
     mtime = DateTime()
 
-    offering = Reference (offeringid, 'Offering.id')
+    offering = Reference(offering_id, 'Offering.id')
 
     exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id',
