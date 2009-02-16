@@ -31,6 +31,10 @@ import sys
 import os
 import getopt
 
+if os.getuid() != 0:
+    print "Must run %s as root." % os.path.basename(sys.argv[0])
+    sys.exit(1)
+
 from ivle.database import get_store, User
 from ivle.pulldown_subj import enrol_user
 
@@ -53,10 +57,6 @@ if len(sys.argv) <= 3:
     for short, long, desc in optionals:
         t = "        -%s | --%s" % (short, long)
         print t + (' ' * max(28 - len(t), 2)) + desc
-    sys.exit(1)
-
-if os.getuid() != 0:
-    print "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit(1)
 
 shorts = ''.join([o[0] + ":" for o in optionals])
