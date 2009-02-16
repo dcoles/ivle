@@ -50,4 +50,4 @@ def handle(req):
             "The path specified is invalid.")
 
     # Use the code from server to avoid duplication
-    server.serve_file(req, user, path, download=True)
+    server.serve_file(req, req.user, path, download=True)
