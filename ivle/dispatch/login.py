@@ -19,20 +19,6 @@
 # Author: Matt Giuca
 # Date: 21/12/2007
 
-# Provides services for checking logins and presenting the login page.
-import os
-import datetime
-
-try:
-    import mod_python.Cookie
-except ImportError:
-    # This needs to be importable from outside Apache.
-    pass
-
-import ivle.conf
-from ivle import (util, caps)
-from ivle.auth import authenticate, AuthError
-from ivle.webapp.base.plugins import CookiePlugin
 import ivle.database
 
 def get_user_details(req):
@@ -50,37 +36,4 @@ def get_user_details(req):
 
     # Get the full User object from the db associated with this login
     return ivle.database.User.get_by_login(req.store, login)
-
-def present_tos(req, fullname):
-    """Present the Terms of Service screen to the user (who has just logged in
-    for the first time and needs to accept these before being admitted into
-    the system).
-    """
-    req.title = "Terms of Service"
-    # Include the JavaScript for the "makeuser" Ajax stuff
-    req.scripts = [
-        "media/common/json2.js",
-        "media/common/util.js",
-        "media/common/tos.js",
-    ]
-    req.write("""<div id="ivle_padding">
-<p>Welcome, <b>%s</b>.</p>
-<p>As this is the first time you have logged into IVLE, you are required to
-accept these Terms of Service before using the system.</p>
-<p>You will be allowed to re-read these terms at any time from the "Help"
-menu.</p>
-<hr />
-""" % fullname)
-    # Write out the text of the license
-    req.write(util.get_terms_of_service())
-    req.write("""<hr />
-<div id="tos_acceptbuttons">
-<p>Please click "I Accept" to indicate that you have read and understand these
-terms, or click "I Decline" to log out of IVLE.</p>
-<p>
-  <input type="button" value="I Accept" onclick="accept_license()" />
-  <input type="button" value="I Decline" onclick="decline_license()" />
-</p>
-</div>
-""")
 
