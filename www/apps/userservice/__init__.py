@@ -146,6 +146,7 @@ import cjson
 import ivle.database
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
+from ivle.dispatch.login import get_user_details
 import ivle.pulldown_subj
 
 from ivle.rpc.decorators import require_method, require_cap
@@ -167,8 +168,9 @@ user_fields_list = (
 
 def handle(req):
     """Handler for the Console Service AJAX backend application."""
-    if req.user is None:
-        # Not logged in
+    if req.user is None and req.path != 'activate_me':
+        # Not logged in.
+        # XXX: activate_me isn't called by a valid user, so is special for now.
         req.throw_error(req.HTTP_FORBIDDEN,
         "You are not logged in to IVLE.")
     if len(req.path) > 0 and req.path[-1] == os.sep:
@@ -203,6 +205,15 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
+
+    # XXX: Very special because we don't have a valid user, so req.user is
+    # None.
+    user = get_user_details(req)
+
+    if user is None:
+        req.throw_error(req.HTTP_FORBIDDEN,
+        "You are not logged in to IVLE.")
+
     try:
         try:
             declaration = fields.getfirst('declaration')
@@ -220,11 +231,11 @@ def handle_activate_me(req, fields):
             # Check that the user's status is "no_agreement".
             # (Both to avoid redundant calls, and to stop disabled users from
             # re-enabling their accounts).
-            if req.user.state != "no_agreement":
+            if user.state != "no_agreement":
                 req.throw_error(req.HTTP_BAD_REQUEST,
                 "You have already agreed to the terms.")
             # Write state "pending" to ensure we don't try this again
-            req.user.state = u"pending"
+            user.state = u"pending"
         except:
             req.store.rollback()
             raise
@@ -233,7 +244,7 @@ def handle_activate_me(req, fields):
         # Get the arguments for usermgt.activate_user from the session
         # (The user must have already logged in to use this app)
         args = {
-            "login": req.user.login,
+            "login": user.login,
         }
         msg = {'activate_user': args}
 
@@ -254,10 +265,10 @@ def handle_activate_me(req, fields):
             status = 'failure'
         
         if status == 'okay':
-            req.user.state = u"enabled"
+            user.state = u"enabled"
         else:
             # Reset the user back to no agreement
-            req.user.state = u"no_agreement"
+            user.state = u"no_agreement"
             req.store.commit()
 
         # Write the response

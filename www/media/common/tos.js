@@ -102,7 +102,7 @@ function handle_accept_response(xhr)
     else
     {
         /* Refresh the page; as the user is now (apparently) logged in */
-        window.location.href = window.location.href;
+        window.location.href = parse_url(window.location.href).args["url"];
     }
 }
 

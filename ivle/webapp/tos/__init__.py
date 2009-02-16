@@ -22,16 +22,40 @@
 This is mainly for the benefit of the link in ivle.webapp.help."""
 
 import ivle.util
+import ivle.dispatch.login
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
 
 class TermsOfServiceView(XHTMLView):
-    """Static view of the Terms of Service."""
+    """View of the Terms of Service, allowing acceptance.
+
+    Users with state 'no_agreement' see buttons to accept or decline.
+    If a user has already accepted it, they just see a static page.
+    """
+
+    def __init__(self, req):
+        # We need to be able to handle the case where a user has status
+        # 'no_agreement'. In that case, req.user will be None, so we have
+        # to get it ourselves.
+        if req.user is None:
+            self.user = ivle.dispatch.login.get_user_details(req)
+            self.mode = 'accept'
+            self.template = 'accept.html'
+        else:
+            self.user = req.user
+            self.mode = 'view'
+            self.template = 'view.html'
+
     def authorize(self, req):
-        return req.user is not None
+        # This can be used by any authenticated user, even if they haven't
+        # accepted the ToS yet.
+        return ivle.dispatch.login.get_user_details(req) is not None
 
     def populate(self, req, ctx):
         ctx['text'] = ivle.util.get_terms_of_service()
+
+        if self.mode == 'accept':
+            ctx['user'] = self.user
 
 class Plugin(ViewPlugin):
     """Registration for the Terms of Service plugin."""

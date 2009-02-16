@@ -1,0 +1,29 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Terms of Service</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <p>Welcome, <strong>${user.fullname}</strong>.</p>
+      <p>
+        As this is the first time you have logged into IVLE, you are required to
+        accept these Terms of Service before using the system.
+      </p>
+      <p>You may re-read these terms at any time from the "Help" menu.</p>
+      <hr />
+      <div py:replace="Markup(text)" />
+      <hr />
+      <div id="tos_acceptbuttons">
+        <p>
+          Please click "I Accept" to indicate that you have read and understand
+          these terms, or click "I Decline" to log out of IVLE.
+        </p>
+        <p>
+          <input type="button" value="I Accept" onclick="accept_license()" />
+          <input type="button" value="I Decline" onclick="decline_license()" />
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
