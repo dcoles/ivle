@@ -4,8 +4,6 @@
 # These should not need to be modified by admins unless new applications are
 # plugged in.
 
-enable_debuginfo = False
-
 # Allow App objects
 # Notes:
 # icon is a string of a file basename. The icon files are found in
@@ -31,47 +29,16 @@ app_icon_dir = "+media/ivle.webapp.core/images/apps"
 # Small version of icons (16x16, for favicon)
 app_icon_dir_small = "+media/ivle.webapp.core/images/apps/small"
 
-# Which application to load by default (if the user navigates to the top level
-# of the site). This is the app's URL name.
-# Note that if this app requires authentication, the user will first be
-# presented with the login screen.
-default_app = "files"
 # Which application to use for "public host" URLs.
 # (See conf.py)
 public_app = "serve"
 
 # Application definitions
 
-app_browser =   App(dir = "browser",
-                    name = "Files",
-                    desc = "Gives you access to all of your files and lets "
-                           "you download, upload, edit and run them.",
-                    icon = "browser.png",
-                    useconsole = True,
-                    requireauth = True,
-                    hashelp = True)
-
 app_fileservice = App(dir = "fileservice",
                     name = "File Service (AJAX server)",
                     requireauth = True,
                     hashelp = False)
-
-app_console =     App(dir = "console",
-                    name = "Console",
-                    desc = "A Python console where you can try out code "
-                           "without having to save and run it.",
-                    icon = "console.png",
-                    useconsole = False, # We use a full console in this app
-                    requireauth = True,
-                    hashelp = True)
-
-app_tutorial =     App(dir = "tutorial",
-                    name = "Worksheets",
-                    desc = "Online tutorials and exercises for lab work.",
-                    icon = "tutorial.png",
-                    useconsole = True,
-                    requireauth = True,
-                    hashelp = True)
 
 app_server =    App(dir = "server",
                     name = "Server",
@@ -82,66 +49,16 @@ app_download =  App(dir = "download",
                     name = "Download",
                     requireauth = True,
                     hashelp = False)
-
-app_help =      App(dir = "help",
-                    name = "Help",
-                    desc = "IVLE help pages",
-                    icon = "help.png",
-                    requireauth = True,
-                    hashelp = False)
-
-app_debuginfo = App(dir = "debuginfo",
-                    name = "Debug Information",
-                    requireauth = False,
-                    hashelp = False)
-
-app_forum = App(dir = "forum",
-                    name = "Forum",
-                    desc = "Discussion boards for material relating to "
-                           "Informatics, IVLE and Python.",
-                    icon = "forum.png",
-                    requireauth = True,
-                    hashelp = False)
-
-app_tos = App(dir = "tos",
-                    name = "Terms of Service",
-                    requireauth = False,
-                    hashelp = False)
-
 app_userservice = App(dir = "userservice",
                     name = "User Management Service",
-                    requireauth = False,
-                    hashelp = False)
-
-app_subjects = App(dir = "subjects",
-                    name = "Subjects",
-                    desc = "Announcements and information about the subjects "
-                           "you are enrolled in.",
-                    icon = "subjects.png",
                     requireauth = False,
                     hashelp = False)
 
 # Mapping URL names to apps
 
 app_url = {
-    "files" : app_browser,
     "fileservice" : app_fileservice,
-    "console" : app_console,
-    "tutorial" : app_tutorial,
     "serve" : app_server,
     "download" : app_download,
-    "+help" : app_help,
-    "forum" : app_forum,
-    "tos" : app_tos,
     "userservice" : app_userservice,
-    "subjects" : app_subjects,
 }
-if enable_debuginfo:
-    app_url["debuginfo"] = app_debuginfo
-
-# List of apps that go in the tabs at the top
-# (The others are hidden unless they are linked to)
-# Note: The values in this list are the URL names as seen in app_url.
-
-apps_in_tabs = ["files", "tutorial", "console",
-                "forum", "subjects", "+help"]

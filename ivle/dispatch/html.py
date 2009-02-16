@@ -123,12 +123,6 @@ def write_html_head(req):
             "enable_debuginfo = False in ivle/conf/apps.py, when placing IVLE "
             "into production.</small></p>\n")
 
-    # If req has a "no_agreement" attribute, then it is because the user has
-    # not signed the agreement; therefore we are displaying the TOS page.
-    # Do not show apps (see dispatch.login).
-    if req.user and not req.user.state == 'no_agreement':
-        # Only print app tabs if logged in
-        print_apps_list(req, req.app)
     req.write('</div>\n<div id="ivlebody">\n')
 
 def write_html_foot(req):
@@ -168,28 +162,3 @@ def get_icon_url(appurl, small=False):
         icon_dir = ivle.conf.apps.app_icon_dir
     if app.icon is None: return None
     return util.make_path(os.path.join(icon_dir, app.icon))
-
-def print_apps_list(file, thisapp):
-    """Prints all app tabs, as a UL. Prints a list item for each app that has
-    a tab.
-
-    file: Object with a "write" method - ie. the request object.
-    Reads from: ivle.conf
-    """
-    file.write('  <ul id="apptabs">\n')
-
-    for urlname in ivle.conf.apps.apps_in_tabs:
-        app = ivle.conf.apps.app_url[urlname]
-        if urlname == thisapp:
-            li_attr = ' class="thisapp"'
-        else:
-            li_attr = ''
-        file.write('    <li%s>' % li_attr)
-        if app.icon:
-            file.write('<img src="%s" alt="" /> '
-                % urllib.quote(get_icon_url(urlname)))
-        file.write('<a href="%s" title="%s">%s</a></li>\n'
-            % (urllib.quote(util.make_path(urlname)), cgi.escape(app.desc),
-                cgi.escape(app.name)))
-
-    file.write('  </ul>\n')
