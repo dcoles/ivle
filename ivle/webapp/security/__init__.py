@@ -18,12 +18,13 @@
 # Author: William Grant
 
 from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.security.views import LogoutView
+from ivle.webapp.security.views import LoginView, LogoutView
 
 class Plugin(ViewPlugin):
     """
     The Plugin class for the security plugin.
     """
     urls = [
-        ('logout', LogoutView),
+        ('+login', LoginView),
+        ('+logout', LogoutView),
     ]

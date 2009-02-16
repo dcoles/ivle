@@ -130,6 +130,10 @@ class User(Storm):
         fieldval = self.acct_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
 
+    @property
+    def valid(self):
+        return self.state == 'enabled' and not self.account_expired
+
     def _get_enrolments(self, justactive):
         return Store.of(self).find(Enrolment,
             Enrolment.user_id == self.id,

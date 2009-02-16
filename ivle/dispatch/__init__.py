@@ -129,7 +129,11 @@ def handler_(req, apachereq):
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
-        req.user = login.get_user_details(req)
+        user = login.get_user_details(req)
+
+        # Don't set the user if it is disabled or hasn't accepted the ToS.
+        if user and user.valid:
+            req.user = user
 
     ### BEGIN New plugins framework ###
     # XXX This should be done ONCE per Python process, not per request.
@@ -217,11 +221,11 @@ def handler_(req, apachereq):
     # This will either return a User object, None, or perform a redirect
     # which we will not catch here.
     if app.requireauth:
-        req.user = login.login(req)
         logged_in = req.user is not None
     else:
-        req.user = login.get_user_details(req)
         logged_in = True
+
+    assert logged_in # XXX
 
     if logged_in:
         # Keep the user's session alive by writing to the session object.

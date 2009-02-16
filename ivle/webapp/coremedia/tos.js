@@ -102,12 +102,12 @@ function handle_accept_response(xhr)
     else
     {
         /* Refresh the page; as the user is now (apparently) logged in */
-        window.location.href = window.location.href;
+        window.location.href = parse_url(window.location.href).args["url"];
     }
 }
 
 function decline_license()
 {
     /* Redirect to the logout page */
-    window.location.href = app_path("logout");
+    window.location.href = app_path("+logout");
 }
