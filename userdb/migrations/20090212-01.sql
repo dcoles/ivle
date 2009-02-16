@@ -17,6 +17,7 @@ DROP TABLE problem_test_case_tag;
 DROP TABLE problem_tag;
 DROP TABLE problem_test_case;
 DROP TABLE problem_prerequisite; 
+TRUNCATE worksheet_problem, worksheet;
 
 -- Remove References to problemid
 ALTER TABLE problem_attempt DROP CONSTRAINT problem_attempt_problemid_fkey;
