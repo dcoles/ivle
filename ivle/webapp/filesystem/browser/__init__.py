@@ -166,6 +166,7 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
     urls = [
         ('files/*(path)', BrowserView),
         ('files/', BrowserView),
+        ('/', BrowserView),
     ]
 
     tabs = [
