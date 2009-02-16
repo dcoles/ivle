@@ -27,7 +27,7 @@ import urllib
 import cgi
 
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
 from ivle.database import Subject
 from ivle import util
@@ -67,7 +67,14 @@ class SubjectsView(XHTMLView):
                 ctx['other_subjects'].append(new_subj)
 
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/', SubjectsView),
     ]
+
+    tabs = [
+        ('subjects', 'Subjects', 'Announcements and information about the '
+         'subjects you are enrolled in.', 'subjects.png', 'subjects', 5)
+    ]
+
+    media = 'subject-media'

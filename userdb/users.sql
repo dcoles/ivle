@@ -189,16 +189,22 @@ CREATE TABLE project_mark (
 
 -- Worksheets
 -- ----------
-
+--TODO: Add in a field for the user-friendly identifier
 CREATE TABLE problem (
-    problemid   SERIAL PRIMARY KEY NOT NULL,
-    identifier  VARCHAR UNIQUE NOT NULL,
-    spec        VARCHAR
+    identifier  VARCHAR PRIMARY KEY NOT NULL,
+    name        TEXT,
+    description TEXT,
+    partial     TEXT,
+    solution    TEXT,
+    include     TEXT,
+    num_rows    INT4
 );
 
+--TODO: Link worksheets to offerings
 CREATE TABLE worksheet (
     worksheetid SERIAL PRIMARY KEY NOT NULL,
     subject     VARCHAR NOT NULL,
+    offeringid    INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
     assessable  BOOLEAN,
     mtime       TIMESTAMP,
@@ -207,42 +213,15 @@ CREATE TABLE worksheet (
 
 CREATE TABLE worksheet_problem (
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     optional    BOOLEAN,
     PRIMARY KEY (worksheetid, problemid)
 );
 
-CREATE TABLE problem_tag (
-    problemid   INT4 REFERENCES problem (problemid),
-    tag         VARCHAR NOT NULL,
-    description VARCHAR,
-    standard    BOOLEAN NOT NULL,
-    added_by    INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    PRIMARY KEY (problemid,added_by,tag)
-);
-
-CREATE TABLE problem_test_case (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    testcaseid  SERIAL UNIQUE NOT NULL,
-    testcase    VARCHAR,
-    description VARCHAR,
-    visibility  VARCHAR CHECK (visibility in ('public', 'protected', 'private'))
-);
-
-CREATE TABLE problem_test_case_tag (
-    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    tag         VARCHAR NOT NULL,
-    description VARCHAR,
-    standard    BOOLEAN NOT NULL,
-    added_by    INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    PRIMARY KEY (testcaseid,added_by,tag)
-);
-
 CREATE TABLE problem_attempt (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    problemid   VARCHAR REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
@@ -253,6 +232,7 @@ CREATE TABLE problem_attempt (
 CREATE TABLE problem_save (
     problemid   INT4 REFERENCES problem (problemid) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     text        VARCHAR NOT NULL,
     PRIMARY KEY (problemid,loginid)
@@ -260,17 +240,24 @@ CREATE TABLE problem_save (
 
 CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 
-CREATE TABLE problem_attempt_breakdown (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    result      BOOLEAN
+-- TABLES FOR EXERCISES IN DATABASE -- 
+CREATE TABLE test_suite (
+    suiteid     SERIAL NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
+    description TEXT,
+    seq_no      INT4,
+    PRIMARY KEY (problemid, suiteid)
 );
 
-CREATE TABLE problem_prerequisite (
-    parent      INT4 REFERENCES problem (problemid) NOT NULL,
-    child       INT4 REFERENCES problem (problemid) NOT NULL,
-    PRIMARY KEY (parent,child)
+CREATE TABLE test_case (
+    testid      SERIAL NOT NULL,
+    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    passmsg     TEXT,
+    failmsg     TEXT,
+    init        TEXT,
+    code_type   TEXT,
+    code        TEXT,
+    testtype    TEXT,
+    seq_no      INT4,
+    PRIMARY KEY (testid, suiteid)
 );
-

@@ -74,4 +74,8 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('+help/*path', HelpView)
     ]
 
+    tabs = [
+        ('help', 'Help', 'IVLE help pages', 'help.png', '+help', 100)
+    ]
+
     media = 'media'

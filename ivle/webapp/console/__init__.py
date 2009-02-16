@@ -27,6 +27,10 @@ class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
         ('console/service', ConsoleServiceRESTView),
         ('console', ConsoleView),
     ]
+    tabs = [
+        ('console', 'Console', 'A Python console where you can try out code '
+         'without having to save and run it.', 'console.png', 'console', 3)
+    ]
     overlays = [
         ConsoleOverlay,
     ]

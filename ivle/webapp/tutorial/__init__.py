@@ -461,5 +461,11 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('api/subjects/:subject/+worksheets/:worksheet/*exercise', ExerciseRESTView),
     ]
 
+    tabs = [
+        ('tutorial', 'Worksheets',
+         'Online tutorials and exercises for lab work.', 'tutorial.png',
+         'tutorial', 2)
+    ]
+
     media = 'media'
     help = {'Tutorial': 'help.html'}
