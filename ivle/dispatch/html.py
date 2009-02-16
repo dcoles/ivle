@@ -69,7 +69,7 @@ def write_html_head(req):
         req.write("""  <link rel="shortcut icon" href="%s" />
 """ % cgi.escape(iconurl))
     req.write("""  <link rel="stylesheet" type="text/css" href="%s" />
-""" % cgi.escape(util.make_path('media/common/ivle.css')))
+""" % cgi.escape(util.make_path('+media/ivle.webapp.core/ivle.css')))
 
     # Write any app-specific style and script links
     for style in req.styles:

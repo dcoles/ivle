@@ -189,9 +189,9 @@ def present_tos(req, fullname):
     req.title = "Terms of Service"
     # Include the JavaScript for the "makeuser" Ajax stuff
     req.scripts = [
-        "media/common/json2.js",
-        "media/common/util.js",
-        "media/common/tos.js",
+        "+media/ivle.webapp.core/json2.js",
+        "+media/ivle.webapp.core/util.js",
+        "+media/ivle.webapp.core/tos.js",
     ]
     req.write("""<div id="ivle_padding">
 <p>Welcome, <b>%s</b>.</p>

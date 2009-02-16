@@ -18,15 +18,7 @@
 
       <link py:if="favicon" rel="shortcut icon" href="${favicon}" />
 
-      <link rel="stylesheet" type="text/css" href="/media/common/ivle.css" />
-
-      <script type="text/javascript" src="/media/common/util.js"></script>
-      <script type="text/javascript" src="/media/common/json2.js"></script>
-      <script type="text/javascript" src="/media/common/md5.js"></script>
-      <script type="text/javascript" src="/media/common/tos.js"></script>
-
-      <!-- Plugin style sheets and JavaScript -->
-      <py:for each="style in app_styles">
+      <py:for each="style in styles">
         <link rel="stylesheet" type="text/css" href="${style}" />
       </py:for>
 

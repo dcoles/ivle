@@ -23,6 +23,7 @@ import os.path
 import genshi.template
 
 from ivle.webapp.media import media_url
+from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
@@ -73,8 +74,14 @@ class XHTMLView(BaseView):
         ctx = genshi.template.Context()
         # XXX: Leave this here!! (Before req.styles is read)
         ctx['overlays'] = self.render_overlays(req)
-        ctx['app_styles'] = req.styles
-        ctx['scripts'] = req.scripts
+
+        ctx['styles'] = [media_url(req, CorePlugin, 'ivle.css')]
+        ctx['styles'] += req.styles
+
+        ctx['scripts'] = [media_url(req, CorePlugin, path) for path in
+                           ('util.js', 'json2.js', 'md5.js', 'tos.js')]
+        ctx['scripts'] += req.scripts
+
         ctx['scripts_init'] = req.scripts_init
         ctx['app_template'] = app
         self.populate_headings(req, ctx)
