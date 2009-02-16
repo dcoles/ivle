@@ -80,7 +80,7 @@ class XHTMLView(BaseView):
         ctx['styles'] += req.styles
 
         ctx['scripts'] = [media_url(req, CorePlugin, path) for path in
-                           ('util.js', 'json2.js', 'md5.js', 'tos.js')]
+                           ('util.js', 'json2.js', 'md5.js')]
         ctx['scripts'] += req.scripts
 
         ctx['scripts_init'] = req.scripts_init
