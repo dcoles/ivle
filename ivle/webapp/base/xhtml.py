@@ -19,6 +19,7 @@
 
 import inspect
 import os.path
+import urllib
 
 import genshi.template
 
@@ -177,8 +178,11 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
 
     def __init__(self, req, exception):
         super(XHTMLUnauthorizedView, self).__init__(req, exception)
+
+        # TODO: ToS, disabled, pending
         if req.user is None:
             # Not logged in. Redirect to login page.
-            req.throw_redirect('/') # XXX: Need proper URL.
+            req.throw_redirect('/+login?' + 
+                               urllib.urlencode([('url', req.uri)]))
 
         req.status = 403

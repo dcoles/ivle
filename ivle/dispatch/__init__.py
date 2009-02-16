@@ -217,11 +217,11 @@ def handler_(req, apachereq):
     # This will either return a User object, None, or perform a redirect
     # which we will not catch here.
     if app.requireauth:
-        req.user = login.login(req)
         logged_in = req.user is not None
     else:
-        req.user = login.get_user_details(req)
         logged_in = True
+
+    assert logged_in # XXX
 
     if logged_in:
         # Keep the user's session alive by writing to the session object.

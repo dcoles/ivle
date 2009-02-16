@@ -35,82 +35,9 @@ from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.plugins import CookiePlugin
 import ivle.database
 
-def login(req):
-    """Determines whether the user is logged in or not (looking at sessions),
-    and if not, presents the login page. Returns a User object, or None
-    if not logged in.
 
-    If the user was already logged in, nothing is written to req. Returns
-    the User object for the logged in user.
-
-    If the user was not logged in, but manages to authenticate due to
-    included postdata with a valid username/password, throws a redirect
-    back to the same page (to avoid leaving POSTDATA in the browser).
-
-    If the user is not logged in, or fails to authenticate, a full page is
-    written to req. Returns None. The caller should immediately terminate.
-    """
-    # Get the user details from the session, if already logged in
-    # (None means not logged in yet)
-    user = get_user_details(req)
-
-    # Check the session to see if someone is logged in. If so, go with it.
-    # No security is required here. You must have already been authenticated
-    # in order to get a 'login_name' variable in the session.
-    if user is not None and user.state == "enabled":
-        # Only allow users to authenticate if their account is ENABLED
-        return user
-
-    badlogin = None
-
-    # Check if there is any postdata containing login information
-    if user is None and req.method == 'POST':
-        fields = req.get_fieldstorage()
-        username = fields.getfirst('user')
-        password = fields.getfirst('pass')
-        if username is not None:
-            # From this point onwards, we will be showing an error message
-            # if unsuccessful.
-            # Authenticate
-            if password is None:
-                badlogin = "No password supplied."
-            else:
-                try:
-                    user = authenticate.authenticate(req.store,
-                                username.value, password.value)
-                except AuthError, msg:
-                    badlogin = msg
-                if user is None:
-                    # Must have got an error. Do not authenticate.
-                    pass
-                elif user.password_expired:
-                    badlogin = "Your password has expired."
-                elif user.account_expired:
-                    badlogin = "Your account has expired."
-                else:
-                    # Success - Set the session and redirect to avoid POSTDATA
-                    session = req.get_session()
-                    session['login'] = user.login
-                    session.save()
-                    user.last_login = datetime.datetime.now()
-                    req.store.commit()
-
-                    # Create cookies for plugins that might request them.
-                    for plugin in req.plugin_index[CookiePlugin]:
-                        for cookie in plugin.cookies:
-                            # The function can be None if they just need to be
-                            # deleted at logout.
-                            if plugin.cookies[cookie] is not None:
-                                req.add_cookie(mod_python.Cookie.Cookie(cookie,
-                                      plugin.cookies[cookie](user), path='/'))
-
-                    req.throw_redirect(req.uri)
-
-    # Present the HTML login page
-    req.content_type = "text/html"
-    req.title = "Login"
-    req.write_html_head_foot = True
-
+# XXX: Move this elsewhere, as it's just in storage now...
+def tos_stuff():
     # User is not logged in or their account is not enabled.
     if user is not None:
         # Only possible if no errors occured thus far
@@ -138,32 +65,6 @@ def login(req):
             user.state = u'no_agreement'
             req.store.commit()
             req.throw_redirect(req.uri)
-
-    # Write the HTML for the login page
-    # If badlogin, display an error message indicating a failed login
-    req.write("""<div id="ivle_padding">
-<p>Welcome to the Informatics Virtual Learning Environment.
-   Please log in to access your files and assessment.</p>
-""")
-    if badlogin is not None:
-        req.write("""<p class="error">%s</p>
-""" % badlogin)
-    req.write("""<form action="" method="post">
-  <table>
-    <tr><td>Username:</td><td><input name="user" type="text" /></td></tr>
-    <tr><td>Password:</td><td><input name="pass" type="password" /></td></tr>
-    <tr><td colspan="2"><input type="submit" value="Login" /></td></tr>
-  </table>
-</form>
-""")
-    # Write the "Message of the Day" document, if it exists.
-    try:
-        req.sendfile(ivle.conf.motd_path)
-    except IOError:
-        pass
-    req.write('</div>\n')
-
-    return None
 
 def get_user_details(req):
     """Gets the name of the logged in user, without presenting a login box

@@ -109,5 +109,5 @@ function handle_accept_response(xhr)
 function decline_license()
 {
     /* Redirect to the logout page */
-    window.location.href = app_path("logout");
+    window.location.href = app_path("+logout");
 }

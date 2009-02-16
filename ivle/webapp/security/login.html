@@ -1,0 +1,24 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Log in</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <p>
+        Welcome to the Informatics Virtual Learning Environment.
+        Please log in to access your files and assessment.
+      </p>
+
+      <p py:if="defined('error')" class="error">${error}</p>
+
+      <form action="${path}" method="post">
+        <table>
+          <tr><td>Username:</td><td><input name="user" type="text" /></td></tr>
+          <tr><td>Password:</td><td><input name="pass" type="password" /></td></tr>
+          <tr><td colspan="2"><input type="submit" value="Login" /></td></tr>
+        </table>
+      </form>
+    </div>
+  </body>
+</html>
