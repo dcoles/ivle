@@ -9,33 +9,22 @@ Two IVLE headings, and 404 error message "There is no application called 'php'.
 
 This is an Apache conf problem - you are missing the following section:
 
-    <Directory "/opt/ivle/www/php">
+    <Directory "/usr/local/share/ivle/www/php">
         SetHandler None
     </Directory>
 
 The easiest way is to ensure you copied ivle.conf.
 
-All the CSS and images are missing
-==================================
-
-There are a couple of causes of this problem.
-
-1. You could be missing the part of Apache conf which configures the
-    "/opt/ivle/www/media" directory. In this case, hyperlinks will be correct.
-2. You may have set your "root_dir" setting incorrectly. Make sure it
-    corresponds to the URL space where IVLE lives on the web server, or all
-    the URLs will be wrong. In this case, hyperlinks will be wrong as well.
-
 IVLE displays a generic Terms of Service notice
 ===============================================
 
-You should customize the TOS notice at trunk/www/apps/tos/license.html.
+You should customize the TOS notice at /var/lib/ivle/notices/tos.html.
 
 Apache Server isn't Restarting
 ==============================
 
 Make sure no console processes are lying around (e.g. sudo killall
-python), then restart with "sudo apache2ctl restart".  If the issue
+python), then restart with "sudo /etc/init.d/apache2 restart".  If the issue
 persists, try stopping the server and starting it in two separate
 steps, so you see the errors reported by the start script.
 
@@ -50,4 +39,4 @@ Look for PythonOption mod_python.file_session.database_directory. Make sure it
 is set to the place you want. Then, you need to manually make sure that
 directory exists.
 
-The default is /home/informatics/sessions.
+The default is /var/lib/ivle/sessions.

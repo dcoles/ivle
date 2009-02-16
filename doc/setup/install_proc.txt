@@ -1,7 +1,7 @@
 # Installation Procedure for IVLE
 # ===============================
 
-# Target Platform: Ubuntu 8.04
+# Target Platform: Ubuntu 8.04+
 #
 # IMPORTANT: This is NOT a shell script. It has interactive sections and
 # things that need to be customized.
@@ -38,11 +38,6 @@ sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD '<***passw
 ##########################################################################
 # Installing ivle
 ##########################################################################
-#
-# Check out the IVLE trunk
-
-svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
-cd ivle_svn
 
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
@@ -54,9 +49,11 @@ sudo -u postgres psql -d ivle < userdb/users.sql
 # Set up IVLE
 ./setup.py config
 
-# -j is required to rebuild all jails, not just do an update
-sudo ./setup.py build -j
+./setup.py build
 sudo ./setup.py install
+
+# Create the jail. The mirror option is optional.
+sudo ivle-buildjail -r -m http://url.to.archive/mirror
 
 # Create a user
 sudo ivle-makeuser [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
@@ -66,14 +63,11 @@ sudo ivle-makeuser [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
 sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle
 # MODIFY the first few lines so it is specific to your server.
 # * Change ServerAdmin and ServerName (for error reporting).
-# * Inside the first VirtualHost block, there are two ServerNames
+# * Inside the first VirtualHost block, there is a ServerName and ServerAlias
 #   (localhost and public.localhost). You must change these to the domains
 #   for regular IVLE and published-browsing IVLE respectively.
 # * Inside the second VirtualHost block, there is one ServerName
 #   (svn.localhost). You must change this to the domain for svn access.
-# * Change all paths beginning with /opt/ivle or /home/informatics to the
-#   locations you have installed things in.
-# * Update all of the paths to where you installed IVLE, if required.
 sudo vim /etc/apache2/sites-available/ivle
 
 # Replace the default with the IVLE site.
