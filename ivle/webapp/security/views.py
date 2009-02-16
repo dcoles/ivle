@@ -35,6 +35,7 @@ from ivle.dispatch.login import get_user_details
 class LoginView(XHTMLView):
     '''A view to allow a user to log in.'''
     template = 'login.html'
+    allow_overlays = False
 
     def authorize(self, req):
         return True
@@ -129,6 +130,7 @@ class LoginView(XHTMLView):
 class LogoutView(XHTMLView):
     '''A view to log the current session out.'''
     template = 'logout.html'
+    allow_overlays = False
 
     def authorize(self, req):
         # This can be used by any authenticated user, even if they haven't

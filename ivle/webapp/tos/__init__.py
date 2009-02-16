@@ -33,6 +33,8 @@ class TermsOfServiceView(XHTMLView):
     If a user has already accepted it, they just see a static page.
     """
 
+    allow_overlays = False
+
     def __init__(self, req):
         # We need to be able to handle the case where a user has status
         # 'no_agreement'. In that case, req.user will be None, so we have
