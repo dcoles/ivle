@@ -182,8 +182,10 @@ def handler_(req, apachereq):
                 errview = errviewcls(req, e)
                 errview.render(req)
                 return req.OK
-            else:
+            elif e.message:
                 req.write(e.message)
+                return req.OK
+            else:
                 return e.code
         except Exception, e:
             # A non-HTTPError appeared. We have an unknown exception. Panic.
