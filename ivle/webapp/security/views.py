@@ -76,11 +76,8 @@ class LoginView(XHTMLView):
                         badlogin = msg
                     if user is None:
                         # Must have got an error. Do not authenticate.
+                        # The except: above will have set a message.
                         pass
-                    elif user.password_expired:
-                        badlogin = "Your password has expired."
-                    elif user.account_expired:
-                        badlogin = "Your account has expired."
                     else:
                         # Success - Set the session and redirect to the URL.
                         session = req.get_session()
@@ -100,9 +97,9 @@ class LoginView(XHTMLView):
 
                         req.throw_redirect(nexturl)
 
-                    # We didn't succeed.
-                    # Render the login form with the error message.
-                    ctx['error'] = badlogin
+                # We didn't succeed.
+                # Render the login form with the error message.
+                ctx['error'] = badlogin
 
 
 class LogoutView(XHTMLView):

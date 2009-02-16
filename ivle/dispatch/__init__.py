@@ -132,7 +132,7 @@ def handler_(req, apachereq):
         user = login.get_user_details(req)
 
         # Don't set the user if it is disabled or hasn't accepted the ToS.
-        if user.valid:
+        if user and user.valid:
             req.user = user
 
     ### BEGIN New plugins framework ###
