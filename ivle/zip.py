@@ -27,7 +27,6 @@ import os.path
 import zipfile
 
 from ivle import studpath
-from ivle.fileservice_lib.exceptions import WillNotOverwrite
 
 def make_zip(basepath, paths, file):
     """Zips up a bunch of files on the student file space and writes it as
@@ -95,6 +94,9 @@ def unzip(path, file, overwrite=False):
     The path is an absolute path in the current filesystem
     (if this code is executed inside the jail, then it's inside the jail).
     """
+    # XXX: Really bad, but circular imports need avoiding.
+    from ivle.fileservice_lib.exceptions import WillNotOverwrite
+
     zip = zipfile.ZipFile(file, 'r')
     # First test the zip file
     if zip.testzip() is not None:
