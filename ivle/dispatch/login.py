@@ -35,37 +35,6 @@ from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.plugins import CookiePlugin
 import ivle.database
 
-
-# XXX: Move this elsewhere, as it's just in storage now...
-def tos_stuff():
-    # User is not logged in or their account is not enabled.
-    if user is not None:
-        # Only possible if no errors occured thus far
-        if user.state == "no_agreement":
-            # User has authenticated but has not accepted the TOS.
-            # Present them with the TOS page.
-            # First set their username for display at the top, but make sure
-            # the apps tabs are not displayed
-            req.user = user
-            # IMPORTANT NOTE FOR HACKERS: You can't simply disable this check
-            # if you are not planning to display a TOS page - the TOS
-            # acceptance process actually calls usermgt to create the user
-            # jails and related stuff.
-            present_tos(req, user.fullname)
-            return None
-        elif user.state == "disabled":
-            # User has authenticated but their account is disabled
-            badlogin = "Your account has been disabled."
-        elif user.state == "pending":
-            # FIXME: this isn't quite the right answer, but it
-            # should be more robust in the short term.
-            session = req.get_session()
-            session.invalidate()
-            session.delete()
-            user.state = u'no_agreement'
-            req.store.commit()
-            req.throw_redirect(req.uri)
-
 def get_user_details(req):
     """Gets the name of the logged in user, without presenting a login box
     or attempting to authenticate.

@@ -46,11 +46,34 @@ class LoginView(XHTMLView):
             nexturl = '/'
 
         # We are already logged in. Don't bother logging in again.
+        # Note that req.user is None even if we are 'logged in', if the user is
+        # invalid.
         if req.user is not None:
             req.throw_redirect(nexturl)
 
         ctx['path'] = ivle.util.make_path('+login') + \
                          '?' + urllib.urlencode([('url', nexturl)])
+
+        # If this succeeds, the user is invalid.
+        user = get_user_details(req)
+        if user is not None:
+            if user.state == "no_agreement":
+                # Authenticated, but need to accept the ToS. Send them there.
+                # IMPORTANT NOTE FOR HACKERS: You can't simply disable this
+                # if you are not planning to display a ToS page - the ToS
+                # acceptance process actually calls usrmgt to create the user
+                # jails and related stuff.
+                req.throw_redirect(ivle.util.make_path('+tos') + \
+                        '?' + urllib.urlencode([('url', nexturl)]))
+            elif user.state == "pending":
+                # FIXME: this isn't quite the right answer, but it
+                # should be more robust in the short term.
+                session = req.get_session()
+                session.invalidate()
+                session.delete()
+                user.state = u'no_agreement'
+                req.store.commit()
+                req.throw_redirect(nexturl)
 
         if req.method == "POST":
             # While req.user is normally set to get_user_details, it won't set
