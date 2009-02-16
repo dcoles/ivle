@@ -26,6 +26,7 @@ except ImportError:
     pass
 
 import ivle.util
+import ivle.dispatch.login
 from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import CookiePlugin
@@ -130,7 +131,9 @@ class LogoutView(XHTMLView):
     template = 'logout.html'
 
     def authorize(self, req):
-        return req.user is not None
+        # This can be used by any authenticated user, even if they haven't
+        # accepted the ToS yet.
+        return ivle.dispatch.login.get_user_details(req) is not None
 
     def populate(self, req, ctx):
         if req.method == "POST":

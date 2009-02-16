@@ -179,7 +179,6 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
     def __init__(self, req, exception):
         super(XHTMLUnauthorizedView, self).__init__(req, exception)
 
-        # TODO: ToS, disabled, pending
         if req.user is None:
             # Not logged in. Redirect to login page.
             req.throw_redirect('/+login?' + 
