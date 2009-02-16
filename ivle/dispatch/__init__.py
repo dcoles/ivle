@@ -129,7 +129,11 @@ def handler_(req, apachereq):
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
-        req.user = login.get_user_details(req)
+        user = login.get_user_details(req)
+
+        # Don't set the user if it is disabled or hasn't accepted the ToS.
+        if user.valid:
+            req.user = user
 
     ### BEGIN New plugins framework ###
     # XXX This should be done ONCE per Python process, not per request.
