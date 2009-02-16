@@ -154,6 +154,10 @@ from ivle.rpc.decorators import require_method, require_cap
 from ivle.auth import AuthError, authenticate
 import urllib
 
+from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import NotFound
+
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
@@ -166,25 +170,32 @@ user_fields_list = (
     "svn_pass"
 )
 
-def handle(req):
-    """Handler for the Console Service AJAX backend application."""
-    if req.user is None and req.path != 'activate_me':
-        # Not logged in.
+class UserServiceView(BaseView):
+    def __init__(self, req, path):
+        if len(path) > 0 and path[-1] == os.sep:
+            self.path = path[:-1]
+        else:
+            self.path = path
+
+    def authorize(self, req):
         # XXX: activate_me isn't called by a valid user, so is special for now.
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You are not logged in to IVLE.")
-    if len(req.path) > 0 and req.path[-1] == os.sep:
-        path = req.path[:-1]
-    else:
-        path = req.path
-    # The path determines which "command" we are receiving
-    fields = req.get_fieldstorage()
-    try:
-        func = actions_map[req.path]
-    except KeyError:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-        "%s is not a valid userservice action." % repr(req.path))
-    func(req, fields)
+        if req.path == 'activate_me' and get_user_details(req) is not None:
+            return True
+        return req.user is not None
+
+    def render(self, req):
+        # The path determines which "command" we are receiving
+        fields = req.get_fieldstorage()
+        try:
+            func = actions_map[self.path]
+        except KeyError:
+            raise NotFound()
+        func(req, fields)
+
+class Plugin(ViewPlugin):
+    urls = [
+        ('userservice/*path', UserServiceView)
+    ]
 
 @require_method('POST')
 def handle_activate_me(req, fields):
@@ -205,14 +216,6 @@ def handle_activate_me(req, fields):
     "accepting" the terms - at least this way requires them to acknowledge
     their acceptance). It must only be called through a POST request.
     """
-
-    # XXX: Very special because we don't have a valid user, so req.user is
-    # None.
-    user = get_user_details(req)
-
-    if user is None:
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You are not logged in to IVLE.")
 
     try:
         try:

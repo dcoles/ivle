@@ -66,6 +66,7 @@ plugins_HACK = [
     'ivle.webapp.forum#Plugin',
     'ivle.webapp.help#Plugin',
     'ivle.webapp.tos#Plugin',
+    'ivle.webapp.userservice#Plugin',
 ] 
 
 def generate_route_mapper(view_plugins):
@@ -138,7 +139,6 @@ def handler_(req, apachereq):
     ### BEGIN New plugins framework ###
     # XXX This should be done ONCE per Python process, not per request.
     # (Wait till WSGI)
-    # XXX No authentication is done here
     req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
     # Index the plugins by base class
     req.plugin_index = {}
