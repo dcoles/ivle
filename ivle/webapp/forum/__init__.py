@@ -78,6 +78,11 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
         ('forum/*path', ForumView),
     ]
 
+    tabs = [
+        ('forum', 'Forum', 'Discussion boards for material relating to '
+         'Informatics, IVLE and Python.', 'forum.png', 'forum', 4)
+    ]
+
     cookies = {'ivleforumcookie': make_forum_cookie}
 
     media = 'media'

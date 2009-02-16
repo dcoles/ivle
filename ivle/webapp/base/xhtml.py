@@ -24,7 +24,7 @@ import genshi.template
 
 from ivle.webapp.media import media_url
 from ivle.webapp.base.views import BaseView
-from ivle.webapp.base.plugins import OverlayPlugin
+from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 import ivle.conf
 import ivle.util
@@ -98,28 +98,37 @@ class XHTMLView(BaseView):
             ctx['login'] = None
             ctx['logged_in'] = False
         ctx['publicmode'] = req.publicmode
-        ctx['apps_in_tabs'] = []
         if hasattr(self, 'help'):
             ctx['help_path'] = self.help
-        for urlname in ivle.conf.apps.apps_in_tabs:
-            new_app = {}
-            app = ivle.conf.apps.app_url[urlname]
-            new_app['this_app'] = hasattr(self, 'appname') \
-                                  and urlname == self.appname
-            if app.icon:
-                new_app['has_icon'] = True
-                icon_dir = ivle.conf.apps.app_icon_dir
-                icon_url = ivle.util.make_path(os.path.join(icon_dir, app.icon))
-                new_app['icon_url'] = icon_url
-                if new_app['this_app']:
-                    ctx['favicon'] = icon_url
-            else:
-                new_app['has_icon'] = False
-            new_app['path'] = ivle.util.make_path(urlname)
-            new_app['desc'] = app.desc
-            new_app['name'] = app.name
-            ctx['apps_in_tabs'].append(new_app)
-            
+
+        ctx['apps_in_tabs'] = []
+        for plugin in req.plugin_index[ViewPlugin]:
+            if not hasattr(plugin, 'tabs'):
+                continue
+
+            for tab in plugin.tabs:
+                # tab is a tuple: name, title, desc, icon, path
+                new_app = {}
+                new_app['this_app'] = hasattr(self, 'appname') \
+                                      and tab[0] == self.appname
+
+                # Icon name
+                if tab[3] is not None:
+                    new_app['has_icon'] = True
+                    icon_url = media_url(req, plugin, tab[3])
+                    new_app['icon_url'] = icon_url
+                    if new_app['this_app']:
+                        ctx['favicon'] = icon_url
+                else:
+                    new_app['has_icon'] = False
+                new_app['path'] = ivle.util.make_path(tab[4])
+                new_app['desc'] = tab[2]
+                new_app['name'] = tab[1]
+                new_app['weight'] = tab[5]
+                ctx['apps_in_tabs'].append(new_app)
+
+        ctx['apps_in_tabs'].sort(key=lambda tab: tab['weight'])
+
     def render_overlays(self, req):
         """Generate XML streams for the overlays.
         

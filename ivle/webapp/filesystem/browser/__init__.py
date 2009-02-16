@@ -168,6 +168,11 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
         ('files/', BrowserView),
     ]
 
+    tabs = [
+        ('files', 'Files', 'Gives you access to all of your files and lets '
+         'you download, upload, edit and run them.', 'browser.png', 'files', 1)
+    ]
+
     cookies = {'clipboard': None}
 
     help = {'Filesystem': {'Browser': 'help.html'}}
