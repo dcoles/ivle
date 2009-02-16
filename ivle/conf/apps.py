@@ -24,11 +24,6 @@ class App:
                 repr(self.desc), repr(self.icon), repr(self.requireauth),
                 repr(self.hashelp)))
 
-# Directory where app icons are stored, relative to the IVLE root.
-app_icon_dir = "+media/ivle.webapp.core/images/apps"
-# Small version of icons (16x16, for favicon)
-app_icon_dir_small = "+media/ivle.webapp.core/images/apps/small"
-
 # Which application to use for "public host" URLs.
 # (See conf.py)
 public_app = "serve"
