@@ -211,6 +211,8 @@ def handle_activate_me(req, fields):
     their acceptance). It must only be called through a POST request.
     """
 
+    user = get_user_details(req)
+
     try:
         declaration = fields.getfirst('declaration')
     except AttributeError:
