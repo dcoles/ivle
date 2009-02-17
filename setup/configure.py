@@ -38,9 +38,6 @@ import ivle.config
 
 import configobj
 
-# conf_options maps option names to values
-conf_options = {}
-
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
     def __init__(self, option_name, default, prompt, comment, ask=True):
@@ -243,11 +240,16 @@ def __configure(args):
         # the default values.
         conf = ivle.config.Config(blank=True)
 
+    # Check that all the options are present, and if not, load the default
     for opt in config_options:
         try:
-            conf_options[opt.option_name] = conf.get_by_path(opt.option_name)
+            conf.get_by_path(opt.option_name)
         except KeyError:
-            conf_options[opt.option_name] = opt.default
+            conf.set_by_path(opt.option_name, opt.default)
+
+    # Store comments in the conf object
+    for opt in config_options:
+        conf.set_by_path(opt.option_name, comment=opt.comment)
 
     # Set up some variables
     cwd = os.getcwd()
@@ -287,52 +289,51 @@ Please hit Ctrl+C now if you do not wish to do this.
 
         for opt in config_options:
             if opt.ask:
-                conf_options[opt.option_name] = \
-                    query_user(conf_options[opt.option_name], opt.prompt)
+                conf.set_by_path(opt.option_name,
+                    query_user(conf.get_by_path(opt.option_name), opt.prompt))
     else:
         opts = dict(opts)
         # Non-interactive mode. Parse the options.
         for opt in config_options:
             if '--' + opt.option_name in opts:
-                conf_options[opt.option_name] = opts['--' + opt.option_name]
+                conf.set_by_path(opt.option_name,
+                                 opts['--' + opt.option_name])
 
     # Error handling on input values
     try:
         allowed_uids_list = map(int,
-                                conf_options['os/allowed_uids'].split(','))
+                                conf['os']['allowed_uids'].split(','))
     except ValueError:
         print >>sys.stderr, (
         "Invalid UID list (%s).\n"
         "Must be a comma-separated list of integers." %
-            conf_options['os/allowed_uids'])
+            conf['os']['allowed_uids'])
         return 1
     try:
-        conf_options['database/port'] = int(conf_options['database/port'])
-        if (conf_options['database/port'] < 0
-            or conf_options['database/port'] >= 65536):
+        conf['database']['port'] = int(conf['database']['port'])
+        if (conf['database']['port'] < 0
+            or conf['database']['port'] >= 65536):
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid DB port (%s).\n"
         "Must be an integer between 0 and 65535." %
-            repr(conf_options['database/port']))
+            repr(conf['database']['port']))
         return 1
     try:
-        conf_options['usrmgt/port'] = int(conf_options['usrmgt/port'])
-        if (conf_options['usrmgt/port'] < 0
-            or conf_options['usrmgt/port'] >= 65536):
+        conf['usrmgt']['port'] = int(conf['usrmgt']['port'])
+        if (conf['usrmgt']['port'] < 0 or conf['usrmgt']['port'] >= 65536):
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid user management port (%s).\n"
         "Must be an integer between 0 and 65535." %
-            repr(conf_options['usrmgt/port']))
+            repr(conf['usrmgt']['port']))
         return 1
 
     # By default we generate the magic randomly.
-    if conf_options['usrmgt/magic'] is None:
-        conf_options['usrmgt/magic'] = \
-            hashlib.md5(uuid.uuid4().bytes).hexdigest()
+    if conf['usrmgt']['magic'] is None:
+        conf['usrmgt']['magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
     # Generate the forum secret
     forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
@@ -344,12 +345,7 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Add the forum secret to the config file (regenerated each config)
     config_options.append(ConfigOption('plugins/forum/secret', None, '', ''))
-    conf_options['plugins/forum/secret'] = forum_secret
-
-    for opt in config_options:
-        value = conf_options[opt.option_name]
-        if value is not None:
-            conf.set_by_path(opt.option_name, value, opt.comment)
+    conf['plugins']['forum']['secret'] = forum_secret
 
     conf.write()
 
@@ -362,8 +358,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     # XXX Compute jail_base, jail_src_base and jail_system. These will
     # ALSO be done by the boilerplate code, but we need them here in order
     # to write to the C file.
-    jail_base = os.path.join(conf_options['paths/data'], 'jailmounts')
-    jail_src_base = os.path.join(conf_options['paths/data'], 'jails')
+    jail_base = os.path.join(conf['paths']['data'], 'jailmounts')
+    jail_src_base = os.path.join(conf['paths']['data'], 'jails')
     jail_system = os.path.join(jail_src_base, '__base__')
 
     conf_h.write("""/* IVLE Configuration File
@@ -403,20 +399,20 @@ static const int allowed_uids[] = { %s };
     conf_php = open(phpBBconffile, "w")
     
     # php-pg work around
-    if conf_options['database/host'] == 'localhost':
+    if conf['database']['host'] == 'localhost':
         forumdb_host = '127.0.0.1'
     else:
-        forumdb_host = conf_options['database/host']
+        forumdb_host = conf['database']['host']
 
     conf_php.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
 $dbhost = '""" + forumdb_host + """';
-$dbport = '""" + str(conf_options['database/port']) + """';
-$dbname = '""" + conf_options['plugins/forum/dbname'] + """';
-$dbuser = '""" + conf_options['database/username'] + """';
-$dbpasswd = '""" + conf_options['database/password'] + """';
+$dbport = '""" + str(conf['database']['port']) + """';
+$dbname = '""" + conf['plugins']['forum']['dbname'] + """';
+$dbuser = '""" + conf['database']['username'] + """';
+$dbpasswd = '""" + conf['database']['password'] + """';
 
 $table_prefix = 'phpbb_';
 $acm_type = 'file';

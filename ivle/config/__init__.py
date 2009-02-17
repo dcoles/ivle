@@ -52,6 +52,7 @@ def search_conffile():
         return '/etc/ivle/ivle.conf'
     raise ConfigError("Could not find IVLE config file")
 
+_NO_VALUE = []
 class Config(ConfigObj):
     """
     The configuration object. Can be instantiated with no arguments (will
@@ -77,11 +78,11 @@ class Config(ConfigObj):
             # XXX This doesn't raise errors if it doesn't validate
             self.validate(Validator())
 
-    def set_by_path(self, path, value, comment=None):
+    def set_by_path(self, path, value=_NO_VALUE, comment=None):
         """Writes a value to an option, given a '/'-separated path.
         @param path: '/'-separated path to configuration option.
-        @param value: value to write to the option.
-        @param comment: optional comment string (lines separated by '\n's).
+        @param value: Optional - value to write to the option.
+        @param comment: Optional - comment string (lines separated by '\n's).
         """
         path = path.split('/')
         # Iterate over each segment of the path, and find the section in conf
@@ -94,7 +95,8 @@ class Config(ConfigObj):
             conf_section = conf_section[seg]
         # The final path segment names the key to insert into
         keyname = path[-1]
-        conf_section[keyname] = value
+        if value is not _NO_VALUE:
+            conf_section[keyname] = value
         if comment is not None:
             conf_section.comments[keyname] = comment.split('\n')
 
