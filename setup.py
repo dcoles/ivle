@@ -22,12 +22,11 @@
 
 # This is a command-line application, for use by the administrator.
 # This program is a frontend for the modules in the setup packages that 
-# configure, build and install IVLE in three separate steps.
+# build and install IVLE in separate steps.
 # It is called with at least one argument, which specifies which operation to
 # take.
 
 import sys
-import setup.configure
 import setup.build
 import setup.install
 
