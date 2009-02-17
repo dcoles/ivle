@@ -326,5 +326,6 @@ class InstallList(object):
         "bin/ivle-mountallusers",
         "bin/ivle-remakeuser",
         "bin/ivle-showenrolment",
+        "bin/ivle-config",
         "bin/ivle-buildjail",
     ]
