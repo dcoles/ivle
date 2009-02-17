@@ -201,24 +201,17 @@ def handler_(req, apachereq):
         else:
             req.store.commit()
             return req.OK
+    else:
+        # We had no matching URL! Check if it matches an old-style app. If
+        # not, 404.
+        if req.app not in ivle.conf.apps.app_url:
+            return req.HTTP_NOT_FOUND # TODO: Prettify.
     ### END New plugins framework ###
 
-    # Check req.app to see if it is valid. 404 if not.
-    if req.app is not None and req.app not in ivle.conf.apps.app_url:
-        req.throw_error(Request.HTTP_NOT_FOUND,
-            "There is no application called %s." % repr(req.app))
 
-    # Special handling for public mode - only allow the public app, call it
-    # and get out.
-    # NOTE: This will not behave correctly if the public app uses
-    # write_html_head_foot, but "serve" does not.
-    if req.publicmode:
-        if req.app != ivle.conf.apps.public_app:
-            req.throw_error(Request.HTTP_FORBIDDEN,
-                "This application is not available on the public site.")
-        app = ivle.conf.apps.app_url[ivle.conf.apps.public_app]
-        apps.call_app(app.dir, req)
-        return req.OK
+    ### BEGIN legacy application framework ###
+    # We have no public apps back here.
+    assert not req.publicmode
 
     # app is the App object for the chosen app
     if req.app is None:
@@ -244,23 +237,8 @@ def handler_(req, apachereq):
         # sessions not time out.
         req.get_session().unlock()
 
-        # If user did not specify an app, HTTP redirect to default app and
-        # exit.
-        if req.app is None:
-            req.throw_redirect(util.make_path(ivle.conf.apps.default_app))
-
-        # Set the default title to the app's tab name, if any. Otherwise URL
-        # name.
-        if app.name is not None:
-            req.title = app.name
-        else:
-            req.title = req.app
-
         # Call the specified app with the request object
         apps.call_app(app.dir, req)
-
-    # if not logged in, login.login will have written the login box.
-    # Just clean up and exit.
 
     # MAKE SURE we write the HTTP (and possibly HTML) header. This
     # wouldn't happen if nothing else ever got written, so we have to make
