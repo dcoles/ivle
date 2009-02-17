@@ -109,7 +109,11 @@ def serve_file(req, owner, jail, path, download=False):
                 [path])
     assert not err
 
-    response = cjson.decode(out)
+    # Remove the JSON from the front of the response, and decode it.
+    json = out.split('\n', 1)[0]
+    out = out[len(json) + 1:]
+    response = cjson.decode(json)
+
     if 'error' in response:
         if response['error'] == 'not-found':
             raise NotFound()
@@ -119,7 +123,7 @@ def serve_file(req, owner, jail, path, download=False):
             raise AssertionError('Unknown error from serveservice: %s' %
                                  response['error'])
 
-    req.write(response['content'])
+    req.write(out)
 
 class Plugin(ViewPlugin):
     urls = [

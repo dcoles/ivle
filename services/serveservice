@@ -137,10 +137,10 @@ if zipmode:
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
         
-    print cjson.encode({'content': zipfile.getvalue(),
-                        'type': zip_mimetype,
+    print cjson.encode({'type': zip_mimetype,
                         'name': zipfilename})
+    print zipfile.getvalue()
 else:
-    print cjson.encode({'content': open(filename).read(),
-                        'type': determine_file_type(filename),
+    print cjson.encode({'type': determine_file_type(filename),
                         'name': os.path.basename(filename)})
+    print open(filename).read()
