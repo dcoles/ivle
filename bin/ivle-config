@@ -112,7 +112,7 @@ providing login-free access to student's published work:""",
 # Private mode (normal mode) requires login, and only serves files relevant to
 # the logged-in user."""))
 
-config_options.append(ConfigOption("os/allowed_uids", "33",
+config_options.append(ConfigOption("os/allowed_uids", [33],
     """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
 a comma-separated list.
@@ -328,15 +328,18 @@ Please hit Ctrl+C now if you do not wish to do this.
                                  opts['--' + opt.option_name])
 
     # Error handling on input values
-    try:
-        allowed_uids_list = map(int,
+    if type(conf['os']['allowed_uids']) == list:
+        allowed_uids_list = conf['os']['allowed_uids']
+    else:
+        try:
+            allowed_uids_list = map(int,
                                 conf['os']['allowed_uids'].split(','))
-    except ValueError:
-        print >>sys.stderr, (
-        "Invalid UID list (%s).\n"
-        "Must be a comma-separated list of integers." %
-            conf['os']['allowed_uids'])
-        return 1
+        except ValueError:
+            print >>sys.stderr, (
+            "Invalid UID list (%s).\n"
+            "Must be a comma-separated list of integers." %
+                conf['os']['allowed_uids'])
+            return 1
     try:
         conf['database']['port'] = int(conf['database']['port'])
         if (conf['database']['port'] < 0
@@ -385,13 +388,6 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     conf_h = open(conf_hfile, "w")
 
-    # XXX Compute jail_base, jail_src_base and jail_system. These will
-    # ALSO be done by the boilerplate code, but we need them here in order
-    # to write to the C file.
-    jail_base = os.path.join(conf['paths']['data'], 'jailmounts')
-    jail_src_base = os.path.join(conf['paths']['data'], 'jails')
-    jail_system = os.path.join(jail_src_base, '__base__')
-
     conf_h.write("""/* IVLE Configuration File
  * conf.h
  * Administrator settings required by trampoline.
@@ -401,24 +397,12 @@ Please hit Ctrl+C now if you do not wish to do this.
 
 #define IVLE_AUFS_JAILS
 
-/* In the local file system, where are the jails located.
- * The trampoline does not allow the creation of a jail anywhere besides
- * jail_base or a subdirectory of jail_base.
- */
-static const char* jail_base = "%s";
-static const char* jail_src_base = "%s";
-static const char* jail_system = "%s";
-
 /* Which user IDs are allowed to run the trampoline.
  * This list should be limited to the web server user.
  * (Note that root is an implicit member of this list).
  */
 static const int allowed_uids[] = { %s };
-""" % (repr(jail_base)[1:-1], repr(jail_src_base)[1:-1],
-       repr(jail_system)[1:-1], repr(allowed_uids_list)[1:-1]))
-    # Note: The above uses PYTHON reprs, not C reprs
-    # However they should be the same with the exception of the outer
-    # characters, which are stripped off and replaced
+""" % (repr(allowed_uids_list)[1:-1]))
 
     conf_h.close()
 
