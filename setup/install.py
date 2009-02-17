@@ -35,7 +35,6 @@ Create target install directory ($target).
 Create $target/bin.
 Copy bin/trampoline/trampoline to $target/bin.
 Copy bin/timount/timount to $target/bin.
-Copy etc/ivle.conf to /etc/ivle/ivle.conf.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
 """

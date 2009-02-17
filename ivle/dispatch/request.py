@@ -277,7 +277,7 @@ class Request:
             all_cookies = mod_python.Cookie.get_cookies(self)
 
             # Create cookies for plugins that might request them.
-            for plugin in self.plugin_index[CookiePlugin]:
+            for plugin in self.config.plugin_index[CookiePlugin]:
                 for cookie in plugin.cookies:
                     self.add_cookie(mod_python.Cookie.Cookie(cookie, '',
                                                     expires=1, path='/'))
