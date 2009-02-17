@@ -36,7 +36,6 @@ Copy bin/timount/timount to $target/bin.
 Copy etc/ivle.conf to /etc/ivle/ivle.conf.
 chown and chmod the installed trampoline.
 Copy www/ to $target.
-Copy subjects/ to subjects directory (unless --nosubjects specified).
 """
 
     # Parse arguments
@@ -44,9 +43,6 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
     parser.add_option("-n", "--dry",
         action="store_true", dest="dry",
         help="Print out the actions but don't do anything.")
-    parser.add_option("-S", "--nosubjects",
-        action="store_true", dest="nosubjects",
-        help="Don't copy subject/ to subjects directory.")
     parser.add_option("-R", "--nosvnrevno",
         action="store_true", dest="nosvnrevno",
         help="Don't write out the Subversion revision to the share directory.")
@@ -57,10 +53,10 @@ Copy subjects/ to subjects directory (unless --nosubjects specified).
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    return __install(options.dry, options.nosubjects, options.rootdir,
-                     options.nosvnrevno)
+    return __install(dry=options.dry, rootdir=options.rootdir,
+                     nosvnrevno=options.nosvnrevno)
 
-def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
+def __install(dry=False, rootdir=None, nosvnrevno=False):
     # We need to import the one in the working copy, not in the system path.
     confmodule = __import__("ivle/conf/conf")
     install_list = util.InstallList()
@@ -74,10 +70,6 @@ def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
     share_path = mip(confmodule.share_path)
     bin_path = mip(confmodule.bin_path)
     python_site_packages = mip(confmodule.python_site_packages)
-    jail_base = mip(confmodule.jail_base)
-    jail_system = mip(confmodule.jail_system)
-    subjects_base = mip(confmodule.subjects_base)
-    exercises_base = mip(confmodule.exercises_base)
 
     # Must be run as root or a dry run  
     if dry:
@@ -86,27 +78,6 @@ def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
     if not dry and os.geteuid() != 0:
         print >>sys.stderr, "Must be root to run install"
         return 1
-
-    # Make some directories for data.
-    util.action_mkdir(mip(confmodule.log_path), dry)
-    util.action_mkdir(mip(confmodule.data_path), dry)
-    util.action_mkdir(mip(confmodule.jail_base), dry)
-    util.action_mkdir(mip(confmodule.jail_src_base), dry)
-    util.action_mkdir(mip(confmodule.content_path), dry)
-    util.action_mkdir(mip(confmodule.notices_path), dry)
-    util.action_mkdir(os.path.join(mip(confmodule.data_path), 'sessions'), dry)
-    util.action_mkdir(mip(confmodule.svn_path), dry)
-    util.action_mkdir(mip(confmodule.svn_repo_path), dry)
-    util.action_mkdir(os.path.join(mip(confmodule.svn_repo_path), 'users'),dry)
-    util.action_mkdir(os.path.join(mip(confmodule.svn_repo_path),'groups'),dry)
-
-    util.action_chown(mip(confmodule.log_path), util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(mip(confmodule.data_path), 'sessions'),
-                      util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(mip(confmodule.svn_repo_path), 'users'),
-                      util.wwwuid, util.wwwuid, dry)
-    util.action_chown(os.path.join(mip(confmodule.svn_repo_path), 'groups'),
-                      util.wwwuid, util.wwwuid, dry)
 
     # Create lib and copy the compiled files there
     util.action_mkdir(lib_path, dry)
@@ -144,19 +115,6 @@ def __install(dry=False, nosubjects=False, rootdir=None, nosvnrevno=False):
 
     # Copy the lib directory (using the list)
     util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
-
-    # Make the config file private
-    configpath = os.path.join(python_site_packages, 'ivle/conf/conf.py')
-    util.action_make_private(configpath, dry)
-
-    if not nosubjects:
-        # Copy the subjects and exercises directories across
-        util.action_mkdir(subjects_base, dry)
-        util.action_copylist(install_list.list_subjects, subjects_base, dry,
-            srcdir="./subjects")
-        util.action_mkdir(exercises_base, dry)
-        util.action_copylist(install_list.list_exercises, exercises_base, dry,
-            srcdir="./exercises")
 
     # XXX We shouldn't have ivle.pth at all any more.
     # We may still need the www packages to be importable.
