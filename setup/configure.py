@@ -33,7 +33,6 @@ import sys
 import hashlib
 import uuid
 
-from setup.util import query_user
 import ivle.config
 
 import configobj
@@ -221,6 +220,36 @@ config_options.append(ConfigOption("usrmgt/magic", None,
     """The password for the usrmgt-server:""",
     """
 # The password for the usrmgt-server.""", ask=False))
+
+def query_user(default, prompt):
+    """Prompts the user for a string, which is read from a line of stdin.
+    Exits silently if EOF is encountered. Returns the string, with spaces
+    removed from the beginning and end.
+
+    Returns default if a 0-length line (after spaces removed) was read.
+    """
+    if default is None:
+        # A default of None means the value will be computed specially, so we
+        # can't really tell you what it is
+        defaultstr = "computed"
+    elif isinstance(default, basestring):
+        defaultstr = '"%s"' % default
+    else:
+        defaultstr = repr(default)
+    sys.stdout.write('%s\n    (default: %s)\n>' % (prompt, defaultstr))
+    try:
+        val = sys.stdin.readline()
+    except KeyboardInterrupt:
+        # Ctrl+C
+        sys.stdout.write("\n")
+        sys.exit(1)
+    sys.stdout.write("\n")
+    # If EOF, exit
+    if val == '': sys.exit(1)
+    # If empty line, return default
+    val = val.strip()
+    if val == '': return default
+    return val
 
 def configure(args):
     # Call the real function
