@@ -43,6 +43,14 @@ class ViewPlugin(BasePlugin):
     """
     pass
 
+class PublicViewPlugin(BasePlugin):
+    """Marker class for plugins that provide public mode views.
+
+    Public view plugins can specify the same 'urls' property as normal view
+    plugins, but they are added to the public mode router instead.
+    """
+    pass
+
 class OverlayPlugin(BasePlugin):
     """Marker class for plugins which provide overlays.
 

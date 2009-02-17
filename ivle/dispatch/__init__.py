@@ -45,7 +45,7 @@ import ivle.conf
 import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 import apps
 import html
@@ -70,7 +70,7 @@ plugins_HACK = [
     'ivle.webapp.userservice#Plugin',
 ] 
 
-def generate_route_mapper(view_plugins):
+def generate_route_mapper(view_plugins, attr):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
@@ -79,7 +79,7 @@ def generate_route_mapper(view_plugins):
     for plugin in view_plugins:
         # Establish a URL pattern for each element of plugin.urls
         assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
-        for url in plugin.urls:
+        for url in getattr(plugin, attr):
             routex = url[0]
             view_class = url[1]
             kwargs_dict = url[2] if len(url) >= 3 else {}
@@ -150,7 +150,13 @@ def handler_(req, apachereq):
                 req.plugin_index[base] = []
             req.plugin_index[base].append(plugin)
     req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
-    req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin])
+
+    if req.publicmode:
+        req.mapper = generate_route_mapper(req.plugin_index[PublicViewPlugin],
+                                           'public_urls')
+    else:
+        req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin],
+                                           'urls')
 
     matchdict = req.mapper.match(req.uri)
     if matchdict is not None:
