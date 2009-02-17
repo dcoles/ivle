@@ -63,7 +63,14 @@ class ServeView(BaseView):
             # There is no user.
             raise NotFound()
 
+        self.serve(req, owner, jail, path)
+
+    def serve(self, req, owner, jail, path):
         serve_file(req, owner, jail, path)
+
+class DownloadView(ServeView):
+    def serve(self, req, owner, jail, path):
+        serve_file(req, owner, jail, path, download=True)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
@@ -103,10 +110,14 @@ def serve_file(req, owner, jail, path, download=False):
     if not authorize(req):
         raise Unauthorized()
 
+    args = [path]
+    if download:
+        args.insert(0, '-d')
+
     # TODO: Download. Content-Disposition, etc.
     (out, err) = ivle.interpret.execute_raw(req.user, jail, '/home',
                 os.path.join(ivle.conf.share_path, 'services/serveservice'),
-                [path])
+                args)
     assert not err
 
     # Remove the JSON from the front of the response, and decode it.
@@ -123,10 +134,14 @@ def serve_file(req, owner, jail, path, download=False):
             raise AssertionError('Unknown error from serveservice: %s' %
                                  response['error'])
 
+    if download:
+        req.headers_out["Content-Disposition"] = \
+                     "attachment; filename=%s" % response['name']
     req.content_type = response['type']
     req.write(out)
 
 class Plugin(ViewPlugin):
     urls = [
-        ('serve/*path', ServeView)
+        ('serve/*path', ServeView),
+        ('download/*path', DownloadView),
     ]
