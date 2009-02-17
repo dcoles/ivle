@@ -23,7 +23,6 @@ import mimetypes
 import os
 import sys
 import StringIO
-import urlparse
 from optparse import OptionParser
 
 import cjson
@@ -128,6 +127,9 @@ if zipmode:
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
         
-    print cjson.encode({'content': zipfile.getvalue(), 'type': zip_mimetype})
+    print cjson.encode({'content': zipfile.getvalue(),
+                        'type': zip_mimetype,
+                        'name': zipfilename})
 else:
-    print cjson.encode({'content': open(filename).read()})
+    print cjson.encode({'content': open(filename).read(),
+                        'type': determine_file_type(filename)})
