@@ -49,8 +49,6 @@ Optionally generates .pyc files for all the IVLE .py files."""
     return __build(options.dry, options.nocompile)
 
 def __build(dry=False, no_compile=None):
-    # We need to import the one in the working copy, not in the system path.
-    confmodule = __import__("ivle/conf/conf")
     install_list = util.InstallList()
 
     if dry:
