@@ -48,7 +48,6 @@ CONFIG_OPTIONS = {
     'db_host': 'database/host',
     'db_port': 'database/port',
     'db_dbname': 'database/name',
-    'db_forumdbname': 'plugins/forum/dbname',
     'db_user': 'database/username',
     'db_password': 'database/password',
     'auth_modules': 'auth/modules',

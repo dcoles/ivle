@@ -129,11 +129,6 @@ config_options.append(ConfigOption("database/name", "ivle",
     """
 # Database name"""))
 
-config_options.append(ConfigOption("plugins/forum/dbname", "ivle_forum",
-    """Forum Database name:""",
-    """
-# Forum Database name"""))
-
 config_options.append(ConfigOption("database/username", "postgres",
     """Username for DB server login:""",
     """
@@ -272,7 +267,6 @@ def configure(args):
 
     # the files that will be created/overwritten
     conffile = os.path.join(cwd, "etc/ivle.conf")
-    phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
 
     # Get command-line arguments to avoid asking questions.
 
@@ -288,14 +282,11 @@ def configure(args):
     if opts == []:
         # Interactive mode. Prompt the user for all the values.
 
-        print """This tool will create the following files:
-    %s
-    %s
-prompting you for details about your configuration. The file will be
-overwritten if it already exists. It will *not* install or deploy IVLE.
+        print """This tool will create %s, prompting you for details about
+your configuration. The file will be overwritten if it already exists.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, phpBBconffile)
+""" % conffile
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -342,61 +333,24 @@ Please hit Ctrl+C now if you do not wish to do this.
     except KeyError:
         conf['usrmgt']['magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
-    # Generate the forum secret
-    forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
     # Write ./etc/ivle.conf (even if we loaded from a different filename)
     conf.filename = conffile
 
     conf.initial_comment = ["# IVLE Configuration File"]
 
-    # Add the forum secret to the config file (regenerated each config)
-    config_options.append(ConfigOption('plugins/forum/secret', None, '', ''))
-    conf['plugins']['forum']['secret'] = forum_secret
+    try:
+        conf['plugins']['forum']['secret']
+    except KeyError:
+        # Generate the forum secret.
+        forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+        conf['plugins']['forum']['secret'] = forum_secret
 
     conf.write()
 
     print "Successfully wrote %s" % conffile
-
-    # Write www/php/phpBB3/config.php
-
-    conf_php = open(phpBBconffile, "w")
-    
-    # php-pg work around
-    if conf['database']['host'] == 'localhost':
-        forumdb_host = '127.0.0.1'
-    else:
-        forumdb_host = conf['database']['host']
-
-    conf_php.write( """<?php
-// phpBB 3.0.x auto-generated configuration file
-// Do not change anything in this file!
-$dbms = 'postgres';
-$dbhost = '""" + forumdb_host + """';
-$dbport = '""" + str(conf['database']['port']) + """';
-$dbname = '""" + conf['plugins']['forum']['dbname'] + """';
-$dbuser = '""" + conf['database']['username'] + """';
-$dbpasswd = '""" + conf['database']['password'] + """';
-
-$table_prefix = 'phpbb_';
-$acm_type = 'file';
-$load_extensions = '';
-@define('PHPBB_INSTALLED', true);
-// @define('DEBUG', true);
-//@define('DEBUG_EXTRA', true);
-
-$forum_secret = '""" + forum_secret +"""';
-?>"""   )
-    
-    conf_php.close()
-
-    print "Successfully wrote %s" % phpBBconffile
-
     print
-    print "You may modify the configuration at any time by editing"
-    print conffile
-    print phpBBconffile
-    print
+    print "You may modify the configuration at any time by editing " + conffile
     
     return 0
 
