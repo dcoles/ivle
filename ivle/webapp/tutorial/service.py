@@ -25,6 +25,7 @@ import datetime
 import ivle.util
 import ivle.console
 import ivle.database
+from ivle.database import Exercise, ExerciseAttempt, ExerciseSave
 import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
@@ -42,22 +43,23 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
-    def __init__(self, req, subject, worksheet, exercise, username):
-        # TODO: Find exercise within worksheet.
+    def __init__(self, req, subject, year, semester, worksheet, 
+                                                exercise, username):
         self.user = ivle.database.User.get_by_login(req.store, username)
         if self.user is None:
             raise NotFound()
         self.exercise = exercise
+        
         self.context = self.user # XXX: Not quite right.
 
     @require_permission('edit')
     def GET(self, req):
         """Handles a GET Attempts action."""
-        exercise = ivle.database.Exercise.get_by_name(req.store, 
-                                                        self.exercise)
+        exercise = req.store.find(Exercise, Exercise.id == self.exercise).one()
 
-        attempts = ivle.worksheet.get_exercise_attempts(req.store, self.user,
-                            exercise, allow_inactive=HISTORY_ALLOW_INACTIVE)
+        attempts = req.store.find(ExerciseAttempt, 
+                ExerciseAttempt.exercise_id == exercise.id,
+                ExerciseAttempt.user_id == self.user.id)
         # attempts is a list of ExerciseAttempt objects. Convert to dictionaries
         time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
         attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
@@ -69,8 +71,8 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def PUT(self, req, data):
         """ Tests the given submission """
-        exercisefile = ivle.util.open_exercise_file(self.exercise)
-        if exercisefile is None:
+        exercise = req.store.find(Exercise, Exercise.id == self.exercise).one()
+        if exercise is None:
             raise NotFound()
 
         # Start a console to run the tests on
@@ -80,8 +82,7 @@ class AttemptsRESTView(JSONRESTView):
 
         # Parse the file into a exercise object using the test suite
         exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(
-                                                            exercisefile, cons)
-        exercisefile.close()
+                                                            exercise, cons)
 
         # Run the test cases. Get the result back as a JSONable object.
         # Return it.
@@ -89,9 +90,6 @@ class AttemptsRESTView(JSONRESTView):
 
         # Close the console
         cons.close()
-
-        # Get the Exercise from the database
-        exercise = ivle.database.Exercise.get_by_name(req.store, self.exercise)
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
                                                 exercise=exercise,
@@ -155,12 +153,8 @@ class ExerciseRESTView(JSONRESTView):
     def save(self, req, text):
         # Need to open JUST so we know this is a real exercise.
         # (This avoids users submitting code for bogus exercises).
-        exercisefile = ivle.util.open_exercise_file(self.exercise)
-        if exercisefile is None:
-            raise NotFound()
-        exercisefile.close()
-
-        exercise = ivle.database.Exercise.get_by_name(req.store, self.exercise)
+        exercise = req.store.find(Exercise,
+            Exercise.id == self.exercise).one()
         ivle.worksheet.save_exercise(req.store, req.user, exercise,
                                      unicode(text), datetime.datetime.now())
         return {"result": "ok"}

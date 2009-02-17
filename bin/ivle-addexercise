@@ -23,7 +23,7 @@
 import os, sys
 import xml.dom.minidom as minidom
 
-from ivle.database import Exercise, TestSuite, TestCase, get_store
+from ivle.database import Exercise, TestSuite, TestCase, TestSuiteVar, TestCasePart, get_store
 
 class XMLMalformedError(Exception):
     """Error thrown when encountering malformed data."""
@@ -39,10 +39,22 @@ def getTextData(element):
     for child in element.childNodes:
         if child.nodeType == child.CDATA_SECTION_NODE:
             data += child.data
-        if child.nodeType == child.TEXT_NODE:
+        elif child.nodeType == child.TEXT_NODE:
             data += child.data
+        else:
+            data += child.toxml()
 
-    return data.strip()
+    return unicode(data.strip())
+
+def add_var(store, var_type, var_name=u"", var_value=u"", arg_no=0):
+    """Given an var node, parse it into a storm object."""
+    new_var = TestSuiteVar()
+    new_var.var_name = unicode(var_name)
+    new_var.var_value = unicode(var_value)
+    new_var.var_type = unicode(var_type)
+    new_var.arg_no = arg_no
+    store.add(new_var)
+    return new_var
 
 def add_test_suite(suite_node, suite_num, store):
     """Given a test suite element, get all the cases it contains."""
@@ -51,36 +63,113 @@ def add_test_suite(suite_node, suite_num, store):
     for case_node in suite_node.getElementsByTagName('function'):
         case_num += 1
         cases.append(add_test_case(case_node, case_num, store))
+
+    ## ALLOWED TAGS ##
+    # stdin     - Stdin for the suite - Unique - Text inside element
+    # file      - File to add to the filespace - Name - List
+    # var       - Variable for the suite - Name/Value - List
+    # arg       - Argument to functions - Name/Value - ORDERED List
+    # exception - Allowed exception name - Name - List
+    # function  - An actual test case
+    suite_vars = []
+    
+    # Add file nodes
+    file_nodes = suite_node.getElementsByTagName('file')
+    for file_node in file_nodes:
+        suite_vars.append(add_var(store, 'file', file_node.getAttribute('name')))
+    
+    # Add vars
+    var_nodes = suite_node.getElementsByTagName('var')
+    for var_node in var_nodes:
+        var_name = var_node.getAttribute('name')
+        var_value = var_node.getAttribute('value')
+        suite_vars.append(add_var(store, 'var', var_name, var_value))
+    
+    # Args need to be numbered as they are found, as this order matters
+    arg_num = 0
+    for arg_node in suite_node.getElementsByTagName('arg'):
+        suite_vars.append(add_var(store, 'arg', arg_node.getAttribute('name'),
+                          arg_node.getAttribute('value'), arg_num))
+        arg_num += 1
+         
+    # Add allowed exceptions
+    exception_nodes = suite_node.getElementsByTagName('exception')
+    for exception_node in exception_nodes:
+        name = exception_node.getAttribute('name')
+        suite_vars.append(add_var(store, 'exception', name))
+    
+    # Can only have 0-1 stdin elements
+    stdin = suite_node.getElementsByTagName('stdin')
+    if len(stdin) > 1:
+        raise XMLMalformedError('Too many stdin tags found.')
+    if stdin:
+        stdin = getTextData(stdin[0])
+    else:
+        stdin = ""
+    
     new_suite = TestSuite()
-    new_suite.description = suite_node.getAttribute('name')
+    new_suite.description = unicode(suite_node.getAttribute('name'))
     new_suite.seq_no = suite_num
+    new_suite.function = unicode(suite_node.getAttribute('function'))
+    new_suite.stdin = unicode(stdin)
     for testcase in cases:
         new_suite.test_cases.add(testcase)
+    for var in suite_vars:
+        new_suite.variables.add(var)
     store.add(new_suite)
     return new_suite
 
+def add_part(store, element_type, test_type, data, filename=u""):
+    new_part = TestCasePart()
+    new_part.element_type = element_type
+    new_part.test_type = test_type
+    new_part.data = data
+    new_part.filename = unicode(filename)
+    store.add(new_part)
+    return new_part
 
 def add_test_case(case_node, case_num, store):
-    """Given a test case, generate its data"""
-    # First perform basic error checks
-    if not case_node.tagName == 'function': 
-        raise XMLMalformedError(case_node.tagName + ' node')
-    case_data = case_node.getElementsByTagName('code')
-    if not case_data:
-        case_data = case_node.getElementsByTagName('stdout')
-    if not case_data:
-        raise XMLMalformedError()
-    case_data = case_data[0]
+    """Given a test case node, parse it int a storm object."""
+    
+    ## ALLOWED TAGS ##
+    # A function is allowed to contain the following elements 
+    # stdout
+    # stderr
+    # result
+    # exception
+    # file
+    # code
+    allowed_parts = ['stdout', 'stderr', 'result', 'exception', 'file', 'code']
+    parts = []
+    for child_node in case_node.childNodes:
+        if child_node.nodeType != child_node.ELEMENT_NODE:
+            continue
+        
+        if child_node.tagName == 'file':
+            part_type = 'file'
+            test_type = child_node.getAttribute('type')
+            data = getTextData(child_node)
+            filename = child_node.getAttribute('name')
+            if filename == "":
+                raise XMLMalformedException('file tag must have names')
+            parts.append(add_part(store, element_type, test_type, data,
+                                        filename))
+            
+        elif child_node.tagName in allowed_parts:
+            part_type = child_node.tagName
+            test_type = child_node.getAttribute('type')
+            data = getTextData(child_node)    
+            parts.append(add_part(store, part_type, test_type, data))
+
     #Now create the object to hold the data
     new_test_case = TestCase()
-    new_test_case.passmsg = case_node.getAttribute('pass')
-    new_test_case.failmsg = case_node.getAttribute('fail')
-    new_test_case.init = case_node.getAttribute('default')
-    new_test_case.code_type = case_data.getAttribute('type')
-    new_test_case.code = getTextData(case_data)
-    new_test_case.testtype = case_data.tagName
+    new_test_case.passmsg = unicode(case_node.getAttribute(u'pass'))
+    new_test_case.failmsg = unicode(case_node.getAttribute(u'fail'))
+    new_test_case.test_default = unicode(case_node.getAttribute(u'default'))
     new_test_case.seq_no = case_num
     store.add(new_test_case)
+    for part in parts:
+        new_test_case.parts.add(part)
     return new_test_case
 
 xmlfile = sys.argv[1]
@@ -97,6 +186,7 @@ for child in filedom.childNodes:
         sys.exit('ivle-addexercise: error parsing XML: root node must be "exercise"')
 
 exercisename = exercise.getAttribute('name')
+rows = exercise.getAttribute('rows')
 solution = None
 partial_solution = None
 include_code = None
@@ -131,6 +221,7 @@ store = get_store()
 new_exercise = Exercise()
 new_exercise.id = unicode(xmlfile)
 new_exercise.name = exercisename
+new_exercise.num_rows = int(rows)
 new_exercise.partial = partial_solution
 new_exercise.solution = solution
 new_exercise.include = include_code

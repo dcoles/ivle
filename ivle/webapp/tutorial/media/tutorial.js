@@ -90,8 +90,8 @@ function submitexercise(exerciseid, filename)
             /* Close the "view previous" area (force reload) */
             close_previous(exerciseid);
         }
-    attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
-        + "/" + filename + '/+attempts/' + username;
+    attempts_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
+        "/+worksheets/" + worksheet + "/" + filename + '/+attempts/' + username;
     ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
 }
 
@@ -119,8 +119,8 @@ function saveexercise(exerciseid, filename)
             set_saved_status(exerciseid, filename, "Saved");
         }
         
-    call_path = 'api/subjects/' + subject + '/+worksheets/' + worksheet + 
-                                                                '/' + filename;
+    call_path = 'api/subjects/' + subject + "/" + year + "/" + semester + 
+                                '/+worksheets/' + worksheet + '/' + filename;
     ajax_call(callback, call_path, "", args, "POST");
 }
 
@@ -144,7 +144,7 @@ function resetexercise(exerciseid, filename)
     var resettextbox = document.getElementById("input_resettext_" + exerciseid);
     var text_urlencoded = resettextbox.value;
     /* Need to un-urlencode the value */
-    exercisebox.value = decodeURIComponent(text_urlencoded);
+    exercisebox.value = text_urlencoded;//decodeURIComponent(text_urlencoded);
     /* We changed the text, so make Save button available, and autosave after
      * 10 seconds. */
     set_saved_status(exerciseid, filename, "Save");
@@ -549,8 +549,8 @@ function open_previous(exerciseid, filename)
             else
                 noattempts.setAttribute("style", "display: auto");
         }
-    attempts_path = "api/subjects/" + subject + "/+worksheets/" + worksheet 
-        + "/" + filename + '/+attempts/' + username;
+    attempts_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
+        "/+worksheets/" + worksheet + "/" + filename + '/+attempts/' + username;
     ajax_call(callback, attempts_path, "", {}, "GET");
 }
 
@@ -625,7 +625,8 @@ function select_attempt(exerciseid, filename)
             textarea.setAttribute("style", "display: auto");
         }
         
-    call_path = "api/subjects/" + subject + '/+worksheets/' + worksheet + '/' 
-                        + filename + '/+attempts/' + username + '/' + date;
+    call_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
+            '/+worksheets/' + worksheet + '/' + filename + '/+attempts/' 
+            + username + '/' + date;
     ajax_call(callback, call_path, "", {}, "GET");
 }

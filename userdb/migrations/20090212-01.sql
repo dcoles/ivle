@@ -52,20 +52,37 @@ CREATE TABLE test_suite (
     problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     description text,
     seq_no      INT4,
+    function    TEXT,
+    stdin       TEXT,
     PRIMARY KEY (problemid, suiteid)
 );
 
 CREATE TABLE test_case (
-    testid      SERIAL UNIQUE NOT NULL,
-    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
-    passmsg     TEXT,
-    failmsg     TEXT,
-    init        TEXT,
-    code_type   TEXT,
-    code        TEXT,
-    testtype    TEXT,
-    seq_no    INT4,
+    testid          SERIAL UNIQUE NOT NULL,
+    suiteid         INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    passmsg         TEXT,
+    failmsg         TEXT,
+    test_default    TEXT,
+    seq_no          INT4,
     PRIMARY KEY (testid, suiteid)
+);
+
+CREATE TABLE suite_variables (
+    varid       SERIAL PRIMARY KEY NOT NULL,
+    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    var_name    TEXT,
+    var_value   TEXT,
+    var_type    TEXT NOT NULL,
+    arg_no      INT4
+);
+
+CREATE TABLE test_case_parts (
+    partid       SERIAL PRIMARY KEY NOT NULL,
+    testid          INT4 REFERENCES test_case (testid) NOT NULL,
+    part_type       TEXT,
+    test_type       TEXT,
+    data            TEXT,
+    filename        TEXT
 );
 
 -- Link worksheets to offerings

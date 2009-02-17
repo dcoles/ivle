@@ -39,7 +39,7 @@ __all__ = ['get_store',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
-            'AlreadyEnrolledError', 'TestCase', 'TestSuite'
+            'AlreadyEnrolledError', 'TestCase', 'TestSuite', 'TestSuiteVar'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -228,8 +228,8 @@ class Subject(Storm):
         perms = set()
         if user is not None:
             perms.add('view')
-        if user.rolenm == 'admin':
-            perms.add('edit')
+            if user.rolenm == 'admin':
+                perms.add('edit')
         return perms
 
 class Semester(Storm):
@@ -283,6 +283,14 @@ class Offering(Storm):
 
         e = Enrolment(user=user, offering=self, active=True)
         self.enrolments.add(e)
+
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            perms.add('view')
+            if user.rolenm == 'admin':
+                perms.add('edit')
+        return perms
 
 class Enrolment(Storm):
     __storm_table__ = "enrolment"
@@ -413,20 +421,20 @@ class Exercise(Storm):
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
-    @classmethod
-    def get_by_name(cls, store, name):
-        """
-        Get the Exercise from the db associated with a given store and name.
-        If the exercise is not in the database, creates it and inserts it
-        automatically.
-        """
-        ex = store.find(cls, cls.name == unicode(name)).one()
-        if ex is not None:
-            return ex
-        ex = Exercise(name=unicode(name))
-        store.add(ex)
-        store.commit()
-        return ex
+#    @classmethod
+#    def get_by_name(cls, store, name):
+#        """
+#        Get the Exercise from the db associated with a given store and name.
+#        If the exercise is not in the database, creates it and inserts it
+#        automatically.
+#        """
+#        ex = store.find(cls, cls.name == unicode(name)).one()
+#        if ex is not None:
+#            return ex
+#        ex = Exercise(name=unicode(name))
+#        store.add(ex)
+#        store.commit()
+#        return ex
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
@@ -440,6 +448,7 @@ class Worksheet(Storm):
     assessable = Bool()
     mtime = DateTime()
 
+    attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
 
     exercises = ReferenceSet(id,
@@ -478,6 +487,9 @@ class Worksheet(Storm):
         """
         store.find(WorksheetExercise,
             WorksheetExercise.worksheet == self).remove()
+            
+    def get_permissions(self, user):
+        return self.offering.get_permissions(user)
 
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_problem"
@@ -554,10 +566,13 @@ class TestSuite(Storm):
     
     suiteid = Int()
     exercise_id = Unicode(name="problemid")
-    exercise = Reference(exercise_id, Exercise.id)
-    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
     description = Unicode()
     seq_no = Int()
+    function = Unicode()
+    stdin = Unicode()
+    exercise = Reference(exercise_id, Exercise.id)
+    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
+    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid')
 
 class TestCase(Storm):
     """A TestCase is a member of a TestSuite.
@@ -568,13 +583,45 @@ class TestCase(Storm):
     
     testid = Int()
     suiteid = Int()
-    suite = Reference(suiteid, TestSuite.suiteid)
+    suite = Reference(suiteid, "TestSuite.suiteid")
     passmsg = Unicode()
     failmsg = Unicode()
-    init = Unicode()
-    code_type = Unicode()
-    code = Unicode()
-    testtype = Unicode()
+    test_default = Unicode()
     seq_no = Int()
+    
+    parts = ReferenceSet(testid, "TestCasePart.testid")
+    
+    __init__ = _kwarg_init
+
+class TestSuiteVar(Storm):
+    """A container for the arguments of a Test Suite"""
+    __storm_table__ = "suite_variables"
+    __storm_primary__ = "varid"
+    
+    varid = Int()
+    suiteid = Int()
+    var_name = Unicode()
+    var_value = Unicode()
+    var_type = Unicode()
+    arg_no = Int()
+    
+    suite = Reference(suiteid, "TestSuite.suiteid")
+    
+    __init__ = _kwarg_init
+    
+class TestCasePart(Storm):
+    """A container for the test elements of a Test Case"""
+    __storm_table__ = "test_case_parts"
+    __storm_primary__ = "partid"
+    
+    partid = Int()
+    testid = Int()
+    
+    part_type = Unicode()
+    test_type = Unicode()
+    data = Unicode()
+    filename = Unicode()
+    
+    test = Reference(testid, "TestCase.testid")
     
     __init__ = _kwarg_init
