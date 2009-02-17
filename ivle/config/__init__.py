@@ -60,13 +60,22 @@ class Config(ConfigObj):
     Automatically validates the file against the spec (found in
     ./ivle-spec.conf relative to this module).
     """
-    def __init__(self, *args, **kwargs):
-        conffile = search_conffile()
+    def __init__(self, blank=False, *args, **kwargs):
+        """Initialises a new Config object. Searches for the config file,
+        loads it, and validates it.
+        @param blank: If blank=True, will create a blank config instead, and
+        not search for the config file.
+        @raise ConfigError: If the config file cannot be found.
+        """
         specfile = os.path.join(os.path.dirname(__file__), 'ivle-spec.conf')
-        super(Config, self).__init__(infile=conffile, configspec=specfile,
-                                     *args, **kwargs)
-        # XXX This doesn't raise errors if it doesn't validate
-        self.validate(Validator())
+        if blank:
+            super(Config, self).__init__(configspec=specfile, *args, **kwargs)
+        else:
+            conffile = search_conffile()
+            super(Config, self).__init__(infile=conffile, configspec=specfile,
+                                         *args, **kwargs)
+            # XXX This doesn't raise errors if it doesn't validate
+            self.validate(Validator())
 
     def get_by_path(self, path):
         """Gets an option's value, given a '/'-separated path.

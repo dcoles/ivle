@@ -331,7 +331,7 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Write ./etc/ivle.conf
 
-    conf = configobj.ConfigObj()
+    conf = ivle.config.Config(blank=True)
     conf.filename = conffile
 
     conf.initial_comment = ["# IVLE Configuration File"]
