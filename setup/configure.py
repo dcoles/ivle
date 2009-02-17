@@ -341,21 +341,9 @@ Please hit Ctrl+C now if you do not wish to do this.
     conf_options['plugins/forum/secret'] = forum_secret
 
     for opt in config_options:
-        newopt_path = opt.option_name.split('/')
-        # Iterate over each segment of the path, and find the section in conf
-        # file to insert the value into (use all but the last path segment)
-        conf_section = conf
-        for seg in newopt_path[:-1]:
-            # Create the section if it isn't there
-            if seg not in conf_section:
-                conf_section[seg] = {}
-            conf_section = conf_section[seg]
-        # The final path segment names the key to insert into
-        keyname = newopt_path[-1]
         value = conf_options[opt.option_name]
         if value is not None:
-            conf_section[keyname] = value
-            conf_section.comments[keyname] = opt.comment.split('\n')
+            conf.set_by_path(opt.option_name, value, opt.comment)
 
     conf.write()
 

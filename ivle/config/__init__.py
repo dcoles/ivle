@@ -77,6 +77,27 @@ class Config(ConfigObj):
             # XXX This doesn't raise errors if it doesn't validate
             self.validate(Validator())
 
+    def set_by_path(self, path, value, comment=None):
+        """Writes a value to an option, given a '/'-separated path.
+        @param path: '/'-separated path to configuration option.
+        @param value: value to write to the option.
+        @param comment: optional comment string (lines separated by '\n's).
+        """
+        path = path.split('/')
+        # Iterate over each segment of the path, and find the section in conf
+        # file to insert the value into (use all but the last path segment)
+        conf_section = self
+        for seg in path[:-1]:
+            # Create the section if it isn't there
+            if seg not in conf_section:
+                conf_section[seg] = {}
+            conf_section = conf_section[seg]
+        # The final path segment names the key to insert into
+        keyname = path[-1]
+        conf_section[keyname] = value
+        if comment is not None:
+            conf_section.comments[keyname] = comment.split('\n')
+
     def get_by_path(self, path):
         """Gets an option's value, given a '/'-separated path.
         @param path: '/'-separated path to configuration option.
