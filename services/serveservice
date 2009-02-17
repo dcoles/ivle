@@ -132,4 +132,5 @@ if zipmode:
                         'name': zipfilename})
 else:
     print cjson.encode({'content': open(filename).read(),
-                        'type': determine_file_type(filename)})
+                        'type': determine_file_type(filename),
+                        'name': os.path.basename(filename)})
