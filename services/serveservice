@@ -67,6 +67,7 @@ zipfilename = None
 if len(args) > 1:
     # Mangle the paths - we want the basename of their dirname in front.
     paths = []
+    dir = os.path.dirname(args[0])
     for path in args:
         assert os.path.dirname(path) == dir
         paths.append(os.path.join(os.path.basename(dir),

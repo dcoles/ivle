@@ -69,8 +69,16 @@ class ServeView(BaseView):
         serve_file(req, owner, jail, path)
 
 class DownloadView(ServeView):
+    def __init__(self, req, path):
+        super(DownloadView, self).__init__(req, path)
+        filelist = req.get_fieldstorage().getlist('path')
+        if filelist:
+            self.files = [f.value for f in filelist]
+        else:
+            self.files = None
+
     def serve(self, req, owner, jail, path):
-        serve_file(req, owner, jail, path, download=True)
+        serve_file(req, owner, jail, path, download=True, files=self.files)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
@@ -87,7 +95,7 @@ def authorize(req):
     # their own files, and can access all of them).
     return studpath.authorize(req, req.user)
 
-def serve_file(req, owner, jail, path, download=False):
+def serve_file(req, owner, jail, path, download=False, files=None):
     """Serves a file, using one of three possibilities: interpreting the file,
     serving it directly, or denying it and returning a 403 Forbidden error.
     No return value. Writes to req (possibly throwing a server error exception
@@ -110,9 +118,14 @@ def serve_file(req, owner, jail, path, download=False):
     if not authorize(req):
         raise Unauthorized()
 
-    args = [path]
+    args = []
     if download:
-        args.insert(0, '-d')
+        args.append('-d')
+
+    if files and download:
+        args += [os.path.join(path, f) for f in files]
+    else:
+        args.append(path)
 
     # TODO: Download. Content-Disposition, etc.
     (out, err) = ivle.interpret.execute_raw(req.user, jail, '/home',
