@@ -28,8 +28,14 @@ from optparse import OptionParser
 
 import cjson
 
-from ivle import (cgirequest, studpath)
 from ivle import zip as zipmod
+import ivle.conf.app.server
+
+def determine_file_type(filename):
+    filetype = mimetypes.guess_type(filename)[0]
+    if filetype is None:
+         filetype = ivle.conf.mimetypes.default_mimetype
+    return filetype
 
 def throw_error(message):
     print cjson.encode({'error': message})
@@ -57,6 +63,7 @@ if options.download:
 else:
     download = False
     paths = args
+    assert len(paths) == 1
 
 default_mimetype = "application/octet-stream"
 zip_mimetype = "application/zip"
@@ -77,6 +84,9 @@ else:
 
     # If it's a directory, serve as a zip file
     if os.path.isdir(filename):
+        if not download:
+            # Not giving a directory listing - this is visible to everyone.
+            throw_error('is-directory')
         zipmode = True
         # Zip it from the perspective of its own parent.
         # That way it will be a directory in the top level of the zip
@@ -90,6 +100,18 @@ else:
             zipbasepath = splitpath[0]
             paths = [splitpath[1]]
         zipfilename = filename
+    else:
+        if not download and \
+           determine_file_type(filename) in ivle.conf.app.server.interpreters:
+            throw_error('is-executable')
+
+        if (ivle.conf.app.server.blacklist_served_filetypes and \
+                determine_file_type(filename) in \
+                ivle.conf.app.server.served_filetypes_blacklist) or \
+            (ivle.conf.app.server.served_filetypes_whitelist and \
+                determine_file_type(filename) not in \
+                ivle.conf.app.server.served_filetypes_whitelist):
+            throw_error('forbidden')
 
 if zipmode:
     # zipfilename is some filename. Strip trailing slash or extension,
