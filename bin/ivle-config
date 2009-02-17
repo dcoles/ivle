@@ -273,6 +273,7 @@ def configure(args):
         confdir = '/etc/ivle'
 
     conffile = os.path.join(confdir, 'ivle.conf')
+    plugindefaultfile = os.path.join(confdir, 'plugins.d/000default.conf')
 
     # Get command-line arguments to avoid asking questions.
 
@@ -293,8 +294,10 @@ your configuration. The file will be updated with modified options if it already
 exists. If it does not already exist, it will be created with sane defaults and
 restrictive permissions.
 
+%s will also be overwritten with the default list of plugins.
+
 Please hit Ctrl+C now if you do not wish to do this.
-""" % conffile
+""" % (conffile, plugindefaultfile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -363,6 +366,28 @@ Please hit Ctrl+C now if you do not wish to do this.
         os.chmod(conffile, stat.S_IRUSR | stat.S_IWUSR) # No g/o perms!
 
     print "Successfully wrote %s" % conffile
+
+    plugindefault = open(plugindefaultfile, 'w')
+    plugindefault.write("""# IVLE default plugin configuration file
+[ivle.webapp.core#Plugin]
+[ivle.webapp.admin.user#Plugin]
+[ivle.webapp.tutorial#Plugin]
+[ivle.webapp.admin.subject#Plugin]
+[ivle.webapp.filesystem.browser#Plugin]
+[ivle.webapp.filesystem.diff#Plugin]
+[ivle.webapp.filesystem.svnlog#Plugin]
+[ivle.webapp.filesystem.serve#Plugin]
+[ivle.webapp.groups#Plugin]
+[ivle.webapp.console#Plugin]
+[ivle.webapp.security#Plugin]
+[ivle.webapp.media#Plugin]
+[ivle.webapp.help#Plugin]
+[ivle.webapp.tos#Plugin]
+[ivle.webapp.userservice#Plugin]
+""")
+    plugindefault.close()
+    print "Successfully wrote %s" % plugindefaultfile
+
     print
     print "You may modify the configuration at any time by editing " + conffile
     
