@@ -123,6 +123,7 @@ def serve_file(req, owner, jail, path, download=False):
             raise AssertionError('Unknown error from serveservice: %s' %
                                  response['error'])
 
+    req.content_type = response['type']
     req.write(out)
 
 class Plugin(ViewPlugin):
