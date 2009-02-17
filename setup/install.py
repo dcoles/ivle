@@ -59,7 +59,7 @@ Copy www/ to $target.
     parser.add_option("--python-site-packages",
         action="store", dest="python_site_packages",
         help="Path to Python site packages directory.",
-        default='/usr/lib/python%s/site-packages' % PYTHON_VERSION)
+        default='/usr/local/lib/python%s/site-packages' % PYTHON_VERSION)
     (options, args) = parser.parse_args(args)
 
     # Call the real function
