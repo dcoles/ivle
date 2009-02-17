@@ -27,6 +27,8 @@
 import os
 import mimetypes
 
+import cjson
+
 from ivle import (util, studpath, interpret)
 import ivle.conf
 from ivle.database import User
@@ -54,14 +56,14 @@ class ServeView(BaseView):
         """Handler for the Server application which serves pages."""
         # Get the username of the student whose work we are browsing, and the
         # path on the local machine where the file is stored.
-        (login, path) = studpath.url_to_local(self.path)
+        (login, jail, path) = studpath.url_to_jailpaths(self.path)
 
         owner = User.get_by_login(req.store, login)
         if not owner:
             # There is no user.
             raise NotFound()
 
-        serve_file(req, owner, path)
+        serve_file(req, owner, jail, path)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
@@ -78,7 +80,7 @@ def authorize(req):
     # their own files, and can access all of them).
     return studpath.authorize(req, req.user)
 
-def serve_file(req, owner, filename, download=False):
+def serve_file(req, owner, jail, path, download=False):
     """Serves a file, using one of three possibilities: interpreting the file,
     serving it directly, or denying it and returning a 403 Forbidden error.
     No return value. Writes to req (possibly throwing a server error exception
@@ -86,7 +88,8 @@ def serve_file(req, owner, filename, download=False):
 
     req: An IVLE request object.
     owner: The user who owns the file being served.
-    filename: Filename in the local file system.
+    jail: The user's jail.
+    path: Filename in the jail.
     download:  Should the file be viewed in browser or downloaded
     """
 
@@ -100,15 +103,23 @@ def serve_file(req, owner, filename, download=False):
     if not authorize(req):
         raise Unauthorized()
 
-    # Jump into the jail
-    interp_object = interpret.interpreter_objects["cgi-python"]
-    if download:
-        req.headers_out["Content-Disposition"] = "attachment"
-        interpret.interpret_file(req, owner, user_jail_dir,
-            serveservice_path, interp_object, gentle=False)
-    else:
-        interpret.interpret_file(req, owner, user_jail_dir,
-            interpretservice_path, interp_object, gentle=True)
+    # TODO: Download. Content-Disposition, etc.
+    (out, err) = ivle.interpret.execute_raw(req.user, jail, '/home',
+                os.path.join(ivle.conf.share_path, 'services/serveservice'),
+                [path])
+    assert not err
+
+    response = cjson.decode(out)
+    if 'error' in response:
+        if response['error'] == 'not-found':
+            raise NotFound()
+        elif response['error'] in ('is-directory', 'forbidden'):
+            raise Forbidden()
+        else:
+            raise AssertionError('Unknown error from serveservice: %s' %
+                                 response['error'])
+
+    req.write(response['content'])
 
 class Plugin(ViewPlugin):
     urls = [
