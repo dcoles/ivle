@@ -29,6 +29,7 @@ import optparse
 import getopt
 import os
 import sys
+import stat
 import hashlib
 import uuid
 
@@ -136,7 +137,7 @@ config_options.append(ConfigOption("database/username", "postgres",
 
 config_options.append(ConfigOption("database/password", "",
     """Password for DB server login:
-    (Caution: This password is stored in plaintext in ivle/conf/conf.py)""",
+    (Caution: This password is stored in plaintext!)""",
     """
 # Database password"""))
 
@@ -288,7 +289,9 @@ def configure(args):
         # Interactive mode. Prompt the user for all the values.
 
         print """This tool will create %s, prompting you for details about
-your configuration. The file will be overwritten if it already exists.
+your configuration. The file will be updated with modified options if it already
+exists. If it does not already exist, it will be created with sane defaults and
+restrictive permissions.
 
 Please hit Ctrl+C now if you do not wish to do this.
 """ % conffile
@@ -338,10 +341,10 @@ Please hit Ctrl+C now if you do not wish to do this.
     except KeyError:
         conf['usrmgt']['magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
+    clobber_permissions = not os.path.exists(conffile)
 
     # Write ./etc/ivle.conf (even if we loaded from a different filename)
     conf.filename = conffile
-
     conf.initial_comment = ["# IVLE Configuration File"]
 
     try:
@@ -352,6 +355,12 @@ Please hit Ctrl+C now if you do not wish to do this.
         conf['plugins']['forum']['secret'] = forum_secret
 
     conf.write()
+
+    # We need to restrict permissions on a new file, as it contains
+    # a nice database password.
+    if clobber_permissions:
+        os.chown(conffile, 33, 33) # chown to www-data
+        os.chmod(conffile, stat.S_IRUSR | stat.S_IWUSR) # No g/o perms!
 
     print "Successfully wrote %s" % conffile
     print
