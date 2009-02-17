@@ -91,6 +91,9 @@ def __install(prefix, python_site_packages, dry=False, rootdir=None,
         print >>sys.stderr, "Must be root to run install"
         return 1
 
+    # Create the config directory.
+    util.action_mkdir('/etc/ivle', dry)
+
     # Create lib and copy the compiled files there
     util.action_mkdir(lib_path, dry)
 
