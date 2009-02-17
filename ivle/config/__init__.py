@@ -37,17 +37,14 @@ class ConfigError(Exception):
 def search_conffile():
     """
     Search for the config file, and return it as a filename.
-    1. Environment var IVLECONF (full filename).
-    2. ./etc/ivle.conf
-    3. /etc/ivle/ivle.conf
+    1. Environment var IVLECONF (path to directory)
+    2. /etc/ivle/ivle.conf
     Raises a ConfigError on error.
     """
     if 'IVLECONF' in os.environ:
-        fname = os.environ['IVLECONF']
+        fname = os.path.join(os.environ['IVLECONF'], 'ivle.conf')
         if os.path.exists(fname):
             return fname
-    if os.path.exists('./etc/ivle.conf'):
-        return './etc/ivle.conf'
     if os.path.exists('/etc/ivle/ivle.conf'):
         return '/etc/ivle/ivle.conf'
     raise ConfigError("Could not find IVLE config file")

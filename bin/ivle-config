@@ -266,7 +266,12 @@ def configure(args):
     cwd = os.getcwd()
 
     # the files that will be created/overwritten
-    conffile = os.path.join(cwd, "etc/ivle.conf")
+    try:
+        confdir = os.environ['IVLECONF']
+    except KeyError:
+        confdir = '/etc/ivle'
+
+    conffile = os.path.join(confdir, 'ivle.conf')
 
     # Get command-line arguments to avoid asking questions.
 
