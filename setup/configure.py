@@ -66,6 +66,9 @@ CONFIG_OPTIONS = {
     'forum_secret': 'plugins/forum/secret',
 }
 
+# conf_options maps option names to values
+conf_options = {}
+
 class ConfigOption:
     """A configuration option; one of the things written to conf.py."""
     def __init__(self, option_name, default, prompt, comment, ask=True):
@@ -263,14 +266,14 @@ def __configure(args):
         confmodule = __import__("ivle/conf/conf")
         for opt in config_options:
             try:
-                globals()[opt.option_name] = \
+                conf_options[opt.option_name] = \
                 confmodule.__dict__[opt.option_name]
             except:
-                globals()[opt.option_name] = opt.default
+                conf_options[opt.option_name] = opt.default
     except ImportError:
         # Just set reasonable defaults
         for opt in config_options:
-            globals()[opt.option_name] = opt.default
+            conf_options[opt.option_name] = opt.default
 
     # Set up some variables
     cwd = os.getcwd()
@@ -310,27 +313,27 @@ Please hit Ctrl+C now if you do not wish to do this.
 
         for opt in config_options:
             if opt.ask:
-                globals()[opt.option_name] = \
-                    query_user(globals()[opt.option_name], opt.prompt)
+                conf_options[opt.option_name] = \
+                    query_user(conf_options[opt.option_name], opt.prompt)
     else:
         opts = dict(opts)
         # Non-interactive mode. Parse the options.
         for opt in config_options:
             if '--' + opt.option_name in opts:
-                globals()[opt.option_name] = opts['--' + opt.option_name]
+                conf_options[opt.option_name] = opts['--' + opt.option_name]
 
     # Error handling on input values
     try:
-        allowed_uids_list = map(int, globals()['allowed_uids'].split(','))
+        allowed_uids_list = map(int, conf_options['allowed_uids'].split(','))
     except ValueError:
         print >>sys.stderr, (
         "Invalid UID list (%s).\n"
         "Must be a comma-separated list of integers." %
-            globals()['allowed_uids'])
+            conf_options['allowed_uids'])
         return 1
     try:
-        globals()['db_port'] = int(globals()['db_port'])
-        if globals()['db_port'] < 0 or globals()['db_port'] >= 65536:
+        conf_options['db_port'] = int(conf_options['db_port'])
+        if conf_options['db_port'] < 0 or conf_options['db_port'] >= 65536:
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
@@ -338,8 +341,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         "Must be an integer between 0 and 65535." % repr(db_port))
         return 1
     try:
-        globals()['usrmgt_port'] = int(globals()['usrmgt_port'])
-        if globals()['usrmgt_port'] < 0 or globals()['usrmgt_port'] >= 65536:
+        conf_options['usrmgt_port'] = int(conf_options['usrmgt_port'])
+        if (conf_options['usrmgt_port'] < 0
+            or conf_options['usrmgt_port'] >= 65536):
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
@@ -348,8 +352,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         return 1
 
     # By default we generate the magic randomly.
-    if globals()['usrmgt_magic'] is None:
-        globals()['usrmgt_magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+    if conf_options['usrmgt_magic'] is None:
+        conf_options['usrmgt_magic'] = \
+            hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
     # Generate the forum secret
     forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
@@ -363,7 +368,7 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Add the forum secret to the config file (regenerated each config)
     config_options.append(ConfigOption('forum_secret', None, '', ''))
-    globals()['forum_secret'] = forum_secret
+    conf_options['forum_secret'] = forum_secret
 
     for legacyopt in config_options:
         newopt_path = CONFIG_OPTIONS[legacyopt.option_name].split('/')
@@ -377,7 +382,7 @@ Please hit Ctrl+C now if you do not wish to do this.
             conf_section = conf_section[seg]
         # The final path segment names the key to insert into
         keyname = newopt_path[-1]
-        value = globals()[legacyopt.option_name]
+        value = conf_options[legacyopt.option_name]
         if value is not None:
             conf_section[keyname] = value
             conf_section.comments[keyname] = legacyopt.comment.split('\n')
@@ -393,8 +398,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     # XXX Compute jail_base, jail_src_base and jail_system. These will
     # ALSO be done by the boilerplate code, but we need them here in order
     # to write to the C file.
-    jail_base = os.path.join(globals()['data_path'], 'jailmounts')
-    jail_src_base = os.path.join(globals()['data_path'], 'jails')
+    jail_base = os.path.join(conf_options['data_path'], 'jailmounts')
+    jail_src_base = os.path.join(conf_options['data_path'], 'jails')
     jail_system = os.path.join(jail_src_base, '__base__')
 
     conf.write("""/* IVLE Configuration File
@@ -434,20 +439,20 @@ static const int allowed_uids[] = { %s };
     conf = open(phpBBconffile, "w")
     
     # php-pg work around
-    if globals()['db_host'] == 'localhost':
+    if conf_options['db_host'] == 'localhost':
         forumdb_host = '127.0.0.1'
     else:
-        forumdb_host = globals()['db_host']
+        forumdb_host = conf_options['db_host']
 
     conf.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
 $dbhost = '""" + forumdb_host + """';
-$dbport = '""" + str(globals()['db_port']) + """';
-$dbname = '""" + globals()['db_forumdbname'] + """';
-$dbuser = '""" + globals()['db_user'] + """';
-$dbpasswd = '""" + globals()['db_password'] + """';
+$dbport = '""" + str(conf_options['db_port']) + """';
+$dbname = '""" + conf_options['db_forumdbname'] + """';
+$dbuser = '""" + conf_options['db_user'] + """';
+$dbpasswd = '""" + conf_options['db_password'] + """';
 
 $table_prefix = 'phpbb_';
 $acm_type = 'file';
