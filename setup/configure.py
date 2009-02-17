@@ -34,36 +34,9 @@ import hashlib
 import uuid
 
 from setup.util import query_user
+import ivle.config
 
 import configobj
-
-# This dict maps new config option paths ('section/option_name') to legacy
-# config option names ('option_name'). 
-# NOTE: This is the inverse of the dictionary from ivle/conf/conf.py.
-CONFIG_OPTIONS = {
-    'urls/root': 'root_dir',
-    'paths/prefix': 'prefix',
-    'paths/data': 'data_path',
-    'paths/logs': 'log_path',
-    'paths/site_packages': 'python_site_packages_override',
-    'urls/public_host': 'public_host',
-    'os/allowed_uids': 'allowed_uids',
-    'database/host': 'db_host',
-    'database/port': 'db_port',
-    'database/name': 'db_dbname',
-    'plugins/forum/dbname': 'db_forumdbname',
-    'database/username': 'db_user',
-    'database/password': 'db_password',
-    'auth/modules': 'auth_modules',
-    'auth/ldap_url': 'ldap_url',
-    'auth/ldap_format_string': 'ldap_format_string',
-    'auth/subject_pulldown_modules': 'subject_pulldown_modules',
-    'urls/svn_addr': 'svn_addr',
-    'usrmgt/host': 'usrmgt_host',
-    'usrmgt/port': 'usrmgt_port',
-    'usrmgt/magic': 'usrmgt_magic',
-    'plugins/forum/secret': 'forum_secret',
-}
 
 # conf_options maps option names to values
 conf_options = {}
@@ -261,17 +234,11 @@ def __configure(args):
     # The reason for this is that these settings are used by other phases
     # of setup besides conf, so we need to know them.
     # Also this allows you to hit Return to accept the existing value.
-    try:
-        confmodule = __import__("ivle/conf/conf")
-        for opt in config_options:
-            try:
-                conf_options[opt.option_name] = \
-                    confmodule.__dict__[CONFIG_OPTIONS[opt.option_name]]
-            except:
-                conf_options[opt.option_name] = opt.default
-    except ImportError:
-        # Just set reasonable defaults
-        for opt in config_options:
+    conf = ivle.config.Config()
+    for opt in config_options:
+        try:
+            conf_options[opt.option_name] = conf.get_by_path(opt.option_name)
+        except KeyError:
             conf_options[opt.option_name] = opt.default
 
     # Set up some variables

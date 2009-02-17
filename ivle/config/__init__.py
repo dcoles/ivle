@@ -67,3 +67,14 @@ class Config(ConfigObj):
                                      *args, **kwargs)
         # XXX This doesn't raise errors if it doesn't validate
         self.validate(Validator())
+
+    def get_by_path(self, path):
+        """Gets an option's value, given a '/'-separated path.
+        @param path: '/'-separated path to configuration option.
+        @raise KeyError: if no config option is at that path.
+        """
+        # Iterate over each segment of the path, and find the value in conf file
+        value = self
+        for seg in path.split('/'):
+            value = value[seg]      # May raise KeyError
+        return value
