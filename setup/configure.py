@@ -338,7 +338,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     except ValueError:
         print >>sys.stderr, (
         "Invalid DB port (%s).\n"
-        "Must be an integer between 0 and 65535." % repr(db_port))
+        "Must be an integer between 0 and 65535." %
+            repr(conf_options['db_port']))
         return 1
     try:
         conf_options['usrmgt_port'] = int(conf_options['usrmgt_port'])
@@ -348,7 +349,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     except ValueError:
         print >>sys.stderr, (
         "Invalid user management port (%s).\n"
-        "Must be an integer between 0 and 65535." % repr(usrmgt_port))
+        "Must be an integer between 0 and 65535." %
+            repr(conf_options['usrmgt_port']))
         return 1
 
     # By default we generate the magic randomly.
