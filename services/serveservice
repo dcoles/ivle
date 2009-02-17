@@ -17,28 +17,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Script: serveservice
-# Author: Thomas Conway
-# Date:   6/3/2007
-
-# A CGI script for serving files.
+# Author: Thomas Conway, Will Grant
 
 import mimetypes
 import os
+import sys
 import StringIO
 import urlparse
+from optparse import OptionParser
+
+import cjson
 
 from ivle import (cgirequest, studpath)
 from ivle import zip as zipmod
 
-req = cgirequest.CGIRequest()
-req.install_error_handler()
+def throw_error(message):
+    print cjson.encode({'error': message})
+    sys.exit(0)
 
-# Work out the parts of the URL
-url = urlparse.urlparse(req.path)
-querystr = url[4]
-urlpath = url[2]
-filename = studpath.url_to_jailpaths(urlpath)[2]
+parser = OptionParser()
+parser.add_option('-d', '--download', dest='download', action='store_true',
+                  help='force download, not execution, of the paths')
+(options, args) = parser.parse_args()
+
+# Detect download mode. Download mode zips any multiple selection,
+# and does not execute CGI scripts.
+if options.download:
+    download = True
+
+    dir = os.path.dirname(args[0])
+
+    # Mangle the paths - we want the basename of their dirname in front.
+    paths = []
+    for path in args:
+        assert os.path.dirname(path) == dir
+        paths.append(os.path.join(os.path.basename(dir),
+                                  os.path.basename(path)))
+    dir = os.path.dirname(dir)
+else:
+    download = False
+    paths = args
 
 default_mimetype = "application/octet-stream"
 zip_mimetype = "application/zip"
@@ -46,26 +64,18 @@ zip_mimetype = "application/zip"
 zipmode = False
 zipbasepath = None
 zipfilename = None
-path = None
 
-# If any "path=" variables have been supplied, bring these into a list and
-# make a zip file instead.
-fields = req.get_fieldstorage()
-paths = fields.getlist("path")
-if len(paths) > 0:
+# If multiple paths have been specified, zip them up.
+if len(paths) > 1:
     zipmode = True
-    zipbasepath = filename
+    zipbasepath = dir
     zipfilename = os.path.basename(zipbasepath)
-    #for i in range(0, len(paths)):
-        #paths[i] = paths[i].value
 else:
-    if filename is None:
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The path specified is invalid.")
-    elif not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The specified file (%s) does not exist." % urlpath)
-     # If it's a directory, serve as a zip file
+    filename = paths[0]
+    if not os.access(filename, os.R_OK):
+        throw_error('not-found')
+
+    # If it's a directory, serve as a zip file
     if os.path.isdir(filename):
         zipmode = True
         # Zip it from the perspective of its own parent.
@@ -79,10 +89,9 @@ else:
         else:
             zipbasepath = splitpath[0]
             paths = [splitpath[1]]
-        zipfilename = paths[0]
+        zipfilename = filename
 
 if zipmode:
-    req.content_type = zip_mimetype
     # zipfilename is some filename. Strip trailing slash or extension,
     # and add ".zip".
     if zipfilename == '':
@@ -92,12 +101,11 @@ if zipmode:
     elif '.' in zipfilename:
         zipfilename = zipfilename[:zipfilename.rindex('.')]
     zipfilename += ".zip"
-    req.headers_out["Content-Disposition"] = ("attachment; filename=" +   
-        zipfilename)
+    #req.headers_out["Content-Disposition"] = ("attachment; filename=" +   
+    #    zipfilename) # TODO
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
         
-    req.write(zipfile.getvalue())
+    print cjson.encode({'content': zipfile.getvalue(), 'type': zip_mimetype})
 else:
-    #req.content_type = default_mimetype
-    req.sendfile(filename)
+    print cjson.encode({'content': open(filename).read()})
