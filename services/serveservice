@@ -51,20 +51,10 @@ parser.add_option('-d', '--download', dest='download', action='store_true',
 # and does not execute CGI scripts.
 if options.download:
     download = True
-
-    dir = os.path.dirname(args[0])
-
-    # Mangle the paths - we want the basename of their dirname in front.
-    paths = []
-    for path in args:
-        assert os.path.dirname(path) == dir
-        paths.append(os.path.join(os.path.basename(dir),
-                                  os.path.basename(path)))
-    dir = os.path.dirname(dir)
+    # paths is filled later.
 else:
     download = False
-    paths = args
-    assert len(paths) == 1
+    assert len(args) == 1
 
 default_mimetype = "application/octet-stream"
 zip_mimetype = "application/zip"
@@ -74,11 +64,19 @@ zipbasepath = None
 zipfilename = None
 
 # If multiple paths have been specified, zip them up.
-if len(paths) > 1:
+if len(args) > 1:
+    # Mangle the paths - we want the basename of their dirname in front.
+    paths = []
+    for path in args:
+        assert os.path.dirname(path) == dir
+        paths.append(os.path.join(os.path.basename(dir),
+                                  os.path.basename(path)))
+    dir = os.path.dirname(dir)
     zipmode = True
     zipbasepath = dir
     zipfilename = os.path.basename(zipbasepath)
 else:
+    paths = args
     filename = paths[0]
     if not os.access(filename, os.F_OK):
         # The given path doesn't exist. CGI lets us backtrack and put the path
@@ -136,7 +134,7 @@ if zipmode:
     #    zipfilename) # TODO
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
-        
+
     print cjson.encode({'type': zip_mimetype,
                         'name': zipfilename})
     print zipfile.getvalue()
