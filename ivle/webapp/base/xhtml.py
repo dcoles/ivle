@@ -41,6 +41,7 @@ class XHTMLView(BaseView):
     template = 'template.html'
     plugin_scripts = {}
     plugin_styles = {}
+    allow_overlays = True
     overlay_blacklist = []
 
     def __init__(self, req, **kwargs):
@@ -144,6 +145,9 @@ class XHTMLView(BaseView):
         scripts_init.
         """
         overlays = []
+        if not self.allow_overlays:
+            return overlays
+
         for plugin in req.plugin_index[OverlayPlugin]:
             for overclass in plugin.overlays:
                 if overclass in self.overlay_blacklist:

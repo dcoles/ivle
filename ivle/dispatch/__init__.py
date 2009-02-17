@@ -45,7 +45,7 @@ import ivle.conf
 import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 import apps
 import html
@@ -59,6 +59,7 @@ plugins_HACK = [
     'ivle.webapp.filesystem.browser#Plugin',
     'ivle.webapp.filesystem.diff#Plugin',
     'ivle.webapp.filesystem.svnlog#Plugin',
+    'ivle.webapp.filesystem.serve#Plugin',
     'ivle.webapp.groups#Plugin',
     'ivle.webapp.console#Plugin',
     'ivle.webapp.security#Plugin',
@@ -66,9 +67,10 @@ plugins_HACK = [
     'ivle.webapp.forum#Plugin',
     'ivle.webapp.help#Plugin',
     'ivle.webapp.tos#Plugin',
+    'ivle.webapp.userservice#Plugin',
 ] 
 
-def generate_route_mapper(view_plugins):
+def generate_route_mapper(view_plugins, attr):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
@@ -77,7 +79,7 @@ def generate_route_mapper(view_plugins):
     for plugin in view_plugins:
         # Establish a URL pattern for each element of plugin.urls
         assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
-        for url in plugin.urls:
+        for url in getattr(plugin, attr):
             routex = url[0]
             view_class = url[1]
             kwargs_dict = url[2] if len(url) >= 3 else {}
@@ -138,7 +140,6 @@ def handler_(req, apachereq):
     ### BEGIN New plugins framework ###
     # XXX This should be done ONCE per Python process, not per request.
     # (Wait till WSGI)
-    # XXX No authentication is done here
     req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
     # Index the plugins by base class
     req.plugin_index = {}
@@ -149,7 +150,13 @@ def handler_(req, apachereq):
                 req.plugin_index[base] = []
             req.plugin_index[base].append(plugin)
     req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
-    req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin])
+
+    if req.publicmode:
+        req.mapper = generate_route_mapper(req.plugin_index[PublicViewPlugin],
+                                           'public_urls')
+    else:
+        req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin],
+                                           'urls')
 
     matchdict = req.mapper.match(req.uri)
     if matchdict is not None:
@@ -182,8 +189,10 @@ def handler_(req, apachereq):
                 errview = errviewcls(req, e)
                 errview.render(req)
                 return req.OK
-            else:
+            elif e.message:
                 req.write(e.message)
+                return req.OK
+            else:
                 return e.code
         except Exception, e:
             # A non-HTTPError appeared. We have an unknown exception. Panic.
@@ -192,24 +201,17 @@ def handler_(req, apachereq):
         else:
             req.store.commit()
             return req.OK
+    else:
+        # We had no matching URL! Check if it matches an old-style app. If
+        # not, 404.
+        if req.app not in ivle.conf.apps.app_url:
+            return req.HTTP_NOT_FOUND # TODO: Prettify.
     ### END New plugins framework ###
 
-    # Check req.app to see if it is valid. 404 if not.
-    if req.app is not None and req.app not in ivle.conf.apps.app_url:
-        req.throw_error(Request.HTTP_NOT_FOUND,
-            "There is no application called %s." % repr(req.app))
 
-    # Special handling for public mode - only allow the public app, call it
-    # and get out.
-    # NOTE: This will not behave correctly if the public app uses
-    # write_html_head_foot, but "serve" does not.
-    if req.publicmode:
-        if req.app != ivle.conf.apps.public_app:
-            req.throw_error(Request.HTTP_FORBIDDEN,
-                "This application is not available on the public site.")
-        app = ivle.conf.apps.app_url[ivle.conf.apps.public_app]
-        apps.call_app(app.dir, req)
-        return req.OK
+    ### BEGIN legacy application framework ###
+    # We have no public apps back here.
+    assert not req.publicmode
 
     # app is the App object for the chosen app
     if req.app is None:
@@ -235,23 +237,8 @@ def handler_(req, apachereq):
         # sessions not time out.
         req.get_session().unlock()
 
-        # If user did not specify an app, HTTP redirect to default app and
-        # exit.
-        if req.app is None:
-            req.throw_redirect(util.make_path(ivle.conf.apps.default_app))
-
-        # Set the default title to the app's tab name, if any. Otherwise URL
-        # name.
-        if app.name is not None:
-            req.title = app.name
-        else:
-            req.title = req.app
-
         # Call the specified app with the request object
         apps.call_app(app.dir, req)
-
-    # if not logged in, login.login will have written the login box.
-    # Just clean up and exit.
 
     # MAKE SURE we write the HTTP (and possibly HTML) header. This
     # wouldn't happen if nothing else ever got written, so we have to make

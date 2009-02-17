@@ -22,12 +22,6 @@
 # Provides an Ajax service for handling user management requests.
 # This includes when a user logs in for the first time.
 
-# NOTE: This app does NOT require authentication. This is because otherwise it
-# would be blocked from receiving requests to activate when the user is trying
-# to accept the TOS.
-
-# It must do its own authentication and authorization.
-
 ### Actions ###
 
 # The one-and-only path segment to userservice determines the action being
@@ -154,6 +148,10 @@ from ivle.rpc.decorators import require_method, require_cap
 from ivle.auth import AuthError, authenticate
 import urllib
 
+from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import NotFound, BadRequest, Unauthorized
+
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
@@ -166,25 +164,32 @@ user_fields_list = (
     "svn_pass"
 )
 
-def handle(req):
-    """Handler for the Console Service AJAX backend application."""
-    if req.user is None and req.path != 'activate_me':
-        # Not logged in.
+class UserServiceView(BaseView):
+    def __init__(self, req, path):
+        if len(path) > 0 and path[-1] == os.sep:
+            self.path = path[:-1]
+        else:
+            self.path = path
+
+    def authorize(self, req):
         # XXX: activate_me isn't called by a valid user, so is special for now.
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You are not logged in to IVLE.")
-    if len(req.path) > 0 and req.path[-1] == os.sep:
-        path = req.path[:-1]
-    else:
-        path = req.path
-    # The path determines which "command" we are receiving
-    fields = req.get_fieldstorage()
-    try:
-        func = actions_map[req.path]
-    except KeyError:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-        "%s is not a valid userservice action." % repr(req.path))
-    func(req, fields)
+        if req.path == 'activate_me' and get_user_details(req) is not None:
+            return True
+        return req.user is not None
+
+    def render(self, req):
+        # The path determines which "command" we are receiving
+        fields = req.get_fieldstorage()
+        try:
+            func = actions_map[self.path]
+        except KeyError:
+            raise NotFound()
+        func(req, fields)
+
+class Plugin(ViewPlugin):
+    urls = [
+        ('userservice/*path', UserServiceView)
+    ]
 
 @require_method('POST')
 def handle_activate_me(req, fields):
@@ -206,77 +211,63 @@ def handle_activate_me(req, fields):
     their acceptance). It must only be called through a POST request.
     """
 
-    # XXX: Very special because we don't have a valid user, so req.user is
-    # None.
     user = get_user_details(req)
 
-    if user is None:
-        req.throw_error(req.HTTP_FORBIDDEN,
-        "You are not logged in to IVLE.")
-
     try:
-        try:
-            declaration = fields.getfirst('declaration')
-        except AttributeError:
-            declaration = None      # Will fail next test
-        if declaration != USER_DECLARATION:
-            req.throw_error(req.HTTP_BAD_REQUEST,
-            "Please use the Terms of Service form instead of talking to "
-            "this service directly.")
+        declaration = fields.getfirst('declaration')
+    except AttributeError:
+        declaration = None      # Will fail next test
+    if declaration != USER_DECLARATION:
+        raise BadRequest()
 
-        # Make sure the user's status is "no_agreement", and set status to
-        # pending, within the one transaction. This ensures we only do this
-        # one time.
-        try:
-            # Check that the user's status is "no_agreement".
-            # (Both to avoid redundant calls, and to stop disabled users from
-            # re-enabling their accounts).
-            if user.state != "no_agreement":
-                req.throw_error(req.HTTP_BAD_REQUEST,
-                "You have already agreed to the terms.")
-            # Write state "pending" to ensure we don't try this again
-            user.state = u"pending"
-        except:
-            req.store.rollback()
-            raise
-        req.store.commit()
-
-        # Get the arguments for usermgt.activate_user from the session
-        # (The user must have already logged in to use this app)
-        args = {
-            "login": user.login,
-        }
-        msg = {'activate_user': args}
-
-        # Release our lock on the db so usrmgt can write
-        req.store.rollback()
-
-        # Try and contact the usrmgt server
-        try:
-            response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
-        except cjson.DecodeError:
-            # Gave back rubbish - set the response to failure
-            response = {'response': 'usrmgt-failure'}
-
-        # Get the staus of the users request
-        try:
-            status = response['response']
-        except KeyError:
-            status = 'failure'
-        
-        if status == 'okay':
-            user.state = u"enabled"
-        else:
-            # Reset the user back to no agreement
-            user.state = u"no_agreement"
-            req.store.commit()
-
-        # Write the response
-        req.content_type = "text/plain"
-        req.write(cjson.encode(response))
+    # Make sure the user's status is "no_agreement", and set status to
+    # pending, within the one transaction. This ensures we only do this
+    # one time.
+    try:
+        # Check that the user's status is "no_agreement".
+        # (Both to avoid redundant calls, and to stop disabled users from
+        # re-enabling their accounts).
+        if user.state != "no_agreement":
+            raise BadRequest("You have already agreed to the terms.")
+        # Write state "pending" to ensure we don't try this again
+        user.state = u"pending"
     except:
         req.store.rollback()
         raise
+    req.store.commit()
+
+    # Get the arguments for usermgt.activate_user from the session
+    # (The user must have already logged in to use this app)
+    args = {
+        "login": user.login,
+    }
+    msg = {'activate_user': args}
+
+    # Release our lock on the db so usrmgt can write
+    req.store.rollback()
+
+    # Try and contact the usrmgt server
+    try:
+        response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+    except cjson.DecodeError:
+        # Gave back rubbish - set the response to failure
+        response = {'response': 'usrmgt-failure'}
+
+    # Get the staus of the users request
+    try:
+        status = response['response']
+    except KeyError:
+        status = 'failure'
+
+    if status == 'okay':
+        user.state = u"enabled"
+    else:
+        # Reset the user back to no agreement
+        user.state = u"no_agreement"
+
+    # Write the response
+    req.content_type = "text/plain"
+    req.write(cjson.encode(response))
 
 create_user_fields_required = [
     'login', 'fullname', 'rolenm'
@@ -320,8 +311,7 @@ def handle_create_user(req, fields):
         if val is not None:
             create[f] = val
         else:
-            req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required field %s missing." % repr(f))
+            raise BadRequest("Required field %s missing." % repr(f))
     for f in create_user_fields_optional:
         val = fields.getfirst(f)
         if val is not None:
@@ -332,7 +322,6 @@ def handle_create_user(req, fields):
     user = ivle.database.User(**create)
     req.store.add(user)
     ivle.pulldown_subj.enrol_user(req.store, user)
-    req.store.commit()
 
     req.content_type = "text/plain"
     req.write(str(user.unixid))
@@ -363,8 +352,7 @@ def handle_update_user(req, fields):
             raise AttributeError()
         if not fullpowers and login != req.user.login:
             # Not allowed to edit other users
-            req.throw_error(req.HTTP_FORBIDDEN,
-            "You do not have permission to update another user.")
+            raise Unauthorized()
     except AttributeError:
         # If login not specified, update yourself
         login = req.user.login
@@ -381,12 +369,10 @@ def handle_update_user(req, fields):
         try:
             authenticate.authenticate(req.store, login, oldpassword)
         except AuthError:
+            # XXX: Duplicated!
             req.headers_out['X-IVLE-Action-Error'] = \
                 urllib.quote("Old password incorrect.")
-            req.status = req.HTTP_BAD_REQUEST
-            # Cancel all the changes made to user (including setting new pass)
-            req.store.rollback()
-            return
+            raise BadRequest("Old password incorrect.")
 
     # Make a dict of fields to update
     for f in fieldlist:
@@ -396,8 +382,6 @@ def handle_update_user(req, fields):
             setattr(user, f, val.value.decode('utf-8'))
         else:
             pass
-
-    req.store.commit()
 
     req.content_type = "text/plain"
     req.write('')
@@ -416,9 +400,7 @@ def handle_get_user(req, fields):
         if login is None:
             raise AttributeError()
         if not fullpowers and login != req.user.login:
-            # Not allowed to edit other users
-            req.throw_error(req.HTTP_FORBIDDEN,
-            "You do not have permission to see another user.")
+            raise Unauthorized()
     except AttributeError:
         # If login not specified, update yourself
         login = req.user.login
@@ -453,9 +435,7 @@ def handle_get_enrolments(req, fields):
         if user is None:
             raise AttributeError()
         if not fullpowers and user != req.user:
-            # Not allowed to edit other users
-            req.throw_error(req.HTTP_FORBIDDEN,
-            "You do not have permission to see another user's subjects.")
+            raise Unauthorized()
     except AttributeError:
         # If login not specified, update yourself
         user = req.user
@@ -486,13 +466,11 @@ def handle_get_active_offerings(req, fields):
 
     subjectid = fields.getfirst('subjectid')
     if subjectid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: subjectid")
+        raise BadRequest("Required: subjectid")
     try:
         subjectid = int(subjectid)
     except:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "subjectid must be a integer")
+        raise BadRequest("subjectid must be an integer")
 
     subject = req.store.get(ivle.database.Subject, subjectid)
 
@@ -515,28 +493,23 @@ def handle_get_project_groups(req, fields):
 
     offeringid = fields.getfirst('offeringid')
     if offeringid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: offeringid")
+        raise BadRequest("Required: offeringid")
     try:
         offeringid = int(offeringid)
     except:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "offeringid must be a integer")
+        raise BadRequest("offeringid must be an integer")
 
     offering = req.store.get(ivle.database.Offering, offeringid)
 
     dict_projectsets = []
-    try:
-        for p in offering.project_sets:
-            dict_projectsets.append({
-                'projectsetid': p.id,
-                'max_students_per_group': p.max_students_per_group,
-                'groups': [{'groupid': g.id,
-                            'groupnm': g.name,
-                            'nick': g.nick} for g in p.project_groups]
-            })
-    except Exception, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    for p in offering.project_sets:
+        dict_projectsets.append({
+            'projectsetid': p.id,
+            'max_students_per_group': p.max_students_per_group,
+            'groups': [{'groupid': g.id,
+                        'groupnm': g.name,
+                        'nick': g.nick} for g in p.project_groups]
+        })
 
     response = cjson.encode(dict_projectsets)
     req.write(response)
@@ -557,59 +530,49 @@ def handle_create_group(req, fields):
     projectsetid = fields.getfirst('projectsetid').value
     groupnm = fields.getfirst('groupnm').value
     if projectsetid is None or groupnm is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: projectsetid, groupnm")
+        raise BadRequest("Required: projectsetid, groupnm")
     groupnm = unicode(groupnm)
     try:
         projectsetid = int(projectsetid)
     except:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "projectsetid must be an int")
+        raise BadRequest("projectsetid must be an integer")
+
     # Get optional fields
     nick = fields.getfirst('nick').value
     if nick is not None:
         nick = unicode(nick)
 
-    # Begin transaction since things can go wrong
+    group = ivle.database.ProjectGroup(name=groupnm,
+                                       project_set_id=projectsetid,
+                                       nick=nick,
+                                       created_by=req.user,
+                                       epoch=datetime.datetime.now())
+    req.store.add(group)
+
+    # Create the group repository
+    # Yes, this is ugly, and it would be nice to just pass in the groupid,
+    # but the object isn't visible to the extra transaction in
+    # usrmgt-server until we commit, which we only do once the repo is
+    # created.
+    offering = group.project_set.offering
+
+    args = {
+        "subj_short_name": offering.subject.short_name,
+        "year": offering.semester.year,
+        "semester": offering.semester.semester,
+        "groupnm": group.name,
+    }
+    msg = {'create_group_repository': args}
+
+    # Contact the usrmgt server
     try:
-        group = ivle.database.ProjectGroup(name=groupnm,
-                                           project_set_id=projectsetid,
-                                           nick=nick,
-                                           created_by=req.user,
-                                           epoch=datetime.datetime.now())
-        req.store.add(group)
+        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+    except cjson.DecodeError, e:
+        raise Exception("Could not understand usrmgt server response:" +
+                        e.message)
 
-        # Create the group repository
-        # Yes, this is ugly, and it would be nice to just pass in the groupid,
-        # but the object isn't visible to the extra transaction in
-        # usrmgt-server until we commit, which we only do once the repo is
-        # created.
-        offering = group.project_set.offering
-
-        args = {
-            "subj_short_name": offering.subject.short_name,
-            "year": offering.semester.year,
-            "semester": offering.semester.semester,
-            "groupnm": group.name,
-        }
-        msg = {'create_group_repository': args}
-
-        # Contact the usrmgt server
-        try:
-            usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
-        except cjson.DecodeError, e:
-            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-                "Could not understand usrmgt server response: %s"%e.message)
-
-        if 'response' not in usrmgt or usrmgt['response']=='failure':
-            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-                "Failure creating repository: %s"%str(usrmgt))
-    
-        # Everything went OK. Lock it in
-        req.store.commit()
-
-    except Exception, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+    if 'response' not in usrmgt or usrmgt['response']=='failure':
+        raise Exception("Failure creating repository: " + str(usrmgt))
 
     req.content_type = "text/plain"
     req.write('')
@@ -625,20 +588,17 @@ def handle_get_group_membership(req, fields):
     groupid = fields.getfirst('groupid')
     offeringid = fields.getfirst('offeringid')
     if groupid is None or offeringid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: groupid, offeringid")
+        raise BadRequest("Required: groupid, offeringid")
     try:
         groupid = int(groupid)
     except:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "groupid must be an int")
+        raise BadRequest("groupid must be an integer")
     group = req.store.get(ivle.database.ProjectGroup, groupid)
 
     try:
         offeringid = int(offeringid)
     except:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "offeringid must be an int")
+        raise BadRequest("offeringid must be an integer")
     offering = req.store.get(ivle.database.Offering, offeringid)
 
 
@@ -676,8 +636,7 @@ def handle_assign_group(req, fields):
     login = fields.getfirst('login')
     groupid = fields.getfirst('groupid')
     if login is None or groupid is None:
-        req.throw_error(req.HTTP_BAD_REQUEST,
-            "Required: login, groupid")
+        raise BadRequest("Required: login, groupid")
 
     group = req.store.get(ivle.database.ProjectGroup, int(groupid))
     user = ivle.database.User.get_by_login(req.store, login)
@@ -685,24 +644,20 @@ def handle_assign_group(req, fields):
     # Add membership to database
     # We can't keep a transaction open until the end here, as usrmgt-server
     # needs to see the changes!
+    group.members.add(user)
+    req.store.commit()
+
+    # Rebuild the svn config file
+    # Contact the usrmgt server
+    msg = {'rebuild_svn_group_config': {}}
     try:
-        group.members.add(user)
-        req.store.commit()
+        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+    except cjson.DecodeError, e:
+        raise Exception("Could not understand usrmgt server response: %s" +
+                        e.message)
 
-        # Rebuild the svn config file
-        # Contact the usrmgt server
-        msg = {'rebuild_svn_group_config': {}}
-        try:
-            usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
-        except cjson.DecodeError, e:
-            req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-                "Could not understand usrmgt server response: %s"%e.message)
-
-            if 'response' not in usrmgt or usrmgt['response']=='failure':
-                req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR,
-                    "Failure creating repository: %s"%str(usrmgt))
-    except Exception, e:
-        req.throw_error(req.HTTP_INTERNAL_SERVER_ERROR, repr(e))
+        if 'response' not in usrmgt or usrmgt['response']=='failure':
+            raise Exception("Failure creating repository: " + str(usrmgt))
 
     return(cjson.encode({'response': 'okay'}))
 

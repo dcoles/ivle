@@ -132,7 +132,7 @@ def worldreadable(path):
         return False
 
 
-def authorize(req):
+def authorize(req, user):
     """Given a request, checks whether req.user is allowed to
     access req.path. Returns None on authorization success. Raises
     HTTP_FORBIDDEN on failure.
@@ -145,11 +145,12 @@ def authorize(req):
     urlpath = os.path.normpath(req.path)
     # Now if it begins with ".." or separator, then it's illegal
     if urlpath.startswith("..") or urlpath.startswith(os.sep):
-        req.throw_error(req.HTTP_FORBIDDEN)
+        return False
 
     (owner, _) = util.split_path(urlpath)
-    if req.user.login != owner:
-        req.throw_error(req.HTTP_FORBIDDEN)
+    if user.login != owner:
+        return False
+    return True
 
 def authorize_public(req):
     """A different kind of authorization. Rather than making sure the
@@ -162,6 +163,11 @@ def authorize_public(req):
     raised on failure.
     """
     _, path = url_to_local(req.path)
-    dirpath, _ = os.path.split(path)
-    if not (worldreadable(dirpath) and published(dirpath)):
-        req.throw_error(req.HTTP_FORBIDDEN)
+
+    # Walk up the tree, and find the deepest directory.
+    while not os.path.isdir(path):
+        path = os.path.dirname(path)
+
+    if not (worldreadable(path) and published(path)):
+        return False
+    return True

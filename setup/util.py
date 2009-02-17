@@ -311,7 +311,6 @@ class InstallList(object):
         "services/python-console",
         "services/fileservice",
         "services/serveservice",
-        "services/interpretservice",
         "services/usrmgt-server",
         "services/diffservice",
         "services/svnlogservice",

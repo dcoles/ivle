@@ -24,11 +24,8 @@
 # Does not include the login page. See login.py.
 
 import cgi
-import urllib
 import os.path
 
-import ivle.conf
-import ivle.conf.apps
 from ivle import util
 
 def write_html_head(req):
@@ -51,38 +48,9 @@ def write_html_head(req):
   <title>%sIVLE</title>
   <meta http-equiv="Content-Type" content="%s; charset=utf-8" />
 """ % (cgi.escape(titlepart), cgi.escape(req.content_type)))
-    # Write inline JavaScript which gives the client code access to certain
-    # server-side variables.
-    if req.user:
-        username = '"%s"' % req.user.login
-    else:
-        username = "null"
-    if req.write_javascript_settings:
-        req.write("""  <script type="text/javascript">
-    root_dir = "%s";
-    public_host = "%s";
-    username = %s;
-  </script>
-""" % (ivle.conf.root_dir, ivle.conf.public_host, username))
-    iconurl = get_icon_url(req.app, small=True)
-    if iconurl:
-        req.write("""  <link rel="shortcut icon" href="%s" />
-""" % cgi.escape(iconurl))
+
     req.write("""  <link rel="stylesheet" type="text/css" href="%s" />
 """ % cgi.escape(util.make_path('+media/ivle.webapp.core/ivle.css')))
-
-    # Write any app-specific style and script links
-    for style in req.styles:
-        req.write('  <link rel="stylesheet" type="text/css" href="%s" />\n'
-            % cgi.escape(util.make_path(style)))
-    for script in req.scripts:
-        req.write('  <script type="text/javascript" src="%s"></script>\n'
-            % cgi.escape(util.make_path(script)))
-    if len(req.scripts_init) > 0:
-        req.write('  <script type="text/javascript">\n    /* Init Functions */\n')
-        for init in req.scripts_init:
-            req.write('    window.addEventListener("load", %s, false);\n'%init)
-        req.write('  </script>\n')
 
     req.write("</head>\n\n")
 
@@ -108,27 +76,12 @@ def write_html_head(req):
             (cgi.escape(nickname), cgi.escape(req.user.login),
              cgi.escape(util.make_path(
                         os.path.join('~' + req.user.login, '+settings'))),
-             cgi.escape(get_help_url(req)),
-             cgi.escape(util.make_path('logout'))))
+             cgi.escape(util.make_path('+help')),
+             cgi.escape(util.make_path('+logout'))))
     else:
         req.write('  <p class="userhello">Not logged in.</p>')
 
-    # ivleheader_tabs is a separate div, so it can be positioned absolutely
     req.write('</div>\n<div id="ivleheader_tabs">\n')
-
-    # If the "debuginfo" app is installed, display a warning to the admin to
-    # make sure it is removed in production.
-    if "debuginfo" in ivle.conf.apps.app_url:
-        req.write("  <p><small>Warning: debuginfo is enabled. Set "
-            "enable_debuginfo = False in ivle/conf/apps.py, when placing IVLE "
-            "into production.</small></p>\n")
-
-    # If req has a "no_agreement" attribute, then it is because the user has
-    # not signed the agreement; therefore we are displaying the TOS page.
-    # Do not show apps (see dispatch.login).
-    if req.user and not req.user.state == 'no_agreement':
-        # Only print app tabs if logged in
-        print_apps_list(req, req.app)
     req.write('</div>\n<div id="ivlebody">\n')
 
 def write_html_foot(req):
@@ -137,59 +90,3 @@ def write_html_foot(req):
     req: An IVLE request object. Written to.
     """
     req.write("</div>\n</body>\n</html>\n")
-
-def get_help_url(req):
-    """Gets the help URL most relevant to this page, to place as the
-    "help" link at the top of the page."""
-    reqapp = req.app if hasattr(req, 'app') else None
-    if reqapp == 'help':
-        # We're already in help. Link to the exact current page
-        # instead of the generic help page.
-        return req.uri
-    if reqapp is not None and reqapp in ivle.conf.apps.app_url and \
-        ivle.conf.apps.app_url[reqapp].hashelp:
-        help_path = os.path.join('help', reqapp)
-    else:
-        help_path = 'help'
-    return util.make_path(help_path)
-
-def get_icon_url(appurl, small=False):
-    """Given an app's url name, gets the URL of the icon image for this app,
-    relative to the site root. Returns None if the app has no icon."""
-    if appurl is None: return None
-    try:
-        app = ivle.conf.apps.app_url[appurl]
-    except KeyError:
-        # Due to navigating to a bad app
-        return None
-    if small:
-        icon_dir = ivle.conf.apps.app_icon_dir_small
-    else:
-        icon_dir = ivle.conf.apps.app_icon_dir
-    if app.icon is None: return None
-    return util.make_path(os.path.join(icon_dir, app.icon))
-
-def print_apps_list(file, thisapp):
-    """Prints all app tabs, as a UL. Prints a list item for each app that has
-    a tab.
-
-    file: Object with a "write" method - ie. the request object.
-    Reads from: ivle.conf
-    """
-    file.write('  <ul id="apptabs">\n')
-
-    for urlname in ivle.conf.apps.apps_in_tabs:
-        app = ivle.conf.apps.app_url[urlname]
-        if urlname == thisapp:
-            li_attr = ' class="thisapp"'
-        else:
-            li_attr = ''
-        file.write('    <li%s>' % li_attr)
-        if app.icon:
-            file.write('<img src="%s" alt="" /> '
-                % urllib.quote(get_icon_url(urlname)))
-        file.write('<a href="%s" title="%s">%s</a></li>\n'
-            % (urllib.quote(util.make_path(urlname)), cgi.escape(app.desc),
-                cgi.escape(app.name)))
-
-    file.write('  </ul>\n')

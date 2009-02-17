@@ -118,16 +118,16 @@ class TestCasePart:
     true = classmethod(lambda *x: True)
     false = classmethod(lambda *x: False)
 
-    def __init__(self, pass_msg, fail_msg, default='match'):
+    def __init__(self, test_case):
         """Initialise with descriptions (pass,fail) and a default behavior for output
         If default is match, unspecified files are matched exactly
         If default is ignore, unspecified files are ignored
         The default default is match.
         """
-        self._pass_msg = pass_msg
-        self._fail_msg = fail_msg
-        self._default = default
-        if default == 'ignore':
+        self._pass_msg = test_case.passmsg
+        self._fail_msg = test_case.failmsg
+        self._default = test_case.test_default
+        if self._default == 'ignore':
             self._default_func = self.true
         else:
             self._default_func = self.match
@@ -138,6 +138,20 @@ class TestCasePart:
         self._exception_test = ('check', self._default_func)
         self._result_test = ('check', self._default_func)
         self._code_test = ('check', self._default_func)
+        
+        for part in test_case.parts:
+            if part.part_type =="file":
+                add_file_test(part)
+            elif part.part_type =="stdout":
+                add_stdout_test(part)
+            elif part.part_type =="stderr":
+                add_stderr_test(part)
+            elif part.part_type =="result":
+                add_result_test(part)
+            elif part.part_type =="exception":
+                add_exception_test(part)
+            elif part.part_type =="code":
+                add_code_test(part)
 
     def _set_default_function(self, function, test_type):
         """"Ensure test type is valid and set function to a default
@@ -191,34 +205,34 @@ class TestCasePart:
         for filename, (test_type, function) in self._file_tests.items():
             self._file_tests[filename] = (test_type, self._validate_function(function, included_code))
             
-    def add_result_test(self, function, test_type='norm'):
+    def add_result_test(self, part):
         "Test part that compares function return values"
-        function = self._set_default_function(function, test_type)
+        function = self._set_default_function(part.data, part.test_type)
         self._result_test = (test_type, function)
             
-    def add_stdout_test(self, function, test_type='norm'):
+    def add_stdout_test(self, part):
         "Test part that compares stdout"
-        function = self._set_default_function(function, test_type)
+        function = self._set_default_function(part.data, part.test_type)
         self._stdout_test = (test_type, function)
 
-    def add_stderr_test(self, function, test_type='norm'):
+    def add_stderr_test(self, part):
         "Test part that compares stderr"
-        function = self._set_default_function(function, test_type)
+        function = self._set_default_function(part.data, part.test_type)
         self._stderr_test = (test_type, function)
 
-    def add_exception_test(self, function, test_type='norm'):
+    def add_exception_test(self, part):
         "Test part that compares stderr"
-        function = self._set_default_function(function, test_type)
+        function = self._set_default_function(part.data, part.test_type)
         self._exception_test = (test_type, function)
 
-    def add_file_test(self, filename, function, test_type='norm'):
+    def add_file_test(self, part):
         "Test part that compares the contents of a specified file"
-        function = self._set_default_function(function, test_type)
-        self._file_tests[filename] = (test_type, function)
+        function = self._set_default_function(part.data, part.test_type)
+        self._file_tests[part.filename] = (test_type, function)
 
-    def add_code_test(self, function, test_type='norm'):
+    def add_code_test(self, part):
         "Test part that examines the supplied code"
-        function = self._set_default_function(function, test_type)
+        function = self._set_default_function(part.data, part.test_type)
         self._code_test = (test_type, function)
 
     def _check_output(self, solution_output, attempt_output, test_type, f):
@@ -307,68 +321,80 @@ class TestCase:
     """
     A set of tests with a common inputs
     """
-    def __init__(self, console, name='', function=None, stdin='', filespace=None, global_space=None):
+    def __init__(self, console, suite):
         """Initialise with name and optionally, a function to test (instead of the entire script)
         The inputs stdin, the filespace and global variables can also be specified at
         initialisation, but may also be set later.
         """
         self._console = console
-
-        if global_space == None:
-            global_space = {}
-        if filespace == None:
-            filespace = {}
+        self._name = suite.description
         
-        self._name = name
-        
+        function = suite.function
         if function == '': function = None
         self._function = function
         self._list_args = []
         self._keyword_args = {}
         
-        self.set_stdin(stdin)
-        self._filespace = testfilespace.TestFilespace(filespace)
-        self._global_space = global_space
+        self.set_stdin(suite.stdin)
+        self._filespace = testfilespace.TestFilespace(None)
+        self._global_space = {}
         self._parts = []
         self._allowed_exceptions = set()
+        
+        for var in suite.variables:
+            if var.var_type == "file":
+                self.add_file(var)
+            elif var.var_type == "var":
+                self.add_variable(var)
+            elif var.var_type == "arg":
+                self.add_arg(var)
+            elif var.var_type == "exception":
+                self.add_exception(var)
+        
+        for test_case in suite.test_cases:
+            self.add_part(TestCasePart(test_case))
 
     def set_stdin(self, stdin):
         """ Set the given string as the stdin for this test case"""
         # stdin must have a newline at the end for raw_input to work properly
-        if stdin[-1:] != '\n':
-            stdin += '\n'
+        if stdin is not None:
+            if stdin[-1:] != '\n':
+                stdin += '\n'
+        else:
+            stdin = ""
         self._stdin = stdin
 
-    def add_file(self, filename, data):
+    def add_file(self, filevar):
         """ Insert the given filename-data pair into the filespace for this test case"""
         # TODO: Add the file to the console
-        self._filespace.add_file(filename, data)
+        self._filespace.add_file(filevar.var_name, "")
         
-    def add_variable(self, variable, value):
+    def add_variable(self, var):
         """ Add the given varibale-value pair to the initial global environment
         for this test case. The value is the string repr() of an actual value.
         Throw an exception if the value cannot be paresed.
         """
         
         try:
-            self._global_space[variable] = eval(value)
+            self._global_space[var.var_name] = eval(var.var_value)
         except:
-            raise TestCreationError("Invalid value for variable %s: %s" %(variable, value))
+            raise TestCreationError("Invalid value for variable %s: %s" 
+                                    %(var.var_name, var.var_value))
 
-    def add_arg(self, value, name=None):
+    def add_arg(self, var):
         """ Add a value to the argument list. This only applies when testing functions.
         By default arguments are not named, but if they are, they become keyword arguments.
         """
         try:
-            if name == None or name == '':
-                self._list_args.append(eval(value))
+            if var.var_name == None or var.var_name == '':
+                self._list_args.append(eval(var.var_value))
             else:
-                self._keyword_args[name] = value
+                self._keyword_args[var.var_name] = var.var_value
         except:
-            raise TestCreationError("Invalid value for function argument: %s" %value)
+            raise TestCreationError("Invalid value for function argument: %s" %var.var_value)
 
     def add_exception(self, exception_name):
-        self._allowed_exceptions.add(exception_name)
+        self._allowed_exceptions.add(var.var_name)
         
     def add_part(self, test_part):
         """ Add a TestPart to this test case"""
@@ -406,8 +432,8 @@ class TestCase:
                 solution_data = self._run_function(self._function,
                     self._list_args, self._keyword_args, solution)
                 
-        except:
-            raise ScriptExecutionError(sys.exc_info())
+        except Exception, e:
+            raise e #ScriptExecutionError(sys.exc_info())
 
         # Run student attempt
         try:
@@ -523,19 +549,20 @@ class TestSuite:
     """
     The complete collection of test cases for a given exercise
     """
-    def __init__(self, name, console, solution=None):
+    def __init__(self, exercise, console):
         """Initialise with the name of the test suite (the exercise name) and the solution.
         The solution may be specified later.
         """
-        self._solution = solution
-        self._name = name
+        self._solution = exercise.solution
+        self._name = exercise.id
+        self._exercise = exercise
         self._tests = []
         self._console = console
-        self.add_include_code("")
-
-    def add_solution(self, solution):
-        " Specify the solution script for this exercise "
-        self._solution = solution
+        self.add_include_code(exercise.include)
+        
+        for test_case in exercise.test_suites:
+            new_case = TestCase(console, test_case)
+            self.add_case(new_case)
 
     def has_solution(self):
         " Returns true if a solution has been provided "
@@ -595,12 +622,4 @@ class TestSuite:
         return exercise_dict
 
     def get_name(self):
-        return self._name
-
-##def get_function(filename, function_name):
-##	import compiler
-##	mod = compiler.parseFile(filename)
-##	for node in mod.node.nodes:
-##		if isinstance(node, compiler.ast.Function) and node.name == function_name:
-##			return node
-##  
+        return self._names  

@@ -35,7 +35,8 @@ import genshi
 import ivle.util
 import ivle.conf
 import ivle.database
-from ivle.database import Subject
+from ivle.database import Subject, Offering, Semester, Exercise, ExerciseSave
+from ivle.database import Worksheet as DBWorksheet
 import ivle.worksheet
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
@@ -63,14 +64,19 @@ class Worksheet:
         return ("Worksheet(id=%s, name=%s, assessable=%s)"
                 % (repr(self.id), repr(self.name), repr(self.assessable)))
 
-class SubjectView(XHTMLView):
-    '''The view of the index of worksheets for a subject.'''
+class OfferingView(XHTMLView):
+    '''The view of the index of worksheets for an offering.'''
     template = 'subjectmenu.html'
     appname = 'tutorial' # XXX
     permission = 'view'
 
-    def __init__(self, req, subject):
-        self.context = req.store.find(Subject, code=subject).one()
+    def __init__(self, req, subject, year, semester):
+        self.context = req.store.find(Offering,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['tutorial.css']
@@ -79,16 +85,16 @@ class SubjectView(XHTMLView):
             raise NotFound()
 
         # Subject names must be valid identifiers
-        if not is_valid_subjname(self.context.code):
+        if not is_valid_subjname(self.context.subject.code):
             raise NotFound()
 
         # Parse the subject description file
         # The subject directory must have a file "subject.xml" in it,
         # or it does not exist (404 error).
-        ctx['subject'] = self.context.code
+        ctx['subject'] = self.context.subject.code
         try:
             subjectfile = open(os.path.join(ivle.conf.subjects_base,
-                                    self.context.code, "subject.xml")).read()
+                                    self.context.subject.code, "subject.xml")).read()
         except:
             raise NotFound()
 
@@ -102,7 +108,7 @@ class SubjectView(XHTMLView):
         problems_total = 0
         for worksheet in ctx['worksheets']:
             stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
-                self.context.code, worksheet.id)
+                self.context.subject.code, worksheet.id)
             # If worksheet is not in database yet, we'll simply not display
             # data about it yet (it should be added as soon as anyone visits
             # the worksheet itself).
@@ -160,10 +166,20 @@ class WorksheetView(XHTMLView):
     appname = 'tutorial' # XXX
     permission = 'view'
 
-    def __init__(self, req, subject, worksheet):
+    def __init__(self, req, subject, year, semester, worksheet):
         # XXX: Worksheet is actually context, but it's not really there yet.
-        self.context = req.store.find(Subject, code=subject).one()
+        self.context = req.store.find(DBWorksheet,
+            DBWorksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester,
+            DBWorksheet.name == worksheet).one()
+        
         self.worksheetname = worksheet
+        self.year = year
+        self.semester = semester
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
@@ -172,14 +188,9 @@ class WorksheetView(XHTMLView):
         if not self.context:
             raise NotFound()
 
-        # Subject and worksheet names must be valid identifiers
-        if not is_valid_subjname(self.context.code) or \
-           not is_valid_subjname(self.worksheetname):
-            raise NotFound()
-
         # Read in worksheet data
         worksheetfilename = os.path.join(ivle.conf.subjects_base,
-                               self.context.code, self.worksheetname + ".xml")
+                               self.context.offering.subject.code, self.worksheetname + ".xml")
         try:
             worksheetfile = open(worksheetfilename)
             worksheetmtime = os.path.getmtime(worksheetfilename)
@@ -189,14 +200,16 @@ class WorksheetView(XHTMLView):
         worksheetmtime = datetime.fromtimestamp(worksheetmtime)
         worksheetfile = worksheetfile.read()
 
-        ctx['subject'] = self.context.code
+        ctx['subject'] = self.context.offering.subject.code
         ctx['worksheet'] = self.worksheetname
+        ctx['semester'] = self.semester
+        ctx['year'] = self.year
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
 
         #TODO: Replace this with a nice way, possibly a match template
         generate_worksheet_data(ctx, req)
 
-        update_db_worksheet(req.store, self.context.code, self.worksheetname,
+        update_db_worksheet(req.store, self.context.offering.subject.code, self.worksheetname,
             worksheetmtime, ctx['exerciselist'])
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
@@ -279,13 +292,11 @@ def add_exercises(stream, ctx, req):
 # build a Table of Contents, as well as fill in details in ctx
 def generate_worksheet_data(ctx, req):
     """Runs through the worksheetstream, generating the exericises"""
-    exid = 0
     ctx['exercises'] = []
     ctx['exerciselist'] = []
     for kind, data, pos in ctx['worksheetstream']:
         if kind is genshi.core.START:
             if data[0] == 'exercise':
-                exid += 1
                 src = ""
                 optional = False
                 for attr in data[1]:
@@ -294,7 +305,7 @@ def generate_worksheet_data(ctx, req):
                     if attr[0] == 'optional':
                         optional = attr[1] == 'true'
                 # Each item in toc is of type (name, complete, stream)
-                ctx['exercises'].append(present_exercise(req, src, exid))
+                ctx['exercises'].append(present_exercise(req, src))
                 ctx['exerciselist'].append((src, optional))
             elif data[0] == 'worksheet':
                 ctx['worksheetname'] = 'bob'
@@ -327,7 +338,7 @@ def getTextData(element):
 
 #TODO: This needs to be re-written, to stop using minidom, and get the data
 # about the worksheet directly from the database
-def present_exercise(req, exercisesrc, exerciseid):
+def present_exercise(req, exercisesrc):
     """Open a exercise file, and write out the exercise to the request in HTML.
     exercisesrc: "src" of the exercise file. A path relative to the top-level
         exercises base directory, as configured in conf.
@@ -336,13 +347,11 @@ def present_exercise(req, exercisesrc, exerciseid):
     # we need
     curctx = genshi.template.Context()
     curctx['filename'] = exercisesrc
-    curctx['exerciseid'] = exerciseid
 
     # Retrieve the exercise details from the database
-    exercise = ivle.database.Exercise.get_by_name(req.store, exercisesrc)
-    #Open the exercise, and double-check that it exists
-    exercisefile = ivle.util.open_exercise_file(exercisesrc)
-    if exercisefile is None:
+    exercise = req.store.find(Exercise, Exercise.id == exercisesrc).one()
+    
+    if exercise is None:
         raise NotFound()
 
     # Read exercise file and present the exercise
@@ -351,39 +360,20 @@ def present_exercise(req, exercisesrc, exerciseid):
     # fields from the XML.
 
     #TODO: Replace calls to minidom with calls to the database directly
-    exercisedom = minidom.parse(exercisefile)
-    exercisefile.close()
-    exercisedom = exercisedom.documentElement
-    assert exercisedom.tagName == "exercise", \
-           "Exercise file top-level element must be <exercise>."
-    curctx['exercisename'] = exercisedom.getAttribute("name")
-
-    curctx['rows'] = exercisedom.getAttribute("rows")
-    if not curctx['rows']:
-        curctx['rows'] = "12"
-    # Look for some other fields we need, which are elements:
-    # - desc
-    # - partial
-    curctx['exercisedesc'] = None
-    curctx['exercisepartial'] = ""
-    for elem in exercisedom.childNodes:
-        if elem.nodeType == elem.ELEMENT_NODE:
-            if elem.tagName == "desc":
-                curctx['exercisedesc'] = genshi.XML(
-                                              rstfunc(innerXML(elem).strip()))
-            if elem.tagName == "partial":
-                curctx['exercisepartial'] = getTextData(elem) + '\n'
-    curctx['exercisepartial_backup'] = curctx['exercisepartial']
+    curctx['exercise'] = exercise
+    if exercise.description is not None:
+        curctx['description'] = genshi.XML('<div id="description">' + exercise.description + '</div>')
+    else:
+        curctx['description'] = None
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
-    saved_text = ivle.worksheet.get_exercise_stored_text(req.store,
-        req.user, exercise)
+    save = req.store.find(ExerciseSave, ExerciseSave.exercise_id == exercise.id).one()
     # Also get the number of attempts taken and whether this is complete.
     complete, curctx['attempts'] = \
             ivle.worksheet.get_exercise_status(req.store, req.user, exercise)
-    if saved_text is not None:
-        curctx['exercisepartial'] = saved_text.text
+    if save is not None:
+        curctx['exercisepartial'] = save.text
     curctx['complete'] = 'Complete' if complete else 'Incomplete'
     curctx['complete_class'] = curctx['complete'].lower()
 
@@ -392,10 +382,10 @@ def present_exercise(req, exercisesrc, exerciseid):
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(os.path.join(os.path.dirname(__file__), "exercise.html"))
     ex_stream = tmpl.generate(curctx)
-    return {'name': curctx['exercisename'],
+    return {'name': exercise.name,
             'complete': curctx['complete_class'],
             'stream': ex_stream,
-            'exid': exerciseid}
+            'exid': exercise.id}
 
 
 def update_db_worksheet(store, subject, worksheetname, file_mtime,
@@ -442,7 +432,7 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
         # Insert each exercise into the worksheet
         for exercise_name, optional in exercise_list:
             # Get the Exercise from the DB
-            exercise = ivle.database.Exercise.get_by_name(store,exercise_name)
+            exercise = store.find(Exercise, Exercise.id == exercise_name).one()
             # Create a new binding between the worksheet and the exercise
             worksheetexercise = ivle.database.WorksheetExercise(
                     worksheet=worksheet, exercise=exercise, optional=optional)
@@ -451,14 +441,14 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
-        ('subjects/:subject/+worksheets', SubjectView),
+        ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
-        ('subjects/:subject/+worksheets/:worksheet', WorksheetView),
-        ('api/subjects/:subject/+worksheets/:worksheet/*exercise/'
+        ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
+        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
-        ('api/subjects/:subject/+worksheets/:worksheet/*exercise/'
+        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
                 '+attempts/:username/:date', AttemptRESTView),
-        ('api/subjects/:subject/+worksheets/:worksheet/*exercise', ExerciseRESTView),
+        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', ExerciseRESTView),
     ]
 
     tabs = [

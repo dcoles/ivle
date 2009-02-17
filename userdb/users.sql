@@ -1,3 +1,4 @@
+BEGIN;
 CREATE SEQUENCE login_unixid_seq MINVALUE 1000 MAXVALUE 29999 START WITH 5000;
 
 CREATE TABLE login (
@@ -189,9 +190,8 @@ CREATE TABLE project_mark (
 
 -- Worksheets
 -- ----------
---TODO: Add in a field for the user-friendly identifier
 CREATE TABLE problem (
-    identifier  VARCHAR PRIMARY KEY NOT NULL,
+    identifier  TEXT PRIMARY KEY,
     name        TEXT,
     description TEXT,
     partial     TEXT,
@@ -200,15 +200,13 @@ CREATE TABLE problem (
     num_rows    INT4
 );
 
---TODO: Link worksheets to offerings
 CREATE TABLE worksheet (
-    worksheetid SERIAL PRIMARY KEY NOT NULL,
-    subject     VARCHAR NOT NULL,
-    offeringid    INT4 REFERENCES offering (offeringid) NOT NULL,
+    worksheetid SERIAL PRIMARY KEY,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
     assessable  BOOLEAN,
     mtime       TIMESTAMP,
-    UNIQUE (subject, identifier)
+    UNIQUE (offeringid, identifier)
 );
 
 CREATE TABLE worksheet_problem (
@@ -219,45 +217,58 @@ CREATE TABLE worksheet_problem (
 );
 
 CREATE TABLE problem_attempt (
-    problemid   VARCHAR REFERENCES problem (identifier) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (problemid,loginid,date)
+    PRIMARY KEY (problemid,loginid,worksheetid,date)
 );
 
 CREATE TABLE problem_save (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
-    text        VARCHAR NOT NULL,
-    PRIMARY KEY (problemid,loginid)
+    text        TEXT NOT NULL,
+    PRIMARY KEY (problemid,loginid, worksheetid)
 );
 
-CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
-
--- TABLES FOR EXERCISES IN DATABASE -- 
 CREATE TABLE test_suite (
-    suiteid     SERIAL NOT NULL,
+    suiteid     SERIAL PRIMARY KEY,
     problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     description TEXT,
     seq_no      INT4,
-    PRIMARY KEY (problemid, suiteid)
+    function    TEXT,
+    stdin       TEXT
 );
 
 CREATE TABLE test_case (
-    testid      SERIAL NOT NULL,
-    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
-    passmsg     TEXT,
-    failmsg     TEXT,
-    init        TEXT,
-    code_type   TEXT,
-    code        TEXT,
-    testtype    TEXT,
-    seq_no      INT4,
-    PRIMARY KEY (testid, suiteid)
+    testid          SERIAL PRIMARY KEY,
+    suiteid         INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    passmsg         TEXT,
+    failmsg         TEXT,
+    test_default    TEXT,
+    seq_no          INT4
 );
+
+CREATE TABLE suite_variables (
+    varid       SERIAL PRIMARY KEY,
+    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    var_name    TEXT,
+    var_value   TEXT,
+    var_type    TEXT NOT NULL,
+    arg_no      INT4
+);
+
+CREATE TABLE test_case_parts (
+    partid          SERIAL PRIMARY KEY,
+    testid          INT4 REFERENCES test_case (testid) NOT NULL,
+    part_type       TEXT NOT NULL,
+    test_type       TEXT,
+    data            TEXT,
+    filename        TEXT
+);
+COMMIT;
