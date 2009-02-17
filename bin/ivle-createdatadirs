@@ -1,0 +1,43 @@
+#!/usr/bin/python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Author: Will Grant
+
+'''Create an IVLE data hierarchy if it does not already exist.'''
+
+import os
+import sys
+
+import ivle.conf
+
+if os.path.exists(ivle.conf.data_path):
+    sys.exit('%s already exists - not doing anything' % ivle.conf.data_path)
+
+os.makedirs(ivle.conf.jail_base)
+os.makedirs(ivle.conf.jail_src_base)
+os.makedirs(ivle.conf.content_path)
+os.makedirs(ivle.conf.notices_path)
+os.makedirs(os.path.join(ivle.conf.data_path, 'sessions'))
+os.makedirs(ivle.conf.svn_path)
+os.makedirs(ivle.conf.svn_repo_path)
+os.makedirs(os.path.join(ivle.conf.svn_repo_path, 'users'))
+os.makedirs(os.path.join(ivle.conf.svn_repo_path, 'groups'))
+
+os.chown(os.path.join(ivle.conf.data_path, 'sessions'), 33, 33) # www-data
+os.chown(os.path.join(ivle.conf.svn_repo_path, 'users'), 33, 33)
+os.chown(os.path.join(ivle.conf.svn_repo_path, 'groups'), 33, 33)

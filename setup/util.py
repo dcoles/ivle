@@ -327,5 +327,6 @@ class InstallList(object):
         "bin/ivle-remakeuser",
         "bin/ivle-showenrolment",
         "bin/ivle-config",
+        "bin/ivle-createdatadirs",
         "bin/ivle-buildjail",
     ]

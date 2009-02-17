@@ -47,10 +47,11 @@ sudo -u postgres createlang plpgsql ivle
 sudo -u postgres psql -d ivle < userdb/users.sql
 
 # Set up IVLE
-./setup.py config
-
 ./setup.py build
 sudo ./setup.py install
+
+sudo ivle-config
+sudo ivle-createdatadirs
 
 # Create the jail. The mirror option is optional.
 sudo ivle-buildjail -r -m http://url.to.archive/mirror
