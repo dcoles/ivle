@@ -357,7 +357,7 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Write bin/trampoline/conf.h
 
-    conf = open(conf_hfile, "w")
+    conf_h = open(conf_hfile, "w")
 
     # XXX Compute jail_base, jail_src_base and jail_system. These will
     # ALSO be done by the boilerplate code, but we need them here in order
@@ -366,7 +366,7 @@ Please hit Ctrl+C now if you do not wish to do this.
     jail_src_base = os.path.join(conf_options['paths/data'], 'jails')
     jail_system = os.path.join(jail_src_base, '__base__')
 
-    conf.write("""/* IVLE Configuration File
+    conf_h.write("""/* IVLE Configuration File
  * conf.h
  * Administrator settings required by trampoline.
  * Note: trampoline will have to be rebuilt in order for changes to this file
@@ -394,13 +394,13 @@ static const int allowed_uids[] = { %s };
     # However they should be the same with the exception of the outer
     # characters, which are stripped off and replaced
 
-    conf.close()
+    conf_h.close()
 
     print "Successfully wrote %s" % conf_hfile
 
     # Write www/php/phpBB3/config.php
 
-    conf = open(phpBBconffile, "w")
+    conf_php = open(phpBBconffile, "w")
     
     # php-pg work around
     if conf_options['database/host'] == 'localhost':
@@ -408,7 +408,7 @@ static const int allowed_uids[] = { %s };
     else:
         forumdb_host = conf_options['database/host']
 
-    conf.write( """<?php
+    conf_php.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
@@ -428,7 +428,7 @@ $load_extensions = '';
 $forum_secret = '""" + forum_secret +"""';
 ?>"""   )
     
-    conf.close()
+    conf_php.close()
 
     print "Successfully wrote %s" % phpBBconffile
 
