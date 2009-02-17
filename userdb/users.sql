@@ -1,3 +1,4 @@
+BEGIN;
 CREATE SEQUENCE login_unixid_seq MINVALUE 1000 MAXVALUE 29999 START WITH 5000;
 
 CREATE TABLE login (
@@ -226,23 +227,21 @@ CREATE TABLE problem_attempt (
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (problemid,loginid,date)
+    PRIMARY KEY (problemid,loginid,worksheetid,date)
 );
 
 CREATE TABLE problem_save (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
     text        VARCHAR NOT NULL,
-    PRIMARY KEY (problemid,loginid)
+    PRIMARY KEY (problemid,loginid, worksheetid)
 );
-
-CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
 
 -- TABLES FOR EXERCISES IN DATABASE -- 
 CREATE TABLE test_suite (
-    suiteid     SERIAL NOT NULL,
+    suiteid     SERIAL UNIQUE NOT NULL,
     problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     description TEXT,
     seq_no      INT4,
@@ -278,3 +277,4 @@ CREATE TABLE test_case_parts (
     data            TEXT,
     filename        TEXT
 );
+COMMIT;

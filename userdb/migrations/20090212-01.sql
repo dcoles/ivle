@@ -1,4 +1,5 @@
-DO NOT APPLY THIS MIGRATION WITHOUT READING THE FOLLOWING;
+BEGIN;
+--DO NOT APPLY THIS MIGRATION WITHOUT READING THE FOLLOWING;
 -- This migration will delete all problem attempts and saves.
 -- The new database schema links attempts and saves to specific worksheets.
 -- Worksheets are linked to specific offerings.
@@ -8,7 +9,6 @@ DO NOT APPLY THIS MIGRATION WITHOUT READING THE FOLLOWING;
 -- worksheet to an offering, and link the attempt to a problem identifier.
 -- TODO: Write a script to save the problem attempts somehow.
 
-BEGIN;
 -- Move the exercises from being stored as flat files, to being stored in
 -- The Database
 -- Drop Old, Unused tables.
