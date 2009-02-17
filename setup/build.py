@@ -43,16 +43,41 @@ Optionally generates .pyc files for all the IVLE .py files."""
     parser.add_option("--no-compile",
         action="store_true", dest="nocompile",
         help="Don't byte-compile .py files.")
+    parser.add_option("-t", "--trampoline-uids",
+        action="store", dest="tuids", default="33",
+        help="Comma-separated list of UIDs allowed to use trampoline. "
+             "(default: 33)")
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    return __build(options.dry, options.nocompile)
+    return __build(options.dry, options.nocompile, options.tuids)
 
-def __build(dry=False, no_compile=None):
+def __build(dry=False, no_compile=None, tuids=None):
     install_list = util.InstallList()
 
     if dry:
         print "Dry run (no actions will be executed)\n"
+
+    # Create trampoline configuration.
+    conf_hfile = os.path.join(os.getcwd(), "bin/trampoline/conf.h")
+    conf_h = open(conf_hfile, "w")
+
+    conf_h.write("""/* IVLE Configuration File
+ * conf.h
+ * Administrator settings required by trampoline.
+ * Note: trampoline will have to be rebuilt in order for changes to this file
+ * to take effect.
+ */
+
+#define IVLE_AUFS_JAILS
+
+/* Which user IDs are allowed to run the trampoline.
+ * This list should be limited to the web server user.
+ * (Note that root is an implicit member of this list).
+ */
+static const int allowed_uids[] = { %s };
+""" % tuids)
+    conf_h.close()
 
     # Compile the trampoline
     curdir = os.getcwd()

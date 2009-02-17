@@ -45,7 +45,6 @@ CONFIG_OPTIONS = {
     'log_path': 'paths/logs',
     'python_site_packages_override': 'paths/site_packages',
     'public_host': 'urls/public_host',
-    'allowed_uids': 'os/allowed_uids',
     'db_host': 'database/host',
     'db_port': 'database/port',
     'db_dbname': 'database/name',
@@ -78,7 +77,6 @@ for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
 # pulldown_subj and auth_modules can re-split them.
 subject_pulldown_modules = ','.join(subject_pulldown_modules)
 auth_modules = ','.join(auth_modules)
-allowed_uids = ','.join([str(uid) for uid in allowed_uids])
 
 # Additional auto-generated config options
 

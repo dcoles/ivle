@@ -22,7 +22,7 @@
 Either prompts the administrator for these details or accepts them as
 command-line args.
 
-Creates ivle/conf/conf.py and bin/trampoline/trampoline/conf.h.
+Creates etc/ivle.conf
 '''
 
 import optparse
@@ -111,18 +111,6 @@ providing login-free access to student's published work:""",
 # Public mode does not use cookies, and serves only public content.
 # Private mode (normal mode) requires login, and only serves files relevant to
 # the logged-in user."""))
-
-config_options.append(ConfigOption("os/allowed_uids", [33],
-    """UID of the web server process which will run IVLE.
-Only this user may execute the trampoline. May specify multiple users as
-a comma-separated list.
-    (eg. "1002,78")""",
-    """
-# The User-ID of the web server process which will run IVLE, and any other
-# users who are allowed to run the trampoline. This is stores as a string of
-# comma-separated integers, simply because it is not used within Python, only
-# used by the setup program to write to conf.h (see setup.py config).""",
-    ask=False))
 
 config_options.append(ConfigOption("database/host", "localhost",
     """PostgreSQL Database config
@@ -284,7 +272,6 @@ def configure(args):
 
     # the files that will be created/overwritten
     conffile = os.path.join(cwd, "etc/ivle.conf")
-    conf_hfile = os.path.join(cwd, "bin/trampoline/conf.h")
     phpBBconffile = os.path.join(cwd, "www/php/phpBB3/config.php")
 
     # Get command-line arguments to avoid asking questions.
@@ -304,12 +291,11 @@ def configure(args):
         print """This tool will create the following files:
     %s
     %s
-    %s
 prompting you for details about your configuration. The file will be
 overwritten if it already exists. It will *not* install or deploy IVLE.
 
 Please hit Ctrl+C now if you do not wish to do this.
-""" % (conffile, conf_hfile, phpBBconffile)
+""" % (conffile, phpBBconffile)
 
         # Get information from the administrator
         # If EOF is encountered at any time during the questioning, just exit
@@ -328,18 +314,6 @@ Please hit Ctrl+C now if you do not wish to do this.
                                  opts['--' + opt.option_name])
 
     # Error handling on input values
-    if type(conf['os']['allowed_uids']) == list:
-        allowed_uids_list = conf['os']['allowed_uids']
-    else:
-        try:
-            allowed_uids_list = map(int,
-                                conf['os']['allowed_uids'].split(','))
-        except ValueError:
-            print >>sys.stderr, (
-            "Invalid UID list (%s).\n"
-            "Must be a comma-separated list of integers." %
-                conf['os']['allowed_uids'])
-            return 1
     try:
         conf['database']['port'] = int(conf['database']['port'])
         if (conf['database']['port'] < 0
@@ -384,30 +358,6 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     print "Successfully wrote %s" % conffile
 
-    # Write bin/trampoline/conf.h
-
-    conf_h = open(conf_hfile, "w")
-
-    conf_h.write("""/* IVLE Configuration File
- * conf.h
- * Administrator settings required by trampoline.
- * Note: trampoline will have to be rebuilt in order for changes to this file
- * to take effect.
- */
-
-#define IVLE_AUFS_JAILS
-
-/* Which user IDs are allowed to run the trampoline.
- * This list should be limited to the web server user.
- * (Note that root is an implicit member of this list).
- */
-static const int allowed_uids[] = { %s };
-""" % (repr(allowed_uids_list)[1:-1]))
-
-    conf_h.close()
-
-    print "Successfully wrote %s" % conf_hfile
-
     # Write www/php/phpBB3/config.php
 
     conf_php = open(phpBBconffile, "w")
@@ -445,7 +395,6 @@ $forum_secret = '""" + forum_secret +"""';
     print
     print "You may modify the configuration at any time by editing"
     print conffile
-    print conf_hfile
     print phpBBconffile
     print
     
