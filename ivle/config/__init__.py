@@ -22,6 +22,8 @@ Provides programmatic access to the IVLE configuration file.
 """
 
 import os
+import glob
+import inspect
 
 from configobj import ConfigObj
 from validate import Validator
@@ -34,7 +36,7 @@ class ConfigError(Exception):
     """
     pass
 
-def search_conffile():
+def search_confdir():
     """
     Search for the config file, and return it as a filename.
     1. Environment var IVLECONF (path to directory)
@@ -42,12 +44,19 @@ def search_conffile():
     Raises a ConfigError on error.
     """
     if 'IVLECONF' in os.environ:
-        fname = os.path.join(os.environ['IVLECONF'], 'ivle.conf')
+        fname = os.path.join(os.environ['IVLECONF'])
         if os.path.exists(fname):
             return fname
-    if os.path.exists('/etc/ivle/ivle.conf'):
-        return '/etc/ivle/ivle.conf'
-    raise ConfigError("Could not find IVLE config file")
+    if os.path.exists('/etc/ivle'):
+        return '/etc/ivle'
+    raise ConfigError("Could not find IVLE config directory")
+
+def get_plugin(pluginstr):
+    plugin_path, classname = pluginstr.split('#')
+    # Load the plugin module from somewhere in the Python path
+    # (Note that plugin_path is a fully-qualified Python module name).
+    return (plugin_path,
+            getattr(__import__(plugin_path, fromlist=[classname]), classname))
 
 _NO_VALUE = []
 class Config(ConfigObj):
@@ -58,22 +67,51 @@ class Config(ConfigObj):
     Automatically validates the file against the spec (found in
     ./ivle-spec.conf relative to this module).
     """
-    def __init__(self, blank=False, *args, **kwargs):
+    def __init__(self, blank=False, plugins=True, *args, **kwargs):
         """Initialises a new Config object. Searches for the config file,
         loads it, and validates it.
         @param blank: If blank=True, will create a blank config instead, and
         not search for the config file.
+        @param plugins: If True, will find and index plugins.
         @raise ConfigError: If the config file cannot be found.
         """
         specfile = os.path.join(os.path.dirname(__file__), 'ivle-spec.conf')
         if blank:
             super(Config, self).__init__(configspec=specfile, *args, **kwargs)
         else:
-            conffile = search_conffile()
+            confdir = search_confdir()
+            conffile = os.path.join(confdir, 'ivle.conf')
             super(Config, self).__init__(infile=conffile, configspec=specfile,
                                          *args, **kwargs)
             # XXX This doesn't raise errors if it doesn't validate
             self.validate(Validator())
+
+            if not plugins:
+                return
+            self.plugins = {}
+            self.plugin_configs = {}
+            # Go through the plugin config files, looking for plugins.
+            for pconfn in glob.glob(os.path.join(confdir, 'plugins.d/*.conf')):
+                pconf = ConfigObj(pconfn)
+                for plugin_section in pconf:
+                    # We have a plugin path. Resolve it into a class...
+                    plugin_path, plugin = get_plugin(plugin_section)
+                    self.plugins[plugin_path] = plugin
+                    # ... and add it to the registry.
+                    self.plugin_configs[plugin] = pconf[plugin_section]
+
+            # Create a registry mapping plugin classes to paths.
+            self.reverse_plugins = dict([(v, k) for (k, v) in
+                                         self.plugins.items()])
+
+            # Create an index of plugins by base class.
+            self.plugin_index = {}
+            for plugin in self.plugins.values():
+                # Getmro returns a tuple of all the super-classes of the plugin
+                for base in inspect.getmro(plugin):
+                    if base not in self.plugin_index:
+                        self.plugin_index[base] = []
+                    self.plugin_index[base].append(plugin)
 
     def set_by_path(self, path, value=_NO_VALUE, comment=None):
         """Writes a value to an option, given a '/'-separated path.

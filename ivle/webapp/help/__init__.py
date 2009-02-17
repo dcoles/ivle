@@ -41,7 +41,7 @@ class HelpView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['help.css']
 
-        helpfile = generate_toc(req.plugin_index[ViewPlugin], req)
+        helpfile = generate_toc(req.config.plugin_index[ViewPlugin], req)
         try:
             for path in self.paths:
                 if len(path) > 0:
@@ -63,7 +63,7 @@ class HelpToCView(XHTMLView):
     template = 'toc.html'
 
     def populate(self, req, ctx):
-        ctx['toc'] = generate_toc(req.plugin_index[ViewPlugin], req)
+        ctx['toc'] = generate_toc(req.config.plugin_index[ViewPlugin], req)
 
 
 class Plugin(ViewPlugin, MediaPlugin):

@@ -111,7 +111,7 @@ class XHTMLView(BaseView):
             ctx['help_path'] = self.help
 
         ctx['apps_in_tabs'] = []
-        for plugin in req.plugin_index[ViewPlugin]:
+        for plugin in req.config.plugin_index[ViewPlugin]:
             if not hasattr(plugin, 'tabs'):
                 continue
 
@@ -148,7 +148,7 @@ class XHTMLView(BaseView):
         if not self.allow_overlays:
             return overlays
 
-        for plugin in req.plugin_index[OverlayPlugin]:
+        for plugin in req.config.plugin_index[OverlayPlugin]:
             for overclass in plugin.overlays:
                 if overclass in self.overlay_blacklist:
                     continue

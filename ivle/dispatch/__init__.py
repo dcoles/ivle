@@ -35,7 +35,6 @@ import traceback
 import logging
 import socket
 import time
-import inspect
 
 import mod_python
 import routes
@@ -49,26 +48,6 @@ from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 import apps
 import html
-
-# XXX List of plugins, which will eventually be read in from conf
-plugins_HACK = [
-    'ivle.webapp.core#Plugin',
-    'ivle.webapp.admin.user#Plugin',
-    'ivle.webapp.tutorial#Plugin',
-    'ivle.webapp.admin.subject#Plugin',
-    'ivle.webapp.filesystem.browser#Plugin',
-    'ivle.webapp.filesystem.diff#Plugin',
-    'ivle.webapp.filesystem.svnlog#Plugin',
-    'ivle.webapp.filesystem.serve#Plugin',
-    'ivle.webapp.groups#Plugin',
-    'ivle.webapp.console#Plugin',
-    'ivle.webapp.security#Plugin',
-    'ivle.webapp.media#Plugin',
-    'ivle.webapp.forum#Plugin',
-    'ivle.webapp.help#Plugin',
-    'ivle.webapp.tos#Plugin',
-    'ivle.webapp.userservice#Plugin',
-] 
 
 def generate_route_mapper(view_plugins, attr):
     """
@@ -85,13 +64,6 @@ def generate_route_mapper(view_plugins, attr):
             kwargs_dict = url[2] if len(url) >= 3 else {}
             m.connect(routex, view=view_class, **kwargs_dict)
     return m
-
-def get_plugin(pluginstr):
-    plugin_path, classname = pluginstr.split('#')
-    # Load the plugin module from somewhere in the Python path
-    # (Note that plugin_path is a fully-qualified Python module name).
-    return (plugin_path,
-            getattr(__import__(plugin_path, fromlist=[classname]), classname))
 
 def handler(req):
     """Handles a request which may be to anywhere in the site except media.
@@ -137,25 +109,15 @@ def handler_(req, apachereq):
         if user and user.valid:
             req.user = user
 
-    ### BEGIN New plugins framework ###
-    # XXX This should be done ONCE per Python process, not per request.
-    # (Wait till WSGI)
-    req.plugins = dict([get_plugin(pluginstr) for pluginstr in plugins_HACK])
-    # Index the plugins by base class
-    req.plugin_index = {}
-    for plugin in req.plugins.values():
-        # Getmro returns a tuple of all the super-classes of the plugin
-        for base in inspect.getmro(plugin):
-            if base not in req.plugin_index:
-                req.plugin_index[base] = []
-            req.plugin_index[base].append(plugin)
-    req.reverse_plugins = dict([(v, k) for (k, v) in req.plugins.items()])
+    conf = ivle.config.Config()
+    req.config = conf
 
+    ### BEGIN New plugins framework ###
     if req.publicmode:
-        req.mapper = generate_route_mapper(req.plugin_index[PublicViewPlugin],
+        req.mapper = generate_route_mapper(conf.plugin_index[PublicViewPlugin],
                                            'public_urls')
     else:
-        req.mapper = generate_route_mapper(req.plugin_index[ViewPlugin],
+        req.mapper = generate_route_mapper(conf.plugin_index[ViewPlugin],
                                            'urls')
 
     matchdict = req.mapper.match(req.uri)
@@ -382,7 +344,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
                 msg = exc_value.message
                 # Prepend the exception type
                 if exc_type != util.IVLEError:
-                    msg = exc_type.__name__ + ": " + msg
+                    msg = exc_type.__name__ + ": " + repr(msg)
 
             tb = ''.join(traceback.format_exception(exc_type, exc_value,
                                                     exc_traceback))

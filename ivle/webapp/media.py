@@ -41,7 +41,7 @@ def media_url(req, plugin, path):
     be generated.
     '''
     if not isinstance(plugin, basestring):
-        plugin = req.reverse_plugins[plugin]
+        plugin = req.config.reverse_plugins[plugin]
 
     config = Config()
 
@@ -103,7 +103,7 @@ class MediaFileView(BaseMediaFileView):
 
     def _make_filename(self, req):
         try:
-            plugin = req.plugins[self.ns]
+            plugin = req.config.plugins[self.ns]
         except KeyError:
             raise NotFound()
 

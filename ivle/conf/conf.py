@@ -32,7 +32,7 @@ import configobj
 import ivle.config
 
 try:
-    conf = ivle.config.Config()
+    conf = ivle.config.Config(plugins=False)
 except ivle.config.ConfigError, e:
     raise ImportError(str(e))
 
