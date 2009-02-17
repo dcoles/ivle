@@ -37,33 +37,32 @@ from setup.util import query_user
 
 import configobj
 
-# This dict maps legacy config option names to new config option paths
-# ('section/option_name')
-# NOTE: This is copied from ivle/conf/conf.py (because neither of these files
-# can see each other).
+# This dict maps new config option paths ('section/option_name') to legacy
+# config option names ('option_name'). 
+# NOTE: This is the inverse of the dictionary from ivle/conf/conf.py.
 CONFIG_OPTIONS = {
-    'root_dir': 'urls/root',
-    'prefix': 'paths/prefix',
-    'data_path': 'paths/data',
-    'log_path': 'paths/logs',
-    'python_site_packages_override': 'paths/site_packages',
-    'public_host': 'urls/public_host',
-    'allowed_uids': 'os/allowed_uids',
-    'db_host': 'database/host',
-    'db_port': 'database/port',
-    'db_dbname': 'database/name',
-    'db_forumdbname': 'plugins/forum/dbname',
-    'db_user': 'database/username',
-    'db_password': 'database/password',
-    'auth_modules': 'auth/modules',
-    'ldap_url': 'auth/ldap_url',
-    'ldap_format_string': 'auth/ldap_format_string',
-    'subject_pulldown_modules': 'auth/subject_pulldown_modules',
-    'svn_addr': 'urls/svn_addr',
-    'usrmgt_host': 'usrmgt/host',
-    'usrmgt_port': 'usrmgt/port',
-    'usrmgt_magic': 'usrmgt/magic',
-    'forum_secret': 'plugins/forum/secret',
+    'urls/root': 'root_dir',
+    'paths/prefix': 'prefix',
+    'paths/data': 'data_path',
+    'paths/logs': 'log_path',
+    'paths/site_packages': 'python_site_packages_override',
+    'urls/public_host': 'public_host',
+    'os/allowed_uids': 'allowed_uids',
+    'database/host': 'db_host',
+    'database/port': 'db_port',
+    'database/name': 'db_dbname',
+    'plugins/forum/dbname': 'db_forumdbname',
+    'database/username': 'db_user',
+    'database/password': 'db_password',
+    'auth/modules': 'auth_modules',
+    'auth/ldap_url': 'ldap_url',
+    'auth/ldap_format_string': 'ldap_format_string',
+    'auth/subject_pulldown_modules': 'subject_pulldown_modules',
+    'urls/svn_addr': 'svn_addr',
+    'usrmgt/host': 'usrmgt_host',
+    'usrmgt/port': 'usrmgt_port',
+    'usrmgt/magic': 'usrmgt_magic',
+    'plugins/forum/secret': 'forum_secret',
 }
 
 # conf_options maps option names to values
@@ -91,14 +90,14 @@ class ConfigOption:
 # Configuration options, defaults and descriptions
 config_options = []
 
-config_options.append(ConfigOption("root_dir", "/",
+config_options.append(ConfigOption("urls/root", "/",
     """Root directory where IVLE is located (in URL space):""",
     """
 # In URL space, where in the site is IVLE located. (All URLs will be prefixed
 # with this).
 # eg. "/" or "/ivle".""", ask=False))
 
-config_options.append(ConfigOption("prefix", "/usr/local",
+config_options.append(ConfigOption("paths/prefix", "/usr/local",
     """In the local file system, the prefix to the system directory where IVLE
 is installed. (This should either be /usr or /usr/local):""",
     """
@@ -107,7 +106,7 @@ is installed. (This should either be /usr or /usr/local):""",
 # ('/usr/local' for the usual install, '/usr' for distribution packages)""",
     ask=False))
 
-config_options.append(ConfigOption("python_site_packages_override",
+config_options.append(ConfigOption("paths/site_packages",
     None,
     """site-packages directory in Python, where Python libraries are to be
 installed. May be left as the default, in which case the value will be
@@ -117,7 +116,7 @@ computed from prefix and the current Python version:""",
 # installed. May be None (recommended), in which case the value will be
 # computed from prefix and the current Python version.""", ask=False))
 
-config_options.append(ConfigOption("data_path",
+config_options.append(ConfigOption("paths/data",
     "/var/lib/ivle",
     "In the local file system, where user-modifiable data files should be "
     "located:",
@@ -125,7 +124,7 @@ config_options.append(ConfigOption("data_path",
 # In the local file system, where user-modifiable data files should be
 # located.""", ask=False))
 
-config_options.append(ConfigOption("log_path",
+config_options.append(ConfigOption("paths/logs",
     "/var/log/ivle",
     """Directory where IVLE log files are stored (on the local
 file system). Note - this must be writable by the user the IVLE server 
@@ -134,7 +133,7 @@ process runs as (usually www-data):""",
 # In the local file system, where IVLE error logs should be located.""",
     ask=False))
 
-config_options.append(ConfigOption("public_host", "public.localhost",
+config_options.append(ConfigOption("urls/public_host", "public.localhost",
     """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""",
     """
@@ -145,7 +144,7 @@ providing login-free access to student's published work:""",
 # Private mode (normal mode) requires login, and only serves files relevant to
 # the logged-in user."""))
 
-config_options.append(ConfigOption("allowed_uids", "33",
+config_options.append(ConfigOption("os/allowed_uids", "33",
     """UID of the web server process which will run IVLE.
 Only this user may execute the trampoline. May specify multiple users as
 a comma-separated list.
@@ -157,40 +156,40 @@ a comma-separated list.
 # used by the setup program to write to conf.h (see setup.py config).""",
     ask=False))
 
-config_options.append(ConfigOption("db_host", "localhost",
+config_options.append(ConfigOption("database/host", "localhost",
     """PostgreSQL Database config
 ==========================
 Hostname of the DB server:""",
     """
 # Database server hostname"""))
 
-config_options.append(ConfigOption("db_port", "5432",
+config_options.append(ConfigOption("database/port", "5432",
     """Port of the DB server:""",
     """
 # Database server port"""))
 
-config_options.append(ConfigOption("db_dbname", "ivle",
+config_options.append(ConfigOption("database/name", "ivle",
     """Database name:""",
     """
 # Database name"""))
 
-config_options.append(ConfigOption("db_forumdbname", "ivle_forum",
+config_options.append(ConfigOption("plugins/forum/dbname", "ivle_forum",
     """Forum Database name:""",
     """
 # Forum Database name"""))
 
-config_options.append(ConfigOption("db_user", "postgres",
+config_options.append(ConfigOption("database/username", "postgres",
     """Username for DB server login:""",
     """
 # Database username"""))
 
-config_options.append(ConfigOption("db_password", "",
+config_options.append(ConfigOption("database/password", "",
     """Password for DB server login:
     (Caution: This password is stored in plaintext in ivle/conf/conf.py)""",
     """
 # Database password"""))
 
-config_options.append(ConfigOption("auth_modules", "",
+config_options.append(ConfigOption("auth/modules", "",
     """Authentication config
 =====================
 Comma-separated list of authentication modules.""",
@@ -204,14 +203,14 @@ Comma-separated list of authentication modules.""",
 # other modules may be plugged in to auth against organisation-specific
 # auth backends.""", ask=False))
 
-config_options.append(ConfigOption("ldap_url", "ldaps://www.example.com",
+config_options.append(ConfigOption("auth/ldap_url", "ldaps://www.example.com",
     """(LDAP options are only relevant if "ldap" is included in the list of
 auth modules).
 URL for LDAP authentication server:""",
     """
 # URL for LDAP authentication server""", ask=False))
 
-config_options.append(ConfigOption("ldap_format_string",
+config_options.append(ConfigOption("auth/ldap_format_string",
     "uid=%s,ou=users,o=example",
     """Format string for LDAP auth request:
     (Must contain a single "%s" for the user's login name)""",
@@ -219,7 +218,7 @@ config_options.append(ConfigOption("ldap_format_string",
 # Format string for LDAP auth request
 # (Must contain a single "%s" for the user's login name)""", ask=False))
 
-config_options.append(ConfigOption("subject_pulldown_modules", "",
+config_options.append(ConfigOption("auth/subject_pulldown_modules", "",
     """Comma-separated list of subject pulldown modules.
 Add proprietary modules to automatically enrol students in subjects.""",
     """
@@ -229,26 +228,26 @@ Add proprietary modules to automatically enrol students in subjects.""",
 # other modules may be plugged in to pulldown against organisation-specific
 # pulldown backends.""", ask=False))
 
-config_options.append(ConfigOption("svn_addr", "http://svn.localhost/",
+config_options.append(ConfigOption("urls/svn_addr", "http://svn.localhost/",
     """Subversion config
 =================
 The base url for accessing subversion repositories:""",
     """
 # The base url for accessing subversion repositories."""))
 
-config_options.append(ConfigOption("usrmgt_host", "localhost",
+config_options.append(ConfigOption("usrmgt/host", "localhost",
     """User Management Server config
 ============================
 The hostname where the usrmgt-server runs:""",
     """
 # The hostname where the usrmgt-server runs."""))
 
-config_options.append(ConfigOption("usrmgt_port", "2178",
+config_options.append(ConfigOption("usrmgt/port", "2178",
     """The port where the usrmgt-server runs:""",
     """
 # The port where the usrmgt-server runs.""", ask=False))
 
-config_options.append(ConfigOption("usrmgt_magic", None,
+config_options.append(ConfigOption("usrmgt/magic", None,
     """The password for the usrmgt-server:""",
     """
 # The password for the usrmgt-server.""", ask=False))
@@ -267,7 +266,7 @@ def __configure(args):
         for opt in config_options:
             try:
                 conf_options[opt.option_name] = \
-                confmodule.__dict__[opt.option_name]
+                    confmodule.__dict__[CONFIG_OPTIONS[opt.option_name]]
             except:
                 conf_options[opt.option_name] = opt.default
     except ImportError:
@@ -324,38 +323,40 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Error handling on input values
     try:
-        allowed_uids_list = map(int, conf_options['allowed_uids'].split(','))
+        allowed_uids_list = map(int,
+                                conf_options['os/allowed_uids'].split(','))
     except ValueError:
         print >>sys.stderr, (
         "Invalid UID list (%s).\n"
         "Must be a comma-separated list of integers." %
-            conf_options['allowed_uids'])
+            conf_options['os/allowed_uids'])
         return 1
     try:
-        conf_options['db_port'] = int(conf_options['db_port'])
-        if conf_options['db_port'] < 0 or conf_options['db_port'] >= 65536:
+        conf_options['database/port'] = int(conf_options['database/port'])
+        if (conf_options['database/port'] < 0
+            or conf_options['database/port'] >= 65536):
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid DB port (%s).\n"
         "Must be an integer between 0 and 65535." %
-            repr(conf_options['db_port']))
+            repr(conf_options['database/port']))
         return 1
     try:
-        conf_options['usrmgt_port'] = int(conf_options['usrmgt_port'])
-        if (conf_options['usrmgt_port'] < 0
-            or conf_options['usrmgt_port'] >= 65536):
+        conf_options['usrmgt/port'] = int(conf_options['usrmgt/port'])
+        if (conf_options['usrmgt/port'] < 0
+            or conf_options['usrmgt/port'] >= 65536):
             raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid user management port (%s).\n"
         "Must be an integer between 0 and 65535." %
-            repr(conf_options['usrmgt_port']))
+            repr(conf_options['usrmgt/port']))
         return 1
 
     # By default we generate the magic randomly.
-    if conf_options['usrmgt_magic'] is None:
-        conf_options['usrmgt_magic'] = \
+    if conf_options['usrmgt/magic'] is None:
+        conf_options['usrmgt/magic'] = \
             hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
     # Generate the forum secret
@@ -369,11 +370,11 @@ Please hit Ctrl+C now if you do not wish to do this.
     conf.initial_comment = ["# IVLE Configuration File"]
 
     # Add the forum secret to the config file (regenerated each config)
-    config_options.append(ConfigOption('forum_secret', None, '', ''))
-    conf_options['forum_secret'] = forum_secret
+    config_options.append(ConfigOption('plugins/forum/secret', None, '', ''))
+    conf_options['plugins/forum/secret'] = forum_secret
 
-    for legacyopt in config_options:
-        newopt_path = CONFIG_OPTIONS[legacyopt.option_name].split('/')
+    for opt in config_options:
+        newopt_path = opt.option_name.split('/')
         # Iterate over each segment of the path, and find the section in conf
         # file to insert the value into (use all but the last path segment)
         conf_section = conf
@@ -384,10 +385,10 @@ Please hit Ctrl+C now if you do not wish to do this.
             conf_section = conf_section[seg]
         # The final path segment names the key to insert into
         keyname = newopt_path[-1]
-        value = conf_options[legacyopt.option_name]
+        value = conf_options[opt.option_name]
         if value is not None:
             conf_section[keyname] = value
-            conf_section.comments[keyname] = legacyopt.comment.split('\n')
+            conf_section.comments[keyname] = opt.comment.split('\n')
 
     conf.write()
 
@@ -400,8 +401,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     # XXX Compute jail_base, jail_src_base and jail_system. These will
     # ALSO be done by the boilerplate code, but we need them here in order
     # to write to the C file.
-    jail_base = os.path.join(conf_options['data_path'], 'jailmounts')
-    jail_src_base = os.path.join(conf_options['data_path'], 'jails')
+    jail_base = os.path.join(conf_options['paths/data'], 'jailmounts')
+    jail_src_base = os.path.join(conf_options['paths/data'], 'jails')
     jail_system = os.path.join(jail_src_base, '__base__')
 
     conf.write("""/* IVLE Configuration File
@@ -441,20 +442,20 @@ static const int allowed_uids[] = { %s };
     conf = open(phpBBconffile, "w")
     
     # php-pg work around
-    if conf_options['db_host'] == 'localhost':
+    if conf_options['database/host'] == 'localhost':
         forumdb_host = '127.0.0.1'
     else:
-        forumdb_host = conf_options['db_host']
+        forumdb_host = conf_options['database/host']
 
     conf.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
 $dbhost = '""" + forumdb_host + """';
-$dbport = '""" + str(conf_options['db_port']) + """';
-$dbname = '""" + conf_options['db_forumdbname'] + """';
-$dbuser = '""" + conf_options['db_user'] + """';
-$dbpasswd = '""" + conf_options['db_password'] + """';
+$dbport = '""" + str(conf_options['database/port']) + """';
+$dbname = '""" + conf_options['plugins/forum/dbname'] + """';
+$dbuser = '""" + conf_options['database/username'] + """';
+$dbpasswd = '""" + conf_options['database/password'] + """';
 
 $table_prefix = 'phpbb_';
 $acm_type = 'file';
