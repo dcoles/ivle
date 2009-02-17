@@ -26,6 +26,8 @@ import functools
 
 from setup import util
 
+PYTHON_VERSION = sys.version[:3]
+
 def install(args):
     usage = """usage: %prog install [options]
 (Requires root)
@@ -50,26 +52,36 @@ Copy www/ to $target.
         action="store", dest="rootdir",
         help="Install into a different root directory.",
         default='/')
+    parser.add_option("--prefix",
+        action="store", dest="prefix",
+        help="Base prefix to install IVLE into (default: /usr/local).",
+        default='/usr/local')
+    parser.add_option("--python-site-packages",
+        action="store", dest="python_site_packages",
+        help="Path to Python site packages directory.",
+        default='/usr/lib/python%s/site-packages' % PYTHON_VERSION)
     (options, args) = parser.parse_args(args)
 
     # Call the real function
-    return __install(dry=options.dry, rootdir=options.rootdir,
+    return __install(prefix=options.prefix,
+                     python_site_packages=options.python_site_packages,
+                     dry=options.dry, rootdir=options.rootdir,
                      nosvnrevno=options.nosvnrevno)
 
-def __install(dry=False, rootdir=None, nosvnrevno=False):
-    # We need to import the one in the working copy, not in the system path.
-    confmodule = __import__("ivle/conf/conf")
+def __install(prefix, python_site_packages, dry=False, rootdir=None,
+              nosvnrevno=False):
     install_list = util.InstallList()
 
     # We need to apply make_install_path with the rootdir to an awful lot of
     # config variables, so make it easy:
     mip = functools.partial(util.make_install_path, rootdir)
 
-    # Pull the required varibles out of the config
-    lib_path = mip(confmodule.lib_path)
-    share_path = mip(confmodule.share_path)
-    bin_path = mip(confmodule.bin_path)
-    python_site_packages = mip(confmodule.python_site_packages)
+    # Compute the lib_path, share_path and bin_path (copied from
+    # ivle/conf/conf.py).
+    lib_path = mip(os.path.join(prefix, 'lib/ivle'))
+    share_path = mip(os.path.join(prefix, 'share/ivle'))
+    bin_path = mip(os.path.join(prefix, 'bin'))
+    python_site_packages = mip(python_site_packages)
 
     # Must be run as root or a dry run  
     if dry:
@@ -89,9 +101,6 @@ def __install(dry=False, rootdir=None, nosvnrevno=False):
 
     timountpath = os.path.join(lib_path, 'timount')
     util.action_copyfile('bin/timount/timount', timountpath, dry)
-
-    ivleconfpath = mip('/etc/ivle/ivle.conf')
-    util.action_copyfile('etc/ivle.conf', ivleconfpath, dry)
 
     # Copy in the services (only usrmgt-server is needed on the host, but
     # the jail build requires the rest).
