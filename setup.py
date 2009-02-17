@@ -62,7 +62,6 @@ def help(args):
         print """Usage: python setup.py operation [options]
 Operation can be:
     help [operation]
-    config
     build
     install
 
@@ -77,7 +76,6 @@ def call_operator(operation):
     try:
         oper_func = {
             'help' : help,
-            'config' : setup.configure.configure,
             'build' : setup.build.build,
             'install' : setup.install.install,
         }[operation]

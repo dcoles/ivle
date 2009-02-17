@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # IVLE - Informatics Virtual Learning Environment
 # Copyright (C) 2007-2009 The University of Melbourne
 #
@@ -15,9 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: setup/config
 # Author: Matt Giuca, Refactored by David Coles
-# Date:   03/07/2008
 
 '''Configures IVLE with machine-specific details, most notably, various paths.
 Either prompts the administrator for these details or accepts them as
@@ -252,10 +251,6 @@ def query_user(default, prompt):
     return val
 
 def configure(args):
-    # Call the real function
-    return __configure(args)
-
-def __configure(args):
     # Try importing existing conf, but if we can't just set up defaults
     # The reason for this is that these settings are used by other phases
     # of setup besides conf, so we need to know them.
@@ -471,3 +466,23 @@ $forum_secret = '""" + forum_secret +"""';
     print
     
     return 0
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+
+    # Print the opening spiel including the GPL notice
+
+    print """IVLE - Informatics Virtual Learning Environment Setup
+Copyright (C) 2007-2009 The University of Melbourne
+IVLE comes with ABSOLUTELY NO WARRANTY.
+This is free software, and you are welcome to redistribute it
+under certain conditions. See LICENSE.txt for details.
+
+IVLE Configuration
+"""
+
+    return configure(argv[1:])
+
+if __name__ == "__main__":
+    sys.exit(main())
