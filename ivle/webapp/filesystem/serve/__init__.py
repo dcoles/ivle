@@ -30,6 +30,9 @@ import mimetypes
 from ivle import (util, studpath, interpret)
 import ivle.conf
 from ivle.database import User
+from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.errors import NotFound, Unauthorized, Forbidden
 
 serveservice_path = os.path.join(ivle.conf.share_path, 'services/serveservice')
 interpretservice_path = os.path.join(ivle.conf.share_path,
@@ -40,36 +43,40 @@ interpretservice_path = os.path.join(ivle.conf.share_path,
 default_mimetype = "application/octet-stream"
 zip_mimetype = "application/zip"
 
-def handle(req):
-    """Handler for the Server application which serves pages."""
-    req.write_html_head_foot = False
+class ServeView(BaseView):
+    def __init__(self, req, path):
+        self.path = path
 
-    # Get the username of the student whose work we are browsing, and the path
-    # on the local machine where the file is stored.
-    (login, path) = studpath.url_to_local(req.path)
+    def authorize(self, req):
+        return req.user is not None
 
-    owner = User.get_by_login(req.store, login)
-    if not owner:
-        # There is no user.
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The path specified is invalid.")
+    def render(self, req):
+        """Handler for the Server application which serves pages."""
+        # Get the username of the student whose work we are browsing, and the
+        # path on the local machine where the file is stored.
+        (login, path) = studpath.url_to_local(self.path)
 
-    serve_file(req, owner, path)
+        owner = User.get_by_login(req.store, login)
+        if not owner:
+            # There is no user.
+            raise NotFound()
+
+        serve_file(req, owner, path)
 
 def authorize(req):
     """Given a request, checks whether req.username is allowed to
-    access req.path. Returns None on authorization success. Raises
-    HTTP_FORBIDDEN on failure.
+    access req.path. Returns True on authorization success, False on failure.
     """
-    if req.publicmode:
+    # TODO: Reactivate public mode.
+    #if req.publicmode:
         # Public mode authorization: any user can access any other user's
         # files, BUT the accessed file needs to have its "ivle:published" flag
         # turned on in the SVN status.
-        studpath.authorize_public(req)
-    else:
-        # Private mode authorization: standard (only logged in user can access
-        # their own files, and can access all of them).
-        studpath.authorize(req)
+    #    studpath.authorize_public(req)
+
+    # Private mode authorization: standard (only logged in user can access
+    # their own files, and can access all of them).
+    return studpath.authorize(req, req.user)
 
 def serve_file(req, owner, filename, download=False):
     """Serves a file, using one of three possibilities: interpreting the file,
@@ -90,7 +97,8 @@ def serve_file(req, owner, filename, download=False):
     interpret.interpret_file(req, owner, user_jail_dir, '', noop_object)
 
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
-    authorize(req)
+    if not authorize(req):
+        raise Unauthorized()
 
     # Jump into the jail
     interp_object = interpret.interpreter_objects["cgi-python"]
@@ -102,15 +110,7 @@ def serve_file(req, owner, filename, download=False):
         interpret.interpret_file(req, owner, user_jail_dir,
             interpretservice_path, interp_object, gentle=True)
 
-def serve_file_direct(req, filename, type):
-    """Serves a file by directly writing it out to the response.
-
-    req: An IVLE request object.
-    filename: Filename in the local file system.
-    type: String. Mime type to serve the file with.
-    """
-    if not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The specified file does not exist.")
-    req.content_type = type
-    req.sendfile(filename)
+class Plugin(ViewPlugin):
+    urls = [
+        ('serve/*path', ServeView)
+    ]
