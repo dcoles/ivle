@@ -255,8 +255,6 @@ def configure(args):
     return __configure(args)
 
 def __configure(args):
-    global db_port, usrmgt_port
-
     # Try importing existing conf, but if we can't just set up defaults
     # The reason for this is that these settings are used by other phases
     # of setup besides conf, so we need to know them.
@@ -323,23 +321,26 @@ Please hit Ctrl+C now if you do not wish to do this.
 
     # Error handling on input values
     try:
-        allowed_uids_list = map(int, allowed_uids.split(','))
+        allowed_uids_list = map(int, globals()['allowed_uids'].split(','))
     except ValueError:
         print >>sys.stderr, (
         "Invalid UID list (%s).\n"
-        "Must be a comma-separated list of integers." % allowed_uids)
+        "Must be a comma-separated list of integers." %
+            globals()['allowed_uids'])
         return 1
     try:
-        db_port = int(db_port)
-        if db_port < 0 or db_port >= 65536: raise ValueError()
+        globals()['db_port'] = int(globals()['db_port'])
+        if globals()['db_port'] < 0 or globals()['db_port'] >= 65536:
+            raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid DB port (%s).\n"
         "Must be an integer between 0 and 65535." % repr(db_port))
         return 1
     try:
-        usrmgt_port = int(usrmgt_port)
-        if usrmgt_port < 0 or usrmgt_port >= 65536: raise ValueError()
+        globals()['usrmgt_port'] = int(globals()['usrmgt_port'])
+        if globals()['usrmgt_port'] < 0 or globals()['usrmgt_port'] >= 65536:
+            raise ValueError()
     except ValueError:
         print >>sys.stderr, (
         "Invalid user management port (%s).\n"
@@ -392,8 +393,8 @@ Please hit Ctrl+C now if you do not wish to do this.
     # XXX Compute jail_base, jail_src_base and jail_system. These will
     # ALSO be done by the boilerplate code, but we need them here in order
     # to write to the C file.
-    jail_base = os.path.join(data_path, 'jailmounts')
-    jail_src_base = os.path.join(data_path, 'jails')
+    jail_base = os.path.join(globals()['data_path'], 'jailmounts')
+    jail_src_base = os.path.join(globals()['data_path'], 'jails')
     jail_system = os.path.join(jail_src_base, '__base__')
 
     conf.write("""/* IVLE Configuration File
@@ -433,20 +434,20 @@ static const int allowed_uids[] = { %s };
     conf = open(phpBBconffile, "w")
     
     # php-pg work around
-    if db_host == 'localhost':
+    if globals()['db_host'] == 'localhost':
         forumdb_host = '127.0.0.1'
     else:
-        forumdb_host = db_host
+        forumdb_host = globals()['db_host']
 
     conf.write( """<?php
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'postgres';
 $dbhost = '""" + forumdb_host + """';
-$dbport = '""" + str(db_port) + """';
-$dbname = '""" + db_forumdbname + """';
-$dbuser = '""" + db_user + """';
-$dbpasswd = '""" + db_password + """';
+$dbport = '""" + str(globals()['db_port']) + """';
+$dbname = '""" + globals()['db_forumdbname'] + """';
+$dbuser = '""" + globals()['db_user'] + """';
+$dbpasswd = '""" + globals()['db_password'] + """';
 
 $table_prefix = 'phpbb_';
 $acm_type = 'file';
