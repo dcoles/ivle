@@ -190,9 +190,8 @@ CREATE TABLE project_mark (
 
 -- Worksheets
 -- ----------
---TODO: Add in a field for the user-friendly identifier
 CREATE TABLE problem (
-    identifier  VARCHAR PRIMARY KEY NOT NULL,
+    identifier  TEXT PRIMARY KEY,
     name        TEXT,
     description TEXT,
     partial     TEXT,
@@ -201,15 +200,13 @@ CREATE TABLE problem (
     num_rows    INT4
 );
 
---TODO: Link worksheets to offerings
 CREATE TABLE worksheet (
-    worksheetid SERIAL PRIMARY KEY NOT NULL,
-    subject     VARCHAR NOT NULL,
-    offeringid    INT4 REFERENCES offering (offeringid) NOT NULL,
+    worksheetid SERIAL PRIMARY KEY,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
     assessable  BOOLEAN,
     mtime       TIMESTAMP,
-    UNIQUE (subject, identifier)
+    UNIQUE (offeringid, identifier)
 );
 
 CREATE TABLE worksheet_problem (
@@ -220,7 +217,7 @@ CREATE TABLE worksheet_problem (
 );
 
 CREATE TABLE problem_attempt (
-    problemid   VARCHAR REFERENCES problem (identifier) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
@@ -235,33 +232,30 @@ CREATE TABLE problem_save (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
     worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     date        TIMESTAMP NOT NULL,
-    text        VARCHAR NOT NULL,
+    text        TEXT NOT NULL,
     PRIMARY KEY (problemid,loginid, worksheetid)
 );
 
--- TABLES FOR EXERCISES IN DATABASE -- 
 CREATE TABLE test_suite (
-    suiteid     SERIAL UNIQUE NOT NULL,
+    suiteid     SERIAL PRIMARY KEY,
     problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     description TEXT,
     seq_no      INT4,
     function    TEXT,
-    stdin       TEXT,
-    PRIMARY KEY (problemid, suiteid)
+    stdin       TEXT
 );
 
 CREATE TABLE test_case (
-    testid          SERIAL UNIQUE NOT NULL,
+    testid          SERIAL PRIMARY KEY,
     suiteid         INT4 REFERENCES test_suite (suiteid) NOT NULL,
     passmsg         TEXT,
     failmsg         TEXT,
     test_default    TEXT,
-    seq_no          INT4,
-    PRIMARY KEY (testid, suiteid)
+    seq_no          INT4
 );
 
 CREATE TABLE suite_variables (
-    varid       SERIAL PRIMARY KEY NOT NULL,
+    varid       SERIAL PRIMARY KEY,
     suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
     var_name    TEXT,
     var_value   TEXT,
@@ -270,9 +264,9 @@ CREATE TABLE suite_variables (
 );
 
 CREATE TABLE test_case_parts (
-    partid       SERIAL PRIMARY KEY NOT NULL,
+    partid          SERIAL PRIMARY KEY,
     testid          INT4 REFERENCES test_case (testid) NOT NULL,
-    part_type       TEXT,
+    part_type       TEXT NOT NULL,
     test_type       TEXT,
     data            TEXT,
     filename        TEXT

@@ -1,5 +1,5 @@
 BEGIN;
---DO NOT APPLY THIS MIGRATION WITHOUT READING THE FOLLOWING;
+DO NOT APPLY THIS MIGRATION WITHOUT READING THE FOLLOWING;
 -- This migration will delete all problem attempts and saves.
 -- The new database schema links attempts and saves to specific worksheets.
 -- Worksheets are linked to specific offerings.
@@ -17,58 +17,78 @@ DROP TABLE problem_test_case_tag;
 DROP TABLE problem_tag;
 DROP TABLE problem_test_case;
 DROP TABLE problem_prerequisite; 
-TRUNCATE worksheet_problem, worksheet;
+DROP TABLE problem_save;
+DROP TABLE problem_attempt;
+DROP TABLE worksheet_problem;
+DROP TABLE problem;
+DROP TABLE worksheet;
 
--- Remove References to problemid
-ALTER TABLE problem_attempt DROP CONSTRAINT problem_attempt_problemid_fkey;
-ALTER TABLE problem_save DROP CONSTRAINT problem_save_problemid_fkey;
-ALTER TABLE worksheet_problem DROP CONSTRAINT worksheet_problem_problemid_fkey;
+CREATE TABLE problem (
+    identifier  TEXT PRIMARY KEY,
+    name        TEXT,
+    description TEXT,
+    partial     TEXT,
+    solution    TEXT,
+    include     TEXT,
+    num_rows    INT4
+);
 
--- Add fields to problem necessary to store all exercise information in non-xml
-ALTER TABLE problem ADD COLUMN name        TEXT;
-ALTER TABLE problem ADD COLUMN description TEXT;
-ALTER TABLE problem ADD COLUMN partial     TEXT;
-ALTER TABLE problem ADD COLUMN solution    TEXT;
-ALTER TABLE problem ADD COLUMN include     TEXT;
-ALTER TABLE problem ADD COLUMN num_rows    INT4;
--- Drop (now) unused columns spec and problemid
-ALTER TABLE problem DROP COLUMN spec;
-ALTER TABLE problem DROP COLUMN problemid;
+CREATE TABLE worksheet (
+    worksheetid SERIAL PRIMARY KEY,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
+    identifier  VARCHAR NOT NULL,
+    assessable  BOOLEAN,
+    mtime       TIMESTAMP,
+    UNIQUE (offeringid, identifier)
+);
 
--- Set problems and worksheets to reference exercises by identifier
-ALTER TABLE problem_attempt ADD COLUMN worksheetid INT4 REFERENCES worksheet (worksheetid);
-ALTER TABLE problem_attempt DROP COLUMN problemid;
-ALTER TABLE problem_attempt ADD COLUMN problemid TEXT REFERENCES problem (identifier);
+CREATE TABLE worksheet_problem (
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
+    optional    BOOLEAN,
+    PRIMARY KEY (worksheetid, problemid)
+);
 
-ALTER TABLE problem_save ADD COLUMN worksheetid INT4 REFERENCES worksheet (worksheetid);
-ALTER TABLE problem_save DROP COLUMN problemid;
-ALTER TABLE problem_save ADD COLUMN problemid TEXT references problem (identifier);
+CREATE TABLE problem_attempt (
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    date        TIMESTAMP NOT NULL,
+    attempt     VARCHAR NOT NULL,
+    complete    BOOLEAN NOT NULL,
+    active      BOOLEAN NOT NULL DEFAULT true,
+    PRIMARY KEY (problemid,loginid,worksheetid,date)
+);
 
-ALTER TABLE worksheet_problem DROP COLUMN problemid;
-ALTER TABLE worksheet_problem ADD COLUMN problemid TEXT REFERENCES problem (identifier);
+CREATE TABLE problem_save (
+    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
+    loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    date        TIMESTAMP NOT NULL,
+    text        TEXT NOT NULL,
+    PRIMARY KEY (problemid,loginid, worksheetid)
+);
 
 CREATE TABLE test_suite (
-    suiteid     SERIAL UNIQUE NOT NULL,
+    suiteid     SERIAL PRIMARY KEY,
     problemid   TEXT REFERENCES problem (identifier) NOT NULL,
-    description text,
+    description TEXT,
     seq_no      INT4,
     function    TEXT,
-    stdin       TEXT,
-    PRIMARY KEY (problemid, suiteid)
+    stdin       TEXT
 );
 
 CREATE TABLE test_case (
-    testid          SERIAL UNIQUE NOT NULL,
+    testid          SERIAL PRIMARY KEY,
     suiteid         INT4 REFERENCES test_suite (suiteid) NOT NULL,
     passmsg         TEXT,
     failmsg         TEXT,
     test_default    TEXT,
-    seq_no          INT4,
-    PRIMARY KEY (testid, suiteid)
+    seq_no          INT4
 );
 
 CREATE TABLE suite_variables (
-    varid       SERIAL PRIMARY KEY NOT NULL,
+    varid       SERIAL PRIMARY KEY,
     suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
     var_name    TEXT,
     var_value   TEXT,
@@ -77,14 +97,12 @@ CREATE TABLE suite_variables (
 );
 
 CREATE TABLE test_case_parts (
-    partid       SERIAL PRIMARY KEY NOT NULL,
+    partid          SERIAL PRIMARY KEY,
     testid          INT4 REFERENCES test_case (testid) NOT NULL,
-    part_type       TEXT,
+    part_type       TEXT NOT NULL,
     test_type       TEXT,
     data            TEXT,
     filename        TEXT
 );
 
--- Link worksheets to offerings
-ALTER TABLE worksheet ADD COLUMN offeringid INT4 REFERENCES offering (offeringid) NOT NULL; 
 COMMIT;
