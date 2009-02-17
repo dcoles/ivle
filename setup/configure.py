@@ -83,7 +83,7 @@ installed. May be left as the default, in which case the value will be
 computed from prefix and the current Python version:""",
     """
 # 'site-packages' directory in Python, where Python libraries are to be
-# installed. May be None (recommended), in which case the value will be
+# installed. May be omitted (recommended), in which case the value will be
 # computed from prefix and the current Python version.""", ask=False))
 
 config_options.append(ConfigOption("paths/data",
@@ -245,7 +245,10 @@ def __configure(args):
         try:
             conf.get_by_path(opt.option_name)
         except KeyError:
-            conf.set_by_path(opt.option_name, opt.default)
+            # If the default is None, omit it
+            # Else ConfigObj will write the string 'None' to the conf file
+            if opt.default is not None:
+                conf.set_by_path(opt.option_name, opt.default)
 
     # Store comments in the conf object
     for opt in config_options:
