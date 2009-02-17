@@ -141,7 +141,7 @@ class DownloadView(ServeView):
 
 class PublicServeView(ServeView):
     def __init__(self, req, path):
-        req.path = path
+        req.path = path # XXX: Needed because we don't have an app prefix.
         super(PublicServeView, self).__init__(req, path)
 
     def authorize(self, req):

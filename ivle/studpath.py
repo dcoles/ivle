@@ -163,7 +163,11 @@ def authorize_public(req):
     raised on failure.
     """
     _, path = url_to_local(req.path)
-    dirpath, _ = os.path.split(path)
-    if not (worldreadable(dirpath) and published(dirpath)):
+
+    # Walk up the tree, and find the deepest directory.
+    while not os.path.isdir(path):
+        path = os.path.dirname(path)
+
+    if not (worldreadable(path) and published(path)):
         return False
     return True
