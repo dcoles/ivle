@@ -127,7 +127,6 @@ def serve_file(req, owner, jail, path, download=False, files=None):
     else:
         args.append(path)
 
-    # TODO: Download. Content-Disposition, etc.
     (out, err) = ivle.interpret.execute_raw(req.user, jail, '/home',
                 os.path.join(ivle.conf.share_path, 'services/serveservice'),
                 args)
@@ -143,6 +142,12 @@ def serve_file(req, owner, jail, path, download=False, files=None):
             raise NotFound()
         elif response['error'] in ('is-directory', 'forbidden'):
             raise Forbidden()
+        elif response['error'] == 'is-executable':
+            # We need to ask interpretservice to execute it.
+            interp_object = interpret.interpreter_objects["cgi-python"]
+            interpret.interpret_file(req, owner, jail, response['path'],
+                                     interp_object, gentle=True)
+            return
         else:
             raise AssertionError('Unknown error from serveservice: %s' %
                                  response['error'])
