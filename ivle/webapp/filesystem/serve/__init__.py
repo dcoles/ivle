@@ -25,25 +25,15 @@
 # our safe execution environment.
 
 import os
-import mimetypes
 
 import cjson
 
-from ivle import (util, studpath, interpret)
+from ivle import (studpath, interpret)
 import ivle.conf
 from ivle.database import User
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound, Unauthorized, Forbidden
-
-serveservice_path = os.path.join(ivle.conf.share_path, 'services/serveservice')
-interpretservice_path = os.path.join(ivle.conf.share_path,
-                                     'services/interpretservice')
-
-# Serve all files as application/octet-stream so the browser presents them as
-# a download.
-default_mimetype = "application/octet-stream"
-zip_mimetype = "application/zip"
 
 class ServeView(BaseView):
     def __init__(self, req, path):
@@ -111,8 +101,7 @@ def serve_file(req, owner, jail, path, download=False, files=None):
     # We need a no-op trampoline run to ensure that the jail is mounted.
     # Otherwise we won't be able to authorise for public mode!
     noop_object = interpret.interpreter_objects["noop"]
-    user_jail_dir = os.path.join(ivle.conf.jail_base, owner.login)
-    interpret.interpret_file(req, owner, user_jail_dir, '', noop_object)
+    interpret.interpret_file(req, owner, jail, '', noop_object)
 
     # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
     if not authorize(req):
@@ -143,7 +132,7 @@ def serve_file(req, owner, jail, path, download=False, files=None):
         elif response['error'] in ('is-directory', 'forbidden'):
             raise Forbidden()
         elif response['error'] == 'is-executable':
-            # We need to ask interpretservice to execute it.
+            # We need to execute it. Just run it with Python in the jail.
             interp_object = interpret.interpreter_objects["cgi-python"]
             interpret.interpret_file(req, owner, jail, response['path'],
                                      interp_object, gentle=True)
