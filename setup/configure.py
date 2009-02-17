@@ -281,6 +281,7 @@ def __configure(args):
 
     # Store comments in the conf object
     for opt in config_options:
+        # Omitted if the key doesn't exist
         conf.set_by_path(opt.option_name, comment=opt.comment)
 
     # Set up some variables
@@ -364,7 +365,9 @@ Please hit Ctrl+C now if you do not wish to do this.
         return 1
 
     # By default we generate the magic randomly.
-    if conf['usrmgt']['magic'] is None:
+    try:
+        conf['usrmgt']['magic']     # Throw away; just check for KeyError
+    except KeyError:
         conf['usrmgt']['magic'] = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
     # Generate the forum secret

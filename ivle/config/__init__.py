@@ -83,6 +83,8 @@ class Config(ConfigObj):
         @param path: '/'-separated path to configuration option.
         @param value: Optional - value to write to the option.
         @param comment: Optional - comment string (lines separated by '\n's).
+        Note: If only a comment is being inserted, and the value does not
+        exist, fails silently.
         """
         path = path.split('/')
         # Iterate over each segment of the path, and find the section in conf
@@ -98,7 +100,12 @@ class Config(ConfigObj):
         if value is not _NO_VALUE:
             conf_section[keyname] = value
         if comment is not None:
-            conf_section.comments[keyname] = comment.split('\n')
+            try:
+                conf_section[keyname]
+            except KeyError:
+                pass        # Fail silently
+            else:
+                conf_section.comments[keyname] = comment.split('\n')
 
     def get_by_path(self, path):
         """Gets an option's value, given a '/'-separated path.
