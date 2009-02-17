@@ -234,7 +234,15 @@ def __configure(args):
     # The reason for this is that these settings are used by other phases
     # of setup besides conf, so we need to know them.
     # Also this allows you to hit Return to accept the existing value.
-    conf = ivle.config.Config()
+    try:
+        conf = ivle.config.Config()
+    except ivle.config.ConfigError:
+        # Couldn't find a config file anywhere.
+        # Create a new blank config object (not yet bound to a file)
+        # All lookups (below) will fail, so it will be initialised with all
+        # the default values.
+        conf = ivle.config.Config(blank=True)
+
     for opt in config_options:
         try:
             conf_options[opt.option_name] = conf.get_by_path(opt.option_name)
@@ -329,9 +337,7 @@ Please hit Ctrl+C now if you do not wish to do this.
     # Generate the forum secret
     forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
-    # Write ./etc/ivle.conf
-
-    conf = ivle.config.Config(blank=True)
+    # Write ./etc/ivle.conf (even if we loaded from a different filename)
     conf.filename = conffile
 
     conf.initial_comment = ["# IVLE Configuration File"]
