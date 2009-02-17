@@ -35,20 +35,8 @@ app_fileservice = App(dir = "fileservice",
                     requireauth = True,
                     hashelp = False)
 
-app_server =    App(dir = "server",
-                    name = "Server",
-                    requireauth = True,
-                    hashelp = False)
-
-app_download =  App(dir = "download",
-                    name = "Download",
-                    requireauth = True,
-                    hashelp = False)
-
 # Mapping URL names to apps
 
 app_url = {
     "fileservice" : app_fileservice,
-    "serve" : app_server,
-    "download" : app_download,
 }
