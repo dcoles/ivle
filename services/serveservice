@@ -36,8 +36,10 @@ def determine_file_type(filename):
          filetype = ivle.conf.mimetypes.default_mimetype
     return filetype
 
-def throw_error(message):
-    print cjson.encode({'error': message})
+def throw_error(message, extra={}):
+    error = {'error': message}
+    error.update(extra)
+    print cjson.encode(error)
     sys.exit(0)
 
 parser = OptionParser()
@@ -78,8 +80,16 @@ if len(paths) > 1:
     zipfilename = os.path.basename(zipbasepath)
 else:
     filename = paths[0]
-    if not os.access(filename, os.R_OK):
-        throw_error('not-found')
+    if not os.access(filename, os.F_OK):
+        # The given path doesn't exist. CGI lets us backtrack and put the path
+        # elements through which we pass into PATH_INFO, so we try that.
+        while not os.access(filename, os.F_OK):
+            filename, path_info_frag = os.path.split(filename)
+
+        # We now have a file that exists, but is it something that we're allowed
+        # to execute? If not, we should 404 anyway.
+        if determine_file_type(filename) not in ivle.conf.app.server.interpreters:
+            throw_error('not-found')
 
     # If it's a directory, serve as a zip file
     if os.path.isdir(filename):
@@ -102,7 +112,7 @@ else:
     else:
         if not download and \
            determine_file_type(filename) in ivle.conf.app.server.interpreters:
-            throw_error('is-executable')
+            throw_error('is-executable', {'path': filename})
 
         if (ivle.conf.app.server.blacklist_served_filetypes and \
                 determine_file_type(filename) in \
