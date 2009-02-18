@@ -4,17 +4,6 @@ Install Procedure - Frequently Asked Questions
 This is a guide for administrators trying to configure IVLE. It answers
 questions about common installation mistakes.
 
-Two IVLE headings, and 404 error message "There is no application called 'php'.
-===============================================================================
-
-This is an Apache conf problem - you are missing the following section:
-
-    <Directory "/usr/local/share/ivle/www/php">
-        SetHandler None
-    </Directory>
-
-The easiest way is to ensure you copied ivle.conf.
-
 IVLE displays a generic Terms of Service notice
 ===============================================
 
