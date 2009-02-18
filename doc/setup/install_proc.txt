@@ -22,8 +22,7 @@
 sudo apt-get install rsync subversion build-essential debootstrap       \
                      apache2 libapache2-mod-python libapache2-svn       \
                      python-svn python-cjson python-genshi              \
-                     python-configobj                                   \
-                     postgresql php5 php5-pgsql python-routes           \
+                     python-configobj postgresql python-routes          \
                      python-docutils python-epydoc                      \
                      python-storm python-psycopg2
 
@@ -97,15 +96,3 @@ sudo /etc/init.d/usrmgt-server start
 
 # To run it at boot time:
 sudo update-rc.d usrmgt-server defaults 99  # create symlinks in /etc/rc*.d
-
-##########################################################################
-# Setting up phpBB Forum in IVLE
-##########################################################################
-# This should all be run from the SVN directory
-
-# Create a postgres database
-# (only need the first line if it was previously created and is now changed)
-sudo -u postgres dropdb ivle_forum
-sudo -u postgres createdb ivle_forum
-sudo -u postgres psql -d ivle_forum < userdb/forum_schema.sql
-sudo -u postgres psql -d ivle_forum < userdb/forum_data.sql
