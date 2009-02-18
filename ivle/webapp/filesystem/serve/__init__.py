@@ -58,9 +58,12 @@ class ServeView(BaseView):
     def serve(self, req, owner, jail, path):
         self.serve_file(req, owner, jail, path)
 
-    def authorize(self, req):
+    def path_authorize(self, req):
         """Given a request, checks whether req.username is allowed to
         access req.path. Returns True on authz success, False on failure.
+
+        This can't be done in the usual authorize(), because we rely on the
+        jail being mounted.
         """
         # Private mode authorization: standard (only logged in user can access
         # their own files, and can access all of them).
@@ -84,7 +87,7 @@ class ServeView(BaseView):
         interpret.interpret_file(req, owner, jail, '', noop_object)
 
         # Authorize access. If failure, this throws a HTTP_FORBIDDEN error.
-        if not self.authorize(req):
+        if not self.path_authorize(req):
             raise Unauthorized()
 
         args = []
