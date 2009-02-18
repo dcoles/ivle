@@ -18,6 +18,7 @@
 # Author: Matt Giuca, Will Grant
 
 import cgi
+import urlparse
 import inspect
 
 import cjson
@@ -87,11 +88,12 @@ class JSONRESTView(RESTView):
         # POST implies named operation.
         elif req.method == 'POST':
             # TODO: Check Content-Type and implement multipart/form-data.
-            opargs = dict(cgi.parse_qsl(req.read()))
+            data = req.read()
+            opargs = cgi.parse_qs(data, keep_blank_values=1)
             try:
                 opname = opargs['ivle.op']
-                del opargs['ivle.op']
             except KeyError:
+                req.write(str(data))
                 raise BadRequest('No named operation specified.')
 
             try:

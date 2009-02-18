@@ -204,8 +204,10 @@ CREATE TABLE worksheet (
     worksheetid SERIAL PRIMARY KEY,
     offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
+    name        TEXT NOT NULL,
+    data         TEXT NOT NULL,
     assessable  BOOLEAN,
-    mtime       TIMESTAMP,
+    order_no    INT4,
     UNIQUE (offeringid, identifier)
 );
 

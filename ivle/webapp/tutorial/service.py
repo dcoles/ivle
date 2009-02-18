@@ -184,3 +184,38 @@ class ExerciseRESTView(JSONRESTView):
         ivle.worksheet.save_exercise(req.store, req.user, exercise, worksheet,
                                      unicode(text), datetime.datetime.now())
         return {"result": "ok"}
+
+class WorksheetRESTView(JSONRESTView):
+    """View used to update a worksheet."""
+
+    def get_permissions(self, user):
+        # XXX: Do it properly.
+        if user is not None:
+            if user.rolenm == 'admin':
+                return set(['save'])
+            else:
+                return set()
+        else:
+            return set()    
+
+    def __init__(self, req, **kwargs):
+    
+        self.worksheet = kwargs['worksheet']
+        self.subject = kwargs['subject']
+        self.year = kwargs['year']
+        self.semester = kwargs['semester']
+    
+        self.context = req.store.find(Worksheet,
+            Worksheet.name == self.worksheet,
+            Worksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == self.subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == self.year,
+            Semester.semester == self.semester).one()
+    
+    @named_operation('save')
+    def save(self, req, data):
+        self.worksheet.data = data
+        
+        return {"result": "ok"}

@@ -44,8 +44,8 @@ from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import BaseMediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
-from ivle.webapp.tutorial.service import AttemptsRESTView, \
-                                        AttemptRESTView, ExerciseRESTView
+from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
+                                         ExerciseRESTView, WorksheetRESTView
 
 # Regex for valid identifiers (subject/worksheet names)
 re_ident = re.compile("[0-9A-Za-z_]+")
@@ -55,7 +55,6 @@ class Worksheet:
         self.id = id
         self.name = name
         self.assessable = assessable
-        self.loc = urllib.quote(id)
         self.complete_class = ''
         self.optional_message = ''
         self.total = 0
@@ -92,57 +91,39 @@ class OfferingView(XHTMLView):
         # The subject directory must have a file "subject.xml" in it,
         # or it does not exist (404 error).
         ctx['subject'] = self.context.subject.code
-        try:
-            subjectfile = open(os.path.join(ivle.conf.subjects_base,
-                                    self.context.subject.code, "subject.xml")).read()
-        except:
-            raise NotFound()
-
-        subjectfile = genshi.Stream(list(genshi.XML(subjectfile)))
-
-        ctx['worksheets'] = get_worksheets(subjectfile)
+        ctx['year'] = self.context.semester.year
+        ctx['semester'] = self.context.semester.semester
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
+
+        ctx['worksheets'] = []
         problems_done = 0
         problems_total = 0
-        for worksheet in ctx['worksheets']:
-            stored_worksheet = req.store.find(DBWorksheet,
-                DBWorksheet.offering_id == self.context.id,
-                DBWorksheet.name == worksheet.id).one()
-            # If worksheet is not in database yet, we'll simply not display
-            # data about it yet (it should be added as soon as anyone visits
-            # the worksheet itself).
-            if stored_worksheet is not None:
-                # If the assessable status of this worksheet has changed,
-                # update the DB
-                # (Note: This fails the try block if the worksheet is not yet
-                # in the DB, which is fine. The author should visit the
-                # worksheet page to get it into the DB).
-                if worksheet.assessable != stored_worksheet.assessable:
-                    # XXX If statement to avoid unnecessary database writes.
-                    # Is this necessary, or will Storm check for us?
-                    stored_worksheet.assessable = worksheet.assessable
-                if worksheet.assessable:
-                    # Calculate the user's score for this worksheet
-                    mand_done, mand_total, opt_done, opt_total = (
-                        ivle.worksheet.calculate_score(req.store, req.user,
-                            stored_worksheet))
-                    if opt_total > 0:
-                        optional_message = " (excluding optional exercises)"
-                    else:
-                        optional_message = ""
-                    if mand_done >= mand_total:
-                        worksheet.complete_class = "complete"
-                    elif mand_done > 0:
-                        worksheet.complete_class = "semicomplete"
-                    else:
-                        worksheet.complete_class = "incomplete"
-                    problems_done += mand_done
-                    problems_total += mand_total
-                    worksheet.mand_done = mand_done
-                    worksheet.total = mand_total
-                    worksheet.optional_message = optional_message
+        for worksheet in self.context.worksheets:
+            new_worksheet = Worksheet(worksheet.identifier, worksheet.name, 
+                                      worksheet.assessable)
+            if new_worksheet.assessable:
+                # Calculate the user's score for this worksheet
+                mand_done, mand_total, opt_done, opt_total = (
+                    ivle.worksheet.calculate_score(req.store, req.user,
+                        worksheet))
+                if opt_total > 0:
+                    optional_message = " (excluding optional exercises)"
+                else:
+                    optional_message = ""
+                if mand_done >= mand_total:
+                    new_worksheet.complete_class = "complete"
+                elif mand_done > 0:
+                    new_worksheet.complete_class = "semicomplete"
+                else:
+                    new_worksheet.complete_class = "incomplete"
+                problems_done += mand_done
+                problems_total += mand_total
+                new_worksheet.mand_done = mand_done
+                new_worksheet.total = mand_total
+                new_worksheet.optional_message = optional_message
+            ctx['worksheets'].append(new_worksheet)
 
 
         ctx['problems_total'] = problems_total
@@ -176,7 +157,7 @@ class WorksheetView(XHTMLView):
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester,
-            DBWorksheet.name == worksheet).one()
+            DBWorksheet.identifier == worksheet).one()
         
         self.worksheetname = worksheet
         self.year = year
@@ -189,28 +170,13 @@ class WorksheetView(XHTMLView):
         if not self.context:
             raise NotFound()
 
-        # Read in worksheet data
-        worksheetfilename = os.path.join(ivle.conf.subjects_base,
-                               self.context.offering.subject.code, self.worksheetname + ".xml")
-        try:
-            worksheetfile = open(worksheetfilename)
-            worksheetmtime = os.path.getmtime(worksheetfilename)
-        except:
-            raise NotFound()
-
-        worksheetmtime = datetime.fromtimestamp(worksheetmtime)
-        worksheetfile = worksheetfile.read()
-
         ctx['subject'] = self.context.offering.subject.code
         ctx['worksheet'] = self.worksheetname
         ctx['semester'] = self.semester
         ctx['year'] = self.year
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data)))
 
         generate_worksheet_data(ctx, req, self.context)
-
-        update_db_worksheet(req.store, self.context.offering.subject.code, self.worksheetname,
-            worksheetmtime, ctx['exerciselist'])
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
@@ -349,10 +315,10 @@ def present_exercise(req, exercisesrc, worksheet):
     curctx['filename'] = exercisesrc
 
     # Retrieve the exercise details from the database
-    exercise = req.store.find(Exercise, Exercise.id == exercisesrc).one()
+    exercise = req.store.find(Exercise, Exercise.id == unicode(exercisesrc)).one()
     
     if exercise is None:
-        raise NotFound()
+        raise NotFound(exercisesrc)
 
     # Read exercise file and present the exercise
     # Note: We do not use the testing framework because it does a lot more
@@ -362,8 +328,11 @@ def present_exercise(req, exercisesrc, worksheet):
     #TODO: Replace calls to minidom with calls to the database directly
     curctx['exercise'] = exercise
     if exercise.description is not None:
-        curctx['description'] = genshi.XML('<div id="description">' + 
-                                           exercise.description + '</div>')
+        desc = rstfunc(exercise.description)
+        curctx['description'] = genshi.XML('<div id="description">' + desc + 
+                                           '</div>')
+        #curctx['description'] = genshi.XML('<div id="description">' + 
+        #                                   exercise.description + '</div>')
     else:
         curctx['description'] = None
 
@@ -395,57 +364,53 @@ def present_exercise(req, exercisesrc, worksheet):
             'stream': ex_stream,
             'exid': exercise.id}
 
+class OfferingAdminView(XHTMLView):
+    """The admin view for an Offering.
+    
+    This class is designed to check the user has admin privileges, and
+    then allow them to edit the RST for the offering, which controls which
+    worksheets are actually displayed on the page."""
+    pass
 
-def update_db_worksheet(store, subject, worksheetname, file_mtime,
-    exercise_list=None, assessable=None):
-    """
-    Determines if the database is missing this worksheet or out of date,
-    and inserts or updates its details about the worksheet.
-    file_mtime is a datetime.datetime with the modification time of the XML
-    file. The database will not be updated unless worksheetmtime is newer than
-    the mtime in the database.
-    exercise_list is a list of (filename, optional) pairs as returned by
-    present_table_of_contents.
-    assessable is boolean.
-    exercise_list and assessable are optional, and if omitted, will not change
-    the existing data. If the worksheet does not yet exist, and assessable
-    is omitted, it defaults to False.
-    """
-"""    worksheet = ivle.database.Worksheet.get_by_name(store, subject,
-                                                    worksheetname)
+class WorksheetAdminView(XHTMLView):
+    """The admin view for an offering.
+    
+    This view is designed to replace worksheets.xml, turning them instead
+    into XML directly from RST."""
+    permission = "edit"
+    template = "worksheet_admin.html"
+    appname = "Worksheet Admin"
 
-    updated_database = False
-    if worksheet is None:
-        # If assessable is not supplied, default to False.
-        if assessable is None:
-            assessable = False
-        # Create a new Worksheet
-        worksheet = ivle.database.Worksheet(subject=unicode(subject),
-            name=unicode(worksheetname), assessable=assessable,
-            mtime=datetime.now())
-        store.add(worksheet)
-        updated_database = True
-    else:
-        if file_mtime > worksheet.mtime:
-            # File on disk is newer than database. Need to update.
-            worksheet.mtime = datetime.now()
-            if exercise_list is not None:
-                # exercise_list is supplied, so delete any existing problems
-                worksheet.remove_all_exercises(store)
-            if assessable is not None:
-                worksheet.assessable = assessable
-            updated_database = True
+    def __init__(self, req, subject, year, semester, worksheet):
+        self.context = req.store.find(DBWorksheet,
+            DBWorksheet.identifier == worksheet,
+            DBWorksheet.offering_id == Offering.id,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject
+        ).one()
+        
+        self.subject = subject
+        self.year = year
+        self.semester = semester
+        
+        if self.context is None:
+            raise NotFound()
+            
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
+        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
+        
+        ctx['worksheet'] = self.context
+        ctx['subject'] = self.subject
+        ctx['year'] = self.year
+        ctx['semester'] = self.semester
+        ctx['upload_path'] = "/api/subjects/" + self.subject + "/" + \
+            self.year + "/" + self.semester + "/edit/+worksheets/" + \
+            self.context.identifier
 
-    if updated_database and exercise_list is not None:
-        # Insert each exercise into the worksheet
-        for exercise_name, optional in exercise_list:
-            # Get the Exercise from the DB
-            exercise = store.find(Exercise, Exercise.id == exercise_name).one()
-            # Create a new binding between the worksheet and the exercise
-            worksheetexercise = ivle.database.WorksheetExercise(
-                    worksheet=worksheet, exercise=exercise, optional=optional)
-
-    store.commit()"""
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
@@ -457,6 +422,8 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', ExerciseRESTView),
+        ('subjects/:subject/:year/:semester/edit/+worksheets/:worksheet', WorksheetAdminView),
+        ('api/subjects/:subject/:year/:semester/edit/+worksheets/:worksheet', WorksheetRESTView)
     ]
 
     tabs = [

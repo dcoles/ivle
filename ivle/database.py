@@ -429,9 +429,11 @@ class Worksheet(Storm):
     # XXX subject is not linked to a Subject object. This is a property of
     # the database, and will be refactored.
     offering_id = Int(name="offeringid")
-    name = Unicode(name="identifier")
+    identifier = Unicode()
+    name = Unicode()
     assessable = Bool()
-    mtime = DateTime()
+    data = Unicode()
+    order_no = Int()
 
     attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
@@ -490,7 +492,7 @@ class WorksheetExercise(Storm):
 
     def __repr__(self):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
-                                  self.worksheet.name)
+                                  self.worksheet.identifier)
 
 class ExerciseSave(Storm):
     """
