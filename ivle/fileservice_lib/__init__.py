@@ -78,19 +78,10 @@
 # See listing.py for a full description of the output format of the directory
 # listing.
 
-import os
-import shutil
-import stat
-import time
-import mimetypes
 import urllib
 
-import cjson
-import pysvn
-
-from ivle import (util, studpath)
-
-import action, listing
+import ivle.fileservice_lib.action
+import ivle.fileservice_lib.listing
 
 # Mime types
 # application/json is the "best" content type but is not good for
@@ -100,12 +91,6 @@ mime_dirlisting = "text/html"
 
 def handle(req):
     """Handler for the File Services application."""
-    # Make sure the logged in user has permission to see this file
-    # FIXME: Still need to authorize subpaths in actions
-    #studpath.authorize(req)
-
-    # Set request attributes
-    req.write_html_head_foot = False     # No HTML
 
     # We really, really don't want the responses to be cached.
     req.headers_out['Cache-Control'] = 'no-store, must-revalidate'
@@ -120,9 +105,9 @@ def handle(req):
     
     if act is not None:
         try:
-            action.handle_action(req, act, fields)
+            ivle.fileservice_lib.action.handle_action(req, act, fields)
         except action.ActionError, message:
             req.headers_out['X-IVLE-Action-Error'] = urllib.quote(str(message))
 
     return_type = fields.getfirst('return')
-    listing.handle_return(req, return_type == "contents")
+    ivle.fileservice_lib.listing.handle_return(req, return_type == "contents")
