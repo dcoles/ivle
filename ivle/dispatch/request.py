@@ -296,16 +296,6 @@ class Request:
         else:
             return self.apache_req.read(len)
 
-    def throw_error(self, httpcode, message=None):
-        """Writes out an HTTP error of the specified code. Raises an exception
-        which is caught by the dispatch or web server, so any code following
-        this call will not be executed.
-
-        httpcode: An HTTP response status code. Pass a constant from the
-        Request class.
-        """
-        raise ivle.util.IVLEError(httpcode, message)
-
     def throw_redirect(self, location):
         """Writes out an HTTP redirect to the specified URL. Raises an
         exception which is caught by the dispatch or web server, so any

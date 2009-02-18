@@ -249,19 +249,6 @@ class CGIRequest:
         else:
             return sys.stdin.read(len)
 
-    def throw_error(self, httpcode, message):
-        """Writes out an HTTP error of the specified code. Exits the process,
-        so any code following this call will not be executed.
-
-        (This is justified because of the nature of CGI, it is a single-script
-        environment, there is no containing process which needs to catch an
-        exception).
-
-        httpcode: An HTTP response status code. Pass a constant from the
-        Request class.
-        """
-        raise ivle.util.IVLEError(httpcode, message)
-
     def handle_unknown_exception(self, exc_type, exc_value, exc_tb):
         if exc_type is ivle.util.IVLEError:
             self.headers_out['X-IVLE-Error-Code'] = exc_value.httpcode
