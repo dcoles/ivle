@@ -40,8 +40,7 @@ class ForumView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['forum.css']
-
-        forum_base = "php/phpBB3"
+        forum_base = req.config.plugin_configs[Plugin]['base']
 
         ctx['url'] = ivle.util.make_path(os.path.join(forum_base, self.path))
 

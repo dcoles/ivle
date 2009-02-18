@@ -1,0 +1,217 @@
+diff -Nur a/adm/index.php b/adm/index.php
+--- a/adm/index.php	2008-12-13 02:20:38.000000000 +1100
++++ b/adm/index.php	2009-02-18 11:53:53.000000000 +1100
+@@ -27,12 +27,6 @@
+ $user->setup('acp/common');
+ // End session management
+ 
+-// Have they authenticated (again) as an admin for this session?
+-if (!isset($user->data['session_admin']) || !$user->data['session_admin'])
+-{
+-	login_box('', $user->lang['LOGIN_ADMIN_CONFIRM'], $user->lang['LOGIN_ADMIN_SUCCESS'], true, false);
+-}
+-
+ // Is user any type of admin? No, then stop here, each script needs to
+ // check specific permissions but this is a catchall
+ if (!$auth->acl_get('a_'))
+diff -Nur a/config.php b/config.php
+--- a/config.php	2009-02-18 11:47:04.000000000 +1100
++++ b/config.php	2009-02-18 12:21:14.000000000 +1100
+@@ -11,6 +11,8 @@
+ $acm_type = 'file';
+ $load_extensions = '';
+ 
++$ivle_secret = '<FORUM SECRET>';
++
+ @define('PHPBB_INSTALLED', true);
+ // @define('DEBUG', true);
+ // @define('DEBUG_EXTRA', true);
+diff -Nur a/includes/session.php b/includes/session.php
+--- a/includes/session.php	2008-12-13 02:20:37.000000000 +1100
++++ b/includes/session.php	2009-02-18 12:32:37.000000000 +1100
+@@ -296,6 +296,13 @@
+ 			$this->data = $db->sql_fetchrow($result);
+ 			$db->sql_freeresult($result);
+ 
++			// IVLE SSO
++			$ivle_userid = $this->ivle_auth();
++			if ($ivle_userid && ($ivle_userid != $this->data['user_id']))
++			{
++				return $this->session_create($ivle_userid);
++			}
++
+ 			// Did the session exist in the DB?
+ 			if (isset($this->data['user_id']))
+ 			{
+@@ -2228,6 +2235,135 @@
+ 			return $var;
+ 		}
+ 	}
++
++	/** IVLE SSO
++	 * This function attempts to authenticate from a signed cookie provided by 
++	 * IVLE. If it does it will return either the forum user_id for the logged in 
++	 * IVLE user or will create a new one on-the-fly.
++	 * 
++	 * If the cookie is bad, the ANONYMOUS user will be returned.
++	 */
++	function ivle_auth()
++	{
++		global $db, $phpbb_root_path, $phpEx;
++
++		// Get the IVLE shared secret from config.php.
++		require($phpbb_root_path . 'config.' . $phpEx);
++
++		// Shared Cookie
++		$ivle_cookie = explode(':',$_COOKIE['ivleforumcookie']);
++	 
++		if ($ivle_cookie == "NONE") {
++			return ANONYMOUS;
++		}
++
++		// Decode and unescape the Cookie contents
++		$ivle_uid = urldecode($ivle_cookie[0]);
++		$ivle_nick = urldecode($ivle_cookie[1]);
++		$ivle_email = urldecode($ivle_cookie[2]);
++		$ivle_role = urldecode($ivle_cookie[3]);
++		$ivle_hash = $ivle_cookie[4];
++
++		// Check if uid + nick + email + secret is the same as the hash
++		if(md5($ivle_cookie[0].$ivle_cookie[1].$ivle_cookie[2].
++		       $ivle_cookie[3].$ivle_secret) == $ivle_hash)
++		{
++			// Check if the user exists in the database
++			$sql = 'SELECT user_id
++				FROM ' . USERS_TABLE . "
++				WHERE username = '" . $db->sql_escape($ivle_uid) . "';";
++				$result = $db->sql_query($sql);
++				$row = $db->sql_fetchrow($result);
++				$user_id = $row['user_id'];
++				$db->sql_freeresult($result);
++
++			// If no user_id is found for the username, create a new user
++			if(!$user_id)
++			{
++				// Needed for IVLE auth overide
++				include_once($phpbb_root_path . 'includes/functions_user.' . $phpEx);
++		   
++				// Add all users to the Registered Group
++				$sql = 'SELECT group_id
++					FROM ' . GROUPS_TABLE . "
++					WHERE group_name = '" . $db->sql_escape('REGISTERED') . "'
++					AND group_type = " . GROUP_SPECIAL;
++				$result = $db->sql_query($sql);
++				$row = $db->sql_fetchrow($result);
++				$db->sql_freeresult($result);
++				if (!$row)
++				{
++					trigger_error('NO_GROUP');
++				}
++
++				$group_id = $row['group_id'];
++
++				// Get the Time and Timezone
++				$timezone = date('Z') / 3600;
++				$is_dst = date('I');
++				$timezone = ($is_dst) ? $timezone - 1 : $timezone;
++				
++				// Fill into array
++				$user_row = array(
++					'username'		=> $ivle_uid,
++					'user_password'		=> '', # Not a valid hash
++					'user_email'		=> $ivle_email,
++					'group_id'		=> (int) $group_id,
++					'user_timezone'		=> (float) $timezone,
++					'user_dst'		=> $is_dst,
++					'user_lang'		=> 'en',
++					'user_type'		=> USER_NORMAL,
++					'user_actkey'		=> '',
++					'user_ip'		=> $this->ip,
++					'user_regdate'		=> time(),
++					'user_inactive_reason'	=> 0,
++					'user_inactive_time'	=> 0,
++				);
++			 
++				// Add user
++				$user_id = user_add($user_row);
++
++				// Add any aditional groups
++				// Select the equvialent group
++				$group = False;
++				switch($ivle_role)
++				{
++					case('admin'):
++						$group = 'ADMINISTRATORS';
++						break;
++					case('lecturer'):
++						$group = 'GLOBAL_MODERATORS';
++						break;
++				}
++				if ($group)
++				{
++					// Find the group_id
++					$sql = 'SELECT group_id
++						FROM ' . GROUPS_TABLE . "
++						WHERE group_name = '" . $db->sql_escape($group) . "'
++						AND group_type = " . GROUP_SPECIAL;
++					
++					$result = $db->sql_query($sql);
++					$row = $db->sql_fetchrow($result);
++					$db->sql_freeresult($result);
++
++					if (!$row)
++					{
++						trigger_error('NO_GROUP');
++					}
++
++					$group_id = $row['group_id'];
++
++					group_user_add($group_id,Array($user_id));
++				}
++			}
++			return $user_id;
++		}
++		else
++		{
++			return False;
++		}
++	}
+ }
+ 
+ ?>
+diff -Nur a/styles/prosilver/template/index_body.html b/styles/prosilver/template/index_body.html
+--- a/styles/prosilver/template/index_body.html	2008-12-13 02:20:37.000000000 +1100
++++ b/styles/prosilver/template/index_body.html	2009-02-18 12:05:36.000000000 +1100
+@@ -14,20 +14,6 @@
+ 
+ <!-- INCLUDE forumlist_body.html -->
+ 
+-<!-- IF not S_USER_LOGGED_IN and not S_IS_BOT -->
+-	<form method="post" action="{S_LOGIN_ACTION}" class="headerspace">
+-	<h3><a href="{U_LOGIN_LOGOUT}">{L_LOGIN_LOGOUT}</a><!-- IF S_REGISTER_ENABLED -->&nbsp; &bull; &nbsp;<a href="{U_REGISTER}">{L_REGISTER}</a><!-- ENDIF --></h3>
+-		<fieldset class="quick-login">
+-			<label for="username">{L_USERNAME}:</label>&nbsp;<input type="text" name="username" id="username" size="10" class="inputbox" title="{L_USERNAME}" />  
+-			<label for="password">{L_PASSWORD}:</label>&nbsp;<input type="password" name="password" id="password" size="10" class="inputbox" title="{L_PASSWORD}" />
+-			<!-- IF S_AUTOLOGIN_ENABLED -->
+-				| <label for="autologin">{L_LOG_ME_IN} <input type="checkbox" name="autologin" id="autologin" /></label>
+-			<!-- ENDIF -->
+-			<input type="submit" name="login" value="{L_LOGIN}" class="button2" />
+-		</fieldset>
+-	</form>
+-<!-- ENDIF -->
+-
+ <!-- IF S_DISPLAY_ONLINE_LIST -->
+ 	<!-- IF U_VIEWONLINE --><h3><a href="{U_VIEWONLINE}">{L_WHO_IS_ONLINE}</a></h3><!-- ELSE --><h3>{L_WHO_IS_ONLINE}</h3><!-- ENDIF -->
+ 	<p>{TOTAL_USERS_ONLINE} ({L_ONLINE_EXPLAIN})<br />{RECORD_USERS}<br /> <br />{LOGGED_IN_USER_LIST}
+diff -Nur a/styles/prosilver/template/overall_header.html b/styles/prosilver/template/overall_header.html
+--- a/styles/prosilver/template/overall_header.html	2008-12-13 02:20:37.000000000 +1100
++++ b/styles/prosilver/template/overall_header.html	2009-02-18 12:06:22.000000000 +1100
+@@ -151,8 +151,6 @@
+ 				<li class="icon-faq"><a href="{U_FAQ}" title="{L_FAQ_EXPLAIN}">{L_FAQ}</a></li>
+ 				<!-- IF not S_IS_BOT -->
+ 					<!-- IF S_DISPLAY_MEMBERLIST --><li class="icon-members"><a href="{U_MEMBERLIST}" title="{L_MEMBERLIST_EXPLAIN}">{L_MEMBERLIST}</a></li><!-- ENDIF -->
+-					<!-- IF not S_USER_LOGGED_IN and S_REGISTER_ENABLED --><li class="icon-register"><a href="{U_REGISTER}">{L_REGISTER}</a></li><!-- ENDIF -->
+-					<li class="icon-logout"><a href="{U_LOGIN_LOGOUT}" title="{L_LOGIN_LOGOUT}" accesskey="l">{L_LOGIN_LOGOUT}</a></li>
+ 				<!-- ENDIF -->
+ 			</ul>
+ 
