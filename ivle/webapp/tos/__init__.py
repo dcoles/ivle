@@ -40,7 +40,7 @@ class TermsOfServiceView(XHTMLView):
         # 'no_agreement'. In that case, req.user will be None, so we have
         # to get it ourselves.
         if req.user is None:
-            self.user = ivle.webapp.security.login.get_user_details(req)
+            self.user = ivle.webapp.security.get_user_details(req)
             self.mode = 'accept'
             self.template = 'accept.html'
         else:
