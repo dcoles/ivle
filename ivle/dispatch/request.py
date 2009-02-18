@@ -193,7 +193,6 @@ class Request:
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
         self.scripts_init = []

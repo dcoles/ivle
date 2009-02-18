@@ -152,7 +152,6 @@ class CGIRequest:
         self.status = CGIRequest.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
         self.got_common_vars = False
