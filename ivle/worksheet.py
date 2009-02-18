@@ -25,12 +25,13 @@ This module provides functions for tutorial and worksheet computations.
 
 from storm.locals import And, Asc, Desc
 import ivle.database
+from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet
 
 __all__ = ['get_exercise_status', 'get_exercise_stored_text',
            'get_exercise_attempts', 'get_exercise_attempt',
           ]
 
-def get_exercise_status(store, user, exercise):
+def get_exercise_status(store, user, exercise, worksheet):
     """Given a storm.store, User and Exercise, returns information about
     the user's performance on that problem.
     Returns a tuple of:
@@ -39,12 +40,12 @@ def get_exercise_status(store, user, exercise):
           including the first successful attempt (or the total number of
           attempts, if not yet successful).
     """
-    ExerciseAttempt = ivle.database.ExerciseAttempt
     # A Storm expression denoting all active attempts by this user for this
     # exercise.
     is_relevant = ((ExerciseAttempt.user_id == user.id) &
                    (ExerciseAttempt.exercise_id == exercise.id) &
-                   (ExerciseAttempt.active == True))
+                   (ExerciseAttempt.active == True) &
+                   (ExerciseAttempt.worksheetid == worksheet.id))
 
     # Get the first successful active attempt, or None if no success yet.
     # (For this user, for this exercise).
@@ -66,7 +67,7 @@ def get_exercise_status(store, user, exercise):
 
     return first_success is not None, num_attempts
 
-def get_exercise_stored_text(store, user, exercise):
+def get_exercise_stored_text(store, user, exercise, worksheet):
     """Given a storm.store, User and Exercise, returns an
     ivle.database.ExerciseSave object for the last saved/submitted attempt for
     this question (note that ExerciseAttempt is a subclass of ExerciseSave).
@@ -75,18 +76,18 @@ def get_exercise_stored_text(store, user, exercise):
     If the user has both saved and submitted, it returns whichever was
     made last.
     """
-    ExerciseSave = ivle.database.ExerciseSave
-    ExerciseAttempt = ivle.database.ExerciseAttempt
 
     # Get the saved text, or None
     saved = store.find(ExerciseSave,
                 ExerciseSave.user_id == user.id,
-                ExerciseSave.exercise_id == exercise.id).one()
+                ExerciseSave.exercise_id == exercise.id,
+                ExerciseSave.worksheetid == worksheet.id).one()
 
     # Get the most recent attempt, or None
     attempt = store.find(ExerciseAttempt,
             ExerciseAttempt.user_id == user.id,
             ExerciseAttempt.exercise_id == exercise.id,
+            ExerciseAttempt.worksheetid == worksheet.id,
             ExerciseAttempt.active == True,
         ).order_by(Asc(ExerciseAttempt.date)).last()
 
@@ -102,21 +103,21 @@ def get_exercise_stored_text(store, user, exercise):
         else:
             return None
 
-def _get_exercise_attempts(store, user, exercise, as_of=None,
+def _get_exercise_attempts(store, user, exercise, worksheet, as_of=None,
         allow_inactive=False):
     """Same as get_exercise_attempts, but doesn't convert Storm's iterator
     into a list."""
-    ExerciseAttempt = ivle.database.ExerciseAttempt
 
     # Get the most recent attempt before as_of, or None
     return store.find(ExerciseAttempt,
             ExerciseAttempt.user_id == user.id,
             ExerciseAttempt.exercise_id == exercise.id,
+            ExerciseAttempt.worksheetid == worksheet.id,
             True if allow_inactive else ExerciseAttempt.active == True,
             True if as_of is None else ExerciseAttempt.date <= as_of,
         ).order_by(Desc(ExerciseAttempt.date))
 
-def get_exercise_attempts(store, user, exercise, as_of=None,
+def get_exercise_attempts(store, user, exercise, worksheet, as_of=None,
         allow_inactive=False):
     """Given a storm.store, User and Exercise, returns a list of
     ivle.database.ExerciseAttempt objects, one for each attempt made for the
@@ -126,10 +127,10 @@ def get_exercise_attempts(store, user, exercise, as_of=None,
         attempts made before or at this time.
     allow_inactive: If True, will return disabled attempts.
     """
-    return list(_get_exercise_attempts(store, user, exercise, as_of,
+    return list(_get_exercise_attempts(store, user, exercise, worksheet, as_of,
         allow_inactive))
 
-def get_exercise_attempt(store, user, exercise, as_of=None,
+def get_exercise_attempt(store, user, exercise, worksheet, as_of=None,
         allow_inactive=False):
     """Given a storm.store, User and Exercise, returns an
     ivle.database.ExerciseAttempt object for the last submitted attempt for
@@ -141,10 +142,10 @@ def get_exercise_attempt(store, user, exercise, as_of=None,
         attempts made before or at this time.
     allow_inactive: If True, will return disabled attempts.
     """
-    return _get_exercise_attempts(store, user, exercise, as_of,
+    return _get_exercise_attempts(store, user, exercise, worksheet, as_of,
         allow_inactive).first()
 
-def save_exercise(store, user, exercise, text, date):
+def save_exercise(store, user, exercise, worksheet, text, date):
     """Save an exercise for a user.
 
     Given a store, User, Exercise and text and date, save the text to the
@@ -152,9 +153,12 @@ def save_exercise(store, user, exercise, text, date):
     """
     saved = store.find(ivle.database.ExerciseSave,
                 ivle.database.ExerciseSave.user_id == user.id,
-                ivle.database.ExerciseSave.exercise_id == exercise.id).one()
+                ivle.database.ExerciseSave.exercise_id == exercise.id,
+                ivle.database.ExerciseSave.worksheetid == worksheet.id
+                ).one()
     if saved is None:
-        saved = ivle.database.ExerciseSave(user=user, exercise=exercise)
+        saved = ivle.database.ExerciseSave(user=user, exercise=exercise, 
+                                           worksheet=worksheet)
         store.add(saved)
 
     saved.date = date

@@ -421,20 +421,6 @@ class Exercise(Storm):
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
-#    @classmethod
-#    def get_by_name(cls, store, name):
-#        """
-#        Get the Exercise from the db associated with a given store and name.
-#        If the exercise is not in the database, creates it and inserts it
-#        automatically.
-#        """
-#        ex = store.find(cls, cls.name == unicode(name)).one()
-#        if ex is not None:
-#            return ex
-#        ex = Exercise(name=unicode(name))
-#        store.add(ex)
-#        store.commit()
-#        return ex
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
@@ -442,7 +428,6 @@ class Worksheet(Storm):
     id = Int(primary=True, name="worksheetid")
     # XXX subject is not linked to a Subject object. This is a property of
     # the database, and will be refactored.
-    subject = Unicode()
     offering_id = Int(name="offeringid")
     name = Unicode(name="identifier")
     assessable = Bool()

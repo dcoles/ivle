@@ -25,7 +25,7 @@ import datetime
 import ivle.util
 import ivle.console
 import ivle.database
-from ivle.database import Exercise, ExerciseAttempt, ExerciseSave
+from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, Offering, Subject, Semester
 import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
@@ -49,6 +49,15 @@ class AttemptsRESTView(JSONRESTView):
         if self.user is None:
             raise NotFound()
         self.exercise = exercise
+        
+        self.worksheet = req.store.find(Worksheet,
+            Worksheet.name == worksheet,
+            Worksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
         
         self.context = self.user # XXX: Not quite right.
 
@@ -95,7 +104,7 @@ class AttemptsRESTView(JSONRESTView):
                                                 exercise=exercise,
                                                 date=datetime.datetime.now(),
                                                 complete=test_results['passed'],
-                                                # XXX
+                                                worksheet=self.worksheet,
                                                 text=unicode(data['code']))
 
         req.store.add(attempt)
@@ -104,7 +113,7 @@ class AttemptsRESTView(JSONRESTView):
         # has EVER been completed (may be different from "passed", if it has
         # been completed before), and the total number of attempts.
         completed, attempts = ivle.worksheet.get_exercise_status(req.store,
-            req.user, exercise)
+            req.user, exercise, self.worksheet)
         test_results["completed"] = completed
         test_results["attempts"] = attempts
 
@@ -126,8 +135,17 @@ class AttemptRESTView(JSONRESTView):
             raise NotFound()
 
         exercise = ivle.database.Exercise.get_by_name(req.store, exercise)
+        worksheet = req.store.find(Worksheet,
+            Worksheet.name == self.worksheet,
+            Worksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == self.subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == self.year,
+            Semester.semester == self.semester).one()
+
         attempt = ivle.worksheet.get_exercise_attempt(req.store, user,
-            exercise, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
+            exercise, worksheet, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
 
         if attempt is None:
             raise NotFound()
@@ -155,6 +173,14 @@ class ExerciseRESTView(JSONRESTView):
         # (This avoids users submitting code for bogus exercises).
         exercise = req.store.find(Exercise,
             Exercise.id == self.exercise).one()
-        ivle.worksheet.save_exercise(req.store, req.user, exercise,
+        worksheet = req.store.find(Worksheet,
+            Worksheet.name == self.worksheet,
+            Worksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == self.subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == self.year,
+            Semester.semester == self.semester).one()
+        ivle.worksheet.save_exercise(req.store, req.user, exercise, worksheet,
                                      unicode(text), datetime.datetime.now())
         return {"result": "ok"}

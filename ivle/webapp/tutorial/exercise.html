@@ -11,7 +11,7 @@
         event.keyCode)"
         onchange="set_saved_status(&quot;${exercise.id}&quot;, '${filename}',
         &quot;Save&quot;)"
-        cols="80" rows="${exercise.num_rows}">${exercise.partial}</textarea>
+        cols="80" rows="${exercise.num_rows}">${exercisesave}</textarea>
     <div class="exercisebuttons">
       <input type="button" value="Saved" disabled="disabled" id="savebutton_${exercise.id}"
           onclick="saveexercise(&quot;${exercise.id}&quot;, '${filename}')"

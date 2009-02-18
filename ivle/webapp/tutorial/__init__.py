@@ -107,8 +107,9 @@ class OfferingView(XHTMLView):
         problems_done = 0
         problems_total = 0
         for worksheet in ctx['worksheets']:
-            stored_worksheet = ivle.database.Worksheet.get_by_name(req.store,
-                self.context.subject.code, worksheet.id)
+            stored_worksheet = req.store.find(DBWorksheet,
+                DBWorksheet.offering_id == self.context.id,
+                DBWorksheet.name == worksheet.id).one()
             # If worksheet is not in database yet, we'll simply not display
             # data about it yet (it should be added as soon as anyone visits
             # the worksheet itself).
@@ -206,8 +207,7 @@ class WorksheetView(XHTMLView):
         ctx['year'] = self.year
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(worksheetfile)))
 
-        #TODO: Replace this with a nice way, possibly a match template
-        generate_worksheet_data(ctx, req)
+        generate_worksheet_data(ctx, req, self.context)
 
         update_db_worksheet(req.store, self.context.offering.subject.code, self.worksheetname,
             worksheetmtime, ctx['exerciselist'])
@@ -290,7 +290,7 @@ def add_exercises(stream, ctx, req):
 
 # This function runs through the worksheet, to get data on the exercises to
 # build a Table of Contents, as well as fill in details in ctx
-def generate_worksheet_data(ctx, req):
+def generate_worksheet_data(ctx, req, worksheet):
     """Runs through the worksheetstream, generating the exericises"""
     ctx['exercises'] = []
     ctx['exerciselist'] = []
@@ -305,7 +305,7 @@ def generate_worksheet_data(ctx, req):
                     if attr[0] == 'optional':
                         optional = attr[1] == 'true'
                 # Each item in toc is of type (name, complete, stream)
-                ctx['exercises'].append(present_exercise(req, src))
+                ctx['exercises'].append(present_exercise(req, src, worksheet))
                 ctx['exerciselist'].append((src, optional))
             elif data[0] == 'worksheet':
                 ctx['worksheetname'] = 'bob'
@@ -338,7 +338,7 @@ def getTextData(element):
 
 #TODO: This needs to be re-written, to stop using minidom, and get the data
 # about the worksheet directly from the database
-def present_exercise(req, exercisesrc):
+def present_exercise(req, exercisesrc, worksheet):
     """Open a exercise file, and write out the exercise to the request in HTML.
     exercisesrc: "src" of the exercise file. A path relative to the top-level
         exercises base directory, as configured in conf.
@@ -362,18 +362,26 @@ def present_exercise(req, exercisesrc):
     #TODO: Replace calls to minidom with calls to the database directly
     curctx['exercise'] = exercise
     if exercise.description is not None:
-        curctx['description'] = genshi.XML('<div id="description">' + exercise.description + '</div>')
+        curctx['description'] = genshi.XML('<div id="description">' + 
+                                           exercise.description + '</div>')
     else:
         curctx['description'] = None
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
-    save = req.store.find(ExerciseSave, ExerciseSave.exercise_id == exercise.id).one()
+    save = req.store.find(ExerciseSave, 
+                          ExerciseSave.exercise_id == exercise.id,
+                          ExerciseSave.worksheetid == worksheet.id,
+                          ExerciseSave.user_id == req.user.id
+                          ).one()
     # Also get the number of attempts taken and whether this is complete.
     complete, curctx['attempts'] = \
-            ivle.worksheet.get_exercise_status(req.store, req.user, exercise)
+            ivle.worksheet.get_exercise_status(req.store, req.user, 
+                                               exercise, worksheet)
     if save is not None:
-        curctx['exercisepartial'] = save.text
+        curctx['exercisesave'] = save.text
+    else:
+        curctx['exercisesave']= exercise.partial
     curctx['complete'] = 'Complete' if complete else 'Incomplete'
     curctx['complete_class'] = curctx['complete'].lower()
 
@@ -403,7 +411,7 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
     the existing data. If the worksheet does not yet exist, and assessable
     is omitted, it defaults to False.
     """
-    worksheet = ivle.database.Worksheet.get_by_name(store, subject,
+"""    worksheet = ivle.database.Worksheet.get_by_name(store, subject,
                                                     worksheetname)
 
     updated_database = False
@@ -437,7 +445,7 @@ def update_db_worksheet(store, subject, worksheetname, file_mtime,
             worksheetexercise = ivle.database.WorksheetExercise(
                     worksheet=worksheet, exercise=exercise, optional=optional)
 
-    store.commit()
+    store.commit()"""
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [

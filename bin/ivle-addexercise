@@ -119,11 +119,11 @@ def add_test_suite(suite_node, suite_num, store):
     store.add(new_suite)
     return new_suite
 
-def add_part(store, element_type, test_type, data, filename=u""):
+def add_part(store, part_type, test_type, data, filename=u""):
     new_part = TestCasePart()
-    new_part.element_type = element_type
-    new_part.test_type = test_type
-    new_part.data = data
+    new_part.part_type = unicode(part_type)
+    new_part.test_type = unicode(test_type)
+    new_part.data = unicode(data)
     new_part.filename = unicode(filename)
     store.add(new_part)
     return new_part
@@ -173,65 +173,77 @@ def add_test_case(case_node, case_num, store):
     return new_test_case
 
 xmlfile = sys.argv[1]
-try:
-    filedom = minidom.parse(xmlfile)
-except IOError, e:
-    sys.exit('ivle-addexercise: error opening file ' + xmlfile + ': ' + e[1])
 
+def add_exercise(xmlfile):
+    try:
+        filedom = minidom.parse(xmlfile)
+    except IOError, e:
+        raise Exception('ivle-addexercise: error opening file ' + xmlfile + ': ' + e[1])
 
-for child in filedom.childNodes:
-    if child.nodeType == child.ELEMENT_NODE and child.tagName == 'exercise':
-        exercise = child
-    else:
-        sys.exit('ivle-addexercise: error parsing XML: root node must be "exercise"')
+    for child in filedom.childNodes:
+        if child.nodeType == child.ELEMENT_NODE and child.tagName == 'exercise':
+            exercise = child
+        else:
+            raise XMLMalformedError('ivle-addexercise: error parsing XML: root node must be "exercise"')
 
-exercisename = exercise.getAttribute('name')
-rows = exercise.getAttribute('rows')
-solution = None
-partial_solution = None
-include_code = None
-description = None
-test_suite_nodes = []
-for child in exercise.childNodes:
-    if child.nodeType != child.ELEMENT_NODE:
-        continue
-    if child.tagName == 'solution':
-        if solution is not None:
-            sys.exit('ivle-addexercise: error parsing XML: multiple "solution" nodes')
-        solution = getTextData(child)
-    elif child.tagName == 'include':
-        if include_code is not None:
-            sys.exit('ivle-addexercise: error parsing XML: multiple "include" nodes')
-        include_code = getTextData(child)
-    elif child.tagName == 'partial':
-        if partial_solution is not None:
-            sys.exit('ivle-addexercise: error parsing XML: multiple "include" nodes')
-        partial_solution = getTextData(child)
-    elif child.tagName == 'case':
-        test_suite_nodes.append(child)
-    elif child.tagName == 'desc':
-        description = getTextData(child)
+    exercisename = exercise.getAttribute('name')
+    rows = exercise.getAttribute('rows')
+    if rows == '':
+        rows = 4
+    solution = None
+    partial_solution = None
+    include_code = None
+    description = None
+    test_suite_nodes = []
+    for child in exercise.childNodes:
+        if child.nodeType != child.ELEMENT_NODE:
+            continue
+        if child.tagName == 'solution':
+            if solution is not None:
+                raise XMLMalformedError('ivle-addexercise: error parsing XML: multiple "solution" nodes')
+            solution = getTextData(child)
+        elif child.tagName == 'include':
+            if include_code is not None:
+                raise XMLMalformedError('ivle-addexercise: error parsing XML: multiple "include" nodes')
+            include_code = getTextData(child)
+        elif child.tagName == 'partial':
+            if partial_solution is not None:
+                raise XMLMalformedError('ivle-addexercise: error parsing XML: multiple "include" nodes')
+            partial_solution = getTextData(child)
+        elif child.tagName == 'case':
+            test_suite_nodes.append(child)
+        elif child.tagName == 'desc':
+            description = getTextData(child)
 
-if solution is None:
-    sys.exit("ivle-addexercise: error parsing XML: No solution given")
-if len(test_suite_nodes) == 0:
-    sys.exit("ivle-addexercise: error parsing XML:")
+    if solution is None:
+        raise XMLMalformedError("ivle-addexercise: error parsing XML: No solution given")
+    if len(test_suite_nodes) == 0:
+        raise XMLMalformedError("ivle-addexercise: error parsing XML: No Tests Given!")
 
-store = get_store()
-new_exercise = Exercise()
-new_exercise.id = unicode(xmlfile)
-new_exercise.name = exercisename
-new_exercise.num_rows = int(rows)
-new_exercise.partial = partial_solution
-new_exercise.solution = solution
-new_exercise.include = include_code
-new_exercise.description = description
-new_exercise.partial = partial_solution
-store.add(new_exercise)
-suite_num = 0
-for suite in test_suite_nodes:
-    new_exercise.test_suites.add(add_test_suite(suite, suite_num, store))
-    suite_num += 1
+    store = get_store()
+    new_exercise = Exercise()
+    new_exercise.id = unicode(xmlfile)
+    new_exercise.name = exercisename
+    new_exercise.num_rows = int(rows)
+    new_exercise.partial = partial_solution
+    new_exercise.solution = solution
+    new_exercise.include = include_code
+    new_exercise.description = description
+    new_exercise.partial = partial_solution
+    store.add(new_exercise)
+    suite_num = 0
+    for suite in test_suite_nodes:
+        new_exercise.test_suites.add(add_test_suite(suite, suite_num, store))
+        suite_num += 1
 
-store.add(new_exercise)
-store.commit()
+    store.add(new_exercise)
+    store.commit()
+    
+xmlfiles = sys.argv[1:]
+for xmlfile in xmlfiles:
+    print "Adding exercise", xmlfile
+    #try:
+    add_exercise(xmlfile)
+    #except Exception, e:
+    #    print "ERROR: Could not add file", xmlfile
+    #    print e.stacktrace()

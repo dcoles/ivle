@@ -141,17 +141,17 @@ class TestCasePart:
         
         for part in test_case.parts:
             if part.part_type =="file":
-                add_file_test(part)
+                self.add_file_test(part)
             elif part.part_type =="stdout":
-                add_stdout_test(part)
+                self.add_stdout_test(part)
             elif part.part_type =="stderr":
-                add_stderr_test(part)
+                self.add_stderr_test(part)
             elif part.part_type =="result":
-                add_result_test(part)
+                self.add_result_test(part)
             elif part.part_type =="exception":
-                add_exception_test(part)
+                self.add_exception_test(part)
             elif part.part_type =="code":
-                add_code_test(part)
+                self.add_code_test(part)
 
     def _set_default_function(self, function, test_type):
         """"Ensure test type is valid and set function to a default
@@ -208,32 +208,32 @@ class TestCasePart:
     def add_result_test(self, part):
         "Test part that compares function return values"
         function = self._set_default_function(part.data, part.test_type)
-        self._result_test = (test_type, function)
+        self._result_test = (part.test_type, function)
             
     def add_stdout_test(self, part):
         "Test part that compares stdout"
         function = self._set_default_function(part.data, part.test_type)
-        self._stdout_test = (test_type, function)
+        self._stdout_test = (part.test_type, function)
 
     def add_stderr_test(self, part):
         "Test part that compares stderr"
         function = self._set_default_function(part.data, part.test_type)
-        self._stderr_test = (test_type, function)
+        self._stderr_test = (part.test_type, function)
 
     def add_exception_test(self, part):
         "Test part that compares stderr"
         function = self._set_default_function(part.data, part.test_type)
-        self._exception_test = (test_type, function)
+        self._exception_test = (part.test_type, function)
 
     def add_file_test(self, part):
         "Test part that compares the contents of a specified file"
         function = self._set_default_function(part.data, part.test_type)
-        self._file_tests[part.filename] = (test_type, function)
+        self._file_tests[part.filename] = (part.test_type, function)
 
     def add_code_test(self, part):
         "Test part that examines the supplied code"
         function = self._set_default_function(part.data, part.test_type)
-        self._code_test = (test_type, function)
+        self._code_test = (part.test_type, function)
 
     def _check_output(self, solution_output, attempt_output, test_type, f):
         """Compare solution output and attempt output using the
@@ -585,7 +585,7 @@ class TestSuite:
             raise TestCreationError("Bad include code")
 
         self._include_space = include_space
-    
+
     def add_case(self, test_case):
         """ Add a TestCase, then validate all functions inside test case
         now that the include code is known
