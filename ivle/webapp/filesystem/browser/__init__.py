@@ -63,9 +63,6 @@ class BrowserView(XHTMLView):
                                        'codepress/codepress.js']
         req.scripts_init = ["browser_init"]
 
-        # The page title should contain the name of the file being browsed
-        req.title = self.path.rsplit('/', 1)[-1]
-
         _, localpath = studpath.url_to_local(self.path)
         if localpath is None:
             raise NotFound()
@@ -79,6 +76,9 @@ class BrowserView(XHTMLView):
         ctx['isdir'] = isdir
         self.gen_path(req, ctx)
         self.gen_actions(req, ctx)
+
+        # The page title should contain the name of the file being browsed
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
 
         ctx['fileservice_action'] = util.make_path(os.path.join("fileservice", req.path))
         ctx['filename'] = cgi.escape(req.path)
