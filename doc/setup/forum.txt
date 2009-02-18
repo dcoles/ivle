@@ -11,9 +11,13 @@ the 'php5' and 'php5-pgsql' packages.
 
 You will first need to grab a copy of phpBB3. Extract it somewhere, and make it
 visible under the IVLE domain. Make sure that you do not conflict with any
-existing URLs, by using a directory like 'phpbb3'. A directive in your IVLE
-Apache virtual host like this should work:
+existing URLs, by using a directory like 'phpbb3'. You also need to tell Apache
+not to send it through the IVLE dispatcher. Directives in your IVLE Apache
+virtual host like this should work:
 
+  <Location /phpbb3>
+      SetHandler none
+  </Location>
   Alias /phpbb3 /local/path/to/phpBB3
 
 phpBB uses a different database. We will use PostgreSQL here, but IVLE does not
