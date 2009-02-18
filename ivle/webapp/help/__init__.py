@@ -62,6 +62,9 @@ class HelpToCView(XHTMLView):
     appname = 'help'
     template = 'toc.html'
 
+    def authorize(self, req):
+        return req.user is not None
+
     def populate(self, req, ctx):
         ctx['toc'] = generate_toc(req.config.plugin_index[ViewPlugin], req)
 
