@@ -117,13 +117,6 @@ def __install(prefix, python_site_packages, dry=False, rootdir=None,
     # Copy the www directory (using the list)
     util.action_copylist(install_list.list_www, share_path, dry)
 
-    # Set appropriate permissions on the php directory
-    forum_dir = "www/php/phpBB3"
-    forum_path = os.path.join(share_path, forum_dir)
-    print "chown -R www-data:www-data %s" % forum_path
-    if not dry:
-        os.system("chown -R www-data:www-data %s" % forum_path)
-
     # Copy the lib directory (using the list)
     util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
 
