@@ -27,7 +27,7 @@ from urllib import quote
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 import ivle.util
-import ivle.conf
+import ivle.config
 
 class ForumView(XHTMLView):
     appname = 'forum'
@@ -40,8 +40,7 @@ class ForumView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['forum.css']
-
-        forum_base = "php/phpBB3"
+        forum_base = req.config.plugin_configs[Plugin]['base']
 
         ctx['url'] = ivle.util.make_path(os.path.join(forum_base, self.path))
 
@@ -54,7 +53,7 @@ class ForumTopicView(ForumView):
         self.path = 'viewtopic.php?t=' + topic
 
 def make_forum_cookie(user):
-    secret = ivle.conf.forum_secret
+    secret = ivle.config.Config().plugin_configs[Plugin]['secret']
 
     login = quote(user.login)
     nick = quote(user.nick)

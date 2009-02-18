@@ -50,7 +50,7 @@ def write_html_head(req):
 """ % (cgi.escape(titlepart), cgi.escape(req.content_type)))
 
     req.write("""  <link rel="stylesheet" type="text/css" href="%s" />
-""" % cgi.escape(util.make_path('media/common/ivle.css')))
+""" % cgi.escape(util.make_path('+media/ivle.webapp.core/ivle.css')))
 
     req.write("</head>\n\n")
 

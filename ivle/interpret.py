@@ -138,7 +138,8 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
 
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
-        [trampoline, str(uid), jail_dir, working_dir, interpreter,
+        [trampoline, str(uid), ivle.conf.jail_base, ivle.conf.jail_src_base,
+         ivle.conf.jail_system, jail_dir, working_dir, interpreter,
         script_path],
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
@@ -433,7 +434,9 @@ def execute_raw(user, jail_dir, working_dir, binary, args):
 
     # Fire up trampoline. Vroom, vroom.
     proc = subprocess.Popen(
-        [tramp, str(user.unixid), jail_dir, working_dir, binary] + args,
+        [tramp, str(user.unixid), ivle.conf.jail_base,
+         ivle.conf.jail_src_base, ivle.conf.jail_system, jail_dir,
+         working_dir, binary] + args,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
     exitcode = proc.wait()

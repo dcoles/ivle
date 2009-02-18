@@ -37,7 +37,7 @@ __all__ = ['PYTHON_VERSION', 'copy_file_to_jail', 'RunError',
            'action_symlink', 'action_append', 'action_chown',
            'action_chown_setuid', 'action_chmod_x', 'action_make_private',
            'query_user', 'filter_mutate', 'get_svn_revision', 'InstallList',
-           'wwwuid']
+           'make_install_path', 'wwwuid']
 
 # Determine which Python version (2.4 or 2.5, for example) we are running,
 # and use that as the filename to the Python directory.
@@ -235,36 +235,6 @@ def action_make_private(file, dry):
     if not dry:
         os.chmod(file, stat.S_IRUSR | stat.S_IWUSR)
 
-def query_user(default, prompt):
-    """Prompts the user for a string, which is read from a line of stdin.
-    Exits silently if EOF is encountered. Returns the string, with spaces
-    removed from the beginning and end.
-
-    Returns default if a 0-length line (after spaces removed) was read.
-    """
-    if default is None:
-        # A default of None means the value will be computed specially, so we
-        # can't really tell you what it is
-        defaultstr = "computed"
-    elif isinstance(default, basestring):
-        defaultstr = '"%s"' % default
-    else:
-        defaultstr = repr(default)
-    sys.stdout.write('%s\n    (default: %s)\n>' % (prompt, defaultstr))
-    try:
-        val = sys.stdin.readline()
-    except KeyboardInterrupt:
-        # Ctrl+C
-        sys.stdout.write("\n")
-        sys.exit(1)
-    sys.stdout.write("\n")
-    # If EOF, exit
-    if val == '': sys.exit(1)
-    # If empty line, return default
-    val = val.strip()
-    if val == '': return default
-    return val
-
 def filter_mutate(function, list):
     """Like built-in filter, but mutates the given list instead of returning a
     new one. Returns None."""
@@ -292,6 +262,8 @@ def get_svn_revision():
 installlist_mimetypes = ['text/x-python', 'text/html',
     'application/x-javascript', 'application/javascript',
     'text/css', 'image/png', 'image/gif', 'application/xml']
+# Filenames which will automatically be placed in the list by InstallList.
+whitelist_filenames = ['ivle-spec.conf']
 
 def build_list_py_files(dir, no_top_level=False):
     """Builds a list of all py files found in a directory and its
@@ -305,11 +277,23 @@ def build_list_py_files(dir, no_top_level=False):
         filter_mutate(lambda x: x[0] != '.', dirnames)
         # All *.py files are added to the list
         pylist += [os.path.join(dirpath, item) for item in filenames
-            if mimetypes.guess_type(item)[0] in installlist_mimetypes]
+            if mimetypes.guess_type(item)[0] in installlist_mimetypes or
+               item in whitelist_filenames]
     if no_top_level:
         for i in range(0, len(pylist)):
             _, pylist[i] = pylist[i].split(os.sep, 1)
     return pylist
+
+def make_install_path(rootdir, path):
+    '''Combine an installation root directory and final install path.
+
+    Normalises path, and joins it to the end of rootdir, removing the leading
+    / to make it relative if required.
+    '''
+    normpath = os.path.normpath(path)
+    if normpath.startswith(os.sep):
+        normpath = normpath[1:]
+    return os.path.join(rootdir, normpath)
 
 class InstallList(object):
     # We build two separate lists, by walking www and console
@@ -330,6 +314,7 @@ class InstallList(object):
         "services/usrmgt-server",
         "services/diffservice",
         "services/svnlogservice",
+        "services/usrmgt-server", # XXX: Should be in bin/
     ]
 
     list_user_binaries = [
@@ -341,4 +326,7 @@ class InstallList(object):
         "bin/ivle-mountallusers",
         "bin/ivle-remakeuser",
         "bin/ivle-showenrolment",
+        "bin/ivle-config",
+        "bin/ivle-createdatadirs",
+        "bin/ivle-buildjail",
     ]

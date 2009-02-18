@@ -22,15 +22,13 @@
 
 # This is a command-line application, for use by the administrator.
 # This program is a frontend for the modules in the setup packages that 
-# configure, build and install IVLE in three separate steps.
+# build and install IVLE in separate steps.
 # It is called with at least one argument, which specifies which operation to
 # take.
 
 import sys
-import setup.configure
 import setup.build
 import setup.install
-
 
 def main(argv=None):
     if argv is None:
@@ -63,7 +61,6 @@ def help(args):
         print """Usage: python setup.py operation [options]
 Operation can be:
     help [operation]
-    config
     build
     install
 
@@ -78,10 +75,8 @@ def call_operator(operation):
     try:
         oper_func = {
             'help' : help,
-            'config' : setup.configure.configure,
             'build' : setup.build.build,
             'install' : setup.install.install,
-            #'updatejails' : None,
         }[operation]
     except KeyError:
         print >>sys.stderr, (

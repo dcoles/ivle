@@ -174,6 +174,9 @@ class Console(object):
             res = os.spawnv(os.P_WAIT, trampoline_path, [
                 trampoline_path,
                 str(self.uid),
+                ivle.conf.jail_base,
+                ivle.conf.jail_src_base,
+                ivle.conf.jail_system,
                 self.jail_path,
                 console_dir,
                 python_path,

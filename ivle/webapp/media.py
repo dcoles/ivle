@@ -20,23 +20,35 @@
 '''Media file support for the framework.'''
 
 import os
+import time
 import inspect
 import mimetypes
+import email.utils
 
 import ivle.conf
+from ivle.config import Config
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
 
 def media_url(req, plugin, path):
     '''Generates a URL to a media file.
-    
-    Plugin can be a string, in which case it is put into the path literally,
-    or a plugin object, in which case its name is looked up.'''
-    if not isinstance(plugin, basestring):
-        plugin = req.reverse_plugins[plugin]
 
-    return os.path.join(ivle.conf.root_dir, '+media', plugin, path)
+    Plugin can be a string, in which case it is put into the path literally,
+    or a plugin object, in which case its name is looked up.
+
+    If a version is specified in the IVLE configuration, a versioned URL will
+    be generated.
+    '''
+    if not isinstance(plugin, basestring):
+        plugin = req.config.reverse_plugins[plugin]
+
+    config = Config()
+
+    media_path = os.path.join('+media', '+' + config['media']['version']) if \
+                              config['media']['version'] else '+media'
+
+    return os.path.join(ivle.conf.root_dir, media_path, plugin, path)
 
 class BaseMediaFileView(BaseView):
     '''A view for media files.
@@ -91,7 +103,7 @@ class MediaFileView(BaseMediaFileView):
 
     def _make_filename(self, req):
         try:
-            plugin = req.plugins[self.ns]
+            plugin = req.config.plugins[self.ns]
         except KeyError:
             raise NotFound()
 
@@ -106,7 +118,30 @@ class MediaFileView(BaseMediaFileView):
     def get_permissions(self, user):
         return set()
 
+class VersionedMediaFileView(MediaFileView):
+    '''A view for versioned media files, with aggressive caching.
+
+    This serves static media files with a version string, and requests that
+    browsers cache them for a long time.
+    '''
+
+    def __init__(self, req, ns, path, version):
+        super(VersionedMediaFileView, self).__init__(req, ns, path)
+        self.version = version
+
+    def _make_filename(self, req):
+        if self.version != Config()['media']['version']:
+            raise NotFound()
+
+        # Don't expire for a year.
+        req.headers_out['Expires'] = email.utils.formatdate(
+                                    timeval=time.time() + (60*60*24*365),
+                                    localtime=False,
+                                    usegmt=True)
+        return super(VersionedMediaFileView, self)._make_filename(req)
+
 class Plugin(ViewPlugin):
     urls = [
+        ('+media/+:version/:ns/*path', VersionedMediaFileView),
         ('+media/:ns/*path', MediaFileView),
     ]

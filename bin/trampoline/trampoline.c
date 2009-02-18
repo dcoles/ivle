@@ -121,7 +121,7 @@ void daemonize(void)
 static void usage(const char* nm)
 {
     fprintf(stderr,
-        "usage: %s [-d] [-u] <uid> <jail> <cwd> <program> [args...]\n", nm);
+        "usage: %s [-d] [-u] <uid> <base> <src> <system> <jail> <cwd> <program> [args...]\n", nm);
     exit(1);
 }
 
@@ -138,7 +138,8 @@ void *die_if_null(void *ptr)
 }
 
 /* Find the path of the user components of a jail, given a mountpoint. */
-char *jail_src(const char* jailpath)
+char *jail_src(const char *jail_src_base, const char *jail_base,
+               const char *jailpath)
 {
     char* src;
     int srclen;
@@ -157,7 +158,8 @@ char *jail_src(const char* jailpath)
 /* Check for the validity of a jail in the given path, mounting it if it looks
  * empty.
  * TODO: Updating /etc/mtab would be nice. */
-void mount_if_needed(const char* jailpath)
+void mount_if_needed(const char *jail_src_base, const char *jail_base,
+                     const char *jail_system, const char *jailpath)
 {
     char *jailsrc;
     char *jaillib;
@@ -182,7 +184,7 @@ void mount_if_needed(const char* jailpath)
              syslog(LOG_NOTICE, "created mountpoint %s\n", jailpath);
         }
        
-        jailsrc = jail_src(jailpath);
+        jailsrc = jail_src(jail_src_base, jail_base, jailpath);
         mountdata = die_if_null(malloc(3 + strlen(jailsrc) + 4 + strlen(jail_system) + 3 + 1));
         sprintf(mountdata, "br:%s=rw:%s=ro", jailsrc, jail_system);
         if (mount("none", jailpath, "aufs", 0, mountdata))
@@ -217,6 +219,9 @@ int unmask_signals(void)
 
 int main(int argc, char* const argv[])
 {
+    char* jail_base;
+    char* jail_src_base;
+    char* jail_system;
     char* jailpath;
     char* work_dir;
     char* prog;
@@ -260,6 +265,9 @@ int main(int argc, char* const argv[])
         arg_num++;
     }
     uid = atoi(argv[arg_num++]);
+    jail_base = argv[arg_num++];
+    jail_src_base = argv[arg_num++];
+    jail_system = argv[arg_num++];
     jailpath = argv[arg_num++];
     work_dir = argv[arg_num++];
     prog = argv[arg_num];
@@ -289,7 +297,7 @@ int main(int argc, char* const argv[])
     openlog("trampoline", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
 
     #ifdef IVLE_AUFS_JAILS
-    mount_if_needed(canonical_jailpath);
+    mount_if_needed(jail_src_base, jail_base, jail_system, canonical_jailpath);
     #endif /* IVLE_AUFS_JAILS */
 
     /* chroot into the jail.

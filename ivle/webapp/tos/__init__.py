@@ -24,7 +24,7 @@ This is mainly for the benefit of the link in ivle.webapp.help."""
 import ivle.util
 import ivle.dispatch.login
 from ivle.webapp.base.xhtml import XHTMLView
-from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 
 class TermsOfServiceView(XHTMLView):
     """View of the Terms of Service, allowing acceptance.
@@ -57,10 +57,13 @@ class TermsOfServiceView(XHTMLView):
         ctx['text'] = ivle.util.get_terms_of_service()
 
         if self.mode == 'accept':
+            self.plugin_scripts[Plugin] = ['tos.js']
             ctx['user'] = self.user
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, MediaPlugin):
     """Registration for the Terms of Service plugin."""
     urls = [
         ('+tos', TermsOfServiceView),
     ]
+
+    media = 'media'

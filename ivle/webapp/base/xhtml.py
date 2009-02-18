@@ -24,6 +24,7 @@ import urllib
 import genshi.template
 
 from ivle.webapp.media import media_url
+from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
@@ -75,8 +76,14 @@ class XHTMLView(BaseView):
         ctx = genshi.template.Context()
         # XXX: Leave this here!! (Before req.styles is read)
         ctx['overlays'] = self.render_overlays(req)
-        ctx['app_styles'] = req.styles
-        ctx['scripts'] = req.scripts
+
+        ctx['styles'] = [media_url(req, CorePlugin, 'ivle.css')]
+        ctx['styles'] += req.styles
+
+        ctx['scripts'] = [media_url(req, CorePlugin, path) for path in
+                           ('util.js', 'json2.js', 'md5.js')]
+        ctx['scripts'] += req.scripts
+
         ctx['scripts_init'] = req.scripts_init
         ctx['app_template'] = app
         self.populate_headings(req, ctx)
@@ -104,7 +111,7 @@ class XHTMLView(BaseView):
             ctx['help_path'] = self.help
 
         ctx['apps_in_tabs'] = []
-        for plugin in req.plugin_index[ViewPlugin]:
+        for plugin in req.config.plugin_index[ViewPlugin]:
             if not hasattr(plugin, 'tabs'):
                 continue
 
@@ -141,7 +148,7 @@ class XHTMLView(BaseView):
         if not self.allow_overlays:
             return overlays
 
-        for plugin in req.plugin_index[OverlayPlugin]:
+        for plugin in req.config.plugin_index[OverlayPlugin]:
             for overclass in plugin.overlays:
                 if overclass in self.overlay_blacklist:
                     continue

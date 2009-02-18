@@ -112,7 +112,7 @@ class LoginView(XHTMLView):
                         req.store.commit()
 
                         # Create cookies for plugins that might request them.
-                        for plugin in req.plugin_index[CookiePlugin]:
+                        for plugin in req.config.plugin_index[CookiePlugin]:
                             for cookie in plugin.cookies:
                                 # The function can be None if they just need to be
                                 # deleted at logout.
