@@ -13,16 +13,22 @@
   <body>
     <div id="ivle_padding">
       <h1>IVLE Worksheet - ${subject} - ${year} - Semester ${semester}</h1>
-      <textarea id="worksheet_area" class="worksheet_area"
-                >${worksheet.data}</textarea>
-          <span id="uploadpanel">
-            <label for="upload_file">Upload file:</label>
-            <input type="hidden" value="save" name="ivle.op" />
-            <input type="hidden" value="" name="path" />
-            <input type="file" name="data" id="upload_file" />
-            <input type="submit" value="Upload" />
+      <div id='worksheet_input'>
+        <label for='worksheet_name'>Name:</label>
+        <input type='text' id='worksheet_name' class='worksheet_area' value='${worksheet.name}' />
+        <br />
+        <label for='worksheet_asses'>Assessable:</label>
+        <input type='?' name='asses' id='worksheet_asses' />
+        <br />
+        <textarea id='worksheet_data' class='worksheet_area' cols='80'
+        rows='30'>${worksheet.data}</textarea>
+        <p>
+          <span id="savepanel">
+            <input onclick='save_worksheet()' type="submit" value="Save" />
+            <input onlclick='undo_changes()' type="submit" value='Undo' />
           </span>
         </p>
+      </div>
     </div>
   </body>
 </html>
