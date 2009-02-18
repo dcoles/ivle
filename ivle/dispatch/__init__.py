@@ -170,8 +170,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     This is a full handler. It assumes nothing has been written, and writes a
     complete HTML page.
     req: May be EITHER an IVLE req or an Apache req.
-    IVLE reqs may have the HTML head/foot written (on a 400 error), but
-    the handler code may pass an apache req if an exception occurs before
+    The handler code may pass an apache req if an exception occurs before
     the IVLE request is created.
     """
     req.content_type = "text/html"
@@ -221,115 +220,71 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
         logfail = True
     logging.debug('Logging Unhandled Exception')
 
-    # We handle 3 types of error.
-    # IVLEErrors with 4xx response codes (client error).
-    # IVLEErrors with 5xx response codes (handled server error).
-    # Other exceptions (unhandled server error).
-    # IVLEErrors should not have other response codes than 4xx or 5xx
-    # (eg. throw_redirect should have been used for 3xx codes).
-    # Therefore, that is treated as an unhandled error.
+    # A "bad" error message. We shouldn't get here unless IVLE
+    # misbehaves (which is currently very easy, if things aren't set up
+    # correctly).
+    # Write the traceback.
+    # If this is a non-4xx IVLEError, get the message and httpcode and
+    # make the error message a bit nicer (but still include the
+    # traceback).
+    # We also need to special-case IVLEJailError, as we can get another
+    # almost-exception out of it.
 
-    if (exc_type == util.IVLEError and httpcode >= 400
-        and httpcode <= 499):
-        # IVLEErrors with 4xx response codes are client errors.
-        # Therefore, these have a "nice" response (we even coat it in the IVLE
-        # HTML wrappers).
-        
-        req.write_html_head_foot = True
-        req.write_javascript_settings = False
-        req.write('<div id="ivle_padding">\n')
+    codename, msg = None, None
+
+    if exc_type is util.IVLEJailError:
+        msg = exc_value.type_str + ": " + exc_value.message
+        tb = 'Exception information extracted from IVLEJailError:\n'
+        tb += urllib.unquote(exc_value.info)
+    else:
         try:
             codename, msg = req.get_http_codename(httpcode)
         except AttributeError:
-            codename, msg = None, None
+            pass
         # Override the default message with the supplied one,
         # if available.
-        if exc_value.message is not None:
+        if hasattr(exc_value, 'message') and exc_value.message is not None:
             msg = exc_value.message
-        if codename is not None:
-            req.write("<h1>Error: %s</h1>\n" % cgi.escape(codename))
-        else:
-            req.write("<h1>Error</h1>\n")
-        if msg is not None:
-            req.write("<p>%s</p>\n" % cgi.escape(msg))
-        else:
-            req.write("<p>An unknown error occured.</p>\n")
-        
-        # Logging
-        logging.info(str(msg))
-        
-        req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
-        if logfail:
-            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
-                %cgi.escape(logfile))
-        req.write('</div>\n')
-        html.write_html_foot(req)
-    else:
-        # A "bad" error message. We shouldn't get here unless IVLE
-        # misbehaves (which is currently very easy, if things aren't set up
-        # correctly).
-        # Write the traceback.
-        # If this is a non-4xx IVLEError, get the message and httpcode and
-        # make the error message a bit nicer (but still include the
-        # traceback).
-        # We also need to special-case IVLEJailError, as we can get another
-        # almost-exception out of it.
+            # Prepend the exception type
+            if exc_type != util.IVLEError:
+                msg = exc_type.__name__ + ": " + repr(msg)
 
-        codename, msg = None, None
+        tb = ''.join(traceback.format_exception(exc_type, exc_value,
+                                                exc_traceback))
 
-        if exc_type is util.IVLEJailError:
-            msg = exc_value.type_str + ": " + exc_value.message
-            tb = 'Exception information extracted from IVLEJailError:\n'
-            tb += urllib.unquote(exc_value.info)
-        else:
-            try:
-                codename, msg = req.get_http_codename(httpcode)
-            except AttributeError:
-                pass
-            # Override the default message with the supplied one,
-            # if available.
-            if hasattr(exc_value, 'message') and exc_value.message is not None:
-                msg = exc_value.message
-                # Prepend the exception type
-                if exc_type != util.IVLEError:
-                    msg = exc_type.__name__ + ": " + repr(msg)
-
-            tb = ''.join(traceback.format_exception(exc_type, exc_value,
-                                                    exc_traceback))
-
-        # Logging
-        logging.error('%s\n%s'%(str(msg), tb))
-        # Error messages are only displayed is the user is NOT a student,
-        # or if there has been a problem logging the error message
-        show_errors = (not publicmode) and ((login and \
-                            str(role) != "student") or logfail)
-        req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
+    # Logging
+    logging.error('%s\n%s'%(str(msg), tb))
+    # Error messages are only displayed is the user is NOT a student,
+    # or if there has been a problem logging the error message
+    show_errors = (not publicmode) and ((login and \
+                        str(role) != "student") or logfail)
+    req.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"                 
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">                                      
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>IVLE Internal Server Error</title></head>
 <body>
 <h1>IVLE Internal Server Error""")
-        if (show_errors):
-            if (codename is not None
-                        and httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR):
-                req.write(": %s" % cgi.escape(codename))
-        
-        req.write("""</h1>
+    if (show_errors):
+        if (codename is not None
+                    and httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR):
+            req.write(": %s" % cgi.escape(codename))
+
+    req.write("""</h1>
 <p>An error has occured which is the fault of the IVLE developers or
 administration. The developers have been notified.</p>
 """)
-        if (show_errors):
-            if msg is not None:
-                req.write("<p>%s</p>\n" % cgi.escape(msg))
-            if httpcode is not None:
-                req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
-            req.write("""
-    <p>Please report this to <a href="mailto:%s">%s</a> (the system
-    administrator). Include the following information:</p>
-    """ % (cgi.escape(admin_email), cgi.escape(admin_email)))
+    if (show_errors):
+        if msg is not None:
+            req.write("<p>%s</p>\n" % cgi.escape(msg))
+        if httpcode is not None:
+            req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
+        req.write("""
+<p>Please report this to <a href="mailto:%s">%s</a> (the system
+administrator). Include the following information:</p>
+""" % (cgi.escape(admin_email), cgi.escape(admin_email)))
 
-            req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
-            if logfail:
-                req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
-                    %cgi.escape(logfile))
-        req.write("</body></html>")
+        req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
+        if logfail:
+            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
+                %cgi.escape(logfile))
+    req.write("</body></html>")
