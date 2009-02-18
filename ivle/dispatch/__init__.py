@@ -22,8 +22,8 @@ This is a mod_python handler program. The correct way to call it is to have
 Apache send all requests to be handled by the module 'dispatch'.
 
 Top-level handler. Handles all requests to all pages in IVLE.
-Handles authentication (not authorization).
-Then passes the request along to the appropriate ivle app.
+Handles authentication and delegates to views for authorization,
+then passes the request along to the appropriate view.
 """
 
 import sys
@@ -62,41 +62,16 @@ def generate_route_mapper(view_plugins, attr):
             m.connect(routex, view=view_class, **kwargs_dict)
     return m
 
-def handler(req):
-    """Handles a request which may be to anywhere in the site except media.
+def handler(apachereq):
+    """Handles an HTTP request.
+
     Intended to be called by mod_python, as a handler.
 
-    req: An Apache request object.
+    @param apachereq: An Apache request object.
     """
-    # Make the request object into an IVLE request which can be passed to apps
-    apachereq = req
-    try:
-        req = Request(req)
-    except Exception:
-        # Pass the apachereq to error reporter, since ivle req isn't created
-        # yet.
-        handle_unknown_exception(apachereq, *sys.exc_info())
-        # Tell Apache not to generate its own errors as well
-        return mod_python.apache.OK
+    # Make the request object into an IVLE request which can be given to views
+    req = Request(apachereq)
 
-    # Run the main handler, and catch all exceptions
-    try:
-        return handler_(req, apachereq)
-    except mod_python.apache.SERVER_RETURN:
-        # An apache error. We discourage these, but they might still happen.
-        # Just raise up.
-        raise
-    except Exception:
-        handle_unknown_exception(req, *sys.exc_info())
-        # Tell Apache not to generate its own errors as well
-        return mod_python.apache.OK
-
-def handler_(req, apachereq):
-    """
-    Nested handler function. May raise exceptions. The top-level handler is
-    just used to catch exceptions.
-    Takes both an IVLE request and an Apache req.
-    """
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
