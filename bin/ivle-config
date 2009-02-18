@@ -349,14 +349,6 @@ Please hit Ctrl+C now if you do not wish to do this.
     # Write ./etc/ivle.conf (even if we loaded from a different filename)
     conf.filename = conffile
     conf.initial_comment = ["# IVLE Configuration File"]
-
-    try:
-        conf['plugins']['forum']['secret']
-    except KeyError:
-        # Generate the forum secret.
-        forum_secret = hashlib.md5(uuid.uuid4().bytes).hexdigest()
-        conf['plugins']['forum']['secret'] = forum_secret
-
     conf.write()
 
     # We need to restrict permissions on a new file, as it contains

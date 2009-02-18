@@ -58,7 +58,6 @@ CONFIG_OPTIONS = {
     'usrmgt_host': 'usrmgt/host',
     'usrmgt_port': 'usrmgt/port',
     'usrmgt_magic': 'usrmgt/magic',
-    'forum_secret': 'plugins/forum/secret',
 }
 
 for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
