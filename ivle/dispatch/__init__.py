@@ -150,15 +150,6 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     req.content_type = "text/html"
     logfile = os.path.join(ivle.conf.log_path, 'ivle_error.log')
     logfail = False
-    # For some reason, some versions of mod_python have "_server" instead of
-    # "main_server". So we check for both.
-    try:
-        admin_email = mod_python.apache.main_server.server_admin
-    except AttributeError:
-        try:
-            admin_email = mod_python.apache._server.server_admin
-        except AttributeError:
-            admin_email = ""
     try:
         httpcode = exc_value.httpcode
         req.status = httpcode
@@ -192,7 +183,6 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             filemode='a')
     except IOError:
         logfail = True
-    logging.debug('Logging Unhandled Exception')
 
     # A "bad" error message. We shouldn't get here unless IVLE
     # misbehaves (which is currently very easy, if things aren't set up
@@ -215,19 +205,12 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
             codename, msg = req.get_http_codename(httpcode)
         except AttributeError:
             pass
-        # Override the default message with the supplied one,
-        # if available.
-        if hasattr(exc_value, 'message') and exc_value.message is not None:
-            msg = exc_value.message
-            # Prepend the exception type
-            if exc_type != util.IVLEError:
-                msg = exc_type.__name__ + ": " + repr(msg)
 
         tb = ''.join(traceback.format_exception(exc_type, exc_value,
                                                 exc_traceback))
 
-    # Logging
     logging.error('%s\n%s'%(str(msg), tb))
+
     # Error messages are only displayed is the user is NOT a student,
     # or if there has been a problem logging the error message
     show_errors = (not publicmode) and ((login and \
@@ -238,27 +221,24 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 <head><title>IVLE Internal Server Error</title></head>
 <body>
 <h1>IVLE Internal Server Error""")
-    if (show_errors):
-        if (codename is not None
-                    and httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR):
+    if show_errors:
+        if codename is not None and \
+           httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR:
             req.write(": %s" % cgi.escape(codename))
 
     req.write("""</h1>
 <p>An error has occured which is the fault of the IVLE developers or
-administration. The developers have been notified.</p>
+administrators. Details have been logged for further examination.</p>
 """)
-    if (show_errors):
+    if show_errors:
         if msg is not None:
             req.write("<p>%s</p>\n" % cgi.escape(msg))
         if httpcode is not None:
             req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
-        req.write("""
-<p>Please report this to <a href="mailto:%s">%s</a> (the system
-administrator). Include the following information:</p>
-""" % (cgi.escape(admin_email), cgi.escape(admin_email)))
+        req.write("<h2>Debugging information</h2>")
 
         req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
         if logfail:
-            req.write("<p>Warning: Could not open Error Log: '%s'</p>\n"
+            req.write("<p>Warning: Could not open error log.</p>\n"
                 %cgi.escape(logfile))
     req.write("</body></html>")
