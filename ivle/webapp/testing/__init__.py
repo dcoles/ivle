@@ -47,7 +47,6 @@ class FakeRequest(Request):
         self.styles = []
         self.scripts = []
         self.scripts_init = []
-        self.write_html_head_foot = False
         self.request_body = ''
         self.response_body = ''
         # In some cases we don't want the template JS (such as the username

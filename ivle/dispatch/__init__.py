@@ -45,7 +45,6 @@ from ivle.dispatch.request import Request
 from ivle.dispatch import login
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
-import html
 
 def generate_route_mapper(view_plugins, attr):
     """
@@ -72,7 +71,7 @@ def handler(req):
     # Make the request object into an IVLE request which can be passed to apps
     apachereq = req
     try:
-        req = Request(req, html.write_html_head)
+        req = Request(req)
     except Exception:
         # Pass the apachereq to error reporter, since ivle req isn't created
         # yet.

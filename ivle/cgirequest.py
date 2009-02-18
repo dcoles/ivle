@@ -25,9 +25,6 @@
 # This allows CGI scripts to create request objects and then pass them to
 # normal IVLE handlers.
 
-# NOTE: This object does not support write_html_head_foot (simply because we
-# do not need it in its intended application: fileservice).
-
 import sys
 import os
 import cgi
@@ -158,7 +155,6 @@ class CGIRequest:
         self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
-        self.write_html_head_foot = False
         self.got_common_vars = False
 
 
@@ -197,10 +193,6 @@ class CGIRequest:
             if k != 'Content-Type' and k != 'Location':
                 print "%s: %s" % (k, v)
 
-        # XXX write_html_head_foot not supported
-        #if self.write_html_head_foot:
-        #    # Write the HTML header, pass "self" (request object)
-        #    self.func_write_html_head(self)
         # Print a blank line to signal the start of output
         print
 

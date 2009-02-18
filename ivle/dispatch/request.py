@@ -78,9 +78,6 @@ class Request:
         location (write)
             String. Response "Location" header value. Used with HTTP redirect
             responses.
-        title (write)
-            String. HTML page title. Used if write_html_head_foot is True, in
-            the HTML title element text.
         styles (write)
             List of strings. Write a list of URLs to CSS files here, and they
             will be incorporated as <link rel="stylesheet" type="text/css">
@@ -99,18 +96,6 @@ class Request:
             in the head, if write_html_head_foot is True.
             This is the propper way to specify functions that need to run at 
             page load time.
-        write_html_head_foot (write)
-            Boolean. If True, dispatch assumes that this is an XHTML page, and
-            will immediately write a full HTML head, open the body element,
-            and write heading contents to the page, before any bytes are
-            written. It will then write footer contents and close the body and
-            html elements at the end of execution.  
-
-            This value should be set to true by all applications for all HTML
-            output (unless there is a good reason, eg. exec). The
-            applications should therefore output HTML content assuming that
-            it will be written inside the body tag. Do not write opening or
-            closing <html> or <body> tags.
     """
 
     # Special code for an OK response.
@@ -169,19 +154,16 @@ class Request:
     HTTP_INSUFFICIENT_STORAGE         = 507
     HTTP_NOT_EXTENDED                 = 510
 
-    def __init__(self, req, write_html_head):
+    def __init__(self, req):
         """Builds an IVLE request object from a mod_python request object.
         This results in an object with all of the necessary methods and
         additional fields.
 
         req: A mod_python request object.
-        write_html_head: Function which is called when writing the automatic
-            HTML header. Accepts a single argument, the IVLE request object.
         """
 
         # Methods are mostly wrappers around the Apache request object
         self.apache_req = req
-        self.func_write_html_head = write_html_head
         self.headers_written = False
 
         # Determine if the browser used the public host name to make the
@@ -215,7 +197,6 @@ class Request:
         self.styles = []
         self.scripts = []
         self.scripts_init = []
-        self.write_html_head_foot = False
         # In some cases we don't want the template JS (such as the username
         # and public FQDN) in the output HTML. In that case, set this to 0.
         self.write_javascript_settings = True
@@ -236,9 +217,6 @@ class Request:
         self.apache_req.status = self.status
         if self.location != None:
             self.apache_req.headers_out['Location'] = self.location
-        if self.write_html_head_foot:
-            # Write the HTML header, pass "self" (request object)
-            self.func_write_html_head(self)
 
     def ensure_headers_written(self):
         """Writes out the HTTP and HTML headers if they haven't already been
