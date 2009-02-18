@@ -50,9 +50,6 @@ class SubjectsView(XHTMLView):
         ctx['enrolled_subjects'] = []
         ctx['other_subjects'] = []
 
-        req.content_type = "text/html"
-        req.write_html_head_foot = True
-
         for subject in enrolled_subjects:
             new_subj = {}
             new_subj['name'] = subject.name

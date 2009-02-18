@@ -59,7 +59,6 @@ class XHTMLView(BaseView):
         # view.
         app_template = os.path.join(os.path.dirname(
                         inspect.getmodule(self).__file__), self.template) 
-        req.write_html_head_foot = False
         loader = genshi.template.TemplateLoader(".", auto_reload=True)
         tmpl = loader.load(app_template)
         app = tmpl.generate(viewctx)
