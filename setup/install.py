@@ -91,7 +91,7 @@ def __install(prefix, python_site_packages, dry=False, rootdir=None,
         return 1
 
     # Create the config directory.
-    util.action_mkdir('/etc/ivle/plugins.d', dry)
+    util.action_mkdir(mip('/etc/ivle/plugins.d'), dry)
 
     # Create lib and copy the compiled files there
     util.action_mkdir(lib_path, dry)
