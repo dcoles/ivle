@@ -376,6 +376,7 @@ Please hit Ctrl+C now if you do not wish to do this.
 [ivle.webapp.help#Plugin]
 [ivle.webapp.tos#Plugin]
 [ivle.webapp.userservice#Plugin]
+[ivle.webapp.fileservice#Plugin]
 """)
     plugindefault.close()
     print "Successfully wrote %s" % plugindefaultfile
