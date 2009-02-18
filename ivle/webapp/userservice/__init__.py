@@ -140,7 +140,7 @@ import cjson
 import ivle.database
 from ivle import (util, chat, caps)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
-from ivle.dispatch.login import get_user_details
+from ivle.webapp.security import get_user_details
 import ivle.pulldown_subj
 
 from ivle.rpc.decorators import require_method, require_cap

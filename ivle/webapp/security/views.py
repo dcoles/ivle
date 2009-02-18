@@ -26,11 +26,10 @@ except ImportError:
     pass
 
 import ivle.util
-import ivle.dispatch.login
+import ivle.webapp.security
 from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import CookiePlugin
-from ivle.dispatch.login import get_user_details
 
 class LoginView(XHTMLView):
     '''A view to allow a user to log in.'''
@@ -57,7 +56,7 @@ class LoginView(XHTMLView):
                          '?' + urllib.urlencode([('url', nexturl)])
 
         # If this succeeds, the user is invalid.
-        user = get_user_details(req)
+        user = ivle.webapp.security.get_user_details(req)
         if user is not None:
             if user.state == "no_agreement":
                 # Authenticated, but need to accept the ToS. Send them there.
@@ -80,7 +79,7 @@ class LoginView(XHTMLView):
         if req.method == "POST":
             # While req.user is normally set to get_user_details, it won't set
             # it if the account isn't valid. So we get it ourselves.
-            user = get_user_details(req)
+            user = ivle.webapp.security.get_user_details(req)
 
             badlogin = None
 
@@ -135,7 +134,7 @@ class LogoutView(XHTMLView):
     def authorize(self, req):
         # This can be used by any authenticated user, even if they haven't
         # accepted the ToS yet.
-        return ivle.dispatch.login.get_user_details(req) is not None
+        return ivle.webapp.security.get_user_details(req) is not None
 
     def populate(self, req, ctx):
         if req.method == "POST":

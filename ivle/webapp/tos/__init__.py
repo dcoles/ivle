@@ -22,7 +22,7 @@
 This is mainly for the benefit of the link in ivle.webapp.help."""
 
 import ivle.util
-import ivle.dispatch.login
+import ivle.webapp.security
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 
@@ -40,7 +40,7 @@ class TermsOfServiceView(XHTMLView):
         # 'no_agreement'. In that case, req.user will be None, so we have
         # to get it ourselves.
         if req.user is None:
-            self.user = ivle.dispatch.login.get_user_details(req)
+            self.user = ivle.webapp.security.login.get_user_details(req)
             self.mode = 'accept'
             self.template = 'accept.html'
         else:
@@ -51,7 +51,7 @@ class TermsOfServiceView(XHTMLView):
     def authorize(self, req):
         # This can be used by any authenticated user, even if they haven't
         # accepted the ToS yet.
-        return ivle.dispatch.login.get_user_details(req) is not None
+        return ivle.webapp.security.get_user_details(req) is not None
 
     def populate(self, req, ctx):
         ctx['text'] = ivle.util.get_terms_of_service()

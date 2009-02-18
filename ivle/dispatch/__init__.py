@@ -42,7 +42,7 @@ import routes
 from ivle import util
 import ivle.conf
 from ivle.dispatch.request import Request
-from ivle.dispatch import login
+import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 
@@ -100,7 +100,7 @@ def handler_(req, apachereq):
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
     if not req.publicmode:
-        user = login.get_user_details(req)
+        user = ivle.webapp.security.get_user_details(req)
 
         # Don't set the user if it is disabled or hasn't accepted the ToS.
         if user and user.valid:

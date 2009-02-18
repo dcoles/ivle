@@ -17,8 +17,25 @@
 
 # Author: William Grant
 
+import ivle.database
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.security.views import LoginView, LogoutView
+
+def get_user_details(req):
+    """Gets the name of the logged in user, without presenting a login box
+    or attempting to authenticate.
+    Returns None if there is no user logged in.
+    """
+    session = req.get_session()
+
+    # Check the session to see if someone is logged in. If so, go with it.
+    try:
+        login = session['login']
+    except KeyError:
+        return None
+
+    # Get the full User object from the db associated with this login
+    return ivle.database.User.get_by_login(req.store, login)
 
 class Plugin(ViewPlugin):
     """
