@@ -34,9 +34,9 @@ import mimetypes
 __all__ = ['PYTHON_VERSION', 'copy_file_to_jail', 'RunError',
            'action_runprog', 'action_remove', 'action_rename', 'action_mkdir',
            'action_copytree', 'action_copylist', 'action_copyfile',
-           'action_symlink', 'action_append', 'action_chown',
+           'action_symlink', 'action_chown',
            'action_chown_setuid', 'action_chmod_x', 'action_make_private',
-           'query_user', 'filter_mutate', 'get_svn_revision', 'InstallList',
+           'filter_mutate', 'get_svn_revision', 'InstallList',
            'make_install_path', 'wwwuid']
 
 # Determine which Python version (2.4 or 2.5, for example) we are running,
@@ -195,11 +195,6 @@ def action_symlink(src, dst, dry):
     if not dry:
         os.symlink(src, dst)
 
-def action_append(ivle_pth, ivle_www):
-    file = open(ivle_pth, 'a+')
-    file.write(ivle_www + '\n')
-    file.close()
-
 def action_chown_setuid(file, dry):
     """Chowns a file to root, and sets the setuid bit on the file.
     Calling this function requires the euid to be root.
@@ -296,9 +291,6 @@ def make_install_path(rootdir, path):
     return os.path.join(rootdir, normpath)
 
 class InstallList(object):
-    # We build two separate lists, by walking www and console
-    list_www = property(lambda self: build_list_py_files('www'))
-
     list_ivle_lib = property(lambda self: build_list_py_files('ivle'))
 
     list_subjects = property(lambda self: build_list_py_files('subjects',

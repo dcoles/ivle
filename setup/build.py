@@ -93,7 +93,6 @@ static const int allowed_uids[] = { %s };
 
     # Compile .py files into .pyc or .pyo files
     if not no_compile:
-        compileall.compile_dir('www', quiet=True)
         compileall.compile_dir('ivle', quiet=True)
         compileall.compile_dir('services', quiet=True)
 

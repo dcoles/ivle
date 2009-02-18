@@ -36,7 +36,6 @@ Create $target/bin.
 Copy bin/trampoline/trampoline to $target/bin.
 Copy bin/timount/timount to $target/bin.
 chown and chmod the installed trampoline.
-Copy www/ to $target.
 """
 
     # Parse arguments
@@ -114,22 +113,8 @@ def __install(prefix, python_site_packages, dry=False, rootdir=None,
     util.action_copylist(install_list.list_user_binaries, bin_path, dry,
                          onlybasename=True)
 
-    # Copy the www directory (using the list)
-    util.action_copylist(install_list.list_www, share_path, dry)
-
     # Copy the lib directory (using the list)
     util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
-
-    # XXX We shouldn't have ivle.pth at all any more.
-    # We may still need the www packages to be importable.
-    # Anything from www that is needed from the outside should go to lib.
-    ivle_pth = os.path.join(python_site_packages, "ivle.pth")
-    try:
-        file = open(ivle_pth, 'w')
-        file.write(os.path.join(share_path, "www"))
-        file.close()
-    except (IOError, OSError):
-        pass
 
     if not nosvnrevno:
         # Create the ivle working revision record file
