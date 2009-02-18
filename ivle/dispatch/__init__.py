@@ -41,12 +41,10 @@ import routes
 
 from ivle import util
 import ivle.conf
-import ivle.conf.apps
 from ivle.dispatch.request import Request
 from ivle.dispatch import login
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
-import apps
 import html
 
 def generate_route_mapper(view_plugins, attr):
@@ -112,7 +110,6 @@ def handler_(req, apachereq):
     conf = ivle.config.Config()
     req.config = conf
 
-    ### BEGIN New plugins framework ###
     if req.publicmode:
         req.mapper = generate_route_mapper(conf.plugin_index[PublicViewPlugin],
                                            'public_urls')
@@ -164,56 +161,7 @@ def handler_(req, apachereq):
             req.store.commit()
             return req.OK
     else:
-        # We had no matching URL! Check if it matches an old-style app. If
-        # not, 404.
-        if req.app not in ivle.conf.apps.app_url:
-            return req.HTTP_NOT_FOUND # TODO: Prettify.
-    ### END New plugins framework ###
-
-
-    ### BEGIN legacy application framework ###
-    # We have no public apps back here.
-    assert not req.publicmode
-
-    # app is the App object for the chosen app
-    if req.app is None:
-        app = ivle.conf.apps.app_url[ivle.conf.apps.default_app]
-    else:
-        app = ivle.conf.apps.app_url[req.app]
-
-    # Check if app requires auth. If so, perform authentication and login.
-    # This will either return a User object, None, or perform a redirect
-    # which we will not catch here.
-    if app.requireauth:
-        logged_in = req.user is not None
-    else:
-        logged_in = True
-
-    assert logged_in # XXX
-
-    if logged_in:
-        # Keep the user's session alive by writing to the session object.
-        # req.get_session().save()
-        # Well, it's a fine idea, but it creates considerable grief in the
-        # concurrent update department, so instead, we'll just make the
-        # sessions not time out.
-        req.get_session().unlock()
-
-        # Call the specified app with the request object
-        apps.call_app(app.dir, req)
-
-    # MAKE SURE we write the HTTP (and possibly HTML) header. This
-    # wouldn't happen if nothing else ever got written, so we have to make
-    # sure.
-    req.ensure_headers_written()
-
-    # When done, write out the HTML footer if the app has requested it
-    if req.write_html_head_foot:
-        html.write_html_foot(req)
-
-    # Note: Apache will not write custom HTML error messages here.
-    # Use req.throw_error to do that.
-    return req.OK
+        return req.HTTP_NOT_FOUND # TODO: Prettify.
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """

@@ -229,12 +229,6 @@ class Request:
         """Writes out the HTTP and HTML headers before any real data is
         written."""
         self.headers_written = True
-        
-        # app is the App object for the chosen app
-        try:
-            app = ivle.conf.apps.app_url[self.app]
-        except KeyError:
-            app = None
 
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:
