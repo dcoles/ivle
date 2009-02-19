@@ -322,11 +322,14 @@ Please hit Ctrl+C now if you do not wish to do this.
             or conf['database']['port'] >= 65536):
             raise ValueError()
     except ValueError:
-        print >>sys.stderr, (
-        "Invalid DB port (%s).\n"
-        "Must be an integer between 0 and 65535." %
-            repr(conf['database']['port']))
-        return 1
+        if conf['database']['port'] == '' or conf['database']['port'] is None:
+            pass
+        else:
+            print >>sys.stderr, (
+            "Invalid DB port (%s).\n"
+            "Must be an integer between 0 and 65535." %
+                repr(conf['database']['port']))
+            return 1
     try:
         conf['usrmgt']['port'] = int(conf['usrmgt']['port'])
         if (conf['usrmgt']['port'] < 0 or conf['usrmgt']['port'] >= 65536):
