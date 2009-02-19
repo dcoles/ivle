@@ -53,9 +53,20 @@ def get_conn_string():
     """
     Returns the Storm connection string, generated from the conf file.
     """
-    return "postgres://%s:%s@%s:%d/%s" % (ivle.conf.db_user,
-        ivle.conf.db_password, ivle.conf.db_host, ivle.conf.db_port,
-        ivle.conf.db_dbname)
+
+    clusterstr = ''
+    if ivle.conf.db_user:
+        clusterstr += ivle.conf.db_user
+        if ivle.conf.db_password:
+            clusterstr += ':' + ivle.conf.db_password
+        clusterstr += '@'
+
+    host = ivle.conf.db_host or 'localhost'
+    port = ivle.conf.db_port or 5432
+
+    clusterstr += '%s:%d' % (host, port)
+
+    return "postgres://%s/%s" % (clusterstr, ivle.conf.db_dbname)
 
 def get_store():
     """
