@@ -22,3 +22,40 @@
  * Refreshes the page.
  */
 
+function submitworksheet()
+{
+    /* Get the worksheet code the admin is submitting */
+    var namearea = document.getElementById("worksheet_name");
+    var check_box = document.getElementById("worksheet_asses");
+    var sheet_area = document.getElementById("worksheet_data");
+    
+    var worksheetname = namearea.value;
+    var assessable = check_box.checked;
+    var data = sheet_area.value;
+
+    var args = {'ivle.op': 'save', 'data': data, 'assessable': assessable,
+                'name': worksheetname};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            var testresponse;
+            try
+            {
+                testresponse = JSON.parse(xhr.responseText);
+                alert("Worksheet successfully updated.");
+            }
+            catch (ex)
+            {
+                alert("There was an error submitting your worksheet. "
+                    + "Please notify the administrators of this.");
+                return;
+            }
+        }
+    //XXX: This shouldn't be generated here
+    save_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
+        "/+worksheets/" + worksheet;
+    ajax_call(callback, save_path, "", args, "POST");
+}

@@ -59,6 +59,14 @@ class JSONRESTView(RESTView):
 
         if op._rest_api_permission not in self.get_permissions(req.user):
             raise Unauthorized()
+    
+    def convert_bool(self, value):
+        if value == 'True' or value == 'true' or value == True:
+            return True
+        elif value == 'False' or value == 'False' or value == False:
+            return False
+        else:
+            raise BadRequest()
 
     def render(self, req):
         if req.method not in self._allowed_methods:
@@ -89,11 +97,11 @@ class JSONRESTView(RESTView):
         elif req.method == 'POST':
             # TODO: Check Content-Type and implement multipart/form-data.
             data = req.read()
-            opargs = cgi.parse_qs(data, keep_blank_values=1)
+            opargs = dict(cgi.parse_qsl(data, keep_blank_values=1))
             try:
                 opname = opargs['ivle.op']
+                del opargs['ivle.op']
             except KeyError:
-                req.write(str(data))
                 raise BadRequest('No named operation specified.')
 
             try:

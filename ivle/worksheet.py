@@ -182,9 +182,10 @@ def calculate_score(store, user, worksheet):
     # Get the student's pass/fail for each exercise in this worksheet
     for worksheet_exercise in worksheet.worksheet_exercises:
         exercise = worksheet_exercise.exercise
+        worksheet = worksheet_exercise.worksheet
         optional = worksheet_exercise.optional
 
-        done, _ = get_exercise_status(store, user, exercise)
+        done, _ = get_exercise_status(store, user, exercise, worksheet)
         # done is a bool, whether this student has completed that problem
         if optional:
             opt_total += 1

@@ -38,16 +38,19 @@ CREATE TABLE worksheet (
     offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
     name        TEXT NOT NULL,
-    data         TEXT NOT NULL,
-    assessable  BOOLEAN,
-    order_no    INT4,
+    data        TEXT NOT NULL,
+    assessable  BOOLEAN NOT NULL,
+    order_no    INT4 NOT NULL,
+    format      ENUM,
     UNIQUE (offeringid, identifier)
 );
 
 CREATE TABLE worksheet_problem (
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
-    optional    BOOLEAN,
+    worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    problemid       TEXT REFERENCES problem (identifier) NOT NULL,
+    optional        BOOLEAN,
+    seq_no          INT4, 
+    active          BOOLEAN,
     PRIMARY KEY (worksheetid, problemid)
 );
 

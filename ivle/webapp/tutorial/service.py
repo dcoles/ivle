@@ -21,11 +21,13 @@
 
 import os
 import datetime
+import genshi
 
 import ivle.util
 import ivle.console
 import ivle.database
-from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, Offering, Subject, Semester
+from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
+                          Offering, Subject, Semester, WorksheetExercise
 import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
@@ -39,7 +41,6 @@ from ivle.webapp.errors import NotFound
 HISTORY_ALLOW_INACTIVE = False
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
-
 
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
@@ -188,6 +189,52 @@ class ExerciseRESTView(JSONRESTView):
 class WorksheetRESTView(JSONRESTView):
     """View used to update a worksheet."""
 
+    def generate_exerciselist(self, req, worksheet):
+        """Runs through the worksheetstream, generating the appropriate
+        WorksheetExercises, and de-activating the old ones."""
+        exercises = []
+        # Turns the worksheet into an xml stream, and then finds all the 
+        # exercise nodes in the stream.
+        worksheet = genshi.XML(worksheet)
+        for kind, data, pos in worksheet:
+            if kind is genshi.core.START:
+                # Data is a tuple of tag name and a list of name->value tuples
+                if data[0] == 'exercise':
+                    src = ""
+                    optional = False
+                    for attr in data[1]:
+                        if attr[0] == 'src':
+                            src = attr[1]
+                        if attr[0] == 'optional':
+                            optional = attr[1] == 'true'
+                    if src != "":
+                        exercises.append((src, optional))
+        ex_num = 0
+        # Set all current worksheet_exercises to be inactive
+        db_worksheet_exercises = req.store.find(WorksheetExercise,
+            WorksheetExercise.worksheet_id == self.context.id)
+        for worksheet_exercise in db_worksheet_exercises:
+            worksheet_exercise.active = False
+        
+        for exerciseid, optional in exercises:
+            worksheet_exercise = req.store.find(WorksheetExercise,
+                WorksheetExercise.worksheet_id == self.context.id,
+                Exercise.id == WorksheetExercise.exercise_id,
+                Exercise.id == exerciseid).one()
+            if worksheet_exercise is None:
+                exercise = req.store.find(Exercise,
+                    Exercise.id == exerciseid
+                ).one()
+                if exercise is None:
+                    raise NotFound()
+                worksheet_exercise = WorksheetExercise()
+                worksheet_exercise.worksheet_id = self.context.id
+                worksheet_exercise.exercise_id = exercise.id
+                req.store.add(worksheet_exercise)
+            worksheet_exercise.active = True
+            worksheet_exercise.seq_no = ex_num
+            worksheet_exercise.optional = optional
+
     def get_permissions(self, user):
         # XXX: Do it properly.
         if user is not None:
@@ -206,16 +253,24 @@ class WorksheetRESTView(JSONRESTView):
         self.semester = kwargs['semester']
     
         self.context = req.store.find(Worksheet,
-            Worksheet.name == self.worksheet,
+            Worksheet.identifier == self.worksheet,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
             Subject.code == self.subject,
             Offering.semester_id == Semester.id,
             Semester.year == self.year,
             Semester.semester == self.semester).one()
+        
+        if self.context is None:
+            raise NotFound()
     
     @named_operation('save')
-    def save(self, req, data):
-        self.worksheet.data = data
+    def save(self, req, name, assessable, data):
+        """Takes worksheet data and saves it."""
+        self.generate_exerciselist(req, data)
+        
+        self.context.name = unicode(name)
+        self.context.data = unicode(data)
+        self.context.assessable = self.convert_bool(assessable)
         
         return {"result": "ok"}

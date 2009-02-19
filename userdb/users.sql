@@ -205,16 +205,20 @@ CREATE TABLE worksheet (
     offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
     name        TEXT NOT NULL,
-    data         TEXT NOT NULL,
-    assessable  BOOLEAN,
-    order_no    INT4,
+    data        TEXT NOT NULL,
+    assessable  BOOLEAN NOT NULL,
+    order_no    INT4 NOT NULL,
+    format      TEXT NOT NUll,
     UNIQUE (offeringid, identifier)
 );
 
 CREATE TABLE worksheet_problem (
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
-    optional    BOOLEAN,
+    id
+    worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    problemid       TEXT REFERENCES problem (identifier) NOT NULL,
+    seq_no          INT4,
+    active          BOOLEAN,
+    optional        BOOLEAN,
     PRIMARY KEY (worksheetid, problemid)
 );
 

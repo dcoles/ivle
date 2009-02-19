@@ -399,7 +399,6 @@ class Exercise(Storm):
     # Note: Table "problem" is called "Exercise" in the Object layer, since
     # it's called that everywhere else.
     __storm_table__ = "problem"
-#TODO: Add in a field for the user-friendly identifier
     id = Unicode(primary=True, name="identifier")
     name = Unicode()
     description = Unicode()
@@ -434,6 +433,7 @@ class Worksheet(Storm):
     assessable = Bool()
     data = Unicode()
     order_no = Int()
+    rst = Bool()
 
     attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
@@ -487,6 +487,8 @@ class WorksheetExercise(Storm):
     exercise_id = Unicode(name="problemid")
     exercise = Reference(exercise_id, Exercise.id)
     optional = Bool()
+    active = Bool()
+    seq_no = Int()
 
     __init__ = _kwarg_init
 

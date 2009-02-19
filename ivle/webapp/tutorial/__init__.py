@@ -271,8 +271,9 @@ def generate_worksheet_data(ctx, req, worksheet):
                     if attr[0] == 'optional':
                         optional = attr[1] == 'true'
                 # Each item in toc is of type (name, complete, stream)
-                ctx['exercises'].append(present_exercise(req, src, worksheet))
-                ctx['exerciselist'].append((src, optional))
+                if src != "":
+                    ctx['exercises'].append(present_exercise(req, src, worksheet))
+                    ctx['exerciselist'].append((src, optional))
             elif data[0] == 'worksheet':
                 ctx['worksheetname'] = 'bob'
                 for attr in data[1]:
@@ -395,6 +396,7 @@ class WorksheetAdminView(XHTMLView):
         self.subject = subject
         self.year = year
         self.semester = semester
+        self.worksheet = worksheet
         
         if self.context is None:
             raise NotFound()
@@ -404,12 +406,10 @@ class WorksheetAdminView(XHTMLView):
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
         
         ctx['worksheet'] = self.context
+        ctx['worksheetname'] = self.worksheet
         ctx['subject'] = self.subject
         ctx['year'] = self.year
         ctx['semester'] = self.semester
-        ctx['upload_path'] = "/api/subjects/" + self.subject + "/" + \
-            self.year + "/" + self.semester + "/edit/+worksheets/" + \
-            self.context.identifier
 
 
 class Plugin(ViewPlugin, MediaPlugin):
@@ -417,13 +417,13 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
+        ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetAdminView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
                 '+attempts/:username/:date', AttemptRESTView),
+        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', ExerciseRESTView),
-        ('subjects/:subject/:year/:semester/edit/+worksheets/:worksheet', WorksheetAdminView),
-        ('api/subjects/:subject/:year/:semester/edit/+worksheets/:worksheet', WorksheetRESTView)
     ]
 
     tabs = [
