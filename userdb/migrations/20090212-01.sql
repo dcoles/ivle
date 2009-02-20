@@ -46,32 +46,31 @@ CREATE TABLE worksheet (
 );
 
 CREATE TABLE worksheet_problem (
+    ws_prob_id      SERIAL NOT NULL,
     worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
     problemid       TEXT REFERENCES problem (identifier) NOT NULL,
-    optional        BOOLEAN,
-    seq_no          INT4, 
+    seq_no          INT4,
     active          BOOLEAN,
-    PRIMARY KEY (worksheetid, problemid)
+    optional        BOOLEAN,
+    UNIQUE (worksheetid, problemid)
 );
 
 CREATE TABLE problem_attempt (
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (problemid,loginid,worksheetid,date)
+    PRIMARY KEY (loginid,ws_prob_id,date)
 );
 
 CREATE TABLE problem_save (
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     text        TEXT NOT NULL,
-    PRIMARY KEY (problemid,loginid, worksheetid)
+    PRIMARY KEY (loginid, ws_prob_id)
 );
 
 CREATE TABLE test_suite (

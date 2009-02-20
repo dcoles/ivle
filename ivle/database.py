@@ -480,7 +480,9 @@ class Worksheet(Storm):
 
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_problem"
-    __storm_primary__ = "worksheet_id", "exercise_id"
+    __storm_primary__ = "id"
+    
+    id = Int()
 
     worksheet_id = Int(name="worksheetid")
     worksheet = Reference(worksheet_id, Worksheet.id)
@@ -509,13 +511,16 @@ class ExerciseSave(Storm):
     __storm_primary__ = "exercise_id", "user_id", "date"
 
     exercise_id = Unicode(name="problemid")
-    exercise = Reference(exercise_id, Exercise.id)
     user_id = Int(name="loginid")
     user = Reference(user_id, User.id)
     date = DateTime()
     text = Unicode()
     worksheetid = Int()
-    worksheet = Reference(worksheetid, Worksheet.id)
+    worksheet_exercise = ReferenceSet(exercise_id,
+        "WorksheetExercise.exercise_id",
+        "WorksheetExercise.worksheet_id",
+        worksheetid
+    )
 
     __init__ = _kwarg_init
 
