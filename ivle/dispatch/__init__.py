@@ -228,8 +228,15 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 
     req.write("""</h1>
 <p>An error has occured which is the fault of the IVLE developers or
-administrators. Details have been logged for further examination.</p>
-""")
+administrators. """)
+
+    if logfail:
+        req.write("Please report this issue to the server administrators, "
+                  "along with the following information.")
+    else:
+        req.write("Details have been logged for further examination.")
+    req.write("</p>")
+
     if show_errors:
         if msg is not None:
             req.write("<p>%s</p>\n" % cgi.escape(msg))
@@ -238,7 +245,4 @@ administrators. Details have been logged for further examination.</p>
         req.write("<h2>Debugging information</h2>")
 
         req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
-        if logfail:
-            req.write("<p>Warning: Could not open error log.</p>\n"
-                %cgi.escape(logfile))
     req.write("</body></html>")
