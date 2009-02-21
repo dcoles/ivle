@@ -124,6 +124,10 @@ actions = {
     }
 
 def initializer():
+    logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
+    logging.info("Starting usrmgt server on port %d (pid = %d)" %
+                 (ivle.conf.usrmgt_port, pid))
+
     try:
         pidfile = open('/var/run/usrmgt-server.pid', 'w')
         pidfile.write('%d\n' % os.getpid())
@@ -148,10 +152,6 @@ def dispatch(props):
 
 if __name__ == "__main__":
     pid = os.getpid()
-
-    logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
-    logging.info("Starting usrmgt server on port %d (pid = %d)" %
-                 (ivle.conf.usrmgt_port, pid))
 
     ivle.chat.start_server(ivle.conf.usrmgt_port, ivle.conf.usrmgt_magic,
                            True, dispatch, initializer)
