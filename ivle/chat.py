@@ -67,6 +67,15 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             except OSError:
                 pass
 
+        si = os.open(os.devnull, os.O_RDONLY)
+        os.dup2(si, sys.stdin.fileno())
+
+        so = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(so, sys.stdout.fileno())
+
+        se = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(se, sys.stderr.fileno())
+
     if initializer:
         initializer()
 
