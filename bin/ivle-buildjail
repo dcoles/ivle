@@ -91,27 +91,28 @@ if options.upgrade:
     ivle.jailbuilder.debian.apt_upgrade(build_path)
     ivle.jailbuilder.debian.apt_clean(build_path)
 
-# Copy all console and operating system files into the jail
-services_path = os.path.join(ivle.conf.share_path, 'services')
-jail_services_path = os.path.join(build_path, services_path[1:])
-if os.path.exists(jail_services_path):
-    shutil.rmtree(jail_services_path)
-shutil.copytree(services_path, jail_services_path)
+if conf['jail']['devmode']:
+    # Copy all console and operating system files into the jail
+    services_path = os.path.join(ivle.conf.share_path, 'services')
+    jail_services_path = os.path.join(build_path, services_path[1:])
+    if os.path.exists(jail_services_path):
+        shutil.rmtree(jail_services_path)
+    shutil.copytree(services_path, jail_services_path)
 
-# Also copy the IVLE lib directory into the jail
-# This is necessary for running certain services
-ivle_site_packages = os.path.join(ivle.conf.python_site_packages, 'ivle')
-jail_site_packages = os.path.join(build_path, ivle_site_packages[1:])
-if os.path.exists(jail_site_packages):
-    shutil.rmtree(jail_site_packages)
-shutil.copytree(ivle_site_packages, jail_site_packages)
+    # Also copy the IVLE lib directory into the jail
+    # This is necessary for running certain services
+    ivle_site_packages = os.path.join(ivle.conf.python_site_packages, 'ivle')
+    jail_site_packages = os.path.join(build_path, ivle_site_packages[1:])
+    if os.path.exists(jail_site_packages):
+        shutil.rmtree(jail_site_packages)
+    shutil.copytree(ivle_site_packages, jail_site_packages)
 
-# IMPORTANT: ivle/conf/conf.py contains details which could compromise security
-# if left in the jail (such as the DB password). We delete it now! It would be
-# shadowed by the per-user conf.py anyway, but it's best to be safe.
-os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
-# XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
-os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
+    # IMPORTANT: ivle/conf/conf.py contains details which could compromise security
+    # if left in the jail (such as the DB password). We delete it now! It would be
+    # shadowed by the per-user conf.py anyway, but it's best to be safe.
+    os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
+    # XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
+    os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
 
 if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
               build_path + '/', ivle.conf.jail_system]) != 0:
