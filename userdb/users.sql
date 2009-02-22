@@ -207,7 +207,7 @@ CREATE TABLE worksheet (
     name        TEXT NOT NULL,
     data        TEXT NOT NULL,
     assessable  BOOLEAN NOT NULL,
-    order_no    INT4 NOT NULL,
+    seq_no      INT4 NOT NULL,
     format      TEXT NOT NUll,
     UNIQUE (offeringid, identifier)
 );
