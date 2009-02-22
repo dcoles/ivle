@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Tutorial - Worksheet Editor</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        subject = "${subject}";
+        year = "${year}";
+        semester = "${semester}";
+    </script>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>IVLE Worksheet - ${subject} - ${year} - Semester ${semester}</h1>
+      <div id='worksheet_input'>
+        <label for='worksheet_identifier'>Unique Identifier:</label>
+        <input type='text' id='worksheet_identifier' class='worksheet_id' />
+        <br />
+        <label for='worksheet_name'>Name:</label>
+        <input type='text' id='worksheet_name' class='worksheet_area' />
+        <br />
+        <label for='worksheet_asses'>Assessable:</label>
+        <input type='checkbox' name='asses' id='worksheet_asses' />
+        <br />
+        <label for='worksheet_format'>Worksheet Format:</label>
+        <select name='format' id='worksheet_format'>
+          <py:for each="format in formats">
+            <option value='${format}'>${format}</option>
+          </py:for>
+        </select>
+        <br />
+        <textarea id='worksheet_data' class='worksheet_area' cols='80'
+        rows='30'></textarea>
+        <p>
+          <span id="savepanel">
+            <input onclick='addworksheet()' type="submit" value="Create" />
+          </span>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

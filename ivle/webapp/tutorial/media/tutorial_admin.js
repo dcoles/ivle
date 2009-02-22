@@ -22,7 +22,7 @@
  * Refreshes the page.
  */
 
-function submitworksheet()
+function editworksheet()
 {
     /* Get the worksheet code the admin is submitting */
     var namearea = document.getElementById("worksheet_name");
@@ -57,5 +57,49 @@ function submitworksheet()
     //XXX: This shouldn't be generated here
     save_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
         "/+worksheets/" + worksheet;
+    ajax_call(callback, save_path, "", args, "POST");
+}
+
+function addworksheet()
+{
+    /* Get the worksheet code the admin is submitting */
+    var idarea = document.getElementById("worksheet_identifier");
+    var namearea = document.getElementById("worksheet_name");
+    var check_box = document.getElementById("worksheet_asses");
+    var sheet_area = document.getElementById("worksheet_data");
+    var format_opt = document.getElementById("worksheet_format");
+    
+    var worksheet_identifier = idarea.value;
+    var worksheetname = namearea.value;
+    var assessable = check_box.checked;
+    var data = sheet_area.value;
+    var format = format_opt.value;
+
+    var args = {'ivle.op': 'add_worksheet', 'data': data, 'assessable': 
+        assessable, 'name': worksheetname, 'identifier': worksheet_identifier,
+        'format': format};
+
+    /* Send the form as multipart/form-data, since we are sending a whole lump
+     * of Python code, it should be treated like a file upload. */
+    /* AJAX callback function */
+    var callback = function(xhr)
+        {
+            var testresponse;
+            try
+            {
+                testresponse = JSON.parse(xhr.responseText);
+                alert("Worksheet successfully saved.");
+                window.location = "./";
+            }
+            catch (ex)
+            {
+                alert("There was an error submitting your worksheet. "
+                    + "Please notify the administrators of this.");
+                return;
+            }
+        }
+    //XXX: This shouldn't be generated here
+    save_path = "api/subjects/" + subject + "/" + year + "/" + semester +
+                "/+worksheets";
     ajax_call(callback, save_path, "", args, "POST");
 }

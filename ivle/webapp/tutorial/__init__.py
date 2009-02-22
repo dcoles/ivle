@@ -46,7 +46,7 @@ from ivle.webapp.media import BaseMediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
-                                         ExerciseRESTView, WorksheetRESTView
+                        ExerciseRESTView, WorksheetRESTView, OfferingRESTView
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -377,16 +377,21 @@ class OfferingAdminView(XHTMLView):
     worksheets are actually displayed on the page."""
     pass
 
-class WorksheetAdminView(XHTMLView):
+class WorksheetEditView(XHTMLView):
     """The admin view for an offering.
     
     This view is designed to replace worksheets.xml, turning them instead
     into XML directly from RST."""
     permission = "edit"
-    template = "worksheet_admin.html"
-    appname = "Worksheet Admin"
+    template = "worksheet_edit.html"
+    appname = "Edit Worksheet"
 
-    def __init__(self, req, subject, year, semester, worksheet):
+    def __init__(self, req, **kwargs):
+    
+        subject = kwargs['subject']
+        year = kwargs['year']
+        semester = kwargs['semester']
+        worksheet = kwargs['worksheet']
         self.context = req.store.find(DBWorksheet,
             DBWorksheet.identifier == worksheet,
             DBWorksheet.offering_id == Offering.id,
@@ -397,13 +402,14 @@ class WorksheetAdminView(XHTMLView):
             Subject.code == subject
         ).one()
         
+        if self.context is None:
+            raise NotFound()
+        
         self.subject = subject
         self.year = year
         self.semester = semester
         self.worksheet = worksheet
         
-        if self.context is None:
-            raise NotFound()
             
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["tutorial_admin.css"]
@@ -416,13 +422,48 @@ class WorksheetAdminView(XHTMLView):
         ctx['semester'] = self.semester
 
 
+class WorksheetAddView(XHTMLView):
+    """This view allows a user to add a worksheet"""
+    permission = "edit"
+    template = "worksheet_add.html"
+    appname = "Add Worksheet"
+
+    def __init__(self, req, subject, year, semester):
+        self.context = req.store.find(Offering,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject
+        ).one()
+        
+        self.subject = subject
+        self.year = year
+        self.semester = semester
+        
+        if self.context is None:
+            raise NotFound()
+            
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
+        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
+        
+        ctx['subject'] = self.subject
+        ctx['year'] = self.year
+        ctx['semester'] = self.semester
+        
+        #XXX: Get the list of formats from somewhere else
+        ctx['formats'] = ['xml', 'rst']
+
+
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
-        ('subjects/:subject/:year/:semester/+worksheets/+edit', OfferingAdminView),
+        ('subjects/:subject/:year/:semester/+worksheets/+add', WorksheetAddView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
-        ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetAdminView),
+        ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
+        ('api/subjects/:subject/:year/:semester/+worksheets', OfferingRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
