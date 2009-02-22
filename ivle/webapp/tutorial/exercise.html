@@ -7,24 +7,24 @@
     </py:if>
     <input id="input_resettext_${exercise.id}" type="hidden" value="${exercise.partial}" />
     <textarea id="textarea_${exercise.id}" class="exercisebox"
-        onkeypress="return catch_textbox_input(&quot;${exercise.id}&quot;, '${filename}',
+        onkeypress="return catch_textbox_input(&quot;${exercise.id}&quot;, '${exercise.id}',
         event.keyCode)"
-        onchange="set_saved_status(&quot;${exercise.id}&quot;, '${filename}',
+        onchange="set_saved_status(&quot;${exercise.id}&quot;, '${exercise.id}',
         &quot;Save&quot;)"
         cols="80" rows="${exercise.num_rows}">${exercisesave}</textarea>
     <div class="exercisebuttons">
       <input type="button" value="Saved" disabled="disabled" id="savebutton_${exercise.id}"
-          onclick="saveexercise(&quot;${exercise.id}&quot;, '${filename}')"
+          onclick="saveexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
           title="Save your solution to this exercise" />
       <input type="button" value="Reset" id="resetbutton_${exercise.id}"
-          onclick="resetexercise(&quot;${exercise.id}&quot;, '${filename}')"
+          onclick="resetexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
           title="Reload the original partial solution for this exercise" />
       <input type="button" value="Run"
-          onclick="runexercise(&quot;${exercise.id}&quot;, '${filename}')"
+          onclick="runexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
           title="Run this program in the console" />
       <input type="button" value="Submit"
               id="submitbutton_${exercise.id}"
-              onclick="submitexercise(&quot;${exercise.id}&quot;, '${filename}')"
+              onclick="submitexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
               title="Submit this solution for evaluation" />
     </div>
     <div class="testoutput">
@@ -41,7 +41,7 @@
     <div class="attempthistory">
       <p>
         <a title="Click to view previous submissions you have made for this exercise" 
-              onclick="open_previous(&quot;${exercise.id}&quot;, '${filename}')">
+              onclick="open_previous(&quot;${exercise.id}&quot;, '${exercise.id}')">
           View previous attempts
         </a>
       </p>
@@ -57,7 +57,7 @@
             <option></option>
           </select>
           <input type="button" value="View"
-              onclick="select_attempt(&quot;${exercise.id}&quot;, '${filename}')" />
+              onclick="select_attempt(&quot;${exercise.id}&quot;, '${exercise.id}')" />
         </p>
         <p class="noattempts" style="display: none">
           No attempts have been made for this exercise.

@@ -37,36 +37,39 @@ CREATE TABLE worksheet (
     worksheetid SERIAL PRIMARY KEY,
     offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
     identifier  VARCHAR NOT NULL,
-    assessable  BOOLEAN,
-    mtime       TIMESTAMP,
+    name        TEXT NOT NULL,
+    data        TEXT NOT NULL,
+    assessable  BOOLEAN NOT NULL,
+    seq_no    INT4 NOT NULL,
+    format      TEXT NOT NUll,
     UNIQUE (offeringid, identifier)
 );
 
 CREATE TABLE worksheet_problem (
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
-    optional    BOOLEAN,
-    PRIMARY KEY (worksheetid, problemid)
+    ws_prob_id      SERIAL PRIMARY KEY,
+    worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    problemid       TEXT REFERENCES problem (identifier) NOT NULL,
+    seq_no          INT4,
+    active          BOOLEAN,
+    optional        BOOLEAN
 );
 
 CREATE TABLE problem_attempt (
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     VARCHAR NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (problemid,loginid,worksheetid,date)
+    PRIMARY KEY (loginid,ws_prob_id,date)
 );
 
 CREATE TABLE problem_save (
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     text        TEXT NOT NULL,
-    PRIMARY KEY (problemid,loginid, worksheetid)
+    PRIMARY KEY (loginid, ws_prob_id)
 );
 
 CREATE TABLE test_suite (

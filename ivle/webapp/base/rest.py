@@ -18,6 +18,7 @@
 # Author: Matt Giuca, Will Grant
 
 import cgi
+import urlparse
 import inspect
 
 import cjson
@@ -58,6 +59,14 @@ class JSONRESTView(RESTView):
 
         if op._rest_api_permission not in self.get_permissions(req.user):
             raise Unauthorized()
+    
+    def convert_bool(self, value):
+        if value == 'True' or value == 'true' or value == True:
+            return True
+        elif value == 'False' or value == 'False' or value == False:
+            return False
+        else:
+            raise BadRequest()
 
     def render(self, req):
         if req.method not in self._allowed_methods:
@@ -87,7 +96,8 @@ class JSONRESTView(RESTView):
         # POST implies named operation.
         elif req.method == 'POST':
             # TODO: Check Content-Type and implement multipart/form-data.
-            opargs = dict(cgi.parse_qsl(req.read()))
+            data = req.read()
+            opargs = dict(cgi.parse_qsl(data, keep_blank_values=1))
             try:
                 opname = opargs['ivle.op']
                 del opargs['ivle.op']

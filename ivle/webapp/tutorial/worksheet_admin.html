@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Tutorial - Worksheet Editor</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        subject = "${subject}";
+        worksheet = "${worksheetname}";
+        year = "${year}";
+        semester = "${semester}";
+    </script>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>IVLE Worksheet - ${subject} - ${year} - Semester ${semester}</h1>
+      <div id='worksheet_input'>
+        <label for='worksheet_name'>Name:</label>
+        <input type='text' id='worksheet_name' class='worksheet_area' value='${worksheet.name}' />
+        <br />
+        <label for='worksheet_asses'>Assessable:</label>
+        <input type='checkbox' name='asses' id='worksheet_asses' checked='${worksheet.assessable}' />
+        <br />
+        <textarea id='worksheet_data' class='worksheet_area' cols='80'
+        rows='30'>${worksheet.data}</textarea>
+        <p>
+          <span id="savepanel">
+            <input onclick='submitworksheet()' type="submit" value="Save" />
+            <input onlclick='undo_changes()' type="submit" value='Undo' />
+          </span>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

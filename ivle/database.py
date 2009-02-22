@@ -275,7 +275,10 @@ class Offering(Storm):
                            'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
 
-    worksheets = ReferenceSet(id, 'Worksheet.offering_id')
+    worksheets = ReferenceSet(id, 
+        'Worksheet.offering_id', 
+        order_by="Worksheet.seq_no"
+    )
 
     __init__ = _kwarg_init
 
@@ -410,7 +413,6 @@ class Exercise(Storm):
     # Note: Table "problem" is called "Exercise" in the Object layer, since
     # it's called that everywhere else.
     __storm_table__ = "problem"
-#TODO: Add in a field for the user-friendly identifier
     id = Unicode(primary=True, name="identifier")
     name = Unicode()
     description = Unicode()
@@ -437,20 +439,17 @@ class Worksheet(Storm):
     __storm_table__ = "worksheet"
 
     id = Int(primary=True, name="worksheetid")
-    # XXX subject is not linked to a Subject object. This is a property of
-    # the database, and will be refactored.
     offering_id = Int(name="offeringid")
-    name = Unicode(name="identifier")
+    identifier = Unicode()
+    name = Unicode()
     assessable = Bool()
-    mtime = DateTime()
+    data = Unicode()
+    seq_no = Int()
+    format = Unicode()
 
     attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
 
-    exercises = ReferenceSet(id,
-        'WorksheetExercise.worksheet_id',
-        'WorksheetExercise.exercise_id',
-        Exercise.id)
     # Use worksheet_exercises to get access to the WorksheetExercise objects
     # binding worksheets to exercises. This is required to access the
     # "optional" field.
@@ -489,19 +488,25 @@ class Worksheet(Storm):
 
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_problem"
-    __storm_primary__ = "worksheet_id", "exercise_id"
+    
+    id = Int(primary=True, name="ws_prob_id")
 
     worksheet_id = Int(name="worksheetid")
     worksheet = Reference(worksheet_id, Worksheet.id)
     exercise_id = Unicode(name="problemid")
     exercise = Reference(exercise_id, Exercise.id)
     optional = Bool()
+    active = Bool()
+    seq_no = Int()
+    
+    saves = ReferenceSet(id, "ExerciseSave.ws_ex_id")
+    attempts = ReferenceSet(id, "ExerciseAttemot.ws_ex_id")
 
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
-                                  self.worksheet.name)
+                                  self.worksheet.identifier)
 
 class ExerciseSave(Storm):
     """
@@ -513,16 +518,15 @@ class ExerciseSave(Storm):
     ExerciseAttempt).
     """
     __storm_table__ = "problem_save"
-    __storm_primary__ = "exercise_id", "user_id", "date"
+    __storm_primary__ = "ws_ex_id", "user_id"
 
-    exercise_id = Unicode(name="problemid")
-    exercise = Reference(exercise_id, Exercise.id)
+    ws_ex_id = Int(name="ws_prob_id")
+    worksheet_exercise = Reference(ws_ex_id, "WorksheetExercise.id")
+
     user_id = Int(name="loginid")
     user = Reference(user_id, User.id)
     date = DateTime()
     text = Unicode()
-    worksheetid = Int()
-    worksheet = Reference(worksheetid, Worksheet.id)
 
     __init__ = _kwarg_init
 
@@ -544,7 +548,7 @@ class ExerciseAttempt(ExerciseSave):
         stored.
     """
     __storm_table__ = "problem_attempt"
-    __storm_primary__ = "exercise_id", "user_id", "date"
+    __storm_primary__ = "ws_ex_id", "user_id", "date"
 
     # The "text" field is the same but has a different name in the DB table
     # for some reason.

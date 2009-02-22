@@ -21,11 +21,13 @@
 
 import os
 import datetime
+import genshi
 
 import ivle.util
 import ivle.console
 import ivle.database
-from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, Offering, Subject, Semester
+from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
+                          Offering, Subject, Semester, WorksheetExercise
 import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
@@ -40,7 +42,6 @@ HISTORY_ALLOW_INACTIVE = False
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
     def __init__(self, req, subject, year, semester, worksheet, 
@@ -48,10 +49,10 @@ class AttemptsRESTView(JSONRESTView):
         self.user = ivle.database.User.get_by_login(req.store, username)
         if self.user is None:
             raise NotFound()
-        self.exercise = exercise
         
-        self.worksheet = req.store.find(Worksheet,
-            Worksheet.name == worksheet,
+        self.worksheet_exercise = req.store.find(WorksheetExercise,
+            WorksheetExercise.exercise_id == exercise,
+            WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
             Subject.code == subject,
@@ -64,10 +65,8 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def GET(self, req):
         """Handles a GET Attempts action."""
-        exercise = req.store.find(Exercise, Exercise.id == self.exercise).one()
-
         attempts = req.store.find(ExerciseAttempt, 
-                ExerciseAttempt.exercise_id == exercise.id,
+                ExerciseAttempt.ws_ex_id == self.worksheet_exercise.id,
                 ExerciseAttempt.user_id == self.user.id)
         # attempts is a list of ExerciseAttempt objects. Convert to dictionaries
         time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
@@ -80,7 +79,8 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def PUT(self, req, data):
         """ Tests the given submission """
-        exercise = req.store.find(Exercise, Exercise.id == self.exercise).one()
+        exercise = req.store.find(Exercise, 
+            Exercise.id == self.worksheet_exercise.exercise_id).one()
         if exercise is None:
             raise NotFound()
 
@@ -101,11 +101,11 @@ class AttemptsRESTView(JSONRESTView):
         cons.close()
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
-                                                exercise=exercise,
-                                                date=datetime.datetime.now(),
-                                                complete=test_results['passed'],
-                                                worksheet=self.worksheet,
-                                                text=unicode(data['code']))
+            worksheet_exercise = self.worksheet_exercise,
+            date = datetime.datetime.now(),
+            complete = test_results['passed'],
+            text = unicode(data['code'])
+        )
 
         req.store.add(attempt)
 
@@ -113,7 +113,7 @@ class AttemptsRESTView(JSONRESTView):
         # has EVER been completed (may be different from "passed", if it has
         # been completed before), and the total number of attempts.
         completed, attempts = ivle.worksheet.get_exercise_status(req.store,
-            req.user, exercise, self.worksheet)
+            req.user, self.worksheet_exercise)
         test_results["completed"] = completed
         test_results["attempts"] = attempts
 
@@ -123,7 +123,8 @@ class AttemptsRESTView(JSONRESTView):
 class AttemptRESTView(JSONRESTView):
     '''REST view of an exercise attempt.'''
 
-    def __init__(self, req, subject, worksheet, exercise, username, date):
+    def __init__(self, req, subject, year, semester, worksheet, exercise, 
+                 username, date):
         # TODO: Find exercise within worksheet.
         user = ivle.database.User.get_by_login(req.store, username)
         if user is None:
@@ -134,18 +135,22 @@ class AttemptRESTView(JSONRESTView):
         except ValueError:
             raise NotFound()
 
-        exercise = ivle.database.Exercise.get_by_name(req.store, exercise)
-        worksheet = req.store.find(Worksheet,
-            Worksheet.name == self.worksheet,
+        worksheet_exercise = req.store.find(WorksheetExercise,
+            WorksheetExercise.exercise_id == exercise,
+            WorksheetExercise.worksheet_id == Worksheet.id,
+            Worksheet.identifier == worksheet,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == self.subject,
+            Subject.code == subject,
             Offering.semester_id == Semester.id,
-            Semester.year == self.year,
-            Semester.semester == self.semester).one()
-
-        attempt = ivle.worksheet.get_exercise_attempt(req.store, user,
-            exercise, worksheet, as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
+            Semester.year == year,
+            Semester.semester == semester).one()
+            
+        attempt = req.store.find(ExerciseAttempt,
+            ExerciseAttempt.login_id == user.id,
+            ExerciseAttempt.ws_ex_id == worksheet_exercise.id,
+            ExerciseAttempt.date == date
+        )
 
         if attempt is None:
             raise NotFound()
@@ -162,6 +167,8 @@ class ExerciseRESTView(JSONRESTView):
 
     def get_permissions(self, user):
         # XXX: Do it properly.
+        # XXX: Does any user have the ability to save as themselves?
+        # XXX: Does a user EVER have permission to save as another user?
         if user is not None:
             return set(['save'])
         else:
@@ -169,18 +176,117 @@ class ExerciseRESTView(JSONRESTView):
 
     @named_operation('save')
     def save(self, req, text):
-        # Need to open JUST so we know this is a real exercise.
-        # (This avoids users submitting code for bogus exercises).
-        exercise = req.store.find(Exercise,
-            Exercise.id == self.exercise).one()
-        worksheet = req.store.find(Worksheet,
-            Worksheet.name == self.worksheet,
+        # Find the appropriate WorksheetExercise to save to. If its not found,
+        # the user is submitting against a non-existant worksheet/exercise
+        worksheet_exercise = req.store.find(WorksheetExercise,
+            WorksheetExercise.exericise_id == self.exercise,
+            WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
             Subject.code == self.subject,
             Offering.semester_id == Semester.id,
             Semester.year == self.year,
             Semester.semester == self.semester).one()
-        ivle.worksheet.save_exercise(req.store, req.user, exercise, worksheet,
-                                     unicode(text), datetime.datetime.now())
+        
+        if worksheet_exercise is None:
+            raise NotFound()
+
+        new_save = ExerciseSave()
+        new_save.worksheet_exercise = worksheet_exercise
+        new_save.user = req.user
+        new_save.text = unicode(text)
+        new_save.date = datetime.datetime.now()
+        req.store.add(new_save)
+        return {"result": "ok"}
+
+
+class WorksheetRESTView(JSONRESTView):
+    """View used to update a worksheet."""
+
+    def generate_exerciselist(self, req, worksheet):
+        """Runs through the worksheetstream, generating the appropriate
+        WorksheetExercises, and de-activating the old ones."""
+        exercises = []
+        # Turns the worksheet into an xml stream, and then finds all the 
+        # exercise nodes in the stream.
+        worksheet = genshi.XML(worksheet)
+        for kind, data, pos in worksheet:
+            if kind is genshi.core.START:
+                # Data is a tuple of tag name and a list of name->value tuples
+                if data[0] == 'exercise':
+                    src = ""
+                    optional = False
+                    for attr in data[1]:
+                        if attr[0] == 'src':
+                            src = attr[1]
+                        if attr[0] == 'optional':
+                            optional = attr[1] == 'true'
+                    if src != "":
+                        exercises.append((src, optional))
+        ex_num = 0
+        # Set all current worksheet_exercises to be inactive
+        db_worksheet_exercises = req.store.find(WorksheetExercise,
+            WorksheetExercise.worksheet_id == self.context.id)
+        for worksheet_exercise in db_worksheet_exercises:
+            worksheet_exercise.active = False
+        
+        for exerciseid, optional in exercises:
+            worksheet_exercise = req.store.find(WorksheetExercise,
+                WorksheetExercise.worksheet_id == self.context.id,
+                Exercise.id == WorksheetExercise.exercise_id,
+                Exercise.id == exerciseid).one()
+            if worksheet_exercise is None:
+                exercise = req.store.find(Exercise,
+                    Exercise.id == exerciseid
+                ).one()
+                if exercise is None:
+                    raise NotFound()
+                worksheet_exercise = WorksheetExercise()
+                worksheet_exercise.worksheet_id = self.context.id
+                worksheet_exercise.exercise_id = exercise.id
+                req.store.add(worksheet_exercise)
+            worksheet_exercise.active = True
+            worksheet_exercise.seq_no = ex_num
+            worksheet_exercise.optional = optional
+
+    def get_permissions(self, user):
+        # XXX: Do it properly.
+        # XXX: Lecturers should be allowed to add worksheets Only to subjects
+        #      under their control
+        if user is not None:
+            if user.rolenm == 'admin':
+                return set(['save'])
+            else:
+                return set()
+        else:
+            return set()    
+
+    def __init__(self, req, **kwargs):
+    
+        self.worksheet = kwargs['worksheet']
+        self.subject = kwargs['subject']
+        self.year = kwargs['year']
+        self.semester = kwargs['semester']
+    
+        self.context = req.store.find(Worksheet,
+            Worksheet.identifier == self.worksheet,
+            Worksheet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.code == self.subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == self.year,
+            Semester.semester == self.semester).one()
+        
+        if self.context is None:
+            raise NotFound()
+    
+    @named_operation('save')
+    def save(self, req, name, assessable, data):
+        """Takes worksheet data and saves it."""
+        self.generate_exerciselist(req, data)
+        
+        self.context.name = unicode(name)
+        self.context.data = unicode(data)
+        self.context.assessable = self.convert_bool(assessable)
+        
         return {"result": "ok"}

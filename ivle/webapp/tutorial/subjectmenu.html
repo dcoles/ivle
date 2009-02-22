@@ -11,7 +11,7 @@
         <py:for each="worksheet in worksheets">
           <li>
             <!-- XXX: Generate URL properly! -->
-            <a href="/subjects/${subject}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+            <a href="/subjects/${subject}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
             <py:if test="worksheet.assessable">
               <ul>
                 <li class="${worksheet.complete_class}">
