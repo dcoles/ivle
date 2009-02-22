@@ -500,7 +500,7 @@ class WorksheetExercise(Storm):
     seq_no = Int()
     
     saves = ReferenceSet(id, "ExerciseSave.ws_ex_id")
-    attempts = ReferenceSet(id, "ExerciseAttemot.ws_ex_id")
+    attempts = ReferenceSet(id, "ExerciseAttempt.ws_ex_id")
 
     __init__ = _kwarg_init
 
