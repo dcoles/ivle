@@ -23,7 +23,12 @@
         <label for='worksheet_format'>Worksheet Format:</label>
         <select name='format' id='worksheet_format'>
           <py:for each="format in formats">
-            <option value='${format}'>${format}</option>
+            <py:if test="unicode(format) == worksheet.format">
+              <option selected="selected" value='${format}'>${format}</option>
+            </py:if>
+            <py:if test="format != worksheet.format">
+              <option value='${format}'>${format}</option>
+            </py:if>
           </py:for>
         </select>
         <br />

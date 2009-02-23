@@ -297,11 +297,12 @@ class WorksheetRESTView(JSONRESTView):
     @named_operation('save')
     def save(self, req, name, assessable, data, format):
         """Takes worksheet data and saves it."""
-        self.generate_exerciselist(self.context, req, data)
+        generate_exerciselist(self.context, req, data)
         
         self.context.name = unicode(name)
         self.context.assessable = self.convert_bool(assessable)
         self.context.data = unicode(data)
+        self.context.format = unicode(format)
         
         return {"result": "ok"}
 
