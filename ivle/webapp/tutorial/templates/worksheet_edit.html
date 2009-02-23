@@ -20,6 +20,13 @@
         <label for='worksheet_asses'>Assessable:</label>
         <input type='checkbox' name='asses' id='worksheet_asses' checked='${worksheet.assessable}' />
         <br />
+        <label for='worksheet_format'>Worksheet Format:</label>
+        <select name='format' id='worksheet_format'>
+          <py:for each="format in formats">
+            <option value='${format}'>${format}</option>
+          </py:for>
+        </select>
+        <br />
         <textarea id='worksheet_data' class='worksheet_area' cols='80'
         rows='30'>${worksheet.data}</textarea>
         <p>

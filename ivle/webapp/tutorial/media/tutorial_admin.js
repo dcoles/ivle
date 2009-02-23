@@ -28,13 +28,15 @@ function editworksheet()
     var namearea = document.getElementById("worksheet_name");
     var check_box = document.getElementById("worksheet_asses");
     var sheet_area = document.getElementById("worksheet_data");
+    var format_opt = document.getElementById("worksheet_format");
     
     var worksheetname = namearea.value;
     var assessable = check_box.checked;
     var data = sheet_area.value;
+    var format = format_opt.value;
 
     var args = {'ivle.op': 'save', 'data': data, 'assessable': assessable,
-                'name': worksheetname};
+                'name': worksheetname, 'format': format};
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */

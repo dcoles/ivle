@@ -420,6 +420,8 @@ class WorksheetEditView(XHTMLView):
         ctx['subject'] = self.subject
         ctx['year'] = self.year
         ctx['semester'] = self.semester
+        #XXX: Get the list of formats from somewhere else
+        ctx['formats'] = ['xml', 'rst']
 
 
 class WorksheetAddView(XHTMLView):
