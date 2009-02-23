@@ -5,7 +5,8 @@
   </head>
   <body>
     <div id="ivle_padding">
-      <h1>Error ${exception.code}: ${exception.codename}</h1>
+      <h1>${exception.codename}</h1>
+      <h3>HTTP error ${exception.code}</h3>
       <p py:if="exception.message">${exception.message}</p>
     </div>
   </body>
