@@ -61,9 +61,9 @@ class JSONRESTView(RESTView):
             raise Unauthorized()
     
     def convert_bool(self, value):
-        if value == 'True' or value == 'true' or value == True:
+        if value in ('True', 'true', True):
             return True
-        elif value == 'False' or value == 'False' or value == False:
+        elif value in ('False', 'false', False):
             return False
         else:
             raise BadRequest()
