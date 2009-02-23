@@ -52,8 +52,13 @@ class LoginView(XHTMLView):
         if req.user is not None:
             req.throw_redirect(nexturl)
 
-        ctx['path'] = ivle.util.make_path('+login') + \
-                         '?' + urllib.urlencode([('url', nexturl)])
+        # Don't give any URL if we want /.
+        if nexturl == '/':
+            query_string = ''
+        else:
+            query_string = '?url=' + urllib.quote(nexturl, safe="/~")
+
+        ctx['path'] = ivle.util.make_path('+login') + query_string
 
         # If this succeeds, the user is invalid.
         user = ivle.webapp.security.get_user_details(req)
@@ -64,8 +69,7 @@ class LoginView(XHTMLView):
                 # if you are not planning to display a ToS page - the ToS
                 # acceptance process actually calls usrmgt to create the user
                 # jails and related stuff.
-                req.throw_redirect(ivle.util.make_path('+tos') + \
-                        '?' + urllib.urlencode([('url', nexturl)]))
+                req.throw_redirect(ivle.util.make_path('+tos') + query_string)
             elif user.state == "pending":
                 # FIXME: this isn't quite the right answer, but it
                 # should be more robust in the short term.

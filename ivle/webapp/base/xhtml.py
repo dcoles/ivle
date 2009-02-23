@@ -191,7 +191,10 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
 
         if req.user is None:
             # Not logged in. Redirect to login page.
-            req.throw_redirect('/+login?' + 
-                               urllib.urlencode([('url', req.uri)]))
+            if req.uri == '/':
+                query_string = ''
+            else:
+                query_string = '?url=' + urllib.quote(req.uri, safe="/~")
+            req.throw_redirect('/+login' + query_string)
 
         req.status = 403
