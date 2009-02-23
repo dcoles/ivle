@@ -28,7 +28,7 @@ import email.utils
 import ivle.conf
 from ivle.config import Config
 from ivle.webapp.base.views import BaseView
-from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
+from ivle.webapp.base.plugins import PublicViewPlugin, ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
 
 def media_url(req, plugin, path):
@@ -140,8 +140,10 @@ class VersionedMediaFileView(MediaFileView):
                                     usegmt=True)
         return super(VersionedMediaFileView, self)._make_filename(req)
 
-class Plugin(ViewPlugin):
+class Plugin(ViewPlugin, PublicViewPlugin):
     urls = [
         ('+media/+:version/:ns/*path', VersionedMediaFileView),
         ('+media/:ns/*path', MediaFileView),
     ]
+
+    public_urls = urls
