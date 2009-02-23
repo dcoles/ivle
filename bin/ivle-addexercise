@@ -242,8 +242,8 @@ def add_exercise(xmlfile):
 xmlfiles = sys.argv[1:]
 for xmlfile in xmlfiles:
     print "Adding exercise", xmlfile
-    #try:
-    add_exercise(xmlfile)
-    #except Exception, e:
-    #    print "ERROR: Could not add file", xmlfile
-    #    print e.stacktrace()
+    try:
+        add_exercise(xmlfile)
+    except Exception, e:
+        print "ERROR: Could not add file", xmlfile
+        print e.stacktrace()
