@@ -73,6 +73,12 @@
     height: 15em;
     margin-bottom: 0.5em;
 }
+
+#console_body.windowpane.maximal, #console_body.windowpane #console_heading {
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
+}
+
 #console_input {
     position: absolute;
     /* Input bar goes along the bottom. Pad all sides */
