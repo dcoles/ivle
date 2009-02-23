@@ -152,7 +152,7 @@ def add_test_case(case_node, case_num, store):
             filename = child_node.getAttribute('name')
             if filename == "":
                 raise XMLMalformedException('file tag must have names')
-            parts.append(add_part(store, element_type, test_type, data,
+            parts.append(add_part(store, part_type, test_type, data,
                                         filename))
             
         elif child_node.tagName in allowed_parts:
