@@ -44,7 +44,8 @@ import ivle.conf
 from ivle.dispatch.request import Request
 import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
-from ivle.webapp.errors import HTTPError, Unauthorized
+from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
+from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
 
 def generate_route_mapper(view_plugins, attr):
     """
@@ -116,7 +117,7 @@ def handler(apachereq):
             if hasattr(viewcls, 'get_error_view'):
                 errviewcls = viewcls.get_error_view(e)
             else:
-                errviewcls = None
+                errviewcls = XHTMLView.get_error_view(e)
 
             if errviewcls:
                 errview = errviewcls(req, e)
@@ -135,7 +136,8 @@ def handler(apachereq):
             req.store.commit()
             return req.OK
     else:
-        return req.HTTP_NOT_FOUND # TODO: Prettify.
+        XHTMLErrorView(req, NotFound()).render(req)
+        return req.OK
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """
