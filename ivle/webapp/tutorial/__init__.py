@@ -46,7 +46,7 @@ from ivle.webapp.media import BaseMediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
-                        ExerciseRESTView, WorksheetRESTView, OfferingRESTView
+                      ExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
