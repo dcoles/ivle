@@ -495,9 +495,9 @@ class WorksheetsEditView(XHTMLView):
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
-        ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
-        ('subjects/:subject/:year/:semester/+worksheets/+add', WorksheetAddView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
+        ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
+        ('subjects/:subject/:year/:semester/+worksheets/+new', WorksheetAddView),
         ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
