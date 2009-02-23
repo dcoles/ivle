@@ -74,7 +74,7 @@ class XHTMLView(BaseView):
         # Global template
         ctx = genshi.template.Context()
         # XXX: Leave this here!! (Before req.styles is read)
-        ctx['overlays'] = self.render_overlays(req)
+        ctx['overlays'] = self.render_overlays(req) if req.user else []
 
         ctx['styles'] = [media_url(req, CorePlugin, 'ivle.css')]
         ctx['styles'] += req.styles
