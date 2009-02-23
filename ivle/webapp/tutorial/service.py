@@ -304,8 +304,8 @@ class WorksheetRESTView(JSONRESTView):
         
         return {"result": "ok"}
 
-class OfferingRESTView(JSONRESTView):
-    """View used to update Offering and create Worksheets."""
+class WorksheetsRESTView(JSONRESTView):
+    """View used to update and create Worksheets."""
     
     def get_permissions(self, user):
         # XXX: Do it properly.
@@ -313,7 +313,7 @@ class OfferingRESTView(JSONRESTView):
         #      under their control
         if user is not None:
             if user.rolenm == 'admin':
-                return set(['add_worksheet'])
+                return set(['add_worksheet', 'set_sequence'])
             else:
                 return set()
         else:
@@ -336,21 +336,38 @@ class OfferingRESTView(JSONRESTView):
             raise NotFound()
 
     @named_operation('add_worksheet')
-    def add_worksheet(self,req, identifier, name, assessable, data, format):
+    def add_worksheet(self, req, identifier, name, assessable, data, format):
         """Takes worksheet data and adds it."""
         
         new_worksheet = Worksheet()
-        
+        new_worksheet.seq_no = self.context.worksheets.count()
+        # Setting new_worksheet.offering implicitly adds new_worksheet,
+        # hence worksheets.count MUST be called above it
         new_worksheet.offering = self.context
         new_worksheet.identifier = unicode(identifier)
         new_worksheet.name = unicode(name)
         new_worksheet.assessable = self.convert_bool(assessable)
         new_worksheet.data = unicode(data)
         new_worksheet.format = unicode(format)
-        new_worksheet.seq_no = self.context.worksheets.count()
+        
+        # This call is added for clarity, as the worksheet is implicitly added.        
         req.store.add(new_worksheet)
         
         generate_exerciselist(new_worksheet, req, data)
         
         return {"result": "ok"}
 
+    @named_operation('set_sequence')
+    def seq_sequence(self, req, worksheet_list):
+        """Takes a list of worksheet-seq_no pairs and updates their 
+        corresponding Worksheet objects to match."""
+        
+        for worksheetid, seq_no in worksheet_list:
+            worksheet = req.store.find(Worksheet,
+                Worksheet.offering_id == self.context.id,
+                Worksheet.identifier == worksheetid).one()
+            if worksheet is None:
+                raise NotFound(worksheet)
+            worksheet.seq_no = seq_no
+        
+        return {'result': 'ok'}
