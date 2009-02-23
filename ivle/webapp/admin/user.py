@@ -54,20 +54,6 @@ class UserRESTView(JSONRESTView):
         user['local_password'] = self.context.passhash is not None
         return user
 
-    @require_permission('edit')
-    def PATCH(self, req, data):
-        # XXX Admins can set extra fields
-        # Note: Cannot change password here (use change_password named op)
-
-        for f in user_fields_list:
-            try:
-                field = data[f]
-                if isinstance(field, str):
-                    field = unicode(field)
-                setattr(self.context, f, field)
-            except KeyError:
-                continue
-
 class UserSettingsView(XHTMLView):
     template = 'user-settings.html'
     appname = 'settings'
