@@ -7,6 +7,7 @@
     border-right: 2px solid gray;
     border-top: 1px solid gray;
     border-bottom: 2px solid gray;
+    -moz-border-radius: 10px;
 }
 
 .exercisebox, .runoutput {
@@ -215,18 +216,17 @@ li.index ul { margin-left: 2em; padding-left: 0; }
 /* 'Note' callouts */
 div.note
 {
-  border-right:   #87ceeb 1px solid;
-  padding-right: 4px;
-  border-top: #87ceeb 1px solid;
-  padding-left: 4px;
-  padding-bottom: 4px;
+  padding: 4px;
   margin: 2px 5% 10px;
-  border-left: #87ceeb 1px solid;
-  padding-top: 4px;
-  border-bottom: #87ceeb 1px solid;
   font-style: normal;
-  font-family: verdana, arial;
+  font-family: sans-serif;
   background-color: #b0c4de;
+  -moz-border-radius: 10px;
+}
+
+div.note p.admonition-title
+{
+  font-weight: bold;
 }
 
 table.rst-example { border: 1px solid black; }
