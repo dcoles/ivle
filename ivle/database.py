@@ -432,6 +432,13 @@ class Exercise(Storm):
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            if user.rolenm == 'admin':
+                perms.add('edit')
+                perms.add('view')
+        return perms
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
