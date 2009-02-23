@@ -175,6 +175,13 @@ def add_test_case(case_node, case_num, store):
 xmlfile = sys.argv[1]
 
 def add_exercise(xmlfile):
+    store = get_store()
+
+    # Skip existing ones.
+    if store.find(Exercise, id=unicode(xmlfile)).count():
+        return
+
+    print "Adding exercise", xmlfile
     try:
         filedom = minidom.parse(xmlfile)
     except IOError, e:
@@ -215,12 +222,6 @@ def add_exercise(xmlfile):
         elif child.tagName == 'desc':
             description = getTextData(child)
 
-    if solution is None:
-        raise XMLMalformedError("ivle-addexercise: error parsing XML: No solution given")
-    if len(test_suite_nodes) == 0:
-        raise XMLMalformedError("ivle-addexercise: error parsing XML: No Tests Given!")
-
-    store = get_store()
     new_exercise = Exercise()
     new_exercise.id = unicode(xmlfile)
     new_exercise.name = exercisename
@@ -241,7 +242,6 @@ def add_exercise(xmlfile):
     
 xmlfiles = sys.argv[1:]
 for xmlfile in xmlfiles:
-    print "Adding exercise", xmlfile
     try:
         add_exercise(xmlfile)
     except Exception, e:
