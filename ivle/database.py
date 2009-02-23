@@ -302,7 +302,7 @@ class Offering(Storm):
         perms = set()
         if user is not None:
             perms.add('view')
-            if user.rolenm == 'admin':
+            if user.rolenm in ('admin', 'lecturer'):
                 perms.add('edit')
         return perms
 
@@ -435,7 +435,7 @@ class Exercise(Storm):
     def get_permissions(self, user):
         perms = set()
         if user is not None:
-            if user.rolenm == 'admin':
+            if user.rolenm in ('admin', 'lecturer'):
                 perms.add('edit')
                 perms.add('view')
         return perms
