@@ -463,7 +463,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
-        ('api/subjects/:subject/:year/:semester/+worksheets', OfferingRESTView),
+        ('api/subjects/:subject/:year/:semester/+worksheets', WorksheetsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
