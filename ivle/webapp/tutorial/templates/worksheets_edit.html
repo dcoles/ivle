@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Tutorial - Worksheet Editor</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        subject = "${subject}";
+        year = "${year}";
+        semester = "${semester}";
+    </script>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h2>Worksheets for ${subject} - ${year} - Semester ${semester}</h2>
+      <table id='worksheets_table'>
+        <tr><td><h4>Identifier</h4></td><td><h4>Name</h4></td><td><h4>Actions</h4></td></tr>
+      <py:for each="worksheet in worksheets">
+          <tr id='${worksheet.identifier}'>
+            <td>${worksheet.identifier}</td>
+            <td>${worksheet.name}</td>
+            <td>
+              <a href='./${worksheet.identifier}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" /></a>
+              <a title="Move Up" onclick="move_up('${worksheet.identifier}')"><img src="${mediapath + 'up.png'}" /></a>
+              <a title="Move Down" onclick="move_down('${worksheet.identifier}')"><img src="${mediapath + 'down.png'}" /></a>
+            </td>
+          </tr>
+      </py:for>
+      </table>
+      <br />
+      <a href="./+add">Add New Worksheet</a>
+    </div>
+  </body>
+</html>

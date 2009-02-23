@@ -315,7 +315,7 @@ class WorksheetsRESTView(JSONRESTView):
         #      under their control
         if user is not None:
             if user.rolenm == 'admin':
-                return set(['add_worksheet', 'set_sequence'])
+                return set(['edit'])
             else:
                 return set()
         else:
@@ -337,7 +337,7 @@ class WorksheetsRESTView(JSONRESTView):
         if self.context is None:
             raise NotFound()
 
-    @named_operation('add_worksheet')
+    @named_operation('edit')
     def add_worksheet(self, req, identifier, name, assessable, data, format):
         """Takes worksheet data and adds it."""
         
@@ -359,17 +359,44 @@ class WorksheetsRESTView(JSONRESTView):
         
         return {"result": "ok"}
 
-    @named_operation('set_sequence')
-    def seq_sequence(self, req, worksheet_list):
+    @named_operation('edit')
+    def move_up(self, req, worksheetid):
         """Takes a list of worksheet-seq_no pairs and updates their 
         corresponding Worksheet objects to match."""
         
-        for worksheetid, seq_no in worksheet_list:
-            worksheet = req.store.find(Worksheet,
-                Worksheet.offering_id == self.context.id,
-                Worksheet.identifier == worksheetid).one()
-            if worksheet is None:
-                raise NotFound(worksheet)
-            worksheet.seq_no = seq_no
+        worksheet_below = req.store.find(Worksheet,
+            Worksheet.offering_id == self.context.id,
+            Worksheet.identifier == unicode(worksheetid)).one()
+        if worksheet_below is None:
+            raise NotFound('worksheet_below')
+        worksheet_above = req.store.find(Worksheet,
+            Worksheet.offering_id == self.context.id,
+            Worksheet.seq_no == (worksheet_below.seq_no - 1)).one()
+        if worksheet_above is None:
+            raise NotFound('worksheet_above')
+
+        worksheet_below.seq_no = worksheet_below.seq_no - 1
+        worksheet_above.seq_no = worksheet_above.seq_no + 1
+        
+        return {'result': 'ok'}
+
+    @named_operation('edit')
+    def move_down(self, req, worksheetid):
+        """Takes a list of worksheet-seq_no pairs and updates their 
+        corresponding Worksheet objects to match."""
+        
+        worksheet_above = req.store.find(Worksheet,
+            Worksheet.offering_id == self.context.id,
+            Worksheet.identifier == unicode(worksheetid)).one()
+        if worksheet_above is None:
+            raise NotFound('worksheet_below')
+        worksheet_below = req.store.find(Worksheet,
+            Worksheet.offering_id == self.context.id,
+            Worksheet.seq_no == (worksheet_above.seq_no + 1)).one()
+        if worksheet_below is None:
+            raise NotFound('worksheet_above')
+
+        worksheet_below.seq_no = worksheet_below.seq_no - 1
+        worksheet_above.seq_no = worksheet_above.seq_no + 1
         
         return {'result': 'ok'}

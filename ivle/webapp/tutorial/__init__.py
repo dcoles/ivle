@@ -42,7 +42,7 @@ import ivle.worksheet
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.media import BaseMediaFileView
+from ivle.webapp.media import BaseMediaFileView, media_url
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
@@ -457,12 +457,48 @@ class WorksheetAddView(XHTMLView):
         #XXX: Get the list of formats from somewhere else
         ctx['formats'] = ['xml', 'rst']
 
+class WorksheetsEditView(XHTMLView):
+    """View for arranging worksheets."""
+    
+    permission = 'edit'
+    template = 'templates/worksheets_edit.html'
+    
+    def __init__(self, req, subject, year, semester):
+        self.context = req.store.find(Offering,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject
+        ).one()
+        
+        self.subject = subject
+        self.year = year
+        self.semester = semester
+        
+        if self.context is None:
+            raise NotFound()
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['tutorial_admin.css']
+        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
+        
+        ctx['subject'] = self.subject
+        ctx['year'] = self.year
+        ctx['semester'] = self.semester
+        
+        ctx['worksheets'] = self.context.worksheets
+        
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
+        
+
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/:year/:semester/+worksheets/+add', WorksheetAddView),
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
+        ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
         ('api/subjects/:subject/:year/:semester/+worksheets', WorksheetsRESTView),

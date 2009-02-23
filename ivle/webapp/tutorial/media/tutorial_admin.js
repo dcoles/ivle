@@ -21,6 +21,73 @@
 /* Called when a form upload comes back (from an iframe).
  * Refreshes the page.
  */
+ 
+//XXX: Make this actually move the element, not just reload the page
+function move_up(worksheet)
+{
+    var ws_row = document.getElementById(worksheet);
+    var ws_row_index = ws_row.rowIndex;
+    
+    if (ws_row_index == 1) {
+        alert('Item already at top of list.');
+        return;
+    }
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            window.location.reload();
+        }
+        catch(ex)
+        {
+            alert('There was an error updating the worksheets list.');
+            return;
+        }
+    }
+    
+    update_path = "api/subjects/" + subject + "/" + year + "/" + 
+                   semester + "/+worksheets";
+    var args = {'ivle.op': 'move_up', 'worksheetid': worksheet}
+    
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+//XXX: Make this actually move the element, not just reload the page
+function move_down(worksheet)
+{
+    var ws_table = document.getElementById('worksheets_table');
+    var ws_row = document.getElementById(worksheet);
+    var ws_row_index = ws_row.rowIndex;
+    
+    if (ws_row_index == ws_table.rows) {
+        alert('Item already at bottom of list.');
+        return;
+    }
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            window.location.reload();
+        }
+        catch(ex)
+        {
+            alert('There was an error updating the worksheets list.');
+            return;
+        }
+    }
+    
+    update_path = "api/subjects/" + subject + "/" + year + "/" + 
+                   semester + "/+worksheets";
+    var args = {'ivle.op': 'move_down', 'worksheetid': worksheet}
+    
+    ajax_call(callback, update_path, "", args, 'POST');
+}
 
 function editworksheet()
 {
