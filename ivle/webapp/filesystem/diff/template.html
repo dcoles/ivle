@@ -1,0 +1,15 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Diff</title>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>Diff</h1>
+      <py:for each="file in files">
+        <p><b>File:</b> ${file}</p>
+        <pre py:replace="files[file]" />
+      </py:for>
+    </div>
+  </body>
+</html>

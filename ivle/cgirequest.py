@@ -25,9 +25,6 @@
 # This allows CGI scripts to create request objects and then pass them to
 # normal IVLE handlers.
 
-# NOTE: This object does not support write_html_head_foot (simply because we
-# do not need it in its intended application: fileservice).
-
 import sys
 import os
 import cgi
@@ -155,10 +152,8 @@ class CGIRequest:
         self.status = CGIRequest.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
-        self.write_html_head_foot = False
         self.got_common_vars = False
 
 
@@ -197,10 +192,6 @@ class CGIRequest:
             if k != 'Content-Type' and k != 'Location':
                 print "%s: %s" % (k, v)
 
-        # XXX write_html_head_foot not supported
-        #if self.write_html_head_foot:
-        #    # Write the HTML header, pass "self" (request object)
-        #    self.func_write_html_head(self)
         # Print a blank line to signal the start of output
         print
 
@@ -248,19 +239,6 @@ class CGIRequest:
             return sys.stdin.read()
         else:
             return sys.stdin.read(len)
-
-    def throw_error(self, httpcode, message):
-        """Writes out an HTTP error of the specified code. Exits the process,
-        so any code following this call will not be executed.
-
-        (This is justified because of the nature of CGI, it is a single-script
-        environment, there is no containing process which needs to catch an
-        exception).
-
-        httpcode: An HTTP response status code. Pass a constant from the
-        Request class.
-        """
-        raise ivle.util.IVLEError(httpcode, message)
 
     def handle_unknown_exception(self, exc_type, exc_value, exc_tb):
         if exc_type is ivle.util.IVLEError:

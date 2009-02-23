@@ -1,0 +1,121 @@
+#!/usr/bin/python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+import optparse
+import os
+import sys
+import shutil
+
+import ivle.conf
+import ivle.config
+import ivle.jailbuilder.debian
+
+usage = """usage: %prog [options]
+(requires root)
+Builds or updates the base IVLE jail."""
+
+conf = ivle.config.Config()
+build_path = ivle.conf.jail_system_build
+
+# Parse arguments
+parser = optparse.OptionParser(usage)
+parser.add_option("-r", "--recreate",
+    action="store_true", dest="recreate",
+    help='''Completely recreate the jail - don't just update its IVLE code.
+Be warned, this may download hundreds of megabytes!''')
+parser.add_option("-u", "--upgrade",
+    action="store_true", dest="upgrade",
+    help='''Apply any package updates in the jail.''')
+parser.add_option("-m", "--mirror",
+    action="store", dest="apt_mirror",
+    help="Sets the apt mirror used when recreating the jail.")
+(options, args) = parser.parse_args(sys.argv)
+
+if os.geteuid() != 0:
+    print >> sys.stderr, "Must be root to run buildjail."
+    sys.exit(1)
+
+if not options.recreate and not os.path.exists(build_path):
+    print >> sys.stderr, "No jail exists -- please rerun with -r."
+    sys.exit(1)
+
+if options.recreate:
+    # Create the jail and its subdirectories
+    # Note: Other subdirs will be made by copying files
+    if options.apt_mirror is not None:
+        os.environ['MIRROR'] = options.apt_mirror
+
+    os.system('rm -rf --one-file-system ' + build_path)
+    ivle.jailbuilder.debian.debootstrap_create_jail(conf['jail']['suite'],
+              build_path, mirror=options.apt_mirror)
+
+    # Add any extra site apt sources.
+    if conf['jail']['extra_sources']:
+        ivle.jailbuilder.debian.mangle_sources_list(build_path,
+                  conf['jail']['extra_sources'])
+
+    # Add any extra site apt keys.
+    if conf['jail']['extra_keys']:
+        ivle.jailbuilder.debian.apt_add_key(build_path,
+                                            conf['jail']['extra_keys'])
+
+    ivle.jailbuilder.debian.apt_update_cache(build_path)
+    ivle.jailbuilder.debian.apt_install(build_path,
+                        ['python2.5', 'python-cjson', 'python-svn'])
+
+    # Install any extra site packages.
+    if conf['jail']['extra_packages']:
+        ivle.jailbuilder.debian.apt_install(build_path,
+                  conf['jail']['extra_packages'])
+
+    ivle.jailbuilder.debian.apt_clean(build_path)
+
+if options.upgrade:
+    # Run apt-get update, apt-get upgrade and apt-get clean.
+    ivle.jailbuilder.debian.apt_update_cache(build_path)
+    ivle.jailbuilder.debian.apt_upgrade(build_path)
+    ivle.jailbuilder.debian.apt_clean(build_path)
+
+if conf['jail']['devmode']:
+    # Copy all console and operating system files into the jail
+    services_path = os.path.join(ivle.conf.share_path, 'services')
+    jail_services_path = os.path.join(build_path, services_path[1:])
+    if os.path.exists(jail_services_path):
+        shutil.rmtree(jail_services_path)
+    shutil.copytree(services_path, jail_services_path)
+
+    # Also copy the IVLE lib directory into the jail
+    # This is necessary for running certain services
+    ivle_site_packages = os.path.join(ivle.conf.python_site_packages, 'ivle')
+    jail_site_packages = os.path.join(build_path, ivle_site_packages[1:])
+    if os.path.exists(jail_site_packages):
+        shutil.rmtree(jail_site_packages)
+    shutil.copytree(ivle_site_packages, jail_site_packages)
+
+    # IMPORTANT: ivle/conf/conf.py contains details which could compromise security
+    # if left in the jail (such as the DB password). We delete it now! It would be
+    # shadowed by the per-user conf.py anyway, but it's best to be safe.
+    os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
+    # XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
+    os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
+
+if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
+              build_path + '/', ivle.conf.jail_system]) != 0:
+    print >> sys.stderr, "Jail copying failed."
+    sys.exit(1)
+

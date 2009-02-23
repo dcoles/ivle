@@ -91,7 +91,11 @@ def authenticate(store, login, password):
                 # We just got ourselves some user details from an external
                 # source. Put them in the DB.
                 store.add(auth_result)
-                pass
+
+            # Don't allow login if it is expired or disabled.
+            if auth_result.state == 'disabled' or auth_result.account_expired:
+                raise AuthError("Account is not valid.")
+
             return auth_result
         else:
             raise AuthError("Internal error: "

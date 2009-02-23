@@ -25,13 +25,18 @@ See design notes/apps/dispatch.txt for a full specification of this request
 object.
 """
 
-import mod_python
-from mod_python import (util, Session, Cookie)
+try:
+    import mod_python.Session
+    import mod_python.Cookie
+    import mod_python.util
+except ImportError:
+    # This needs to be importable from outside Apache.
+    pass
 
 import ivle.util
 import ivle.conf
 import ivle.database
-import plugins.console # XXX: Relies on www/ being in the Python path.
+from ivle.webapp.base.plugins import CookiePlugin
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -73,9 +78,6 @@ class Request:
         location (write)
             String. Response "Location" header value. Used with HTTP redirect
             responses.
-        title (write)
-            String. HTML page title. Used if write_html_head_foot is True, in
-            the HTML title element text.
         styles (write)
             List of strings. Write a list of URLs to CSS files here, and they
             will be incorporated as <link rel="stylesheet" type="text/css">
@@ -94,18 +96,6 @@ class Request:
             in the head, if write_html_head_foot is True.
             This is the propper way to specify functions that need to run at 
             page load time.
-        write_html_head_foot (write)
-            Boolean. If True, dispatch assumes that this is an XHTML page, and
-            will immediately write a full HTML head, open the body element,
-            and write heading contents to the page, before any bytes are
-            written. It will then write footer contents and close the body and
-            html elements at the end of execution.  
-
-            This value should be set to true by all applications for all HTML
-            output (unless there is a good reason, eg. exec). The
-            applications should therefore output HTML content assuming that
-            it will be written inside the body tag. Do not write opening or
-            closing <html> or <body> tags.
     """
 
     # Special code for an OK response.
@@ -164,19 +154,16 @@ class Request:
     HTTP_INSUFFICIENT_STORAGE         = 507
     HTTP_NOT_EXTENDED                 = 510
 
-    def __init__(self, req, write_html_head):
+    def __init__(self, req):
         """Builds an IVLE request object from a mod_python request object.
         This results in an object with all of the necessary methods and
         additional fields.
 
         req: A mod_python request object.
-        write_html_head: Function which is called when writing the automatic
-            HTML header. Accepts a single argument, the IVLE request object.
         """
 
         # Methods are mostly wrappers around the Apache request object
         self.apache_req = req
-        self.func_write_html_head = write_html_head
         self.headers_written = False
 
         # Determine if the browser used the public host name to make the
@@ -206,11 +193,9 @@ class Request:
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.title = None     # Will be set by dispatch before passing to app
         self.styles = []
         self.scripts = []
         self.scripts_init = []
-        self.write_html_head_foot = False
         # In some cases we don't want the template JS (such as the username
         # and public FQDN) in the output HTML. In that case, set this to 0.
         self.write_javascript_settings = True
@@ -224,17 +209,6 @@ class Request:
         """Writes out the HTTP and HTML headers before any real data is
         written."""
         self.headers_written = True
-        
-        # app is the App object for the chosen app
-        try:
-            app = ivle.conf.apps.app_url[self.app]
-        except KeyError:
-            app = None
-
-        # Write any final modifications to header content
-        if app and app.useconsole and self.user:
-            plugins.console.insert_scripts_styles(self.scripts, self.styles, \
-                self.scripts_init)
 
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:
@@ -242,9 +216,6 @@ class Request:
         self.apache_req.status = self.status
         if self.location != None:
             self.apache_req.headers_out['Location'] = self.location
-        if self.write_html_head_foot:
-            # Write the HTML header, pass "self" (request object)
-            self.func_write_html_head(self)
 
     def ensure_headers_written(self):
         """Writes out the HTTP and HTML headers if they haven't already been
@@ -270,17 +241,17 @@ class Request:
     def logout(self):
         """Log out the current user by destroying the session state.
         Then redirect to the top-level IVLE page."""
-        # List of cookies that IVLE uses (to be removed at logout)
-        ivle_cookies = ["ivleforumcookie", "clipboard"]
-        
         if hasattr(self, 'session'):
             self.session.invalidate()
             self.session.delete()
             # Invalidates all IVLE cookies
-            all_cookies = Cookie.get_cookies(self)
-            for cookie in all_cookies:
-                if cookie in ivle_cookies:
-                    self.add_cookie(Cookie.Cookie(cookie,'',expires=1,path='/'))
+            all_cookies = mod_python.Cookie.get_cookies(self)
+
+            # Create cookies for plugins that might request them.
+            for plugin in self.config.plugin_index[CookiePlugin]:
+                for cookie in plugin.cookies:
+                    self.add_cookie(mod_python.Cookie.Cookie(cookie, '',
+                                                    expires=1, path='/'))
         self.throw_redirect(ivle.util.make_path('')) 
 
 
@@ -302,16 +273,6 @@ class Request:
         else:
             return self.apache_req.read(len)
 
-    def throw_error(self, httpcode, message=None):
-        """Writes out an HTTP error of the specified code. Raises an exception
-        which is caught by the dispatch or web server, so any code following
-        this call will not be executed.
-
-        httpcode: An HTTP response status code. Pass a constant from the
-        Request class.
-        """
-        raise ivle.util.IVLEError(httpcode, message)
-
     def throw_redirect(self, location):
         """Writes out an HTTP redirect to the specified URL. Raises an
         exception which is caught by the dispatch or web server, so any
@@ -327,9 +288,9 @@ class Request:
     def add_cookie(self, cookie, value=None, **attributes):
         """Inserts a cookie into this request object's headers."""
         if value is None:
-            Cookie.add_cookie(self.apache_req, cookie)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie)
         else:
-            Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
+            mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
 
     def get_session(self):
         """Returns a mod_python Session object for this request.
@@ -337,7 +298,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
-            self.session = Session.FileSession(self.apache_req,
+            self.session = mod_python.Session.FileSession(self.apache_req,
                                                timeout = 60 * 60 * 24)
         return self.session
 
@@ -347,7 +308,7 @@ class Request:
         interface if porting away from mod_python."""
         # Cache the fieldstorage object
         if not hasattr(self, 'fields'):
-            self.fields = util.FieldStorage(self.apache_req)
+            self.fields = mod_python.util.FieldStorage(self.apache_req)
         return self.fields
 
     def get_cgi_environ(self):

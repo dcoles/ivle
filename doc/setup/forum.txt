@@ -1,0 +1,46 @@
+IVLE phpBB3 integration
+=======================
+
+IVLE has an optional forum, an integrated instance of phpBB3.
+It is not installed by default, so this document describes how to do it.
+These instructions assume that you already have a working IVLE instance on the
+same server.
+
+phpBB requires PHP and a database driver to run. If on a Debian system, install
+the 'php5' and 'php5-pgsql' packages.
+
+You will first need to grab a copy of phpBB3. Extract it somewhere, and make it
+visible under the IVLE domain. Make sure that you do not conflict with any
+existing URLs, by using a directory like 'phpbb3'. You also need to tell Apache
+not to send it through the IVLE dispatcher. Directives in your IVLE Apache
+virtual host like this should work:
+
+  <Location /phpbb3>
+      SetHandler none
+  </Location>
+  Alias /phpbb3 /local/path/to/phpBB3
+
+phpBB uses a different database. We will use PostgreSQL here, but IVLE does not
+care which you use, as long as phpBB supports it. Create a database:
+
+  sudo -u postgres createdb -E UTF-8 ivle_forum
+
+Point your web browser at the phpBB URL, and follow the installation procedure.
+Once it is installed and working, we need to apply some IVLE-specific patches
+to achieve authentication integration:
+
+  patch -p1 -d /local/path/to/phpBB3 < ivle/webapp/forum/phpbb3.diff
+  chown -R www-data: /local/path/to/phpBB3
+
+Choose a secure password with which to sign authentication cookies. Put it in
+$ivle_secret in phpBB3/config.php.
+
+To configure the IVLE side of things, create a new file at
+/etc/ivle/plugins.d/forum.conf. In it put the following:
+
+ [ivle.webapp.forum#Plugin]
+ base = phpbb3 # Assuming that you used the same Alias line.
+ secret = <FORUM SECRET> # Replace this with your chosen secret.
+
+You should now be able to click on the Forum tab in IVLE and be automatically
+logged in.

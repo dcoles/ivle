@@ -1,0 +1,80 @@
+<html xmlns="http://www.w3.org/1999/xhtml"       
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
+  <py:match path="head[@status!='done']" once="true">
+    <head>
+      <title py:with="title = list(select('title/text()'))">
+        <py:if test="title">${title} - </py:if>IVLE
+      </title>
+
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+      <script py:if="not publicmode and write_javascript_settings" type="text/javascript">
+        root_dir = "${root_dir}";
+        public_host = "${public_host}";
+        username = "${login}";
+      </script>
+
+      <link py:if="favicon" rel="shortcut icon" href="${favicon}" />
+
+      <py:for each="style in styles">
+        <link rel="stylesheet" type="text/css" href="${style}" />
+      </py:for>
+
+      <py:for each="script in scripts">
+        <script type="text/javascript" src="${script}"></script>
+      </py:for>
+
+      <!-- Plugin JavaScript to be run on page load -->
+      <script type="text/javascript">
+        <py:for each="init_script in scripts_init">
+          window.addEventListener("load", ${init_script}, false);
+        </py:for>
+      </script>
+      ${select('*[local-name()!="title"]')}
+    </head>
+  </py:match>    
+  <py:match path="body[@status!='done']" once="true">
+    <body>
+      <div id="ivleheader"></div>
+      <div id="ivleheader_text">
+        <h1>IVLE</h1>
+        <h2>Informatics Virtual Learning Environment</h2>
+        <py:choose>
+          <p py:when="publicmode" class="userhello">Running in public mode.</p>
+          <p py:when="logged_in" class="userhello">
+            <span id="usernick">${nick}</span>
+            (<span class="username">${login}</span>) |
+            <a href="/~${login}/+settings">Settings</a> |
+            <py:choose>
+              <a py:when="defined('help_path')" href="/+help/${help_path}">Help</a>
+              <a py:otherwise="" href="/+help/">Help</a>
+            |</py:choose>
+            <a href="/+logout">Sign out</a>
+          </p>
+          <p py:otherwise="" class="userhello">Not logged in.</p>
+        </py:choose>
+      </div>
+      <div py:if="logged_in" id="ivleheader_tabs">
+        <ul id="apptabs">
+          <py:for each="app in apps_in_tabs">
+            <li py:if="app['this_app']" class="thisapp"><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if><a href="${app['path']}" title="${app['desc']}">${app['name']}</a></li>
+            <li py:if="not app['this_app']"><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if><a href="${app['path']}" title="${app['desc']}">${app['name']}</a></li>
+          </py:for>
+        </ul>
+      </div>
+      <div id="ivlebody">
+        <div id="ivleview">
+          ${select('*')}
+        </div>
+        <div id="ivleoverlays">
+          <py:for each="overlay in overlays">
+            ${overlay}
+          </py:for>
+        </div>     
+      </div>
+    </body>
+  </py:match>
+  ${app_template}
+</html>

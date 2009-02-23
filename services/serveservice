@@ -17,28 +17,44 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Script: serveservice
-# Author: Thomas Conway
-# Date:   6/3/2007
-
-# A CGI script for serving files.
+# Author: Thomas Conway, Will Grant
 
 import mimetypes
 import os
+import sys
 import StringIO
-import urlparse
+from optparse import OptionParser
 
-from ivle import (cgirequest, studpath)
+import cjson
+
 from ivle import zip as zipmod
+import ivle.conf.app.server
 
-req = cgirequest.CGIRequest()
-req.install_error_handler()
+def determine_file_type(filename):
+    filetype = mimetypes.guess_type(filename)[0]
+    if filetype is None:
+         filetype = ivle.conf.mimetypes.default_mimetype
+    return filetype
 
-# Work out the parts of the URL
-url = urlparse.urlparse(req.path)
-querystr = url[4]
-urlpath = url[2]
-filename = studpath.url_to_jailpaths(urlpath)[2]
+def throw_error(message, extra={}):
+    error = {'error': message}
+    error.update(extra)
+    print cjson.encode(error)
+    sys.exit(0)
+
+parser = OptionParser()
+parser.add_option('-d', '--download', dest='download', action='store_true',
+                  help='force download, not execution, of the paths')
+(options, args) = parser.parse_args()
+
+# Detect download mode. Download mode zips any multiple selection,
+# and does not execute CGI scripts.
+if options.download:
+    download = True
+    # paths is filled later.
+else:
+    download = False
+    assert len(args) == 1
 
 default_mimetype = "application/octet-stream"
 zip_mimetype = "application/zip"
@@ -46,27 +62,39 @@ zip_mimetype = "application/zip"
 zipmode = False
 zipbasepath = None
 zipfilename = None
-path = None
 
-# If any "path=" variables have been supplied, bring these into a list and
-# make a zip file instead.
-fields = req.get_fieldstorage()
-paths = fields.getlist("path")
-if len(paths) > 0:
+# If multiple paths have been specified, zip them up.
+if len(args) > 1:
+    # Mangle the paths - we want the basename of their dirname in front.
+    paths = []
+    dir = os.path.dirname(args[0])
+    for path in args:
+        assert os.path.dirname(path) == dir
+        paths.append(os.path.join(os.path.basename(dir),
+                                  os.path.basename(path)))
+    dir = os.path.dirname(dir)
     zipmode = True
-    zipbasepath = filename
+    zipbasepath = dir
     zipfilename = os.path.basename(zipbasepath)
-    #for i in range(0, len(paths)):
-        #paths[i] = paths[i].value
 else:
-    if filename is None:
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The path specified is invalid.")
-    elif not os.access(filename, os.R_OK):
-        req.throw_error(req.HTTP_NOT_FOUND,
-            "The specified file (%s) does not exist." % urlpath)
-     # If it's a directory, serve as a zip file
+    paths = args
+    filename = paths[0]
+    if not os.access(filename, os.F_OK):
+        # The given path doesn't exist. CGI lets us backtrack and put the path
+        # elements through which we pass into PATH_INFO, so we try that.
+        while not os.access(filename, os.F_OK):
+            filename, path_info_frag = os.path.split(filename)
+
+        # We now have a file that exists, but is it something that we're allowed
+        # to execute? If not, we should 404 anyway.
+        if determine_file_type(filename) not in ivle.conf.app.server.interpreters:
+            throw_error('not-found')
+
+    # If it's a directory, serve as a zip file
     if os.path.isdir(filename):
+        if not download:
+            # Not giving a directory listing - this is visible to everyone.
+            throw_error('is-directory')
         zipmode = True
         # Zip it from the perspective of its own parent.
         # That way it will be a directory in the top level of the zip
@@ -79,10 +107,21 @@ else:
         else:
             zipbasepath = splitpath[0]
             paths = [splitpath[1]]
-        zipfilename = paths[0]
+        zipfilename = filename
+    else:
+        if not download and \
+           determine_file_type(filename) in ivle.conf.app.server.interpreters:
+            throw_error('is-executable', {'path': filename})
+
+        if (ivle.conf.app.server.blacklist_served_filetypes and \
+                determine_file_type(filename) in \
+                ivle.conf.app.server.served_filetypes_blacklist) or \
+            (ivle.conf.app.server.served_filetypes_whitelist and \
+                determine_file_type(filename) not in \
+                ivle.conf.app.server.served_filetypes_whitelist):
+            throw_error('forbidden')
 
 if zipmode:
-    req.content_type = zip_mimetype
     # zipfilename is some filename. Strip trailing slash or extension,
     # and add ".zip".
     if zipfilename == '':
@@ -92,12 +131,15 @@ if zipmode:
     elif '.' in zipfilename:
         zipfilename = zipfilename[:zipfilename.rindex('.')]
     zipfilename += ".zip"
-    req.headers_out["Content-Disposition"] = ("attachment; filename=" +   
-        zipfilename)
+    #req.headers_out["Content-Disposition"] = ("attachment; filename=" +   
+    #    zipfilename) # TODO
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
-        
-    req.write(zipfile.getvalue())
+
+    print cjson.encode({'type': zip_mimetype,
+                        'name': zipfilename})
+    print zipfile.getvalue()
 else:
-    #req.content_type = default_mimetype
-    req.sendfile(filename)
+    print cjson.encode({'type': determine_file_type(filename),
+                        'name': os.path.basename(filename)})
+    print open(filename).read()

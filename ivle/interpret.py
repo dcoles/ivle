@@ -134,11 +134,12 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
         del os.environ[k]
     for (k,v) in req.get_cgi_environ().items():
         os.environ[k] = v
-    fixup_environ(req)
+    fixup_environ(req, script_path)
 
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
-        [trampoline, str(uid), jail_dir, working_dir, interpreter,
+        [trampoline, str(uid), ivle.conf.jail_base, ivle.conf.jail_src_base,
+         ivle.conf.jail_system, jail_dir, working_dir, interpreter,
         script_path],
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
@@ -358,7 +359,7 @@ interpreter_objects = {
     # python-server-page
 }
 
-def fixup_environ(req):
+def fixup_environ(req, script_path):
     """Assuming os.environ has been written with the CGI variables from
     apache, make a few changes for security and correctness.
 
@@ -384,24 +385,31 @@ def fixup_environ(req):
         del env['PATH']
     except: pass
 
-    # Remove SCRIPT_FILENAME. Not part of CGI spec (see SCRIPT_NAME).
-
-    # PATH_INFO is wrong because the script doesn't physically exist.
-    # Apache makes it relative to the "serve" app. It should actually be made
-    # relative to the student's script. intepretservice does that in the jail,
-    # so here we just clear it.
-    env['PATH_INFO'] = ''
-    env['PATH_TRANSLATED'] = ''
-
     # CGI specifies that REMOTE_HOST SHOULD be set, and MAY just be set to
     # REMOTE_ADDR. Since Apache does not appear to set this, set it to
     # REMOTE_ADDR.
     if 'REMOTE_HOST' not in env and 'REMOTE_ADDR' in env:
         env['REMOTE_HOST'] = env['REMOTE_ADDR']
 
+    env['PATH_INFO'] = ''
+    del env['PATH_TRANSLATED']
+
+    normuri = os.path.normpath(req.uri)
+    env['SCRIPT_NAME'] = normuri
+
     # SCRIPT_NAME is the path to the script WITHOUT PATH_INFO.
-    script_name = req.uri
-    env['SCRIPT_NAME'] = script_name
+    # We don't care about these if the script is null (ie. noop).
+    # XXX: We check for /home because we don't want to interfere with
+    # CGIRequest, which fileservice still uses.
+    if script_path and script_path.startswith('/home'):
+        normscript = os.path.normpath(script_path)
+
+        uri_into_jail = studpath.url_to_jailpaths(os.path.normpath(req.path))[2]
+
+        # PATH_INFO is wrong because the script doesn't physically exist.
+        env['PATH_INFO'] = uri_into_jail[len(normscript):]
+        if len(env['PATH_INFO']) > 0:
+            env['SCRIPT_NAME'] = normuri[:-len(env['PATH_INFO'])]
 
     # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
     # custom-making the CGI request.
@@ -410,3 +418,30 @@ def fixup_environ(req):
     # Additional environment variables
     username = studpath.url_to_jailpaths(req.path)[0]
     env['HOME'] = os.path.join('/home', username)
+
+class ExecutionError(Exception):
+    pass
+
+def execute_raw(user, jail_dir, working_dir, binary, args):
+    '''Execute a binary in a user's jail, returning the raw output.
+
+    The binary is executed in the given working directory with the given
+    args. A tuple of (stdout, stderr) is returned.
+    '''
+
+    tramp = location_cgi_python
+    tramp_dir = os.path.split(location_cgi_python)[0]
+
+    # Fire up trampoline. Vroom, vroom.
+    proc = subprocess.Popen(
+        [tramp, str(user.unixid), ivle.conf.jail_base,
+         ivle.conf.jail_src_base, ivle.conf.jail_system, jail_dir,
+         working_dir, binary] + args,
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
+    exitcode = proc.wait()
+
+    if exitcode != 0:
+        raise ExecutionError('subprocess ended with code %d, stderr %s' %
+                             (exitcode, proc.stderr.read()))
+    return (proc.stdout.read(), proc.stderr.read())

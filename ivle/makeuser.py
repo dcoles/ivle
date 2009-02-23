@@ -240,47 +240,62 @@ def make_jail(user, force=True):
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    make_conf_py(user.login, userdir, ivle.conf.jail_system, user.svn_pass)
+    make_conf_py(user.login, userdir, user.svn_pass)
     make_etc_passwd(user.login, userdir, ivle.conf.jail_system, user.unixid)
 
     return userhomedir
 
-def make_conf_py(username, user_jail_dir, staging_dir, svn_pass):
+def make_conf_py(username, user_jail_dir, svn_pass):
     """
     Creates (overwriting any existing file, and creating directories) a
     file ${python_site_packages}/ivle/conf/conf.py in a given user's jail.
     username: Username.
     user_jail_dir: User's jail dir, ie. ivle.conf.jail_base + username
-    staging_dir: The dir with the staging copy of the jail. (With the
-        template conf.py file).
-    svn_pass: As with make_jail. User's SVN password, but if not supplied,
-        will look up in the DB.
+    svn_pass: User's SVN password.
     """
-    template_conf_path = os.path.join(staging_dir,
-            ivle.conf.python_site_packages[1:], "ivle/conf/conf.py")
     conf_path = os.path.join(user_jail_dir,
             ivle.conf.python_site_packages[1:], "ivle/conf/conf.py")
     os.makedirs(os.path.dirname(conf_path))
 
-    # Read the contents of the template conf file
-    try:
-        template_conf_file = open(template_conf_path, "r")
-        template_conf_data = template_conf_file.read()
-        template_conf_file.close()
-    except:
-        # Couldn't open template conf.py for some reason
-        # Just treat it as empty file
-        template_conf_data = ("# Warning: Problem building config script.\n"
-                              "# Could not find template conf.py file.\n")
+    # In the "in-jail" version of conf, we don't need MOST of the details
+    # (it would be a security risk to have them here).
+    # So we just write root_dir, and jail_base is "/".
+    # (jail_base being "/" means "jail-relative" paths are relative to "/"
+    # when inside the jail.)
 
+    # XXX: jail_base is wrong and shouldn't be here. Unfortunately, jail code
+    #      uses ivle.studpath.url_to_{local,jailpaths}, both of which use
+    #      jail_base. Note that they don't use the bits of the return value
+    #      that depend on jail_base, so it can be any string.
     conf_file = open(conf_path, "w")
-    conf_file.write(template_conf_data)
-    conf_file.write("\n# The login name for the owner of the jail\n")
-    conf_file.write("login = %s\n" % repr(username))
-    conf_file.write("\n")
-    conf_file.write("# The subversion-only password for the owner of "
-        "the jail\n")
-    conf_file.write("svn_pass = %s\n" % repr(svn_pass))
+    conf_file.write("""# IVLE jail configuration
+
+# In URL space, where in the site is IVLE located. (All URLs will be prefixed
+# with this).
+# eg. "/" or "/ivle".
+root_dir = %(root_dir)r
+
+# This value is not relevant inside the jail, but must remain for now. See
+# the XXX in ivle.makeuser.make_conf_py.
+jail_base = '/'
+
+# The hostname for serving publicly accessible pages
+public_host = %(public_host)r
+
+# The URL under which the Subversion repositories are located.
+svn_addr = %(svn_addr)r
+
+# The login name for the owner of the jail
+login = %(username)r
+
+# The subversion-only password for the owner of the jail
+svn_pass = %(svn_pass)r
+""" % {'root_dir': ivle.conf.root_dir,
+       'public_host': ivle.conf.public_host,
+       'svn_addr': ivle.conf.svn_addr,
+       'username': username,
+       'svn_pass': svn_pass,
+      })
     conf_file.close()
 
     # Make this file world-readable

@@ -39,7 +39,7 @@ __all__ = ['get_store',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
-            'AlreadyEnrolledError'
+            'AlreadyEnrolledError', 'TestCase', 'TestSuite', 'TestSuiteVar'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -53,9 +53,20 @@ def get_conn_string():
     """
     Returns the Storm connection string, generated from the conf file.
     """
-    return "postgres://%s:%s@%s:%d/%s" % (ivle.conf.db_user,
-        ivle.conf.db_password, ivle.conf.db_host, ivle.conf.db_port,
-        ivle.conf.db_dbname)
+
+    clusterstr = ''
+    if ivle.conf.db_user:
+        clusterstr += ivle.conf.db_user
+        if ivle.conf.db_password:
+            clusterstr += ':' + ivle.conf.db_password
+        clusterstr += '@'
+
+    host = ivle.conf.db_host or 'localhost'
+    port = ivle.conf.db_port or 5432
+
+    clusterstr += '%s:%d' % (host, port)
+
+    return "postgres://%s/%s" % (clusterstr, ivle.conf.db_dbname)
 
 def get_store():
     """
@@ -130,6 +141,10 @@ class User(Storm):
         fieldval = self.acct_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
 
+    @property
+    def valid(self):
+        return self.state == 'enabled' and not self.account_expired
+
     def _get_enrolments(self, justactive):
         return Store.of(self).find(Enrolment,
             Enrolment.user_id == self.id,
@@ -196,6 +211,12 @@ class User(Storm):
         """
         return store.find(cls, cls.login == unicode(login)).one()
 
+    def get_permissions(self, user):
+        if user and user.rolenm == 'admin' or user is self:
+            return set(['view', 'edit'])
+        else:
+            return set()
+
 # SUBJECTS AND ENROLMENTS #
 
 class Subject(Storm):
@@ -213,6 +234,14 @@ class Subject(Storm):
 
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.short_name)
+
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            perms.add('view')
+            if user.rolenm == 'admin':
+                perms.add('edit')
+        return perms
 
 class Semester(Storm):
     __storm_table__ = "semester"
@@ -246,6 +275,11 @@ class Offering(Storm):
                            'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
 
+    worksheets = ReferenceSet(id, 
+        'Worksheet.offering_id', 
+        order_by="Worksheet.seq_no"
+    )
+
     __init__ = _kwarg_init
 
     def __repr__(self):
@@ -263,6 +297,14 @@ class Offering(Storm):
 
         e = Enrolment(user=user, offering=self, active=True)
         self.enrolments.add(e)
+
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            perms.add('view')
+            if user.rolenm in ('admin', 'lecturer'):
+                perms.add('edit')
+        return perms
 
 class Enrolment(Storm):
     __storm_table__ = "enrolment"
@@ -368,60 +410,57 @@ class ProjectGroupMembership(Storm):
 # WORKSHEETS AND EXERCISES #
 
 class Exercise(Storm):
-    # Note: Table "problem" is called "Exercise" in the Object layer, since
-    # it's called that everywhere else.
-    __storm_table__ = "problem"
-
-    id = Int(primary=True, name="problemid")
-    name = Unicode(name="identifier")
-    spec = Unicode()
+    __storm_table__ = "exercise"
+    id = Unicode(primary=True, name="identifier")
+    name = Unicode()
+    description = Unicode()
+    partial = Unicode()
+    solution = Unicode()
+    include = Unicode()
+    num_rows = Int()
 
     worksheets = ReferenceSet(id,
         'WorksheetExercise.exercise_id',
         'WorksheetExercise.worksheet_id',
         'Worksheet.id'
     )
+    
+    test_suites = ReferenceSet(id, 'TestSuite.exercise_id')
 
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
-    @classmethod
-    def get_by_name(cls, store, name):
-        """
-        Get the Exercise from the db associated with a given store and name.
-        If the exercise is not in the database, creates it and inserts it
-        automatically.
-        """
-        ex = store.find(cls, cls.name == unicode(name)).one()
-        if ex is not None:
-            return ex
-        ex = Exercise(name=unicode(name))
-        store.add(ex)
-        store.commit()
-        return ex
+    def get_permissions(self, user):
+        perms = set()
+        if user is not None:
+            if user.rolenm in ('admin', 'lecturer'):
+                perms.add('edit')
+                perms.add('view')
+        return perms
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
 
     id = Int(primary=True, name="worksheetid")
-    # XXX subject is not linked to a Subject object. This is a property of
-    # the database, and will be refactored.
-    subject = Unicode()
-    name = Unicode(name="identifier")
+    offering_id = Int(name="offeringid")
+    identifier = Unicode()
+    name = Unicode()
     assessable = Bool()
-    mtime = DateTime()
+    data = Unicode()
+    seq_no = Int()
+    format = Unicode()
 
-    exercises = ReferenceSet(id,
-        'WorksheetExercise.worksheet_id',
-        'WorksheetExercise.exercise_id',
-        Exercise.id)
+    attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
+    offering = Reference(offering_id, 'Offering.id')
+
     # Use worksheet_exercises to get access to the WorksheetExercise objects
     # binding worksheets to exercises. This is required to access the
     # "optional" field.
     worksheet_exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id')
+        
 
     __init__ = _kwarg_init
 
@@ -448,22 +487,31 @@ class Worksheet(Storm):
         """
         store.find(WorksheetExercise,
             WorksheetExercise.worksheet == self).remove()
+            
+    def get_permissions(self, user):
+        return self.offering.get_permissions(user)
 
 class WorksheetExercise(Storm):
-    __storm_table__ = "worksheet_problem"
-    __storm_primary__ = "worksheet_id", "exercise_id"
+    __storm_table__ = "worksheet_exercise"
+    
+    id = Int(primary=True, name="ws_ex_id")
 
     worksheet_id = Int(name="worksheetid")
     worksheet = Reference(worksheet_id, Worksheet.id)
-    exercise_id = Int(name="problemid")
+    exercise_id = Unicode(name="exerciseid")
     exercise = Reference(exercise_id, Exercise.id)
     optional = Bool()
+    active = Bool()
+    seq_no = Int()
+    
+    saves = ReferenceSet(id, "ExerciseSave.ws_ex_id")
+    attempts = ReferenceSet(id, "ExerciseAttempt.ws_ex_id")
 
     __init__ = _kwarg_init
 
     def __repr__(self):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
-                                  self.worksheet.name)
+                                  self.worksheet.identifier)
 
 class ExerciseSave(Storm):
     """
@@ -474,11 +522,12 @@ class ExerciseSave(Storm):
     ExerciseSave may be extended with additional semantics (such as
     ExerciseAttempt).
     """
-    __storm_table__ = "problem_save"
-    __storm_primary__ = "exercise_id", "user_id", "date"
+    __storm_table__ = "exercise_save"
+    __storm_primary__ = "ws_ex_id", "user_id"
 
-    exercise_id = Int(name="problemid")
-    exercise = Reference(exercise_id, Exercise.id)
+    ws_ex_id = Int(name="ws_ex_id")
+    worksheet_exercise = Reference(ws_ex_id, "WorksheetExercise.id")
+
     user_id = Int(name="loginid")
     user = Reference(user_id, User.id)
     date = DateTime()
@@ -503,11 +552,81 @@ class ExerciseAttempt(ExerciseSave):
         they won't count (either as a penalty or success), but will still be
         stored.
     """
-    __storm_table__ = "problem_attempt"
-    __storm_primary__ = "exercise_id", "user_id", "date"
+    __storm_table__ = "exercise_attempt"
+    __storm_primary__ = "ws_ex_id", "user_id", "date"
 
     # The "text" field is the same but has a different name in the DB table
     # for some reason.
     text = Unicode(name="attempt")
     complete = Bool()
     active = Bool()
+    
+    def get_permissions(self, user):
+        return set(['view']) if user is self.user else set()
+  
+class TestSuite(Storm):
+    """A Testsuite acts as a container for the test cases of an exercise."""
+    __storm_table__ = "test_suite"
+    __storm_primary__ = "exercise_id", "suiteid"
+    
+    suiteid = Int()
+    exercise_id = Unicode(name="exerciseid")
+    description = Unicode()
+    seq_no = Int()
+    function = Unicode()
+    stdin = Unicode()
+    exercise = Reference(exercise_id, Exercise.id)
+    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
+    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid')
+
+class TestCase(Storm):
+    """A TestCase is a member of a TestSuite.
+    
+    It contains the data necessary to check if an exercise is correct"""
+    __storm_table__ = "test_case"
+    __storm_primary__ = "testid", "suiteid"
+    
+    testid = Int()
+    suiteid = Int()
+    suite = Reference(suiteid, "TestSuite.suiteid")
+    passmsg = Unicode()
+    failmsg = Unicode()
+    test_default = Unicode()
+    seq_no = Int()
+    
+    parts = ReferenceSet(testid, "TestCasePart.testid")
+    
+    __init__ = _kwarg_init
+
+class TestSuiteVar(Storm):
+    """A container for the arguments of a Test Suite"""
+    __storm_table__ = "suite_variable"
+    __storm_primary__ = "varid"
+    
+    varid = Int()
+    suiteid = Int()
+    var_name = Unicode()
+    var_value = Unicode()
+    var_type = Unicode()
+    arg_no = Int()
+    
+    suite = Reference(suiteid, "TestSuite.suiteid")
+    
+    __init__ = _kwarg_init
+    
+class TestCasePart(Storm):
+    """A container for the test elements of a Test Case"""
+    __storm_table__ = "test_case_part"
+    __storm_primary__ = "partid"
+    
+    partid = Int()
+    testid = Int()
+    
+    part_type = Unicode()
+    test_type = Unicode()
+    data = Unicode()
+    filename = Unicode()
+    
+    test = Reference(testid, "TestCase.testid")
+    
+    __init__ = _kwarg_init

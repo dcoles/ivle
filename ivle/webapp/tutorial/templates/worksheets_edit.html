@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit Worksheets - ${subject.name}</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        subject = "${subject.code}";
+        year = "${year}";
+        semester = "${semester}";
+    </script>
+  </head>
+  <body>
+    <div id="ivle_padding">
+      <h1>Editing worksheets for ${subject.name}</h1>
+      <table id='worksheets_table'>
+        <tr><th>Name</th><th>Actions</th></tr>
+      <py:for each="worksheet in worksheets">
+          <tr id='${worksheet.identifier}'>
+            <td><a href="${worksheet.identifier}/">${worksheet.name}</a></td>
+            <td>
+              <a href='${worksheet.identifier}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" alt="Edit" /></a>
+              <a title="Move Up" onclick="move_up('${worksheet.identifier}')"><img src="${mediapath + 'up.png'}" alt="Up" /></a>
+              <a title="Move Down" onclick="move_down('${worksheet.identifier}')"><img src="${mediapath + 'down.png'}" alt="Down" /></a>
+            </td>
+          </tr>
+      </py:for>
+      </table>
+      <br />
+      <a href="+new">Create new worksheet</a>
+    </div>
+  </body>
+</html>

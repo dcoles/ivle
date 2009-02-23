@@ -53,6 +53,29 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             os._exit(0) # kill off parent again.
         os.umask(077)
 
+        try:
+            MAXFD = os.sysconf("SC_OPEN_MAX")
+        except:
+            MAXFD = 256
+
+        # Close all file descriptors, except the socket.
+        for i in xrange(MAXFD):
+            if i == s.fileno():
+                continue
+            try:
+                os.close(i)
+            except OSError:
+                pass
+
+        si = os.open(os.devnull, os.O_RDONLY)
+        os.dup2(si, sys.stdin.fileno())
+
+        so = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(so, sys.stdout.fileno())
+
+        se = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(se, sys.stderr.fileno())
+
     if initializer:
         initializer()
 

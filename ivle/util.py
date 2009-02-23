@@ -177,7 +177,7 @@ def nice_filetype(filename):
             except ValueError:
                 return "File"
 
-def send_terms_of_service(req):
+def get_terms_of_service():
     """
     Sends the Terms of Service document to the req object.
     This consults conf to find out where the TOS is located on disk, and sends
@@ -185,10 +185,9 @@ def send_terms_of_service(req):
     how to create a real one.
     """
     try:
-        req.sendfile(ivle.conf.tos_path)
+        return open(ivle.conf.tos_path).read()
     except IOError:
-        req.write(
-"""<h1>Terms of Service</h1>
+        return """<h1>Terms of Service</h1>
 <p><b>*** SAMPLE ONLY ***</b></p>
 <p>This is the text of the IVLE Terms of Service.</p>
 <p>The administrator should create a license file with an appropriate
@@ -206,7 +205,7 @@ license.</p>
 just be the contents of a body element (IVLE will wrap it accordingly).</p>
 <p>This will automatically be used as the license text instead of this
 placeholder text.</p>
-""")
+"""
 
 def parse_iso8601(str):
     """Parses ISO8601 string into a datetime object."""

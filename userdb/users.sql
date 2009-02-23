@@ -1,3 +1,4 @@
+BEGIN;
 CREATE SEQUENCE login_unixid_seq MINVALUE 1000 MAXVALUE 29999 START WITH 5000;
 
 CREATE TABLE login (
@@ -189,88 +190,89 @@ CREATE TABLE project_mark (
 
 -- Worksheets
 -- ----------
-
-CREATE TABLE problem (
-    problemid   SERIAL PRIMARY KEY NOT NULL,
-    identifier  VARCHAR UNIQUE NOT NULL,
-    spec        VARCHAR
+CREATE TABLE exercise (
+    identifier  TEXT PRIMARY KEY,
+    name        TEXT,
+    description TEXT,
+    partial     TEXT,
+    solution    TEXT,
+    include     TEXT,
+    num_rows    INT4
 );
 
 CREATE TABLE worksheet (
-    worksheetid SERIAL PRIMARY KEY NOT NULL,
-    subject     VARCHAR NOT NULL,
-    identifier  VARCHAR NOT NULL,
-    assessable  BOOLEAN,
-    mtime       TIMESTAMP,
-    UNIQUE (subject, identifier)
+    worksheetid SERIAL PRIMARY KEY,
+    offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
+    identifier  TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    data        TEXT NOT NULL,
+    assessable  BOOLEAN NOT NULL,
+    seq_no      INT4 NOT NULL,
+    format      TEXT NOT NUll,
+    UNIQUE (offeringid, identifier)
 );
 
-CREATE TABLE worksheet_problem (
-    worksheetid INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    optional    BOOLEAN,
-    PRIMARY KEY (worksheetid, problemid)
+CREATE TABLE worksheet_exercise (
+    ws_ex_id        SERIAL PRIMARY KEY,
+    worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
+    exerciseid      TEXT REFERENCES exercise (identifier) NOT NULL,
+    seq_no          INT4 NOT NULL,
+    active          BOOLEAN NOT NULL DEFAULT true,
+    optional        BOOLEAN NOT NULL,
+    UNIQUE (worksheetid, exerciseid)
 );
 
-CREATE TABLE problem_tag (
-    problemid   INT4 REFERENCES problem (problemid),
-    tag         VARCHAR NOT NULL,
-    description VARCHAR,
-    standard    BOOLEAN NOT NULL,
-    added_by    INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    PRIMARY KEY (problemid,added_by,tag)
-);
-
-CREATE TABLE problem_test_case (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    testcaseid  SERIAL UNIQUE NOT NULL,
-    testcase    VARCHAR,
-    description VARCHAR,
-    visibility  VARCHAR CHECK (visibility in ('public', 'protected', 'private'))
-);
-
-CREATE TABLE problem_test_case_tag (
-    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    tag         VARCHAR NOT NULL,
-    description VARCHAR,
-    standard    BOOLEAN NOT NULL,
-    added_by    INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    PRIMARY KEY (testcaseid,added_by,tag)
-);
-
-CREATE TABLE problem_attempt (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+CREATE TABLE exercise_attempt (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    ws_ex_id    INT4 REFERENCES worksheet_exercise (ws_ex_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
-    attempt     VARCHAR NOT NULL,
+    attempt     TEXT NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (problemid,loginid,date)
+    PRIMARY KEY (loginid, ws_ex_id, date)
 );
 
-CREATE TABLE problem_save (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
+CREATE TABLE exercise_save (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
+    ws_ex_id    INT4 REFERENCES worksheet_exercise (ws_ex_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
-    text        VARCHAR NOT NULL,
-    PRIMARY KEY (problemid,loginid)
+    text        TEXT NOT NULL,
+    PRIMARY KEY (loginid, ws_ex_id)
 );
 
-CREATE INDEX problem_attempt_index ON problem_attempt (problemid, loginid);
-
-CREATE TABLE problem_attempt_breakdown (
-    problemid   INT4 REFERENCES problem (problemid) NOT NULL,
-    testcaseid  INT4 REFERENCES problem_test_case (testcaseid) NOT NULL,
-    loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    date        TIMESTAMP NOT NULL,
-    result      BOOLEAN
+CREATE TABLE test_suite (
+    suiteid     SERIAL PRIMARY KEY,
+    exerciseid  TEXT REFERENCES exercise (identifier) NOT NULL,
+    description TEXT,
+    seq_no      INT4,
+    function    TEXT,
+    stdin       TEXT
 );
 
-CREATE TABLE problem_prerequisite (
-    parent      INT4 REFERENCES problem (problemid) NOT NULL,
-    child       INT4 REFERENCES problem (problemid) NOT NULL,
-    PRIMARY KEY (parent,child)
+CREATE TABLE test_case (
+    testid          SERIAL PRIMARY KEY,
+    suiteid         INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    passmsg         TEXT,
+    failmsg         TEXT,
+    test_default    TEXT,
+    seq_no          INT4
 );
 
+CREATE TABLE suite_variable (
+    varid       SERIAL PRIMARY KEY,
+    suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
+    var_name    TEXT,
+    var_value   TEXT,
+    var_type    TEXT NOT NULL,
+    arg_no      INT4
+);
+
+CREATE TABLE test_case_part (
+    partid          SERIAL PRIMARY KEY,
+    testid          INT4 REFERENCES test_case (testid) NOT NULL,
+    part_type       TEXT NOT NULL,
+    test_type       TEXT,
+    data            TEXT,
+    filename        TEXT
+);
+COMMIT;

@@ -1,7 +1,7 @@
 # Installation Procedure for IVLE
 # ===============================
 
-# Target Platform: Ubuntu 8.04
+# Target Platform: Ubuntu 8.04+
 #
 # IMPORTANT: This is NOT a shell script. It has interactive sections and
 # things that need to be customized.
@@ -21,9 +21,9 @@
 ##########################################################################
 sudo apt-get install rsync subversion build-essential debootstrap       \
                      apache2 libapache2-mod-python libapache2-svn       \
-                     python2.5-dev python-svn python-webpy python-cjson \
-                     postgresql python-pygresql php5 php5-pgsql         \
-                     python-docutils python-epydoc python-ldap          \
+                     python-svn python-cjson python-genshi              \
+                     python-configobj postgresql python-routes          \
+                     python-docutils python-epydoc                      \
                      python-storm python-psycopg2
 
 ##########################################################################
@@ -37,11 +37,6 @@ sudo -u postgres psql -c "ALTER USER postgres WITH ENCRYPTED PASSWORD '<***passw
 ##########################################################################
 # Installing ivle
 ##########################################################################
-#
-# Check out the IVLE trunk
-
-svn co https://ivle.svn.sourceforge.net/svnroot/ivle/trunk ivle_svn
-cd ivle_svn
 
 # Create a postgres database
 # (only need the first line if it was previously created and is now changed)
@@ -51,11 +46,14 @@ sudo -u postgres createlang plpgsql ivle
 sudo -u postgres psql -d ivle < userdb/users.sql
 
 # Set up IVLE
-./setup.py config
-
-# -j is required to rebuild all jails, not just do an update
-sudo ./setup.py build -j
+./setup.py build
 sudo ./setup.py install
+
+sudo ivle-config
+sudo ivle-createdatadirs
+
+# Create the jail. The mirror option is optional.
+sudo ivle-buildjail -r -m http://url.to.archive/mirror
 
 # Create a user
 sudo ivle-makeuser [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
@@ -65,14 +63,11 @@ sudo ivle-makeuser [OPTIONS] <login> 'Firstname Lastname' <rolenm> -p <password>
 sudo cp doc/setup/ivle-both.conf /etc/apache2/sites-available/ivle
 # MODIFY the first few lines so it is specific to your server.
 # * Change ServerAdmin and ServerName (for error reporting).
-# * Inside the first VirtualHost block, there are two ServerNames
+# * Inside the first VirtualHost block, there is a ServerName and ServerAlias
 #   (localhost and public.localhost). You must change these to the domains
 #   for regular IVLE and published-browsing IVLE respectively.
 # * Inside the second VirtualHost block, there is one ServerName
 #   (svn.localhost). You must change this to the domain for svn access.
-# * Change all paths beginning with /opt/ivle or /home/informatics to the
-#   locations you have installed things in.
-# * Update all of the paths to where you installed IVLE, if required.
 sudo vim /etc/apache2/sites-available/ivle
 
 # Replace the default with the IVLE site.
@@ -101,15 +96,3 @@ sudo /etc/init.d/usrmgt-server start
 
 # To run it at boot time:
 sudo update-rc.d usrmgt-server defaults 99  # create symlinks in /etc/rc*.d
-
-##########################################################################
-# Setting up phpBB Forum in IVLE
-##########################################################################
-# This should all be run from the SVN directory
-
-# Create a postgres database
-# (only need the first line if it was previously created and is now changed)
-sudo -u postgres dropdb ivle_forum
-sudo -u postgres createdb ivle_forum
-sudo -u postgres psql -d ivle_forum < userdb/forum_schema.sql
-sudo -u postgres psql -d ivle_forum < userdb/forum_data.sql
