@@ -131,10 +131,10 @@ class AttemptRESTView(JSONRESTView):
         if user is None:
             raise NotFound()
 
-        #try:
-        #    date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
-        #except ValueError:
-        #    raise NotFound()
+        try:
+            date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
+        except ValueError:
+            raise NotFound()
 
         worksheet_exercise = req.store.find(WorksheetExercise,
             WorksheetExercise.exercise_id == exercise,
@@ -147,11 +147,9 @@ class AttemptRESTView(JSONRESTView):
             Semester.year == year,
             Semester.semester == semester).one()
             
-        attempt = req.store.find(ExerciseAttempt,
-            ExerciseAttempt.user_id == user.id,
-            ExerciseAttempt.ws_ex_id == worksheet_exercise.id,
-            ExerciseAttempt.date == date
-        ).one()
+        attempt = ivle.worksheet.get_exercise_attempt(req.store, user,
+                        worksheet_exercise, as_of=date,
+                        allow_inactive=HISTORY_ALLOW_INACTIVE) 
 
         if attempt is None:
             raise NotFound()

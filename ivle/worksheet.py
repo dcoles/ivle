@@ -128,7 +128,7 @@ def get_exercise_attempts(store, user, worksheet_exercise, as_of=None,
 
 def get_exercise_attempt(store, user, worksheet_exercise, as_of=None,
         allow_inactive=False):
-    """Given a storm.store, User and Exercise, returns an
+    """Given a storm.store, User and WorksheetExercise, returns an
     ivle.database.ExerciseAttempt object for the last submitted attempt for
     this question.
     Returns None if the user has not made an attempt on this
@@ -138,7 +138,7 @@ def get_exercise_attempt(store, user, worksheet_exercise, as_of=None,
         attempts made before or at this time.
     allow_inactive: If True, will return disabled attempts.
     """
-    return _get_exercise_attempts(store, user, exercise, worksheet, as_of,
+    return _get_exercise_attempts(store, user, worksheet_exercise, as_of,
         allow_inactive).first()
 
 def save_exercise(store, user, worksheet_exercise, text, date):
