@@ -259,7 +259,9 @@ function console_enter_line(inputbox, which)
     }
     else
     {
-        GLOBAL_inputbox = inputbox;     /* For timer */
+        /* Disable the text box */
+        inputbox.setAttribute("disabled", "disabled");
+
         var inputline = inputbox.value + "\n";
     }
     var output = document.getElementById("console_output");
@@ -282,9 +284,6 @@ function console_enter_line(inputbox, which)
         {
             console_response(inputbox, inputline, xhr.responseText);
         }
-    /* Disable the text box */
-    if (inputbox != null)
-        inputbox.setAttribute("disabled", "disabled");
     ajax_call(callback, "console", "service", args, "POST");
 }
 
