@@ -20,7 +20,7 @@
 
 """Script to upload an exercise file into the database"""
 
-import os, sys
+import os, sys, traceback
 import xml.dom.minidom as minidom
 
 from ivle.database import Exercise, TestSuite, TestCase, TestSuiteVar, TestCasePart, get_store
@@ -246,4 +246,3 @@ for xmlfile in xmlfiles:
         add_exercise(xmlfile)
     except Exception, e:
         print "ERROR: Could not add file", xmlfile
-        print e.stacktrace()

@@ -44,6 +44,7 @@ TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
+    
     def __init__(self, req, subject, year, semester, worksheet, 
                                                 exercise, username):
         self.user = ivle.database.User.get_by_login(req.store, username)
