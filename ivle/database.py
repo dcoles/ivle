@@ -410,9 +410,7 @@ class ProjectGroupMembership(Storm):
 # WORKSHEETS AND EXERCISES #
 
 class Exercise(Storm):
-    # Note: Table "problem" is called "Exercise" in the Object layer, since
-    # it's called that everywhere else.
-    __storm_table__ = "problem"
+    __storm_table__ = "exercise"
     id = Unicode(primary=True, name="identifier")
     name = Unicode()
     description = Unicode()
@@ -487,13 +485,13 @@ class Worksheet(Storm):
         return self.offering.get_permissions(user)
 
 class WorksheetExercise(Storm):
-    __storm_table__ = "worksheet_problem"
+    __storm_table__ = "worksheet_exercise"
     
-    id = Int(primary=True, name="ws_prob_id")
+    id = Int(primary=True, name="ws_ex_id")
 
     worksheet_id = Int(name="worksheetid")
     worksheet = Reference(worksheet_id, Worksheet.id)
-    exercise_id = Unicode(name="problemid")
+    exercise_id = Unicode(name="exerciseid")
     exercise = Reference(exercise_id, Exercise.id)
     optional = Bool()
     active = Bool()
@@ -517,10 +515,10 @@ class ExerciseSave(Storm):
     ExerciseSave may be extended with additional semantics (such as
     ExerciseAttempt).
     """
-    __storm_table__ = "problem_save"
+    __storm_table__ = "exercise_save"
     __storm_primary__ = "ws_ex_id", "user_id"
 
-    ws_ex_id = Int(name="ws_prob_id")
+    ws_ex_id = Int(name="ws_ex_id")
     worksheet_exercise = Reference(ws_ex_id, "WorksheetExercise.id")
 
     user_id = Int(name="loginid")
@@ -547,7 +545,7 @@ class ExerciseAttempt(ExerciseSave):
         they won't count (either as a penalty or success), but will still be
         stored.
     """
-    __storm_table__ = "problem_attempt"
+    __storm_table__ = "exercise_attempt"
     __storm_primary__ = "ws_ex_id", "user_id", "date"
 
     # The "text" field is the same but has a different name in the DB table
@@ -565,7 +563,7 @@ class TestSuite(Storm):
     __storm_primary__ = "exercise_id", "suiteid"
     
     suiteid = Int()
-    exercise_id = Unicode(name="problemid")
+    exercise_id = Unicode(name="exerciseid")
     description = Unicode()
     seq_no = Int()
     function = Unicode()
@@ -595,7 +593,7 @@ class TestCase(Storm):
 
 class TestSuiteVar(Storm):
     """A container for the arguments of a Test Suite"""
-    __storm_table__ = "suite_variables"
+    __storm_table__ = "suite_variable"
     __storm_primary__ = "varid"
     
     varid = Int()
@@ -611,7 +609,7 @@ class TestSuiteVar(Storm):
     
 class TestCasePart(Storm):
     """A container for the test elements of a Test Case"""
-    __storm_table__ = "test_case_parts"
+    __storm_table__ = "test_case_part"
     __storm_primary__ = "partid"
     
     partid = Int()

@@ -190,7 +190,7 @@ CREATE TABLE project_mark (
 
 -- Worksheets
 -- ----------
-CREATE TABLE problem (
+CREATE TABLE exercise (
     identifier  TEXT PRIMARY KEY,
     name        TEXT,
     description TEXT,
@@ -212,37 +212,37 @@ CREATE TABLE worksheet (
     UNIQUE (offeringid, identifier)
 );
 
-CREATE TABLE worksheet_problem (
-    ws_prob_id      SERIAL PRIMARY KEY,
+CREATE TABLE worksheet_exercise (
+    ws_ex_id        SERIAL PRIMARY KEY,
     worksheetid     INT4 REFERENCES worksheet (worksheetid) NOT NULL,
-    problemid       TEXT REFERENCES problem (identifier) NOT NULL,
+    exerciseid      TEXT REFERENCES exercise (identifier) NOT NULL,
     seq_no          INT4 NOT NULL,
     active          BOOLEAN NOT NULL DEFAULT true,
     optional        BOOLEAN NOT NULL,
-    UNIQUE (worksheetid, problemid)
+    UNIQUE (worksheetid, exerciseid)
 );
 
-CREATE TABLE problem_attempt (
+CREATE TABLE exercise_attempt (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
+    ws_ex_id    INT4 REFERENCES worksheet_exercise (ws_ex_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     attempt     TEXT NOT NULL,
     complete    BOOLEAN NOT NULL,
     active      BOOLEAN NOT NULL DEFAULT true,
-    PRIMARY KEY (loginid, ws_prob_id, date)
+    PRIMARY KEY (loginid, ws_ex_id, date)
 );
 
-CREATE TABLE problem_save (
+CREATE TABLE exercise_save (
     loginid     INT4 REFERENCES login (loginid) NOT NULL,
-    ws_prob_id  INT4 REFERENCES worksheet_problem (ws_prob_id) NOT NULL,
+    ws_ex_id    INT4 REFERENCES worksheet_exercise (ws_ex_id) NOT NULL,
     date        TIMESTAMP NOT NULL,
     text        TEXT NOT NULL,
-    PRIMARY KEY (loginid, ws_prob_id)
+    PRIMARY KEY (loginid, ws_ex_id)
 );
 
 CREATE TABLE test_suite (
     suiteid     SERIAL PRIMARY KEY,
-    problemid   TEXT REFERENCES problem (identifier) NOT NULL,
+    exerciseid  TEXT REFERENCES exercise (identifier) NOT NULL,
     description TEXT,
     seq_no      INT4,
     function    TEXT,
@@ -258,7 +258,7 @@ CREATE TABLE test_case (
     seq_no          INT4
 );
 
-CREATE TABLE suite_variables (
+CREATE TABLE suite_variable (
     varid       SERIAL PRIMARY KEY,
     suiteid     INT4 REFERENCES test_suite (suiteid) NOT NULL,
     var_name    TEXT,
@@ -267,7 +267,7 @@ CREATE TABLE suite_variables (
     arg_no      INT4
 );
 
-CREATE TABLE test_case_parts (
+CREATE TABLE test_case_part (
     partid          SERIAL PRIMARY KEY,
     testid          INT4 REFERENCES test_case (testid) NOT NULL,
     part_type       TEXT NOT NULL,
