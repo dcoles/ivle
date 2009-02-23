@@ -1,17 +1,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Tutorial - Subject Menu</title>
+    <title>Worksheets - ${subject.name}</title>
   </head>
   <body>
     <div id="ivle_padding">
-      <h1>IVLE Tutorials - ${subject}</h1>
-      <h2>Worksheets</h2>
+      <h1>Worksheets for ${subject.name}</h1>
       <ul id="tutorial-toc">
         <py:for each="worksheet in worksheets">
           <li>
-            <!-- XXX: Generate URL properly! -->
-            <a href="/subjects/${subject}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+            <a href="/subjects/${subject.code}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
             <py:if test="worksheet.assessable">
               <ul>
                 <li class="${worksheet.complete_class}">

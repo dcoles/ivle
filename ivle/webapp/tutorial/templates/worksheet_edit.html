@@ -1,10 +1,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Tutorial - Worksheet Editor</title>
+    <title>Edit - ${worksheet.name} - ${subject.name}</title>
     <!-- These let the javascript know which worksheet is open -->
     <script type="text/javascript">
-        subject = "${subject}";
+        subject = "${subject.code}";
         worksheet = "${worksheetname}";
         year = "${year}";
         semester = "${semester}";
@@ -12,7 +12,7 @@
   </head>
   <body>
     <div id="ivle_padding">
-      <h1>IVLE Worksheet - ${subject} - ${year} - Semester ${semester}</h1>
+      <h1>Edit ${worksheet.name} in ${subject.name}</h1>
       <div id='worksheet_input'>
         <label for='worksheet_name'>Name:</label>
         <input type='text' id='worksheet_name' class='worksheet_area' value='${worksheet.name}' />

@@ -89,7 +89,7 @@ class OfferingView(XHTMLView):
         """Create the context for the given offering."""
         self.plugin_styles[Plugin] = ['tutorial.css']
 
-        ctx['subject'] = self.context.subject.code
+        ctx['subject'] = self.context.subject
         ctx['year'] = self.context.semester.year
         ctx['semester'] = self.context.semester.semester
 
@@ -162,7 +162,6 @@ class WorksheetView(XHTMLView):
         if self.context is None:
             raise NotFound(str(worksheet) + " was not found.")
         
-        self.worksheetname = worksheet
         self.year = year
         self.semester = semester
 
@@ -173,8 +172,8 @@ class WorksheetView(XHTMLView):
         if not self.context:
             raise NotFound()
 
-        ctx['subject'] = self.context.offering.subject.code
-        ctx['worksheet'] = self.worksheetname
+        ctx['subject'] = self.context.offering.subject
+        ctx['worksheet'] = self.context
         ctx['semester'] = self.semester
         ctx['year'] = self.year
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data)))
@@ -417,7 +416,7 @@ class WorksheetEditView(XHTMLView):
         
         ctx['worksheet'] = self.context
         ctx['worksheetname'] = self.worksheet
-        ctx['subject'] = self.subject
+        ctx['subject'] = self.context.offering.subject
         ctx['year'] = self.year
         ctx['semester'] = self.semester
         #XXX: Get the list of formats from somewhere else
@@ -428,7 +427,6 @@ class WorksheetAddView(XHTMLView):
     """This view allows a user to add a worksheet"""
     permission = "edit"
     template = "templates/worksheet_add.html"
-    appname = "Add Worksheet"
 
     def __init__(self, req, subject, year, semester):
         self.context = req.store.find(Offering,
@@ -450,7 +448,7 @@ class WorksheetAddView(XHTMLView):
         self.plugin_styles[Plugin] = ["tutorial_admin.css"]
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
         
-        ctx['subject'] = self.subject
+        ctx['subject'] = self.context.subject
         ctx['year'] = self.year
         ctx['semester'] = self.semester
         
@@ -483,7 +481,7 @@ class WorksheetsEditView(XHTMLView):
         self.plugin_styles[Plugin] = ['tutorial_admin.css']
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
         
-        ctx['subject'] = self.subject
+        ctx['subject'] = self.context.subject
         ctx['year'] = self.year
         ctx['semester'] = self.semester
         
