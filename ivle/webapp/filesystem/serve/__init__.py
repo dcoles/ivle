@@ -32,6 +32,7 @@ from ivle import (studpath, interpret)
 import ivle.conf
 from ivle.database import User
 from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.xhtml import XHTMLErrorView
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import NotFound, Unauthorized, Forbidden
 
@@ -148,10 +149,19 @@ class PublicServeView(ServeView):
         super(PublicServeView, self).__init__(req, path)
 
     def authorize(self, req):
+        # Only accessible in public mode.
+        return req.user is None
+
+    def path_authorize(self, req):
         # Public mode authorization: any user can access any other user's
         # files, BUT the accessed file needs to have a file named '.published'
         # in its parent directory.
         return studpath.authorize_public(req)
+
+    # We don't want to redirect to a login page on Unauthorized.
+    @classmethod
+    def get_error_view(cls, e):
+        return XHTMLErrorView
 
 class Plugin(ViewPlugin, PublicViewPlugin):
     urls = [
