@@ -835,8 +835,7 @@ function handle_moreactions()
         action_unpublish(selected_files);
         break;
     case "share":
-        //alert("Not yet implemented: Sharing files");
-        window.open(public_app_path(serve_app, current_path, filename), 'share')
+        window.open(public_app_path("~" + current_path, filename), 'share')
         break;
     case "submit":
         // TODO
