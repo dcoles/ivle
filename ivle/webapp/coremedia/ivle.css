@@ -33,7 +33,7 @@ a:hover, a:active, a:focus {
 
 #ivleheader {
     position: absolute;
-    background-color: #fea;
+    background-color: #abf;
     background-image: url(../ivle.webapp.core/images/chrome/topbar-hashes.png);
     background-repeat: repeat-x;
     padding: 0;
