@@ -488,17 +488,45 @@ class WorksheetsEditView(XHTMLView):
         ctx['worksheets'] = self.context.worksheets
         
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
-        
 
+
+class ExerciseEditView(XHTMLView):
+    """View for editing a worksheet."""
+    
+    permission = 'edit'
+    template = 'templates/exercise_edit.html'
+    
+    def __init__(self, req, exercise):
+        self.context = req.store.find(Exercise, 
+            Exercise.id == exercise).one()
+
+        if self.context is None:
+            raise NotFound()
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['exercise_admin.css']
+        self.plugin_scripts[Plugin] = ['exercise_admin.js']
+        
+        ctx['exercise'] = self.context
+        #XXX: These should come from somewhere else
+
+        ctx['var_types'] = (u'file', u'var', u'arg', u'exception')
+        ctx['part_types'] = (u'stdout',u'stderr', u'result',
+                             u'exception', u'file', u'code')
+        
+        ctx['test_types'] = ('norm', 'check')
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
+        # Worksheet View Urls
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/:year/:semester/+worksheets/+new', WorksheetAddView),
         ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
+        
+        # Worksheet Api Urls
         ('api/subjects/:subject/:year/:semester/+worksheets', WorksheetsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
@@ -506,6 +534,11 @@ class Plugin(ViewPlugin, MediaPlugin):
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', ExerciseRESTView),
+        
+        # Exercise View Urls
+        ('+exercises/:exercise/+edit', ExerciseEditView),
+        
+        # Exercise Api Urls
     ]
 
     media = 'media'

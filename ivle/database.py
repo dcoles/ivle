@@ -277,7 +277,7 @@ class Offering(Storm):
 
     worksheets = ReferenceSet(id, 
         'Worksheet.offering_id', 
-        order_by="Worksheet.seq_no"
+        order_by="seq_no"
     )
 
     __init__ = _kwarg_init
@@ -425,7 +425,9 @@ class Exercise(Storm):
         'Worksheet.id'
     )
     
-    test_suites = ReferenceSet(id, 'TestSuite.exercise_id')
+    test_suites = ReferenceSet(id, 
+        'TestSuite.exercise_id',
+        order_by='seq_no')
 
     __init__ = _kwarg_init
 
@@ -576,8 +578,8 @@ class TestSuite(Storm):
     function = Unicode()
     stdin = Unicode()
     exercise = Reference(exercise_id, Exercise.id)
-    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
-    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid')
+    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid', order_by="seq_no")
+    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid', order_by='arg_no')
 
 class TestCase(Storm):
     """A TestCase is a member of a TestSuite.
