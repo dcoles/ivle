@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="470"
+   height="50"
+   id="svg3397"
+   sodipodi:version="0.32"
+   inkscape:version="0.46"
+   sodipodi:docname="title-1.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.0"
+   inkscape:export-filename="/home/matt/uni/ivle/setup-stuff/ivle/webapp/coremedia/images/chrome/title.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   style="display:inline">
+  <defs
+     id="defs3399">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective3405" />
+    <filter
+       inkscape:collect="always"
+       id="filter4841"
+       x="-0.40412903"
+       width="1.8082581"
+       y="-0.3915"
+       height="1.783">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.6487424"
+         id="feGaussianBlur4843" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4845"
+       x="-0.40412903"
+       width="1.8082581"
+       y="-0.3915"
+       height="1.783">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.6487424"
+         id="feGaussianBlur4847" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4849"
+       x="-0.40412903"
+       width="1.8082581"
+       y="-0.3915"
+       height="1.783">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.6487424"
+         id="feGaussianBlur4851" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4853">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="2.6487424"
+         id="feGaussianBlur4855" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4980"
+       x="-0.012474804"
+       width="1.0249496"
+       y="-0.31528276"
+       height="1.6305655">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="3.571244"
+         id="feGaussianBlur4982" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="151.32036"
+     inkscape:cy="3.6159398"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer4"
+     showgrid="false"
+     inkscape:window-width="1280"
+     inkscape:window-height="725"
+     inkscape:window-x="0"
+     inkscape:window-y="25" />
+  <metadata
+     id="metadata3402">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="bg"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-139.07094,-313.30117)"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <rect
+       style="opacity:1;fill:#ffeeaa;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect3311"
+       width="531.52441"
+       height="100.33682"
+       x="109.59953"
+       y="290.23679" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer4"
+     inkscape:label="ivle"
+     transform="translate(-139.07094,-313.30117)"
+     sodipodi:insensitive="true">
+    <text
+       xml:space="preserve"
+       style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="131.42857"
+       y="463.07648"
+       id="text3417"><tspan
+         sodipodi:role="line"
+         id="tspan3419"
+         x="131.42857"
+         y="463.07648"></tspan></text>
+    <g
+       id="g4984">
+      <text
+         sodipodi:linespacing="125%"
+         id="text3407"
+         y="358.55869"
+         x="135.65366"
+         style="font-size:82.79566956px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255;font-family:Dyuthi;-inkscape-font-specification:Dyuthi Bold"
+         xml:space="preserve"><tspan
+           y="358.55869"
+           x="135.65366"
+           id="tspan3409"
+           sodipodi:role="line">I V L E</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3421"
+         y="342.62418"
+         x="157.41562"
+         style="font-size:82.79566956px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ffffff;fill-opacity:0.58851677;fill-rule:nonzero;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.43137255;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Dyuthi;-inkscape-font-specification:Dyuthi Bold"
+         xml:space="preserve"><tspan
+           y="342.62418"
+           x="157.41562"
+           id="tspan3423"
+           sodipodi:role="line">.</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3425"
+         y="342.62418"
+         x="220.80908"
+         style="font-size:82.79566956px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ffffff;fill-opacity:0.58851677;fill-rule:nonzero;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.43137255;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Dyuthi;-inkscape-font-specification:Dyuthi Bold"
+         xml:space="preserve"><tspan
+           y="342.62418"
+           x="220.80908"
+           id="tspan3427"
+           sodipodi:role="line">.</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3429"
+         y="342.62418"
+         x="273.80267"
+         style="font-size:82.79566956px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ffffff;fill-opacity:0.58851677;fill-rule:nonzero;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.43137255;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Dyuthi;-inkscape-font-specification:Dyuthi Bold"
+         xml:space="preserve"><tspan
+           y="342.62418"
+           x="273.80267"
+           id="tspan3431"
+           sodipodi:role="line">.</tspan></text>
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer7"
+     inkscape:label="fullname-shad"
+     transform="translate(-139.07094,-313.30117)">
+    <text
+       xml:space="preserve"
+       style="font-size:31.39154243px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:0.54066988;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4980);font-family:JackInput;-inkscape-font-specification:JackInput"
+       x="144.54115"
+       y="389.36511"
+       id="text4863"
+       sodipodi:linespacing="125%"
+       transform="matrix(0.6608028,0,0,0.6608028,58.605105,98.23774)"><tspan
+         sodipodi:role="line"
+         id="tspan4865"
+         x="144.54115"
+         y="389.36511">Informatics Virtual Learning Environment</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="fullname"
+     transform="translate(-139.07094,-313.30117)"
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-size:20.74361992px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:JackInput;-inkscape-font-specification:JackInput"
+       x="152.79671"
+       y="354.20972"
+       id="text4858"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4860"
+         x="152.79671"
+         y="354.20972">Informatics Virtual Learning Environment</tspan></text>
+  </g>
+</svg>
