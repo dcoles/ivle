@@ -47,7 +47,7 @@ h1 {
 #ivleheader {
     position: absolute;
     background-color: #abf;
-    background-image: url(../ivle.webapp.core/images/chrome/topbar-hashes.png);
+    background-image: url(../ivle.webapp.core/images/chrome/topbar-slashes.png);
     background-repeat: repeat-x;
     padding: 0;
     border-bottom: 1px solid black;
