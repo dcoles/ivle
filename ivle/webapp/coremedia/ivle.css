@@ -40,7 +40,7 @@ a:hover, a:active, a:focus {
     border-bottom: 1px solid black;
     /* IMPORTANT: This 5.3em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
-    height: 5.3em;
+    height: 4em;
     left: 0;
     right: 0;
     z-index: 1;     /* Background to all, but the body */
@@ -52,8 +52,8 @@ a:hover, a:active, a:focus {
     padding: 0 1em;
     background-image: url(../ivle.webapp.core/images/chrome/title.png);
     background-repeat: no-repeat;
-    background-position: 10px 10px;
-    height: 60px;
+    background-position: 8px 8px;
+    height: 50px;   /* background-position y + image height = 8 + 42 */
     left: 0;
     right: 0;
     z-index: 3;     /* In front */
@@ -101,7 +101,7 @@ a:hover, a:active, a:focus {
  */
 #ivleheader_tabs {
     position: absolute;
-    height: 5.3em;          /* == #ivleheader.height */
+    height: 4em;            /* == #ivleheader.height */
     top: 0;
     left: 0;
     right: 0;
