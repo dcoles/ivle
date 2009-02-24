@@ -31,50 +31,6 @@
        id="perspective3405" />
     <filter
        inkscape:collect="always"
-       id="filter4841"
-       x="-0.40412903"
-       width="1.8082581"
-       y="-0.3915"
-       height="1.783">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="2.6487424"
-         id="feGaussianBlur4843" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       id="filter4845"
-       x="-0.40412903"
-       width="1.8082581"
-       y="-0.3915"
-       height="1.783">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="2.6487424"
-         id="feGaussianBlur4847" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       id="filter4849"
-       x="-0.40412903"
-       width="1.8082581"
-       y="-0.3915"
-       height="1.783">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="2.6487424"
-         id="feGaussianBlur4851" />
-    </filter>
-    <filter
-       inkscape:collect="always"
-       id="filter4853">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="2.6487424"
-         id="feGaussianBlur4855" />
-    </filter>
-    <filter
-       inkscape:collect="always"
        id="filter4980"
        x="-0.012474804"
        width="1.0249496"
@@ -97,10 +53,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="186.03804"
-     inkscape:cy="3.058724"
+     inkscape:cx="257.66304"
+     inkscape:cy="-25.36038"
      inkscape:document-units="px"
-     inkscape:current-layer="layer7"
+     inkscape:current-layer="g4984"
      showgrid="false"
      inkscape:window-width="1280"
      inkscape:window-height="725"
@@ -122,10 +78,10 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-139.07094,-313.30117)"
-     style="display:none"
+     style="display:inline"
      sodipodi:insensitive="true">
     <rect
-       style="opacity:1;fill:#ffeeaa;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       style="opacity:1;fill:#aabbff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect3311"
        width="531.52441"
        height="100.33682"
@@ -136,8 +92,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="ivle"
-     transform="translate(-139.07094,-313.30117)"
-     sodipodi:insensitive="true">
+     transform="translate(-139.07094,-313.30117)">
     <text
        xml:space="preserve"
        style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
@@ -147,28 +102,63 @@
          sodipodi:role="line"
          id="tspan3419"
          x="131.42857"
-         y="463.07648"></tspan></text>
+         y="463.07648" /></text>
     <g
        id="g4984"
-       transform="translate(-8,-4)">
+       transform="translate(-8,-4)"
+       style="font-style:italic;-inkscape-font-specification:Sans">
       <text
          sodipodi:linespacing="125%"
          id="text3407"
          y="367.55869"
-         x="145.70648"
-         style="font-size:55.29292297px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255;font-family:Annifont;-inkscape-font-specification:Annifont Italic"
+         x="183.70648"
+         style="font-size:55.29292296999999223px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677000000002;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255000000002;font-family:Annifont;-inkscape-font-specification:Sans"
          xml:space="preserve"><tspan
            y="367.55869"
-           x="145.70648"
+           x="183.70648"
            id="tspan3409"
-           sodipodi:role="line">I V L E</tspan></text>
+           sodipodi:role="line">I</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text2402"
+         y="367.55869"
+         x="258.17184"
+         style="font-size:55.29292296999999223px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677000000002;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255000000002;display:inline;font-family:Annifont;-inkscape-font-specification:Sans"
+         xml:space="preserve"><tspan
+           y="367.55869"
+           x="258.17184"
+           id="tspan2404"
+           sodipodi:role="line">V</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text2406"
+         y="367.55869"
+         x="359.37134"
+         style="font-size:55.29292296999999223px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677000000002;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255000000002;display:inline;font-family:Annifont;-inkscape-font-specification:Annifont Italic"
+         xml:space="preserve"><tspan
+           y="367.55869"
+           x="359.37134"
+           id="tspan2408"
+           sodipodi:role="line">L</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text2410"
+         y="367.55869"
+         x="443.70648"
+         style="font-size:55.29292296999999223px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:0.58851677000000002;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.43137255000000002;display:inline;font-family:Annifont;-inkscape-font-specification:Sans"
+         xml:space="preserve"><tspan
+           y="367.55869"
+           x="443.70648"
+           id="tspan2412"
+           sodipodi:role="line">E</tspan></text>
     </g>
   </g>
   <g
      inkscape:groupmode="layer"
      id="layer7"
      inkscape:label="fullname-shad"
-     transform="translate(-139.07094,-313.30117)">
+     transform="translate(-139.07094,-313.30117)"
+     sodipodi:insensitive="true">
     <text
        xml:space="preserve"
        style="font-size:31.39154434px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:0.54066988;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4980);font-family:Sawasdee;-inkscape-font-specification:Sawasdee Bold"
@@ -187,7 +177,8 @@
      id="layer6"
      inkscape:label="fullname"
      transform="translate(-139.07094,-313.30117)"
-     style="display:inline">
+     style="display:inline"
+     sodipodi:insensitive="true">
     <text
        xml:space="preserve"
        style="font-size:20.74361992px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sawasdee;-inkscape-font-specification:Sawasdee Bold"
