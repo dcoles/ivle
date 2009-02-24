@@ -61,7 +61,7 @@ def make_forum_cookie(user):
     if user.email != None:
         email = quote(user.email)
 
-    role = quote(str(user.role))
+    role = 'admin' if user.admin else 'student' # XXX
 
     hashtext = login + nick + email + role + secret
     hash = hashlib.md5(hashtext).hexdigest()

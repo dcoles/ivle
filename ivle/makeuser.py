@@ -79,11 +79,7 @@ def rebuild_svn_config(store):
     """
     users = store.find(ivle.database.User)
     groups = {}
-    for u in users:
-        role = str(u.role)
-        if role not in groups:
-            groups[role] = []
-        groups[role].append(u.login)
+    # TODO: Populate groups with per-offering tutors/lecturers/etc.
     f = open(ivle.conf.svn_conf + ".new", "w")
     f.write("# IVLE SVN Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())

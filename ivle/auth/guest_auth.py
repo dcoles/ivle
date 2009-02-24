@@ -32,7 +32,6 @@
 
 from ivle.auth import AuthError
 from ivle.database import User
-from ivle.caps import Role
 
 # XXX: What to put here
 GUEST_UID = 4000
@@ -52,4 +51,4 @@ def auth(store, login, password, user):
 
     # Create a guest user
     return User(login=u"guest", fullname=u"Guest Account", nick=u"Guest",
-        role=Role.ANYONE, state=u"no_agreement", unixid=GUEST_UID)
+        state=u"no_agreement", unixid=GUEST_UID)

@@ -266,7 +266,7 @@ class WorksheetRESTView(JSONRESTView):
         # XXX: Lecturers should be allowed to add worksheets Only to subjects
         #      under their control
         if user is not None:
-            if user.rolenm == 'admin':
+            if user.admin:
                 return set(['save'])
             else:
                 return set()
@@ -312,7 +312,7 @@ class WorksheetsRESTView(JSONRESTView):
         # XXX: Lecturers should be allowed to add worksheets Only to subjects
         #      under their control
         if user is not None:
-            if user.rolenm == 'admin':
+            if user.admin:
                 return set(['edit'])
             else:
                 return set()
