@@ -37,7 +37,7 @@
 
 #topbar #path {
     background-color: #fea;
-    background-image: url(../ivle.webapp.filesystem.browser/chrome/pathbar-bg.png);
+    background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
     background-repeat: repeat-y;
     margin: 0;
     padding: 0.5em;
