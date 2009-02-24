@@ -57,15 +57,7 @@
           action="${fileservice_action}"
           enctype="multipart/form-data" method="post">
         <p>
-          <span id="selectallpanel">
-          Select:
-            <a onclick="action_selectall(true)"
-                title="Select all files in this directory">All</a> :
-            <a onclick="action_selectall(false)"
-                title="Deselect all files in this directory">None</a>
-          </span>
-
-          <span style="display:none" id="uploadpanel">|
+          <span style="display:none" id="uploadpanel">
             <label for="upload_file">Upload file:</label>
             <input type="hidden" value="putfile" name="action" />
             <input type="hidden" value="" name="path" />
