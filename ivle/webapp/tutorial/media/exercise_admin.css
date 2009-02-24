@@ -15,9 +15,6 @@
   display: none;
 }
 
-div.testsuite {
-  background: turquoise;
-}
 
 .textinput {
   width: 350px;
@@ -27,4 +24,8 @@ div.testsuite {
   float: left;
   text-align: right;
   width: 100px;
+}
+
+#add_suite {
+  display: none;
 }

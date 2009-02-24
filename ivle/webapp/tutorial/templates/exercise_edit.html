@@ -4,6 +4,7 @@
     <title>Edit - ${exercise.name}</title>
     <!-- These let the javascript know which worksheet is open -->
     <script type="text/javascript">
+      exercise = '${exercise.id}';
     </script>
   </head>
   <body>
@@ -29,7 +30,11 @@
       <label for="exercise_solution">Exercise Full Solution:</label><br />
       <textarea cols="80" rows="5" id="exercise_solution" title="Solution">${exercise.solution}</textarea>
       <br />
-      
+      <label for="exercise_include">Exercise Included Code:</label><br />
+      <textarea cols="80" rows="5" id="exercise_included" title="Included Code">${exercise.include}</textarea>
+      <br />
+      <input type="submit" value="Save Changes" onclick="save_exercise()" />
+      <br />
       <h1>Exercise Test Suites</h1>
       <ul>
         <py:for each="test_suite in exercise.test_suites">
@@ -124,7 +129,20 @@
           </li>
         </py:for>
       </ul>
-      <a>Add A New Test Suite</a>
+      <a onclick="tog('add_suite')">Add A New Test Suite</a>
+      <br />
+      <div id="add_suite" class="test_suite_vals">
+        <div>
+          <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
+        </div>
+        <div>
+          <label for="new_test_suite_function">Function:</label> <textarea id="new_test_suite_function" title="Suite Function" cols="80" rows="1"></textarea>
+        </div>
+        <div>
+          <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
+        </div>
+        <input type='submit' name='Submit' onclick='add_suite' value="Add Suite" />
+      </div>
     </div>
     
   </body>

@@ -161,7 +161,7 @@ class AttemptRESTView(JSONRESTView):
         return {'code': self.context.text}
 
 
-class ExerciseRESTView(JSONRESTView):
+class WorksheetExerciseRESTView(JSONRESTView):
     '''REST view of an exercise.'''
 
     def get_permissions(self, user):

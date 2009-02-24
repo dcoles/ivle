@@ -18,12 +18,44 @@
  * Author: Nick Chadwick
  */
 
-function hideall()
-{
-  $('').hide();
-}
-
 function tog(something)
 {
   $('#' + something).toggle("slow");
+}
+
+function save_exercise()
+{
+
+    var exercise_id = $('#exercise_id').val();
+    var exercise_name = $('#exercise_name').val();
+    var exercise_num_rows = $('#exercise_num_rows').val();
+    var exercise_desc = $('#exercise_include').val();
+    var exercise_partial = $('#exercise_partial').val();
+    var exercise_solution = $('#exercise_solution').val();
+    var exercise_include = $('#exercise_include').val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert(testresponse['result']);
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error updating Exercise');
+            return;
+        }
+    }
+    
+    update_path = "api/+exercises/" + exercise + "/+edit";
+    
+    var args = {'name': exercise_name, 'description': exercise_desc, 
+                'partial': exercise_partial, 'solution': exercise_solution,
+                'include': exercise_include, 'num_rows': exercise_num_rows,
+                'ivle.op': 'update_exercise'};
+    ajax_call(callback, update_path, "", args, 'POST');
 }
