@@ -41,8 +41,8 @@
     background-repeat: repeat-y;
     margin: 0;
     padding: 0.5em;
-    border-top: white 2px solid;
-    border-bottom: #863 1px solid;
+    border-top: white 2px solid;        /* Top edge of 3D effect */
+    border-bottom: #863 1px solid;      /* Bottom edge of 3D effect */
 }
 
 #topbar #path a {
@@ -50,7 +50,8 @@
 }
 
 #actions {
-    padding: 0.5em;
+    padding: 0.3em 0.5em;
+    border-top: white 1px solid;        /* Top edge of 3D effect */
 }
 /* class "choice" is for all choices, enabled and disabled. This is for both
  * the <a> actions and <option> actions.
