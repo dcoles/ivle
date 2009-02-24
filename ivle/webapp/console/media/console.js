@@ -256,14 +256,13 @@ function console_enter_line(inputbox, which)
     {
         var inputline = inputbox;
         inputbox = null;
-        var graytimer = null;
     }
     else
     {
-        GLOBAL_inputbox = inputbox;     /* For timer */
+        /* Disable the text box */
+        inputbox.setAttribute("disabled", "disabled");
+
         var inputline = inputbox.value + "\n";
-        var graytimer = setTimeout("GLOBAL_inputbox.setAttribute(\"class\", "
-            + "\"disabled\");", 100);
     }
     var output = document.getElementById("console_output");
     {
@@ -283,15 +282,12 @@ function console_enter_line(inputbox, which)
     var args = {"ivle.op": "chat", "kind": which, "key": server_key, "text":inputline};
     var callback = function(xhr)
         {
-            console_response(inputbox, graytimer, inputline, xhr.responseText);
+            console_response(inputbox, inputline, xhr.responseText);
         }
-    /* Disable the text box */
-    if (inputbox != null)
-        inputbox.setAttribute("disabled", "disabled");
     ajax_call(callback, "console", "service", args, "POST");
 }
 
-function console_response(inputbox, graytimer, inputline, responseText)
+function console_response(inputbox, inputline, responseText)
 {
     try
     {
@@ -350,8 +346,7 @@ function console_response(inputbox, graytimer, inputline, responseText)
         }
         var callback = function(xhr)
             {
-                console_response(inputbox, graytimer,
-                                 null, xhr.responseText);
+                console_response(inputbox, null, xhr.responseText);
             }
         if (interrupted)
         {
@@ -383,9 +378,7 @@ function console_response(inputbox, graytimer, inputline, responseText)
     if (inputbox != null)
     {
         /* Re-enable the text box */
-        clearTimeout(graytimer);
         inputbox.removeAttribute("disabled");
-        inputbox.removeAttribute("class");
         interrupted = false;
     }
 
