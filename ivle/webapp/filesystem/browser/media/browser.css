@@ -35,6 +35,8 @@
     background-color: #ddd;
 }
 
+/* NOTE: This style is copied from the generic h1 style
+ * (without the font styling) */
 #topbar #path {
     background-color: #fea;
     background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);

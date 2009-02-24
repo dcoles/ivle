@@ -29,6 +29,19 @@ a:hover, a:active, a:focus {
     color: #a00;
 }
 
+/* h1s are styled specially to a small golden 3D bar */
+h1 {
+    background-color: #fea;
+    background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
+    background-repeat: repeat-y;
+    margin: 0;
+    padding: 0.5em;
+    border-top: white 2px solid;        /* Top edge of 3D effect */
+    border-bottom: #863 1px solid;      /* Bottom edge of 3D effect */
+    font-size: 1em;
+    font-weight: bold;
+}
+
 /** Special styles for header section **/
 
 #ivleheader {
@@ -46,9 +59,8 @@ a:hover, a:active, a:focus {
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivleheader h1 {
-    margin: 0;
-    padding: 8px;
+#ivleheader img {
+    margin: 8px;
 }
 
 #ivleheader_text {
