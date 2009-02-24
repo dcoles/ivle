@@ -46,21 +46,18 @@ a:hover, a:active, a:focus {
     z-index: 1;     /* Background to all, but the body */
 }
 
+#ivleheader h1 {
+    margin: 0;
+    padding: 8px;
+}
+
 #ivleheader_text {
     /* Pad left and right. */
     position: absolute;
     padding: 0 1em;
-    background-image: url(../ivle.webapp.core/images/chrome/title.png);
-    background-repeat: no-repeat;
-    background-position: 8px 8px;
-    height: 50px;   /* background-position y + image height = 8 + 42 */
     left: 0;
     right: 0;
     z-index: 3;     /* In front */
-}
-
-#ivleheader_text h1, #ivleheader_text h2 {
-    display: none;
 }
 
 /* Note: The body has NO PADDING by default (unlike plain HTML).

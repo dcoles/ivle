@@ -85,6 +85,8 @@ class XHTMLView(BaseView):
 
         ctx['scripts_init'] = req.scripts_init
         ctx['app_template'] = app
+        ctx['title_img'] = media_url(req, CorePlugin,
+                                     "images/chrome/title.png")
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))

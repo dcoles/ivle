@@ -37,10 +37,11 @@
   </py:match>    
   <py:match path="body[@status!='done']" once="true">
     <body>
-      <div id="ivleheader"></div>
+      <div id="ivleheader">
+        <h1><img src="${title_img}"
+            alt="Informatics Virtual Learning Environment" /></h1>
+      </div>
       <div id="ivleheader_text">
-        <h1>IVLE</h1>
-        <h2>Informatics Virtual Learning Environment</h2>
         <py:choose>
           <p py:when="publicmode" class="userhello">Running in public mode.</p>
           <p py:when="logged_in" class="userhello">
