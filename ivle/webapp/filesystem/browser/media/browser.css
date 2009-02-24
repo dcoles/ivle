@@ -49,7 +49,7 @@
     font-weight: bold;
 }
 
-#actions1 {
+#actions {
     padding: 0.5em;
 }
 /* class "choice" is for all choices, enabled and disabled. This is for both
@@ -73,10 +73,6 @@
 /* Drop-down actions and headings */
 #actions1 option.moreactions, #actions1 option.disabled {
     color: #aaa;
-}
-
-#actions2 p {
-    margin: 0;
 }
 
 /* One of the actions2s is shown at runtime, depending on the context.
