@@ -29,13 +29,10 @@
     left: 0;
     right: 0;
     top: 0;
-    /* height == h2.margin + h2.line-height
-     *              + max(h2.margin, p.margin) + p.line-height + p.margin
-     *        == 1.1*0.7em + 1.1*1.2em + 1.1*0.7em + 1.1em + 0.7em
-     *        == 4.6em */
-    height: 4.6em;
+    /* Approximate height of the components */
+    height: 5em;
     padding: 0;
-    background-color: #aaf;
+    background-color: #ddd;
 }
 
 #topbar #path {
@@ -50,6 +47,10 @@
 
 #topbar #path a {
     font-weight: bold;
+}
+
+#actions1 {
+    padding: 0.5em;
 }
 /* class "choice" is for all choices, enabled and disabled. This is for both
  * the <a> actions and <option> actions.
@@ -91,8 +92,8 @@
     position: absolute;
     left: 0;
     right: 0;
-    /* top == #topbar.height + #topbar.padding * 2 */
-    top: 5.6em;
+    /* top == #topbar.height */
+    top: 5em;
     /* Space for the mimimised console */
     bottom: 2em;
 }
