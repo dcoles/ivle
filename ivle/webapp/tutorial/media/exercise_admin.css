@@ -1,3 +1,19 @@
+.testsuite {
+  display: none;
+}
+
+.test_variables {
+  display: none;
+}
+
+.test_cases {
+  display: none;
+}
+
+.test_case {
+  display: none;
+}
+
 div.testsuite {
   background: turquoise;
 }
