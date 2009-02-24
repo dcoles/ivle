@@ -34,12 +34,18 @@
      *        == 1.1*0.7em + 1.1*1.2em + 1.1*0.7em + 1.1em + 0.7em
      *        == 4.6em */
     height: 4.6em;
-    padding: 0.5em;
+    padding: 0;
     background-color: #aaf;
 }
 
-#topbar div {
-    margin: 0.2em;
+#topbar #path {
+    background-color: #fea;
+    background-image: url(../ivle.webapp.filesystem.browser/chrome/pathbar-bg.png);
+    background-repeat: repeat-y;
+    margin: 0;
+    padding: 0.5em;
+    border-top: white 2px solid;
+    border-bottom: #863 1px solid;
 }
 
 #topbar #path a {
