@@ -18,89 +18,12 @@
  * Author: Nick Chadwick
  */
 
-function show_suite(suite)
+function hideall()
 {
-
-  var suite_div = document.getElementById('suite_data_' + suite);
-  var suite_header = document.getElementById('suite_header_' + suite);
-  
-  suite_div.style.display = 'block';
-  suite_header.setAttribute('onclick', "hide_suite('" + suite + "')");
-
+  $('').hide();
 }
 
-function hide_suite(suite)
+function tog(something)
 {
-
-  var suite_div = document.getElementById('suite_data_' + suite);
-  var suite_header = document.getElementById('suite_header_' + suite);
-
-  suite_div.style.display = 'none';
-  suite_header.setAttribute('onclick', "show_suite('" + suite + "')");
-}
-
-function show_variables(suite)
-{
-
-  var variables_div = document.getElementById('variables_' + suite);
-  var variables_header = document.getElementById('variables_header_' + suite);
-  
-  variables_div.style.display = 'block';
-  variables_header.setAttribute('onclick', "hide_variables('" + suite + "')");
-
-}
-
-function hide_variables(suite)
-{
-
-  var variables_div = document.getElementById('variables_' + suite);
-  var variables_header = document.getElementById('variables_header_' + suite);
-
-  variables_div.style.display = 'none';
-  variables_header.setAttribute('onclick', "show_variables('" + suite + "')");
-
-}
-
-function show_cases(suite)
-{
-
-  var cases_div = document.getElementById('test_cases_' + suite);
-  var cases_header = document.getElementById('cases_header_' + suite);
-  
-  cases_div.style.display = 'block';
-  cases_header.setAttribute('onclick', "hide_cases('" + suite + "')");
-
-}
-
-function hide_cases(suite)
-{
-
-  var cases_div = document.getElementById('test_cases_' + suite);
-  var cases_header = document.getElementById('cases_header_' + suite);
-
-  cases_div.style.display = 'none';
-  cases_header.setAttribute('onclick', "show_cases('" + suite + "')");
-
-}
-
-function show_case(suite)
-{
-
-  var case_div = document.getElementById('test_case_' + suite);
-  var case_header = document.getElementById('case_header_' + suite);
-  
-  case_div.style.display = 'block';
-  case_header.setAttribute('onclick', "hide_case('" + suite + "')");
-
-}
-
-function hide_case(suite)
-{
-
-  var case_div = document.getElementById('test_case_' + suite);
-  var case_header = document.getElementById('case_header_' + suite);
-
-  case_div.style.display = 'none';
-  case_header.setAttribute('onclick', "show_case('" + suite + "')");
-
+  $('#' + something).toggle("slow");
 }

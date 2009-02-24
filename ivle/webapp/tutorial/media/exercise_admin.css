@@ -1,5 +1,6 @@
 .testsuite {
   display: none;
+  width: 800px;
 }
 
 .test_variables {
@@ -20,4 +21,10 @@ div.testsuite {
 
 .textinput {
   width: 350px;
+}
+
+.test_suite_vals div label {
+  float: left;
+  text-align: right;
+  width: 100px;
 }

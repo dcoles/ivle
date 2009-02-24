@@ -34,20 +34,23 @@
       <ul>
         <py:for each="test_suite in exercise.test_suites">
           <li>
-            <a id="suite_header_${test_suite.suiteid}" onclick="show_suite('${test_suite.suiteid}')"><h2>Suite ${test_suite.seq_no + 1} - ${test_suite.description}</h2></a>
+            <a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')"><h2>Suite ${test_suite.seq_no + 1} - ${test_suite.description}</h2></a>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
-              <label for="test_suite_description_${test_suite.suiteid}">Description:</label><br />
-              <textarea id="test_suite_description_${test_suite.suiteid}" cols="80" rows="1">${test_suite.description}</textarea>
-              <br />
-              <label for="test_suite_function_${test_suite.suiteid}">Function:</label><br />
-              <textarea id="test_suite_function_${test_suite.suiteid}" title="Suite Function" cols="80" rows="1">${test_suite.function}</textarea>
-              <br />
-              <label for="test_suite_stdin_${test_suite.suiteid}">Stdin:</label><br />
-              <textarea id="test_suite_stdin_${test_suite.suiteid}" title="Suite Stdin" cols="80" rows="4">${test_suite.stdin}</textarea>
+              <div class="test_suite_vals">
+                <div>
+                  <label for="test_suite_description_${test_suite.suiteid}">Description:</label> <textarea id="test_suite_description_${test_suite.suiteid}" cols="80" rows="1">${test_suite.description}</textarea>
+                </div>
+                <div>
+                  <label for="test_suite_function_${test_suite.suiteid}">Function:</label> <textarea id="test_suite_function_${test_suite.suiteid}" title="Suite Function" cols="80" rows="1">${test_suite.function}</textarea>
+                </div>
+                <div>
+                  <label for="test_suite_stdin_${test_suite.suiteid}">Stdin:</label> <textarea id="test_suite_stdin_${test_suite.suiteid}" title="Suite Stdin" cols="80" rows="4">${test_suite.stdin}</textarea>
+                </div>
+              </div>
               <br />
           
-              <a id='variables_header_${test_suite.suiteid}' onclick="show_variables('${test_suite.suiteid}')"><h3>Suite ${test_suite.seq_no + 1} - Variables</h3></a>
+              <a id='variables_header_${test_suite.suiteid}' onclick="tog('variables_${test_suite.suiteid}')"><h3>Suite ${test_suite.seq_no + 1} - Variables</h3></a>
         
                 <div class="test_variables" id="variables_${test_suite.suiteid}">
                   <py:for each="variable in test_suite.variables">
@@ -68,14 +71,15 @@
                     </span>
                     <br />          
                   </py:for>
+                  <a>Add A New Variable</a>
                 </div>
-              <a onclick="show_cases('${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h3>Suite ${test_suite.seq_no + 1} - Test Cases</h3></a>
+              <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h3>Suite ${test_suite.seq_no + 1} - Test Cases</h3></a>
 
               <div class="test_cases" id="test_cases_${test_suite.suiteid}">    
                 <ul>
                   <py:for each="test_case in test_suite.test_cases">
                     <li>
-                      <a onclick="show_case('${test_case.testid}')" id="case_header_${test_case.testid}"><h4>Test Case ${test_case.seq_no}</h4></a>
+                      <a onclick="tog('test_case_${test_case.testid}')" id="case_header_${test_case.testid}"><h4>Test Case ${test_case.seq_no}</h4></a>
                       <div class="test_case" id="test_case_${test_case.testid}">
                         <label for="test_case_pass_${test_case.testid}">Pass Message:</label>
                         <input class="textinput" type="text" id="test_case_${test_case.testid}" value="${test_case.passmsg}" />
@@ -112,6 +116,7 @@
                       </div>
                     </li>
                   </py:for>
+                  <a>Add A New Test Case</a>
                 </ul>
               </div>
               
@@ -119,6 +124,7 @@
           </li>
         </py:for>
       </ul>
+      <a>Add A New Test Suite</a>
     </div>
     
   </body>
