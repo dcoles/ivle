@@ -60,8 +60,8 @@
       <div py:if="logged_in" id="ivleheader_tabs">
         <ul id="apptabs">
           <py:for each="app in apps_in_tabs">
-            <li py:if="app['this_app']" class="thisapp"><span><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if><a href="${app['path']}" title="${app['desc']}">${app['name']}</a></span></span></li>
-            <li py:if="not app['this_app']"><span><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if><a href="${app['path']}" title="${app['desc']}">${app['name']}</a></span></span></li>
+            <li py:if="app['this_app']" class="thisapp"><a href="${app['path']}" title="${app['desc']}"><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if>${app['name']}</span></a></li>
+            <li py:if="not app['this_app']"><a href="${app['path']}" title="${app['desc']}"><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if>${app['name']}</span></a></li>
           </py:for>
         </ul>
       </div>

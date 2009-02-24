@@ -137,14 +137,17 @@ ul#apptabs li {
     padding: 0;
     padding-left: 4px;
 }
-ul#apptabs li span {
+ul#apptabs li a img {
+    border: none;
+}
+ul#apptabs li a {
     background-image: url(../ivle.webapp.core/images/chrome/tab-right.png);
     background-repeat: no-repeat;
     background-position: top right;
     padding: 0;
     padding-right: 4px;
 }
-ul#apptabs li span span {
+ul#apptabs li a span {
     background-image: url(../ivle.webapp.core/images/chrome/tab-mid.png);
     background-repeat: repeat-x;
     padding: 0 3px;
@@ -153,10 +156,10 @@ ul#apptabs li:hover {
     /*background-color: #fd8;*/
     background-image: url(../ivle.webapp.core/images/chrome/tab-hover-left.png);
 }
-ul#apptabs li:hover span {
+ul#apptabs li:hover a {
     background-image: url(../ivle.webapp.core/images/chrome/tab-hover-right.png);
 }
-ul#apptabs li:hover span span {
+ul#apptabs li:hover a span {
     background-image: url(../ivle.webapp.core/images/chrome/tab-hover-mid.png);
 }
 /* Currently active app tab */
@@ -165,10 +168,10 @@ ul#apptabs li.thisapp {
     /*border-bottom: 1px solid white;*/
     background-image: url(../ivle.webapp.core/images/chrome/tab-selected-left.png);
 }
-ul#apptabs li.thisapp span {
+ul#apptabs li.thisapp a {
     background-image: url(../ivle.webapp.core/images/chrome/tab-selected-right.png);
 }
-ul#apptabs li.thisapp span span {
+ul#apptabs li.thisapp a span {
     background-image: url(../ivle.webapp.core/images/chrome/tab-selected-mid.png);
 }
 
