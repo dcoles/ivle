@@ -38,7 +38,7 @@ a:hover, a:active, a:focus {
     background-repeat: repeat-x;
     padding: 0;
     border-bottom: 1px solid black;
-    /* IMPORTANT: This 5.3em is hard-coded elsewhere in this file. Search for
+    /* IMPORTANT: This 4em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
     height: 4em;
     left: 0;
@@ -72,7 +72,7 @@ a:hover, a:active, a:focus {
     /* This is positioned absolutely so that its content can be positioned
      * absolutely as well, and so height: 100% really means it. */
     position: absolute;
-    top: 5.3em;             /* == #ivleheader.height */
+    top: 4em;               /* == #ivleheader.height */
     bottom: 0;
     width: 100%;
     z-index: 0;     /* Behind header */
