@@ -223,10 +223,8 @@ def make_jail(user, force=True):
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
             %(user.login, user.unixid))
-        os.chown(userhomedir, user.unixid, user.unixid)
-        for root, dirs, files in os.walk(userhomedir):
-            for fsobj in dirs + files:
-                os.chown(os.path.join(root, fsobj), user.unixid, user.unixid)
+        os.spawnvp(os.P_WAIT, 'chown', ['chown', '-R', '%d:%d' % (user.unixid,
+                                        user.unixid), userhomedir])
     else:
         # No user jail exists
         # Set up the user's home directory
