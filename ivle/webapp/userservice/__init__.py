@@ -162,7 +162,7 @@ USER_DECLARATION = "I accept the IVLE Terms of Service"
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
     "admin", "studentid", "acct_exp", "pass_exp", "last_login",
-    "svn_pass"
+    "svn_pass", "admin",
 )
 
 class UserServiceView(BaseView):

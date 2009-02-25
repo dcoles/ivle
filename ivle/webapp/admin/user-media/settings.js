@@ -42,7 +42,7 @@ function populate(user)
     user_data = user;
     /* Plain text elements (non-editable) */
     var login = document.getElementById("login");
-    var role = document.getElementById("role");
+    var admin = document.getElementById("admin");
     var changepassword = document.getElementById("changepassword");
     var notices = document.getElementById("notices");
     /* Textbox (input) elements */
@@ -60,7 +60,7 @@ function populate(user)
 
     /* Clear things */
     dom_removechildren(login);
-    dom_removechildren(role);
+    dom_removechildren(admin);
     dom_removechildren(changepassword);
     dom_removechildren(notices);
 
@@ -79,19 +79,15 @@ function populate(user)
         text = ")"
     login.appendChild(document.createTextNode(text));
 
-    /* "role" : <p>Your privilege level is <b>rolenm</b>.</p>
-     * Unless rolenm is "student"
+    /* "admin" : <p>Privilege: <strong>administrator</strong></p>
      */
-    if (user.rolenm != "student")
+    if (user.admin)
     {
-        text = "Your privilege level is ";
-        role.appendChild(document.createTextNode(text));
-        b = document.createElement("b");
-        text = user.rolenm;
-        b.appendChild(document.createTextNode(text));
-        role.appendChild(b);
-        text = ".";
-        role.appendChild(document.createTextNode(text));
+        text = "Privilege: ";
+        admin.appendChild(document.createTextNode(text));
+        strong = document.createElement("strong");
+        strong.appendChild(document.createTextNode("IVLE administrator"));
+        admin.appendChild(strong);
     }
 
     /* "nick" and "email" boxes */
