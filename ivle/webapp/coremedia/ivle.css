@@ -29,6 +29,10 @@ a:hover, a:active, a:focus {
     color: #a00;
 }
 
+a img {
+    border: none;
+}
+
 /* h1s are styled specially to a small golden 3D bar */
 #ivlebody h1 {
     background-color: #fea;
@@ -138,9 +142,6 @@ ul#apptabs li {
     background-position: top left;
     padding: 0;
     padding-left: 4px;
-}
-ul#apptabs li a img {
-    border: none;
 }
 ul#apptabs li a {
     background-image: url(../ivle.webapp.core/images/chrome/tab-right.png);
