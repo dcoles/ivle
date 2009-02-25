@@ -39,6 +39,22 @@
     <body>
       <div id="ivleheader">
         <h1><img src="${title_img}" alt="Informatics Virtual Learning Environment" /></h1>
+        <div id="ivleheader_text">
+          <py:choose>
+            <p py:when="publicmode" class="userhello">Running in public mode.</p>
+            <p py:when="logged_in" class="userhello">
+              <span id="usernick">${nick}</span>
+              (<span class="username">${login}</span>) |
+              <a href="/~${login}/+settings">Settings</a> |
+              <py:choose>
+                <a py:when="defined('help_path')" href="/+help/${help_path}">Help</a>
+                <a py:otherwise="" href="/+help/">Help</a>
+              |</py:choose>
+              <a href="/+logout">Log out</a>
+            </p>
+            <p py:otherwise="" class="userhello">Not logged in.</p>
+          </py:choose>
+        </div>
         <div py:if="logged_in" id="ivleheader_tabs">
           <ul id="apptabs">
             <py:for each="app in apps_in_tabs">
@@ -47,22 +63,6 @@
             </py:for>
           </ul>
         </div>
-      </div>
-      <div id="ivleheader_text">
-        <py:choose>
-          <p py:when="publicmode" class="userhello">Running in public mode.</p>
-          <p py:when="logged_in" class="userhello">
-            <span id="usernick">${nick}</span>
-            (<span class="username">${login}</span>) |
-            <a href="/~${login}/+settings">Settings</a> |
-            <py:choose>
-              <a py:when="defined('help_path')" href="/+help/${help_path}">Help</a>
-              <a py:otherwise="" href="/+help/">Help</a>
-            |</py:choose>
-            <a href="/+logout">Log out</a>
-          </p>
-          <p py:otherwise="" class="userhello">Not logged in.</p>
-        </py:choose>
       </div>
       <div id="ivlebody">
         <div id="ivleview">
