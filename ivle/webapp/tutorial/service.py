@@ -31,7 +31,7 @@ from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
 import ivle.worksheet
 import ivle.conf
 import ivle.webapp.tutorial.test
-
+from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
@@ -353,7 +353,11 @@ class WorksheetsRESTView(JSONRESTView):
         # This call is added for clarity, as the worksheet is implicitly added.        
         req.store.add(new_worksheet)
         
-        generate_exerciselist(new_worksheet, req, data)
+        if new_worksheet.format == u'rst':
+            ws_data = '<worksheet>' + rstfunc(unicode(data)) + '</worksheet>'
+            generate_exerciselist(new_worksheet, req, ws_data)
+        else:
+            generate_exerciselist(new_worksheet, req, data)
         
         return {"result": "ok"}
 

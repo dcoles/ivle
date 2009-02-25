@@ -169,7 +169,7 @@ class WorksheetView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
-        self.plugin_styles[Plugin] = ['tutorial.css']
+        self.plugin_styles[Plugin] = ['tutorial.css', 'worksheet.css']
 
         if not self.context:
             raise NotFound()
@@ -178,7 +178,11 @@ class WorksheetView(XHTMLView):
         ctx['worksheet'] = self.context
         ctx['semester'] = self.semester
         ctx['year'] = self.year
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data)))
+        if self.context.format == 'rst':
+            ws_xml = '<worksheet>' + rstfunc(self.context.data) + '</worksheet>'
+        else:
+            ws_xml = self.context.data
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(ws_xml)))
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -333,7 +337,6 @@ def present_exercise(req, src, worksheet):
     # work than we need. We just need to get the exercise name and a few other
     # fields from the XML.
 
-    #TODO: Replace calls to minidom with calls to the database directly
     curctx['exercise'] = exercise
     if exercise.description is not None:
         desc = rstfunc(exercise.description)

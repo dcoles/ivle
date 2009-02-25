@@ -462,7 +462,6 @@ class Worksheet(Storm):
     # "optional" field.
     worksheet_exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id')
-        
 
     __init__ = _kwarg_init
 
