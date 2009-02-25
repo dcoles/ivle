@@ -476,9 +476,9 @@ def handle_get_active_offerings(req, fields):
                               'subj_name': offering.subject.name,
                               'year': offering.semester.year,
                               'semester': offering.semester.semester,
-                              'active': offering.semester.active
+                              'active': True # XXX: Eliminate from protocol.
                              } for offering in subject.offerings
-                                    if offering.semester.active])
+                                    if offering.semester.state == 'current'])
     req.content_type = "text/plain"
     req.write(response)
 

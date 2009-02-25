@@ -232,7 +232,7 @@ class Semester(Storm):
     id = Int(primary=True, name="semesterid")
     year = Unicode()
     semester = Unicode()
-    active = Bool()
+    state = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.semester_id')
 

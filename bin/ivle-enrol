@@ -52,9 +52,6 @@ offering = store.find(Offering,
 if not offering:
     die("subject offering not found")
 
-if not offering.semester.active:
-    die("cannot enrol - semester inactive")
-    
 try:
     offering.enrol(user)
 except AlreadyEnrolledError:
