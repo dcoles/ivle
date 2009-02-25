@@ -125,8 +125,12 @@ p.userhello {
     margin: 0;
 }
 
-/* The apptabs ul is aligned to the bottom of #ivleheader_tabs */
+ul#apptabs {
+    margin: 0;
+}
+
 ul#apptabs li {
+    display: inline;
     /*border: 1px solid black;*/
     /*background-color: #fc6;*/
     background-image: url(../ivle.webapp.core/images/chrome/tab-left.png);
