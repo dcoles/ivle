@@ -51,7 +51,7 @@
     /*margin-bottom: 0.5em;*/
     position: absolute;
     /* 2em is to accomodate the header bar, and some padding */
-    top: 2em;
+    top: 4em;
     /* 2.5em is to accomodate the input bar, and padding either side */
     bottom: 2.5em;
     /* left and right 0.5em are just for horizontal padding */
@@ -69,6 +69,8 @@
 #console_body.windowpane #console_output {
     /* Don't want this absolutely positioned in windowpane mode */
     position: static;
+    /* Make it a bit higher up, because the header is thinner in this mode */
+    top: 2em;
     /* Give it an explicit height instead */
     height: 15em;
     margin-bottom: 0.5em;
