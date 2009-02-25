@@ -36,7 +36,7 @@ from ivle import util
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
     template = 'subjects.html'
-    appname = 'subjects' # XXX
+    tab = 'subjects'
 
     def authorize(self, req):
         return req.user is not None
@@ -50,8 +50,9 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     tabs = [
-        ('subjects', 'Subjects', 'Announcements and information about the '
-         'subjects you are enrolled in.', 'subjects.png', 'subjects', 5)
+        ('subjects', 'Subjects',
+         'View subject content and complete worksheets',
+         'subjects.png', 'subjects', 5)
     ]
 
     media = 'subject-media'

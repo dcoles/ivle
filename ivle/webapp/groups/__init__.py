@@ -33,7 +33,7 @@ class GroupsView(XHTMLView):
     The groups view
     """
     template = 'template.html'
-    appname = 'groups' # XXX
+    tab = 'groups'
 
     def authorize(self, req):
         return req.user is not None

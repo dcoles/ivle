@@ -5,7 +5,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 
 
 class ConsoleView(XHTMLView):
-    appname = 'console'
+    tab = 'console'
     help = 'Console'
 
     plugin_scripts = {'ivle.webapp.console': ['console.js']}
@@ -28,8 +28,8 @@ class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
         ('console', ConsoleView),
     ]
     tabs = [
-        ('console', 'Console', 'A Python console where you can try out code '
-         'without having to save and run it.', 'console.png', 'console', 3)
+        ('console', 'Console', 'Try out your code in a Python console',
+         'console.png', 'console', 3)
     ]
     overlays = [
         ConsoleOverlay,

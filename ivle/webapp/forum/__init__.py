@@ -30,7 +30,7 @@ import ivle.util
 import ivle.config
 
 class ForumView(XHTMLView):
-    appname = 'forum'
+    tab = 'forum'
 
     def __init__(self, req, path):
         self.path = path
