@@ -5,7 +5,7 @@
   </head>
   <body>
     <div id="ivle_padding">
-      <p py:if="not enrolments">Error: You are not currently enrolled in any subjects.</p>
+      <p py:if="enrolments.count() == 0">Error: You are not currently enrolled in any subjects.</p>
       <py:for each="enrolment in enrolments">
         <div id="subject${enrolment.offering.id}" class="subject">
           <h1>${enrolment.offering.subject.name}</h1>
