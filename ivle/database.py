@@ -439,12 +439,15 @@ class Worksheet(Storm):
     attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
 
-    # Use worksheet_exercises to get access to the WorksheetExercise objects
-    # binding worksheets to exercises. This is required to access the
-    # "optional" field.
-    worksheet_exercises = ReferenceSet(id,
+    all_worksheet_exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id')
-        
+
+    # Use worksheet_exercises to get access to the *active* WorksheetExercise
+    # objects binding worksheets to exercises. This is required to access the
+    # "optional" field.
+    @property
+    def worksheet_exercises(self):
+        return self.all_worksheet_exercises.find(active=True)
 
     __init__ = _kwarg_init
 
