@@ -38,7 +38,7 @@ __all__ = ['get_store',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
-            'AlreadyEnrolledError', 'TestCase', 'TestSuite', 'TestSuiteVar'
+            'TestCase', 'TestSuite', 'TestSuiteVar'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -269,17 +269,18 @@ class Offering(Storm):
         return "<%s %r in %r>" % (type(self).__name__, self.subject,
                                   self.semester)
 
-    def enrol(self, user):
+    def enrol(self, user, role=u'student'):
         '''Enrol a user in this offering.'''
-        # We'll get a horrible database constraint violation error if we try
-        # to add a second enrolment.
-        if Store.of(self).find(Enrolment,
+        enrolment = Store.of(self).find(Enrolment,
                                Enrolment.user_id == user.id,
-                               Enrolment.offering_id == self.id).count() == 1:
-            raise AlreadyEnrolledError()
+                               Enrolment.offering_id == self.id).one()
 
-        e = Enrolment(user=user, offering=self, active=True)
-        self.enrolments.add(e)
+        if enrolment is None:
+            enrolment = Enrolment(user=user, offering=self)
+            self.enrolments.add(enrolment)
+
+        enrolment.active = True
+        enrolment.role = role
 
     def get_permissions(self, user):
         perms = set()
@@ -314,9 +315,6 @@ class Enrolment(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
-
-class AlreadyEnrolledError(Exception):
-    pass
 
 # PROJECTS #
 

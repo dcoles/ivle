@@ -6,37 +6,15 @@
   <body>
     <h1>Subjects</h1>
     <div id="ivle_padding">
-      <py:if test="(len(enrolled_subjects) > 0)">
-        <h2>Subjects</h2>
-        <ul>
-          <py:for each="subject in enrolled_subjects">
-            <py:choose test="subject['url']">
-              <py:when test="None">
-                <li>${subject['name']} (no home page)</li>
-              </py:when>
-              <py:otherwise>
-                <li><a href="${subject['url']}">${subject['name']}</a></li>
-              </py:otherwise>
-            </py:choose>
-          </py:for>
-        </ul>
-      </py:if>
-      <py:if test="(len(other_subjects) > 0)">
-        <h3>Other Subjects</h3>
-        <p>You are not currently enrolled in these subjects</p>
-        <ul>
-          <py:for each="subject in other_subjects">
-            <py:choose test="subject['url']">
-             <py:when test="None">
-               <li>${subject['name']} (no home page)</li>
-             </py:when>
-             <py:otherwise>
-               <li><a href="${subject['url']}">${subject['name']}</a></li>
-             </py:otherwise>
-            </py:choose>
-          </py:for>
-        </ul>
-      </py:if>
+      <ul>
+        <py:for each="enrolment in enrolments">
+          <li>
+            <a href="/subjects/${enrolment.offering.subject.code}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
+              ${enrolment.offering.subject.name}
+            </a>
+          </li>
+        </py:for>
+      </ul>
     </div>
   </body>
 </html>

@@ -193,7 +193,7 @@ def make_jail(user, force=True):
         raise Exception("Must run make_jail as root")
     
     # tempdir is for putting backup homes in
-    tempdir = os.path.join(ivle.conf.jail_base, '__temp__')
+    tempdir = os.path.join(ivle.conf.jail_src_base, '__temp__')
     if not os.path.exists(tempdir):
         os.makedirs(tempdir)
     elif not os.path.isdir(tempdir):
