@@ -65,6 +65,11 @@
      */
     overflow-x: auto;
     padding: 0.5em;
+    /* On some displays, monospace font is much smaller than everything else.
+     * We just set the console font to 13px to appear a bit bigger (this is
+     * the same size as the editor's font).
+     */
+    font-size: 13px;
 }
 #console_body.windowpane #console_output {
     /* Don't want this absolutely positioned in windowpane mode */
