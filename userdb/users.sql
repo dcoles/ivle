@@ -8,9 +8,7 @@ CREATE TABLE login (
     state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'pending',
                                               'enabled', 'disabled'))
                                  DEFAULT 'no_agreement',
-    rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student',
-                                                   'marker', 'tutor',
-                                                   'lecturer', 'admin')),
+    admin       BOOLEAN NOT NULL DEFAULT false;
     unixid      INT UNIQUE DEFAULT nextval('login_unixid_seq') NOT NULL,
     nick        VARCHAR NOT NULL,
     pass_exp    TIMESTAMP,
@@ -129,6 +127,8 @@ CREATE TABLE group_member (
 CREATE TABLE enrolment (
     loginid     INT4 REFERENCES login (loginid),
     offeringid  INT4 REFERENCES offering (offeringid),
+    role        TEXT NOT NULL CHECK (role IN ('student', 'tutor',
+                                              'lecturer')) DEFAULT 'student',
     result      INT,
     special_result VARCHAR,
     supp_result INT,

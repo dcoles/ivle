@@ -23,9 +23,12 @@ Worksheet Utility Functions
 This module provides functions for tutorial and worksheet computations.
 """
 
-from storm.locals import And, Asc, Desc
+from storm.locals import And, Asc, Desc, Store
+import genshi
+
 import ivle.database
-from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet
+from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet, \
+                          WorksheetExercise, Exercise
 
 __all__ = ['get_exercise_status', 'get_exercise_stored_text',
            'get_exercise_attempts', 'get_exercise_attempt',
@@ -190,3 +193,50 @@ def calculate_score(store, user, worksheet):
             if done: mand_done += 1
 
     return mand_done, mand_total, opt_done, opt_total
+
+def update_exerciselist(worksheet):
+    """Runs through the worksheetstream, generating the appropriate
+    WorksheetExercises, and de-activating the old ones."""
+    exercises = []
+    # Turns the worksheet into an xml stream, and then finds all the 
+    # exercise nodes in the stream.
+    worksheetdata = genshi.XML(worksheet.data)
+    for kind, data, pos in worksheetdata:
+        if kind is genshi.core.START:
+            # Data is a tuple of tag name and a list of name->value tuples
+            if data[0] == 'exercise':
+                src = ""
+                optional = False
+                for attr in data[1]:
+                    if attr[0] == 'src':
+                        src = attr[1]
+                    if attr[0] == 'optional':
+                        optional = attr[1] == 'true'
+                if src != "":
+                    exercises.append((src, optional))
+    ex_num = 0
+    # Set all current worksheet_exercises to be inactive
+    db_worksheet_exercises = Store.of(worksheet).find(WorksheetExercise,
+        WorksheetExercise.worksheet_id == worksheet.id)
+    for worksheet_exercise in db_worksheet_exercises:
+        worksheet_exercise.active = False
+    
+    for exerciseid, optional in exercises:
+        worksheet_exercise = Store.of(worksheet).find(WorksheetExercise,
+            WorksheetExercise.worksheet_id == worksheet.id,
+            Exercise.id == WorksheetExercise.exercise_id,
+            Exercise.id == exerciseid).one()
+        if worksheet_exercise is None:
+            exercise = Store.of(worksheet).find(Exercise,
+                Exercise.id == exerciseid
+            ).one()
+            if exercise is None:
+                raise NotFound()
+            worksheet_exercise = WorksheetExercise()
+            worksheet_exercise.worksheet_id = worksheet.id
+            worksheet_exercise.exercise_id = exercise.id
+            Store.of(worksheet).add(worksheet_exercise)
+        worksheet_exercise.active = True
+        worksheet_exercise.seq_no = ex_num
+        worksheet_exercise.optional = optional
+

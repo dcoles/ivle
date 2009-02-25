@@ -18,15 +18,31 @@ class require_method(object):
            func(req, *args, **kwargs)
         return method_or_die
 
-class require_cap(object):
-    '''Require that the logged in user has the specified capability.'''
-    def __init__(self, cap):
-        self.cap = cap
+def require_admin(func):
+    '''Require that the logged in user is an admin.'''
+    def admin_or_die(req, *args, **kwargs):
+       if not req.user or not req.user.admin:
+            raise Unauthorized()
+       func(req, *args, **kwargs)
+    return admin_or_die
+
+class require_role_anywhere(object):
+    '''Require that the logged in user has a role in any offering.'''
+    def __init__(self, *roles):
+        self.roles = roles
 
     def __call__(self, func):
-        def cap_or_die(req, *args, **kwargs):
-           if not req.user or not req.user.hasCap(self.cap):
+        def role_or_die(req, *args, **kwargs):
+            if not req.user:
                 raise Unauthorized()
-           func(req, *args, **kwargs)
-        return cap_or_die
 
+            if req.user.admin:
+                return func(req, *args, **kwargs)
+
+            roles = set((e.role for e in req.user.active_enrolments))
+
+            for role in self.roles:
+                if role in roles:
+                    return func(req, *args, **kwargs)
+            raise Unauthorized()
+        return role_or_die

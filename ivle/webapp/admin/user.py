@@ -28,7 +28,7 @@ import ivle.util
 # (as returned by the get_user action)
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
-    "rolenm", "studentid", "acct_exp", "pass_exp", "last_login",
+    "admin", "studentid", "acct_exp", "pass_exp", "last_login",
     "svn_pass"
 )
 
