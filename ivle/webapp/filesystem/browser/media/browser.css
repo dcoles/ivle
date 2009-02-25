@@ -35,16 +35,9 @@
     background-color: #ddd;
 }
 
-/* NOTE: This style is copied from the generic h1 style
- * (without the font styling) */
+/* We don't want the bold-ness of a regular golden H1 */
 #topbar #path {
-    background-color: #fea;
-    background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
-    background-repeat: repeat-y;
-    margin: 0;
-    padding: 0.5em;
-    border-top: white 2px solid;        /* Top edge of 3D effect */
-    border-bottom: #863 1px solid;      /* Bottom edge of 3D effect */
+    font-weight: normal;
 }
 
 #topbar #path a {
