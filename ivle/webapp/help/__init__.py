@@ -78,7 +78,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     tabs = [
-        ('help', 'Help', 'IVLE help pages', 'help.png', '+help', 100)
+        ('help', 'Help', 'Get help with IVLE', 'help.png', '+help', 100)
     ]
 
     media = 'media'
