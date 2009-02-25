@@ -30,7 +30,7 @@ a:hover, a:active, a:focus {
 }
 
 /* h1s are styled specially to a small golden 3D bar */
-h1 {
+#ivlebody h1 {
     background-color: #fea;
     background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
     background-repeat: repeat-y;
@@ -59,8 +59,9 @@ h1 {
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivleheader img {
-    margin: 8px;
+#ivleheader h1 {
+    margin: 0;
+    padding: 8px;
 }
 
 #ivleheader_text {
