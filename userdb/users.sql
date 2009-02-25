@@ -8,7 +8,7 @@ CREATE TABLE login (
     state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'pending',
                                               'enabled', 'disabled'))
                                  DEFAULT 'no_agreement',
-    admin       BOOLEAN NOT NULL DEFAULT false;
+    admin       BOOLEAN NOT NULL DEFAULT false,
     unixid      INT UNIQUE DEFAULT nextval('login_unixid_seq') NOT NULL,
     nick        VARCHAR NOT NULL,
     pass_exp    TIMESTAMP,
@@ -36,8 +36,8 @@ CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
     year        CHAR(4) NOT NULL,
     semester    CHAR(1) NOT NULL,
-    state       TEXT NOT NULL CHECK state IN ('disabled', 'past',
-                                    'current', 'future') DEFAULT 'current',
+    state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
+                                    'current', 'future')) DEFAULT 'current',
     UNIQUE (year, semester)
 );
 
