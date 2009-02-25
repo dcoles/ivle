@@ -29,7 +29,7 @@ def add_dict(newdict, curdict, plugin):
 
 class HelpView(XHTMLView):
     """Shows the help file for the specified path."""
-
+    appname = 'help'
     template = 'helpview.html'
 
     def __init__(self, req, path):
