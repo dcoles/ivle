@@ -67,12 +67,19 @@ class BrowserView(XHTMLView):
         if localpath is None:
             raise NotFound()
 
+        if isinstance(localpath, unicode):
+            localpath = localpath.encode('utf-8')
+
         # Start writing data
 
         # FIXME: This isn't completely reliable! We're not inside the jail, so we
         # can't know the type for sure. This is now only used for adding a / to the
         # end of displayed paths, so I'm leaving this although it will often break.
-        isdir = os.path.isdir(localpath)
+        try:
+            isdir = os.path.isdir(localpath)
+        except OSError:
+            isdir = False
+
         ctx['isdir'] = isdir
         self.gen_path(req, ctx)
         self.gen_actions(req, ctx)
@@ -80,8 +87,9 @@ class BrowserView(XHTMLView):
         # The page title should contain the name of the file being browsed
         ctx['title'] = self.path.rsplit('/', 1)[-1]
 
-        ctx['fileservice_action'] = util.make_path(os.path.join("fileservice", req.path))
-        ctx['filename'] = cgi.escape(req.path)
+        ctx['fileservice_action'] = util.make_path(os.path.join("fileservice",
+                                                                self.path))
+        ctx['filename'] = cgi.escape(self.path)
 
     #TODO: Move all this logic into the template
     def gen_path(self, req, ctx):
