@@ -5,7 +5,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 
 
 class ConsoleView(XHTMLView):
-    appname = 'console'
+    tab = 'console'
     help = 'Console'
 
     plugin_scripts = {'ivle.webapp.console': ['console.js']}

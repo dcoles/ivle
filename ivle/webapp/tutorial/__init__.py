@@ -69,7 +69,7 @@ class Worksheet:
 class OfferingView(XHTMLView):
     '''The view of the index of worksheets for an offering.'''
     template = 'templates/subjectmenu.html'
-    appname = 'tutorial' # XXX
+    tab = 'subjects' # XXX
     permission = 'view'
 
     def __init__(self, req, subject, year, semester):
@@ -146,7 +146,7 @@ class OfferingView(XHTMLView):
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
     template = 'templates/worksheet.html'
-    appname = 'tutorial' # XXX
+    tab = 'subjects'
     permission = 'view'
 
     def __init__(self, req, subject, year, semester, worksheet):
@@ -384,7 +384,7 @@ class WorksheetEditView(XHTMLView):
     into XML directly from RST."""
     permission = "edit"
     template = "templates/worksheet_edit.html"
-    appname = "Edit Worksheet"
+    tab = "subjects"
 
     def __init__(self, req, **kwargs):
     

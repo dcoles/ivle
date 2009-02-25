@@ -40,7 +40,7 @@ class BrowserView(XHTMLView):
     The view for the browser
     """
     template = 'template.html'
-    appname = 'files'
+    tab = 'files'
     help = 'Filesystem/Browser'
 
     def authorize(self, req):

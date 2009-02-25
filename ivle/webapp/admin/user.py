@@ -56,7 +56,7 @@ class UserRESTView(JSONRESTView):
 
 class UserSettingsView(XHTMLView):
     template = 'user-settings.html'
-    appname = 'settings'
+    tab = 'settings'
     permission = 'edit'
 
     def __init__(self, req, login):
