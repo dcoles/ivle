@@ -542,7 +542,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         
         # Exercise Api Urls
         ('api/+exercises', ExercisesRESTView),
-        ('api/+exercises/*exercise/+edit', ExerciseRESTView),
+        ('api/+exercises/*exercise', ExerciseRESTView),
     ]
 
     media = 'media'

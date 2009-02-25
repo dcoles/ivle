@@ -18,12 +18,14 @@
  * Author: Nick Chadwick
  */
 
+/* Show and hide the given page element */
 function tog(something)
 {
   $('#' + something).toggle("slow");
 }
 
-function save_exercise()
+/* Edit the exercise values */
+function edit_exercise()
 {
 
     var exercise_id = $('#exercise_id').val();
@@ -40,8 +42,7 @@ function save_exercise()
         try
         {
             testresponse = JSON.parse(xhr.responseText);
-            alert(testresponse['result']);
-            window.location.reload();
+            alert('Exercise Saved');
             return;
         }
         catch(ex)
@@ -51,11 +52,132 @@ function save_exercise()
         }
     }
     
-    update_path = "api/+exercises/" + exercise + "/+edit";
+    update_path = "api/+exercises/" + exercise;
     
     var args = {'name': exercise_name, 'description': exercise_desc, 
                 'partial': exercise_partial, 'solution': exercise_solution,
                 'include': exercise_include, 'num_rows': exercise_num_rows,
-                'ivle.op': 'update_exercise'};
+                'ivle.op': 'edit_exercise'};
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+/* Modify and add suites */
+function edit_suite(suiteid)
+{
+    var desc = $('#test_suite_description_' + suiteid).val();
+    var func = $('#test_suite_function_' + suiteid).val();
+    var stdin = $('#test_suite_stdin_' + suiteid).val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Suite Saved');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Saving Test Suite');
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'edit_suite', 'description': desc, 'function': func,
+                'stdin': stdin, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+function add_suite()
+{
+    var desc = $('#new_test_suite_description').val();
+    var func = $('#new_test_suite_function').val();
+    var stdin = $('#new_test_suite_stdin').val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Suite Created Sucessfully');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Creating Test Suite');
+        }
+    }
+    
+    var args = {'ivle.op': 'add_suite', 'description': desc, 'function': func,
+                'stdin': stdin};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+/* Modify and add Variables */
+function edit_var(varid)
+{
+    var var_name = $('#var_type_' + varid).val();
+    var var_val = $('#var_val' + varid).val();
+    var var_type = $('#var_name_' + varid).val();
+    var argno = $('#var_argno_' + varid).val();
+
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Variable Added Sucessfully');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Creating Test Suite');
+            return;
+        }
+    }
+
+    var args = {'ivle.op': 'edit_var'};
+    
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST')
+
+}
+
+function add_var(suiteid)
+{
+    var var_name = $('#new_var_type_' + suiteid).val();
+    var var_val = $('#new_var_val' + suiteid).val();
+    var var_type = $('#new_var_name_' + suiteid).val();
+    var argno = $('#new_var_argno_' + suiteid).val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Variable Added Sucessfully');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Creating Test Suite');
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'add_var', 'var_name': var_name, 
+                'var_val': var_val, 'var_type': var_type, 
+                'argno': argno, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }

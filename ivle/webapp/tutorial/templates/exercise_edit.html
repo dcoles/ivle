@@ -33,7 +33,7 @@
       <label for="exercise_include">Exercise Included Code:</label><br />
       <textarea cols="80" rows="5" id="exercise_included" title="Included Code">${exercise.include}</textarea>
       <br />
-      <input type="submit" value="Save Changes" onclick="save_exercise()" />
+      <input type="submit" value="Save Changes" onclick="edit_exercise()" />
       <br />
       <h1>Exercise Test Suites</h1>
       <ul>
@@ -52,6 +52,8 @@
                 <div>
                   <label for="test_suite_stdin_${test_suite.suiteid}">Stdin:</label> <textarea id="test_suite_stdin_${test_suite.suiteid}" title="Suite Stdin" cols="80" rows="4">${test_suite.stdin}</textarea>
                 </div>
+                <br />
+                <input type="submit" name="Save Suite" value="Save Suite" onclick="edit_suite('${test_suite.suiteid}')" />
               </div>
               <br />
           
@@ -63,8 +65,8 @@
                       <label for="var_type_${variable.varid}">Type:</label>
                       <select name="Variable Type" id="var_type_${variable.varid}">
                         <py:for each="var_type in var_types">
-                          <option py:if="var_type == variable.var_type" selected="selected" value="var_type">${var_type}</option>
-                          <option py:if="var_type != variable.var_type" value="var_type">${var_type}</option>
+                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_type}</option>
+                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_type}</option>
                         </py:for>
                       </select>
                       <label for="var_name_${variable.varid}">Var Name:</label>
@@ -73,10 +75,26 @@
                       <input type="text" id="var_val_${variable.varid}" value="${variable.var_value}"/>
                       <label for="var_argno_${variable.varid}">Arg Num:</label>
                       <input size="5" type="text" id="var_argno_${variable.varid}" value="${variable.arg_no}" />
+                      <input type="submit" value="Save" onclick="edit_var_${variable.varid}" />
                     </span>
                     <br />          
                   </py:for>
-                  <a>Add A New Variable</a>
+                  <a onclick="tog('add_variable_${test_suite.suiteid}')">Add A New Variable</a>
+                  <div class="add_variable" id="add_variable_${test_suite.suiteid}">
+                    <label for="new_var_type_${test_suite.suiteid}">Type:</label>
+                    <select name="Variable Type" id="new_var_type_${test_suite.suiteid}">
+                      <py:for each="var_type in var_types">
+                        <option  value="${var_type}">${var_type}</option>
+                      </py:for>
+                    </select>
+                    <label for="new_var_name_${test_suite.suiteid}">Var Name:</label>
+                    <input type="text" id="new_var_name_${test_suite.suiteid}" />
+                    <label for="new_var_val_${test_suite.suiteid}">Var Value:</label>
+                    <input type="text" id="new_var_val_${test_suite.suiteid}" />
+                    <label for="new_var_argno_${test_suite.suiteid}">Arg Num:</label>
+                    <input size="5" type="text" id="new_var_argno_${test_suite.suiteid}" />
+                    <input type="submit" value="Add" onclick="add_var('${test_suite.suiteid}')" />
+                  </div>
                 </div>
               <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h3>Suite ${test_suite.seq_no + 1} - Test Cases</h3></a>
 
@@ -94,30 +112,31 @@
                         <br />
                         <label for="test_case_default_${test_case.test_default}">Default Mode:</label>
                         <input class="textinput" type="text" id="test_case_default_${test_case.test_default}" value="${test_case.test_default}" />
-
-                        <h5>Test Case Parts</h5>
-                        <py:for each="test_part in test_case.parts">
-                          <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
-                          <select name="Part Type" id="test_part_part_type_${test_part.partid}">
-                            <py:for each="part_type in part_types">
-                              <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
-                              <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
-                            </py:for>
-                          </select>
-                          <label for="">Test Type</label>
-                          <select name="Test Type" id="test_part_test_type_${test_part.partid}">
-                            <py:for each="test_type in test_types">
-                              <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
-                              <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
-                            </py:for>
-                          </select>
-                          <br />
-                          <label for="test_part_data_${test_part.partid}">Test:</label><br />
-                          <textarea id="test_part_data_${test_part.partid}" rows="2" cols="80">${test_part.data}</textarea>
-                          <br />
-                          <label for="test_part_file_${test_part.partid}">Filename:</label>
-                          <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
-                        </py:for>
+                        <a onclick="tog('test_case_parts_${test_case.testid}')"><h5>Test Case Parts</h5></a>
+                        <div class="test_case_parts" id="test_case_parts_${test_case.testid}">
+                          <py:for each="test_part in test_case.parts">
+                            <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
+                            <select name="Part Type" id="test_part_part_type_${test_part.partid}">
+                              <py:for each="part_type in part_types">
+                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
+                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
+                              </py:for>
+                            </select>
+                            <label for="">Test Type</label>
+                            <select name="Test Type" id="test_part_test_type_${test_part.partid}">
+                              <py:for each="test_type in test_types">
+                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
+                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label for="test_part_data_${test_part.partid}">Test:</label><br />
+                            <textarea id="test_part_data_${test_part.partid}" rows="2" cols="80">${test_part.data}</textarea>
+                            <br />
+                            <label for="test_part_file_${test_part.partid}">Filename:</label>
+                            <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
+                          </py:for>
+                        </div>
                       </div>
                     </li>
                   </py:for>
@@ -141,7 +160,7 @@
         <div>
           <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
         </div>
-        <input type='submit' name='Submit' onclick='add_suite' value="Add Suite" />
+        <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
       </div>
     </div>
     

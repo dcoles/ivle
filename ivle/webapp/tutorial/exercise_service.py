@@ -77,7 +77,7 @@ class ExerciseRESTView(JSONRESTView):
             raise NotFound()
 
     @named_operation('edit')
-    def update_exercise(self, req, name, description, partial, 
+    def edit_exercise(self, req, name, description, partial, 
                       solution, include, num_rows):
         
         self.context.name = unicode(name)
@@ -90,39 +90,52 @@ class ExerciseRESTView(JSONRESTView):
         return {'result': 'ok'}
         
     @named_operation('edit')
-    def add_suite(self, req, description, seq_no, function, stdin):
+    def add_suite(self, req, description, function, stdin):
         
         new_suite = TestSuite()
-        new_suite.description = description
-        new_suite.seq_no = seq_no
-        new_suite.function = function
-        new_suite.stdin = stdin
+        new_suite.description = unicode(description)
+        new_suite.seq_no = self.context.test_suites.count()
+        new_suite.function = unicode(function)
+        new_suite.stdin = unicode(stdin)
         new_suite.exercise = self.context
         
         req.store.add(new_suite)
         
         return {'result': 'ok'}
         
-
-class TestSuiteRESTView():
-    """View for updating Test Suites, adding variable and adding test parts."""
-    
-    def get_permissions(self, user):
-        if user is not None:
-            if user.rolenm in ('admin', 'lecturer'):
-                return set(['edit'])
-            else:
-                return set()
-        else:
-            return set()
-
     @named_operation('edit')
-    def edit_testsuite(self, req, suiteid):
+    def edit_suite(self, req, suiteid, description, function, stdin):
         
-        test_suite = req.store.find(TestSuite, 
-            TestSuite.suite.id == suiteid).one()
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
         
-        if test_suite is not None:
+        if suite is None:
             raise NotFound()
         
-        return {'result': 'NOT IMPLEMENTED'}
+        suite.description = unicode(description)
+        suite.function = unicode(function)
+        suite.stdin = unicode(stdin)
+        
+        return {'result': 'ok'}
+      
+    @named_operation('edit')
+    def add_var(self, req, suiteid, var_type, var_name, var_val, argno):
+
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        
+        if suite is None:
+            raise NotFound()
+        
+        new_var = TestSuiteVar()
+        new_var.var_type = unicode(var_type)
+        new_var.var_name = unicode(var_name)
+        new_var.var_val = unicode(var_val)
+        new_var.argno = argno
+        new_var.suite = suite
+        
+        req.store.add(new_var)
+        
+        return {'result': 'ok'}

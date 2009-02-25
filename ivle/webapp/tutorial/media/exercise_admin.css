@@ -1,6 +1,6 @@
 .testsuite {
   display: none;
-  width: 800px;
+  width: 900px;
 }
 
 .test_variables {
@@ -27,5 +27,13 @@
 }
 
 #add_suite {
+  display: none;
+}
+
+.add_variable {
+  display: none;
+}
+
+.test_case_parts {
   display: none;
 }
