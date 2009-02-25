@@ -42,6 +42,10 @@ a:hover, a:active, a:focus {
     font-weight: bold;
 }
 
+#ivlebody h2 {
+    font-size: 1.4em;
+}
+
 /** Special styles for header section **/
 
 #ivleheader {
@@ -90,9 +94,11 @@ a:hover, a:active, a:focus {
 
 /* Apps can optionally have a <div id="ivle_padding"> as the outermost
  * element, if 1em of padding is desired (otherwise there will be no padding).
+ * Note: No top padding, since the first element should have a margins (p or
+ * h2).
  */
 #ivle_padding {
-    padding: 1em;
+    padding: 0 1em 1em 1em;
 }
 
 .userhello {
