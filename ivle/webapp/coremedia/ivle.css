@@ -117,14 +117,8 @@ a:hover, a:active, a:focus {
  */
 #ivleheader_tabs {
     position: absolute;
-    height: 4em;            /* == #ivleheader.height */
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    z-index: 2;     /* In front of background, behind text */
+    right: 1em;
+    bottom: 0;
 }
 
 #ivleheader_tabs p {
@@ -137,17 +131,7 @@ a:hover, a:active, a:focus {
 }
 
 /* The apptabs ul is aligned to the bottom of #ivleheader_tabs */
-ul#apptabs {
-    position: absolute;
-    text-align: right;
-    bottom: 0;
-    right: 1em;             /* == #ivleheader.padding-right */
-    padding: 0;
-    margin: 0;
-}
 ul#apptabs li {
-    display: inline;
-    padding: 3px;
     /*border: 1px solid black;*/
     /*background-color: #fc6;*/
     background-image: url(../ivle.webapp.core/images/chrome/tab-left.png);
