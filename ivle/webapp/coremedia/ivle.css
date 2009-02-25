@@ -29,47 +29,54 @@ a:hover, a:active, a:focus {
     color: #a00;
 }
 
+a img {
+    border: none;
+}
+
+/* h1s are styled specially to a small golden 3D bar */
+#ivlebody h1 {
+    background-color: #fea;
+    background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
+    background-repeat: repeat-y;
+    margin: 0;
+    padding: 0.5em;
+    border-top: white 2px solid;        /* Top edge of 3D effect */
+    border-bottom: #863 1px solid;      /* Bottom edge of 3D effect */
+    font-size: 1em;
+    font-weight: bold;
+}
+
+#ivlebody h2 {
+    font-size: 1.4em;
+}
+
 /** Special styles for header section **/
 
 #ivleheader {
     position: absolute;
-    background-color: #fea;
+    background-color: #abf;
+    background-image: url(../ivle.webapp.core/images/chrome/topbar-slashes.png);
+    background-repeat: repeat-x;
     padding: 0;
     border-bottom: 1px solid black;
-    /* IMPORTANT: This 5.3em is hard-coded elsewhere in this file. Search for
+    /* IMPORTANT: This 4em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
-    height: 5.3em;
+    height: 4em;
     left: 0;
     right: 0;
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivleheader_text {
-    /* Pad left and right. */
-    position: absolute;
-    padding: 0 1em;
-    left: 0;
-    right: 0;
-    z-index: 3;     /* In front */
+#ivleheader h1 {
+    margin: 0;
+    padding: 8px;
 }
 
-/* Special "IVLE" and "Informatics Virtual Learning Environment" titles */
-#ivleheader_text h1 {
+#ivleheader_text {
     position: absolute;
-    text-align: left;
-    font-size: 3.8em;
-    font-style: italic;
-    color: #ffc;
-    margin: 0;
-    padding: 0;
-}
-#ivleheader_text h2 {
-    position: absolute;
-    text-align: left;
-    font-size: 1.3em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    padding: 0;
+    padding: 0.5em;
+    top: 0;
+    right: 0.5em;
 }
 
 /* Note: The body has NO PADDING by default (unlike plain HTML).
@@ -81,7 +88,7 @@ a:hover, a:active, a:focus {
     /* This is positioned absolutely so that its content can be positioned
      * absolutely as well, and so height: 100% really means it. */
     position: absolute;
-    top: 5.3em;             /* == #ivleheader.height */
+    top: 4em;               /* == #ivleheader.height */
     bottom: 0;
     width: 100%;
     z-index: 0;     /* Behind header */
@@ -89,16 +96,15 @@ a:hover, a:active, a:focus {
 
 /* Apps can optionally have a <div id="ivle_padding"> as the outermost
  * element, if 1em of padding is desired (otherwise there will be no padding).
+ * Note: No top padding, since the first element should have a margins (p or
+ * h2).
  */
 #ivle_padding {
-    padding: 1em;
+    padding: 0 1em 1em 1em;
 }
 
-.userhello {
+p.userhello {
     font-size: .8em;
-    top: 0;
-    text-align: right;
-    padding: 11px 0;
     margin: 0;
 }
 .userhello .username {
@@ -110,14 +116,8 @@ a:hover, a:active, a:focus {
  */
 #ivleheader_tabs {
     position: absolute;
-    height: 5.3em;          /* == #ivleheader.height */
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    z-index: 2;     /* In front of background, behind text */
+    right: 1em;
+    bottom: 0;
 }
 
 #ivleheader_tabs p {
@@ -129,29 +129,53 @@ a:hover, a:active, a:focus {
     margin: 0;
 }
 
-/* The apptabs ul is aligned to the bottom of #ivleheader_tabs */
 ul#apptabs {
-    position: absolute;
-    text-align: right;
-    bottom: 0;
-    right: 1em;             /* == #ivleheader.padding-right */
-    padding: 0;
     margin: 0;
 }
+
 ul#apptabs li {
     display: inline;
-    padding: 3px;
-    border: 1px solid black;
-    background-color: #fc6;
+    /*border: 1px solid black;*/
+    /*background-color: #fc6;*/
+    background-image: url(../ivle.webapp.core/images/chrome/tab-left.png);
+    background-repeat: no-repeat;
+    background-position: top left;
+    padding: 0;
+    padding-left: 4px;
+}
+ul#apptabs li a {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-right.png);
+    background-repeat: no-repeat;
+    background-position: top right;
+    padding: 0;
+    padding-right: 4px;
+}
+ul#apptabs li a span {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-mid.png);
+    background-repeat: repeat-x;
     padding: 0 3px;
 }
 ul#apptabs li:hover {
-    background-color: #fd8;
+    /*background-color: #fd8;*/
+    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-left.png);
+}
+ul#apptabs li:hover a {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-right.png);
+}
+ul#apptabs li:hover a span {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-mid.png);
 }
 /* Currently active app tab */
 ul#apptabs li.thisapp {
-    background-color: white;
-    border-bottom: 1px solid white;
+    /*background-color: white;*/
+    /*border-bottom: 1px solid white;*/
+    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-left.png);
+}
+ul#apptabs li.thisapp a {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-right.png);
+}
+ul#apptabs li.thisapp a span {
+    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-mid.png);
 }
 
 ul#apptabs a {

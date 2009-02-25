@@ -29,21 +29,24 @@
     left: 0;
     right: 0;
     top: 0;
-    /* height == h2.margin + h2.line-height
-     *              + max(h2.margin, p.margin) + p.line-height + p.margin
-     *        == 1.1*0.7em + 1.1*1.2em + 1.1*0.7em + 1.1em + 0.7em
-     *        == 4.6em */
-    height: 4.6em;
-    padding: 0.5em;
-    background-color: #aaf;
+    /* Approximate height of the components */
+    height: 5em;
+    padding: 0;
+    background-color: #ddd;
 }
 
-#topbar div {
-    margin: 0.2em;
+/* We don't want the bold-ness of a regular golden H1 */
+#topbar #path {
+    font-weight: normal;
 }
 
 #topbar #path a {
     font-weight: bold;
+}
+
+#actions {
+    padding: 0.3em 0.5em;
+    border-top: white 1px solid;        /* Top edge of 3D effect */
 }
 /* class "choice" is for all choices, enabled and disabled. This is for both
  * the <a> actions and <option> actions.
@@ -68,10 +71,6 @@
     color: #aaa;
 }
 
-#actions2 p {
-    margin: 0;
-}
-
 /* One of the actions2s is shown at runtime, depending on the context.
  * We will show moreactions if we need it. */
 #actions1 #moreactions_area, #actions2 #actions2_file,
@@ -85,9 +84,9 @@
     position: absolute;
     left: 0;
     right: 0;
-    /* top == #topbar.height + #topbar.padding * 2 */
-    top: 5.6em;
+    /* top == #topbar.height */
+    top: 5em;
     /* Space for the mimimised console */
-    bottom: 3.5em;
+    bottom: 2em;
 }
 

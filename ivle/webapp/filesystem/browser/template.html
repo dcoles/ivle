@@ -6,68 +6,58 @@
 </head>
 <body>
   <div id="topbar">
-    <div id="path">
-      <span>
-        <py:for each="segment in paths">/<a href="${segment['href_path']}" title="Navigate to ${segment['nav_path']}">${segment['path']}</a></py:for><py:if test="isdir">/</py:if><py:if test="revno is not None"> (revision ${revno})</py:if>
-      </span>
-    </div>
-    <div id="actions1">
-      <a id="act_open" class="disabled">Open</a> :
-      <a id="act_serve"
-          title="View this file on the web, running your code if this is a CGI file"
-          class="disabled" target="_blank">Serve</a> :
-      <a id="act_run" title="Run the selected Python file in the console"
-          class="disabled">Run</a> :
-      <a id="act_download" class="choice">Download</a> :
-      <a title="Refresh the current page" onclick="refresh()"
-          class="choice">Refresh</a>
-      <span id="moreactions_area"> :
-        <select id="moreactions" onchange="handle_moreactions()"
-            onblur="handle_moreactions()">
-          <option class="moreactions" value="top"
-              selected="selected">More actions...</option>
-          <py:for each="(name, disablement, group) in moreactions">
+    <h1 id="path">
+      <py:for each="segment in paths">/<a href="${segment['href_path']}" title="Navigate to ${segment['nav_path']}">${segment['path']}</a></py:for><py:if test="isdir">/</py:if><py:if test="revno is not None"> (revision ${revno})</py:if>
+    </h1>
+    <div id="actions">
+      <span id="actions1">
+        <a id="act_open" class="disabled">Open</a> :
+        <a id="act_serve"
+            title="View this file on the web, running your code if this is a CGI file"
+            class="disabled" target="_blank">Serve</a> :
+        <a id="act_run" title="Run the selected Python file in the console"
+            class="disabled">Run</a> :
+        <a id="act_download" class="choice">Download</a> :
+        <a title="Refresh the current page" onclick="refresh()"
+            class="choice">Refresh</a>
+        <span id="moreactions_area"> :
+          <select id="moreactions" onchange="handle_moreactions()"
+              onblur="handle_moreactions()">
+            <option class="moreactions" value="top"
+                selected="selected">More actions...</option>
+            <py:for each="(name, disablement, group) in moreactions">
 
-            <optgroup label="${name}">
+              <optgroup label="${name}">
 
-              <py:choose test="disablement">
+                <py:choose test="disablement">
 
-                <py:when test="True">
-                  <py:for each="(id, bits) in group">
-                    <option id="act_${id}" class="disabled" disabled="disabled"
-                        title="${bits[1]}" value="${id}">${bits[0]}</option>
-                  </py:for>
-                </py:when>
+                  <py:when test="True">
+                    <py:for each="(id, bits) in group">
+                      <option id="act_${id}" class="disabled" disabled="disabled"
+                          title="${bits[1]}" value="${id}">${bits[0]}</option>
+                    </py:for>
+                  </py:when>
 
-                <py:otherwise>
-                  <py:for each="(id, bits) in group">
-                    <option id="act_${id}" title="${bits[1]}" 
-                        value="${id}">${bits[0]}</option>
-                  </py:for>                
-                </py:otherwise>
+                  <py:otherwise>
+                    <py:for each="(id, bits) in group">
+                      <option id="act_${id}" title="${bits[1]}" 
+                          value="${id}">${bits[0]}</option>
+                    </py:for>                
+                  </py:otherwise>
 
-              </py:choose>
+                </py:choose>
 
-            </optgroup>
-          </py:for>
-        </select>
-      </span>
-    </div>
-    <div id="actions2">
-      <form id="actions2_directory"
-          target="upload_iframe"
-          action="${fileservice_action}"
-          enctype="multipart/form-data" method="post">
-        <p>
-          <span id="selectallpanel">
-          Select:
-            <a onclick="action_selectall(true)"
-                title="Select all files in this directory">All</a> :
-            <a onclick="action_selectall(false)"
-                title="Deselect all files in this directory">None</a>
-          </span>
-
-          <span style="display:none" id="uploadpanel">|
+              </optgroup>
+            </py:for>
+          </select>
+        </span>
+      </span> <!-- actions1 -->
+      <span id="actions2">
+        <form id="actions2_directory"
+            target="upload_iframe"
+            action="${fileservice_action}"
+            enctype="multipart/form-data" method="post">
+          <span style="display:none" id="uploadpanel">
             <label for="upload_file">Upload file:</label>
             <input type="hidden" value="putfile" name="action" />
             <input type="hidden" value="" name="path" />
@@ -81,20 +71,20 @@
                refreshing the page. (It will refresh the listing). -->
           <iframe onload="upload_callback()" style="display: none;"
               name="upload_iframe" id="upload_iframe"></iframe>
-        </p>
-      </form>
-      <p id="actions2_file">
-        <input type="button" id="save_button" value="Save" onclick="save_file('${filename}')" />
-        <input type="button" id="saveas_button" value="Save As..." onclick="save_file_as('${filename}')" />
-        <select id="highlighting_select" onchange="highlighting_changed(this)">
-          <option value="text">Text</option>
-          <option value="python">Python</option>
-          <option value="html">HTML</option>
-          <option value="javascript">JavaScript</option>
-          <option value="css">CSS</option>
-        </select>
-      </p>
-    </div>
+        </form>
+        <span id="actions2_file">
+          <input type="button" id="save_button" value="Save" onclick="save_file('${filename}')" />
+          <input type="button" id="saveas_button" value="Save As..." onclick="save_file_as('${filename}')" />
+          <select id="highlighting_select" onchange="highlighting_changed(this)">
+            <option value="text">Text</option>
+            <option value="python">Python</option>
+            <option value="html">HTML</option>
+            <option value="javascript">JavaScript</option>
+            <option value="css">CSS</option>
+          </select>
+        </span>
+      </span> <!-- actions2 -->
+    </div> <!-- actions -->
   </div>
   <!-- Body. The JavaScript places content here relevant to the path -->
   <div id="filesbody">
