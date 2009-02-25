@@ -64,6 +64,21 @@ li.semicomplete {
     margin-left: 1.5em;
 }
 
+/* Cancel out the main stylesheet's h1 (the golden bar at the top).
+ * Make it just look like the default (HTML4) style sheet's h1, but a bit
+ * smaller.
+ */
+#ivle_padding h1 {
+    background: none;
+    margin: 0;
+    padding: 0;
+    margin: 0.67em 0;
+    border: 0;
+    font-weight: bolder;
+    /* font-size: 2em; (standard) */
+    font-size: 1.6em;
+}
+
 h1 a, h2 a {
     color: black;
     text-decoration: none;
