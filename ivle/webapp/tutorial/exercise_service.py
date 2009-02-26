@@ -139,3 +139,23 @@ class ExerciseRESTView(JSONRESTView):
         req.store.add(new_var)
         
         return {'result': 'ok'}
+
+    @named_operation('edit')
+    def edit_var(self, req, suiteid, varid, var_type, var_name, var_val, argno):
+        var = req.store.find(TestSuiteVar,
+            TestSuiteVar.varid == int(varid),
+            TestSuiteVar.suiteid == int(suiteid)
+        ).one()
+        
+        if var is None:
+            raise NotFound()
+            
+        var.var_type = unicode(var_type)
+        var.var_name = unicode(var_name)
+        var.var_val = unicode(var_val)
+        var.argno = int(argno)
+        
+        return {'result': 'ok'}
+    
+    @named_operation
+    def add_testcase(): pass

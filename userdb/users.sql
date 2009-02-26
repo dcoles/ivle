@@ -8,9 +8,7 @@ CREATE TABLE login (
     state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'pending',
                                               'enabled', 'disabled'))
                                  DEFAULT 'no_agreement',
-    rolenm      VARCHAR NOT NULL CHECK (rolenm in ('anyone', 'student',
-                                                   'marker', 'tutor',
-                                                   'lecturer', 'admin')),
+    admin       BOOLEAN NOT NULL DEFAULT false,
     unixid      INT UNIQUE DEFAULT nextval('login_unixid_seq') NOT NULL,
     nick        VARCHAR NOT NULL,
     pass_exp    TIMESTAMP,
@@ -38,24 +36,10 @@ CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
     year        CHAR(4) NOT NULL,
     semester    CHAR(1) NOT NULL,
-    active      BOOL NOT NULL,
+    state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
+                                    'current', 'future')) DEFAULT 'current',
     UNIQUE (year, semester)
 );
-
-CREATE OR REPLACE FUNCTION deactivate_semester_enrolments_update()
-RETURNS trigger AS '
-    BEGIN
-        IF OLD.active = true AND NEW.active = false THEN
-            UPDATE enrolment SET active=false WHERE offeringid IN (
-            SELECT offeringid FROM offering WHERE offering.semesterid = NEW.semesterid);
-        END IF;
-        RETURN NULL;
-    END;
-' LANGUAGE 'plpgsql';
-
-CREATE TRIGGER deactivate_semester_enrolments
-    AFTER UPDATE ON semester
-    FOR EACH ROW EXECUTE PROCEDURE deactivate_semester_enrolments_update();
 
 CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
@@ -129,6 +113,8 @@ CREATE TABLE group_member (
 CREATE TABLE enrolment (
     loginid     INT4 REFERENCES login (loginid),
     offeringid  INT4 REFERENCES offering (offeringid),
+    role        TEXT NOT NULL CHECK (role IN ('student', 'tutor',
+                                              'lecturer')) DEFAULT 'student',
     result      INT,
     special_result VARCHAR,
     supp_result INT,
@@ -137,23 +123,6 @@ CREATE TABLE enrolment (
     active      BOOL NOT NULL DEFAULT true,
     PRIMARY KEY (loginid,offeringid)
 );
-
-CREATE OR REPLACE FUNCTION confirm_active_semester_insertupdate()
-RETURNS trigger AS '
-    DECLARE
-        active BOOL;
-    BEGIN
-        SELECT semester.active INTO active FROM offering, semester WHERE offeringid=NEW.offeringid AND semester.semesterid = offering.semesterid;
-        IF NOT active AND NEW.active = true THEN
-            RAISE EXCEPTION ''cannot have active enrolment for % in offering %, as the semester is inactive'', NEW.loginid, NEW.offeringid;
-        END IF;
-        RETURN NEW;
-    END;
-' LANGUAGE 'plpgsql';
-
-CREATE TRIGGER confirm_active_semester
-    BEFORE INSERT OR UPDATE ON enrolment
-    FOR EACH ROW EXECUTE PROCEDURE confirm_active_semester_insertupdate();
 
 CREATE TABLE assessed (
     assessedid  SERIAL PRIMARY KEY NOT NULL,

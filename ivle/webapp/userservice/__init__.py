@@ -138,12 +138,13 @@ import datetime
 import cjson
 
 import ivle.database
-from ivle import (util, chat, caps)
+from ivle import (util, chat)
 from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 from ivle.webapp.security import get_user_details
 import ivle.pulldown_subj
 
-from ivle.rpc.decorators import require_method, require_cap
+from ivle.rpc.decorators import require_method, require_role_anywhere, \
+                                require_admin
 
 from ivle.auth import AuthError, authenticate
 import urllib
@@ -160,8 +161,8 @@ USER_DECLARATION = "I accept the IVLE Terms of Service"
 # (as returned by the get_user action)
 user_fields_list = (
     "login", "state", "unixid", "email", "nick", "fullname",
-    "rolenm", "studentid", "acct_exp", "pass_exp", "last_login",
-    "svn_pass"
+    "admin", "studentid", "acct_exp", "pass_exp", "last_login",
+    "svn_pass", "admin",
 )
 
 class UserServiceView(BaseView):
@@ -270,14 +271,14 @@ def handle_activate_me(req, fields):
     req.write(cjson.encode(response))
 
 create_user_fields_required = [
-    'login', 'fullname', 'rolenm'
+    'login', 'fullname',
 ]
 create_user_fields_optional = [
-    'password', 'nick', 'email', 'studentid'
+    'admin', 'password', 'nick', 'email', 'studentid'
 ]
 
 @require_method('POST')
-@require_cap(caps.CAP_UPDATEUSER)
+@require_admin
 def handle_create_user(req, fields):
     """Create a new user, whose state is no_agreement.
     This does not create the user's jail, just an entry in the database which
@@ -296,9 +297,8 @@ def handle_create_user(req, fields):
         fullname    - The name of the user for results and/or other official
                       purposes.
                       STRING REQUIRED
-        rolenm      - The user's role. Must be one of "anyone", "student",
-                      "tutor", "lecturer", "admin".
-                      STRING/ENUM REQUIRED
+        admin       - Whether the user is an admin.
+                      BOOLEAN REQUIRED
         studentid   - If supplied and not None, the student id of the user for
                       results and/or other official purposes.
                       STRING OPTIONAL
@@ -330,7 +330,7 @@ update_user_fields_anyone = [
     'password', 'nick', 'email'
 ]
 update_user_fields_admin = [
-    'password', 'nick', 'email', 'rolenm', 'unixid', 'fullname',
+    'password', 'nick', 'email', 'admin', 'unixid', 'fullname',
     'studentid'
 ]
 
@@ -338,10 +338,10 @@ update_user_fields_admin = [
 def handle_update_user(req, fields):
     """Update a user's account details.
     This can be done in a limited form by any user, on their own account,
-    or with full powers by a user with CAP_UPDATEUSER on any account.
+    or with full powers by an admin user on any account.
     """
-    # Only give full powers if this user has CAP_UPDATEUSER
-    fullpowers = req.user.hasCap(caps.CAP_UPDATEUSER)
+    # Only give full powers if this user is an admin.
+    fullpowers = req.user.admin
     # List of fields that may be changed
     fieldlist = (update_user_fields_admin if fullpowers
         else update_user_fields_anyone)
@@ -392,8 +392,8 @@ def handle_get_user(req, fields):
     module is willing to give up, EXCEPT the following fields:
         svn_pass
     """
-    # Only give full powers if this user has CAP_GETUSER
-    fullpowers = req.user.hasCap(caps.CAP_GETUSER)
+    # Only give full powers if this user is an admin
+    fullpowers = req.user.admin
 
     try:
         login = fields.getfirst('login')
@@ -426,8 +426,6 @@ def handle_get_enrolments(req, fields):
     """
     # For the moment we're only able to query ourselves
     fullpowers = False
-    ## Only give full powers if this user has CAP_GETUSER
-    ##fullpowers = req.user.hasCap(caps.CAP_GETUSER)
 
     try:
         user = ivle.database.User.get_by_login(req.store,
@@ -478,9 +476,9 @@ def handle_get_active_offerings(req, fields):
                               'subj_name': offering.subject.name,
                               'year': offering.semester.year,
                               'semester': offering.semester.semester,
-                              'active': offering.semester.active
+                              'active': True # XXX: Eliminate from protocol.
                              } for offering in subject.offerings
-                                    if offering.semester.active])
+                                    if offering.semester.state == 'current'])
     req.content_type = "text/plain"
     req.write(response)
 
@@ -515,7 +513,7 @@ def handle_get_project_groups(req, fields):
     req.write(response)
 
 @require_method('POST')
-@require_cap(caps.CAP_MANAGEGROUPS)
+@require_role_anywhere('tutor', 'lecturer')
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
     Creates a project group in a specific project set
@@ -625,7 +623,7 @@ def handle_get_group_membership(req, fields):
     req.write(response)
 
 @require_method('POST')
-@require_cap(caps.CAP_MANAGEGROUPS)
+@require_role_anywhere('tutor', 'lecturer')
 def handle_assign_group(req, fields):
     """ Required cap: CAP_MANAGEGROUPS
     Assigns a user to a project group

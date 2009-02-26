@@ -1,7 +1,6 @@
 #console_body {
     background-color: white;
     position: absolute;
-    font-size: 150%;
     color: black;
     padding: 0;
     width: 100%;
@@ -23,7 +22,7 @@
 #console_body.windowpane #console_body2 {
     /* Need some padding in windowpane mode */
     /* (In full mode, things are positioned absolutely) */
-    padding: 0.5em;
+    padding: 0.2em;
 }
 /* Heading bar */
 #console_heading {
@@ -52,12 +51,11 @@
     /*margin-bottom: 0.5em;*/
     position: absolute;
     /* 2em is to accomodate the header bar, and some padding */
-    top: 2em;
+    top: 3.4em;
     /* 2.5em is to accomodate the input bar, and padding either side */
     bottom: 2.5em;
-    /* left and right 0.5em are just for horizontal padding */
-    left: 0.5em;
-    right: 0.5em;
+    left: 0;
+    right: 0;
     /* Display scroll bars */
     overflow: scroll;
     /* Some browsers support overflow-x and overflow-y. In this case, use
@@ -66,14 +64,28 @@
      * horizontal scroll bar).
      */
     overflow-x: auto;
+    padding: 0.5em;
+    /* On some displays, monospace font is much smaller than everything else.
+     * We just set the console font to 13px to appear a bit bigger (this is
+     * the same size as the editor's font).
+     */
+    font-size: 13px;
 }
 #console_body.windowpane #console_output {
     /* Don't want this absolutely positioned in windowpane mode */
     position: static;
+    /* Make it a bit higher up, because the header is thinner in this mode */
+    top: 2em;
     /* Give it an explicit height instead */
     height: 15em;
     margin-bottom: 0.5em;
 }
+
+#console_body.windowpane.maximal, #console_body.windowpane #console_heading {
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
+}
+
 #console_input {
     position: absolute;
     /* Input bar goes along the bottom. Pad all sides */
@@ -81,6 +93,7 @@
     right: 0.5em;
     bottom: 0.5em;
 }
+
 #console_body.windowpane #console_input {
     /* Don't want this absolutely positioned in windowpane mode */
     position: static;
@@ -89,14 +102,10 @@
     font-family: monospace;
 }
 #console_inputText {
-    background-color: white;
-    font-size: 80%;
-    color: black;
+    font-family: monospace;
     width: 75%;
 }
-#console_inputText.disabled {
-    background-color: #aaa;
-}
+
 /* console filler takes up the same space as console_body.windowpane
  * but its position is relative, not fixed.
  * This avoids having the console overlap with the bottom 28em of page
@@ -117,14 +126,12 @@
     right: 0;
 }
 #console_filler.maximal {
-    /* total height of console = 20em + 1em + 0.5em + 0.5em + 0.5em + 1em + borders
-     */
-    height: 24em;
+    /* Trial and error is useful to work this out. */
+    height: 14em;
 }
 #console_filler.minimal {
-    /* total height of console = 1em + 0.5em + 0.5em
-     */
-    height: 4em;
+    /* Trial and error is useful to work this out. */
+    height: 1em;
 }
 *.errorMsg {
     color: red;

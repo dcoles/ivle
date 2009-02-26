@@ -38,13 +38,13 @@ import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise
 from ivle.database import Worksheet as DBWorksheet
-import ivle.worksheet
+import ivle.worksheet.utils
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import BaseMediaFileView, media_url
 from ivle.webapp.errors import NotFound, Forbidden
-from ivle.webapp.tutorial.rst import rst as rstfunc
+from ivle.worksheet.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
             WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
@@ -71,7 +71,7 @@ class Worksheet:
 class OfferingView(XHTMLView):
     '''The view of the index of worksheets for an offering.'''
     template = 'templates/subjectmenu.html'
-    appname = 'tutorial' # XXX
+    tab = 'subjects' # XXX
     permission = 'view'
 
     def __init__(self, req, subject, year, semester):
@@ -108,7 +108,7 @@ class OfferingView(XHTMLView):
             if new_worksheet.assessable:
                 # Calculate the user's score for this worksheet
                 mand_done, mand_total, opt_done, opt_total = (
-                    ivle.worksheet.calculate_score(req.store, req.user,
+                    ivle.worksheet.utils.calculate_score(req.store, req.user,
                         worksheet))
                 if opt_total > 0:
                     optional_message = " (excluding optional exercises)"
@@ -148,7 +148,7 @@ class OfferingView(XHTMLView):
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
     template = 'templates/worksheet.html'
-    appname = 'tutorial' # XXX
+    tab = 'subjects'
     permission = 'view'
 
     def __init__(self, req, subject, year, semester, worksheet):
@@ -178,11 +178,8 @@ class WorksheetView(XHTMLView):
         ctx['worksheet'] = self.context
         ctx['semester'] = self.semester
         ctx['year'] = self.year
-        if self.context.format == 'rst':
-            ws_xml = '<worksheet>' + rstfunc(self.context.data) + '</worksheet>'
-        else:
-            ws_xml = self.context.data
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(ws_xml)))
+
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -349,12 +346,12 @@ def present_exercise(req, src, worksheet):
     # an attempt, then use that text instead of the supplied "partial".
     # Get exercise stored text will return a save, or the most recent attempt,
     # whichever is more recent
-    save = ivle.worksheet.get_exercise_stored_text(
+    save = ivle.worksheet.utils.get_exercise_stored_text(
                         req.store, req.user, worksheet_exercise)
 
     # Also get the number of attempts taken and whether this is complete.
     complete, curctx['attempts'] = \
-            ivle.worksheet.get_exercise_status(req.store, req.user, 
+            ivle.worksheet.utils.get_exercise_status(req.store, req.user, 
                                                worksheet_exercise)
     if save is not None:
         curctx['exercisesave'] = save.text
@@ -366,7 +363,8 @@ def present_exercise(req, src, worksheet):
     #Save the exercise details to the Table of Contents
 
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
-    tmpl = loader.load(os.path.join(os.path.dirname(__file__), "exercise.html"))
+    tmpl = loader.load(os.path.join(os.path.dirname(__file__),
+        "templates/exercise.html"))
     ex_stream = tmpl.generate(curctx)
     return {'name': exercise.name,
             'complete': curctx['complete_class'],
@@ -388,7 +386,7 @@ class WorksheetEditView(XHTMLView):
     into XML directly from RST."""
     permission = "edit"
     template = "templates/worksheet_edit.html"
-    appname = "Edit Worksheet"
+    tab = "subjects"
 
     def __init__(self, req, **kwargs):
     

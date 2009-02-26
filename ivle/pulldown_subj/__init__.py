@@ -33,7 +33,7 @@ import datetime
 from subjecterror import SubjectError
 import ivle.conf
 
-from ivle.database import Subject, Offering, Semester, AlreadyEnrolledError
+from ivle.database import Subject, Offering, Semester
 
 def get_subjects(login):
     """
@@ -79,11 +79,8 @@ def enrol_user(store, user, year=None):
         if not offering:
             continue
 
-        try:
-            offering.enrol(user)
-            count += 1
-        except AlreadyEnrolledError:
-            pass
+        offering.enrol(user)
+        count += 1
     return count
 
 # Allow imports to get files from this directory.

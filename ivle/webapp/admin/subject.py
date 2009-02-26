@@ -36,33 +36,13 @@ from ivle import util
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
     template = 'subjects.html'
-    appname = 'subjects' # XXX
+    tab = 'subjects'
 
     def authorize(self, req):
         return req.user is not None
 
     def populate(self, req, ctx):
-        enrolled_subjects = req.user.subjects
-        unenrolled_subjects = [subject for subject in
-                               req.store.find(Subject)
-                               if subject not in enrolled_subjects]
-
-        ctx['enrolled_subjects'] = []
-        ctx['other_subjects'] = []
-
-        for subject in enrolled_subjects:
-            new_subj = {}
-            new_subj['name'] = subject.name
-            new_subj['url'] = subject.url
-            ctx['enrolled_subjects'].append(new_subj)
-
-        if len(unenrolled_subjects) > 0:
-            for subject in unenrolled_subjects:
-                new_subj = {}
-                new_subj['name'] = subject.name
-                new_subj['url'] = subject.url
-                ctx['other_subjects'].append(new_subj)
-
+        ctx['enrolments'] = req.user.active_enrolments
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
@@ -70,8 +50,9 @@ class Plugin(ViewPlugin, MediaPlugin):
     ]
 
     tabs = [
-        ('subjects', 'Subjects', 'Announcements and information about the '
-         'subjects you are enrolled in.', 'subjects.png', 'subjects', 5)
+        ('subjects', 'Subjects',
+         'View subject content and complete worksheets',
+         'subjects.png', 'subjects', 5)
     ]
 
     media = 'subject-media'

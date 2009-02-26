@@ -11,14 +11,15 @@
     </script>
   </head>
   <body>
+    <h1>Edit ${worksheet.name} in ${subject.name}</h1>
     <div id="ivle_padding">
-      <h1>Edit ${worksheet.name} in ${subject.name}</h1>
       <div id='worksheet_input'>
         <label for='worksheet_name'>Name:</label>
         <input type='text' id='worksheet_name' class='worksheet_area' value='${worksheet.name}' />
         <br />
         <label for='worksheet_asses'>Assessable:</label>
-        <input type='checkbox' name='asses' id='worksheet_asses' checked='${worksheet.assessable}' />
+        <input type='checkbox' name='asses' id='worksheet_asses'
+               py:attrs="{'checked': 'checked' if worksheet.assessable else None}" />
         <br />
         <label for='worksheet_format'>Worksheet Format:</label>
         <select name='format' id='worksheet_format'>

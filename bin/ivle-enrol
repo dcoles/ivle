@@ -25,15 +25,17 @@
 import os
 import sys
 
-from ivle.database import get_store, Subject, Semester, Offering, User, \
-                          AlreadyEnrolledError
+from ivle.database import get_store, Subject, Semester, Offering, User
 
 def die(error):
     print >> sys.stderr, '%s: %s' % (os.path.basename(sys.argv[0]), error)
     sys.exit(1)
 
-if len(sys.argv) != 5:
-    print >> sys.stderr, "usage: %s <login> <subjectcode> <year> <semester>" \
+if len(sys.argv) not in (5, 6):
+    print >> sys.stderr, '''usage: %s <login> <subjectcode> <year> <semester> [role]
+
+'role' should be one of student (the default), tutor or lecturer.
+If an enrolment already exists, it will be reactivated and its role set.''' \
                          % os.path.basename(sys.argv[0])
     sys.exit()
 
@@ -52,11 +54,10 @@ offering = store.find(Offering,
 if not offering:
     die("subject offering not found")
 
-if not offering.semester.active:
-    die("cannot enrol - semester inactive")
-    
+role = unicode(sys.argv[5]) if len(sys.argv) == 6 else u'student'
+
 try:
-    offering.enrol(user)
+    offering.enrol(user, role)
 except AlreadyEnrolledError:
     die("already enrolled")
 

@@ -85,6 +85,8 @@ class XHTMLView(BaseView):
 
         ctx['scripts_init'] = req.scripts_init
         ctx['app_template'] = app
+        ctx['title_img'] = media_url(req, CorePlugin,
+                                     "images/chrome/title.png")
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
@@ -117,8 +119,8 @@ class XHTMLView(BaseView):
             for tab in plugin.tabs:
                 # tab is a tuple: name, title, desc, icon, path
                 new_app = {}
-                new_app['this_app'] = hasattr(self, 'appname') \
-                                      and tab[0] == self.appname
+                new_app['this_app'] = hasattr(self, 'tab') \
+                                      and tab[0] == self.tab
 
                 # Icon name
                 if tab[3] is not None:

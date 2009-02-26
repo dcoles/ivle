@@ -187,7 +187,7 @@ def get_terms_of_service():
     try:
         return open(ivle.conf.tos_path).read()
     except IOError:
-        return """<h1>Terms of Service</h1>
+        return """\
 <p><b>*** SAMPLE ONLY ***</b></p>
 <p>This is the text of the IVLE Terms of Service.</p>
 <p>The administrator should create a license file with an appropriate

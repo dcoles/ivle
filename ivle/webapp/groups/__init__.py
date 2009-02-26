@@ -23,7 +23,6 @@ Allows students and tutors to manage project groups.
 
 # TODO Does not distinguish between current and past subjects.
 
-from ivle import caps
 from ivle.database import Subject
 
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
@@ -34,7 +33,7 @@ class GroupsView(XHTMLView):
     The groups view
     """
     template = 'template.html'
-    appname = 'groups' # XXX
+    tab = 'groups'
 
     def authorize(self, req):
         return req.user is not None
@@ -46,8 +45,10 @@ class GroupsView(XHTMLView):
         # Show a group panel per enrolment
         ctx['get_user_groups'] = req.user.get_groups
         ctx['enrolments'] = req.user.active_enrolments
+
+        roles = set((e.role for e in req.user.active_enrolments))
         ctx['manage_subjects'] = req.store.find(Subject) if \
-              req.user.hasCap(caps.CAP_MANAGEGROUPS) else []
+              req.user.admin or 'tutor' in roles or 'lecturer' in roles else []
 
 
 class Plugin(ViewPlugin, MediaPlugin):

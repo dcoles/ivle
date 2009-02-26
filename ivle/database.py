@@ -31,7 +31,7 @@ from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
 
 import ivle.conf
-import ivle.caps
+from ivle.worksheet.rst import rst
 
 __all__ = ['get_store',
             'User',
@@ -39,7 +39,7 @@ __all__ = ['get_store',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
-            'AlreadyEnrolledError', 'TestCase', 'TestSuite', 'TestSuiteVar'
+            'TestCase', 'TestSuite', 'TestSuiteVar'
         ]
 
 def _kwarg_init(self, **kwargs):
@@ -87,7 +87,7 @@ class User(Storm):
     login = Unicode()
     passhash = Unicode()
     state = Unicode()
-    rolenm = Unicode()
+    admin = Bool()
     unixid = Int()
     nick = Unicode()
     pass_exp = DateTime()
@@ -98,16 +98,6 @@ class User(Storm):
     fullname = Unicode()
     studentid = Unicode()
     settings = Unicode()
-
-    def _get_role(self):
-        if self.rolenm is None:
-            return None
-        return ivle.caps.Role(self.rolenm)
-    def _set_role(self, value):
-        if not isinstance(value, ivle.caps.Role):
-            raise TypeError("role must be an ivle.caps.Role")
-        self.rolenm = unicode(value)
-    role = property(_get_role, _set_role)
 
     __init__ = _kwarg_init
 
@@ -124,12 +114,6 @@ class User(Storm):
         if self.passhash is None:
             return None
         return self.hash_password(password) == self.passhash
-
-    def hasCap(self, capability):
-        """Given a capability (which is a Role object), returns True if this
-        User has that capability, False otherwise.
-        """
-        return self.role.hasCap(capability)
 
     @property
     def password_expired(self):
@@ -212,7 +196,7 @@ class User(Storm):
         return store.find(cls, cls.login == unicode(login)).one()
 
     def get_permissions(self, user):
-        if user and user.rolenm == 'admin' or user is self:
+        if user and user.admin or user is self:
             return set(['view', 'edit'])
         else:
             return set()
@@ -239,7 +223,7 @@ class Subject(Storm):
         perms = set()
         if user is not None:
             perms.add('view')
-            if user.rolenm == 'admin':
+            if user.admin:
                 perms.add('edit')
         return perms
 
@@ -249,7 +233,7 @@ class Semester(Storm):
     id = Int(primary=True, name="semesterid")
     year = Unicode()
     semester = Unicode()
-    active = Bool()
+    state = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.semester_id')
 
@@ -286,23 +270,24 @@ class Offering(Storm):
         return "<%s %r in %r>" % (type(self).__name__, self.subject,
                                   self.semester)
 
-    def enrol(self, user):
+    def enrol(self, user, role=u'student'):
         '''Enrol a user in this offering.'''
-        # We'll get a horrible database constraint violation error if we try
-        # to add a second enrolment.
-        if Store.of(self).find(Enrolment,
+        enrolment = Store.of(self).find(Enrolment,
                                Enrolment.user_id == user.id,
-                               Enrolment.offering_id == self.id).count() == 1:
-            raise AlreadyEnrolledError()
+                               Enrolment.offering_id == self.id).one()
 
-        e = Enrolment(user=user, offering=self, active=True)
-        self.enrolments.add(e)
+        if enrolment is None:
+            enrolment = Enrolment(user=user, offering=self)
+            self.enrolments.add(enrolment)
+
+        enrolment.active = True
+        enrolment.role = role
 
     def get_permissions(self, user):
         perms = set()
         if user is not None:
             perms.add('view')
-            if user.rolenm in ('admin', 'lecturer'):
+            if user.admin:
                 perms.add('edit')
         return perms
 
@@ -314,6 +299,7 @@ class Enrolment(Storm):
     user = Reference(user_id, User.id)
     offering_id = Int(name="offeringid")
     offering = Reference(offering_id, Offering.id)
+    role = Unicode()
     notes = Unicode()
     active = Bool()
 
@@ -330,9 +316,6 @@ class Enrolment(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
-
-class AlreadyEnrolledError(Exception):
-    pass
 
 # PROJECTS #
 
@@ -437,7 +420,7 @@ class Exercise(Storm):
     def get_permissions(self, user):
         perms = set()
         if user is not None:
-            if user.rolenm in ('admin', 'lecturer'):
+            if user.admin:
                 perms.add('edit')
                 perms.add('view')
         return perms
@@ -457,11 +440,16 @@ class Worksheet(Storm):
     attempts = ReferenceSet(id, "ExerciseAttempt.worksheetid")
     offering = Reference(offering_id, 'Offering.id')
 
-    # Use worksheet_exercises to get access to the WorksheetExercise objects
-    # binding worksheets to exercises. This is required to access the
-    # "optional" field.
-    worksheet_exercises = ReferenceSet(id,
+    all_worksheet_exercises = ReferenceSet(id,
         'WorksheetExercise.worksheet_id')
+
+    # Use worksheet_exercises to get access to the *active* WorksheetExercise
+    # objects binding worksheets to exercises. This is required to access the
+    # "optional" field.
+
+    @property
+    def worksheet_exercises(self):
+        return self.all_worksheet_exercises.find(active=True)
 
     __init__ = _kwarg_init
 
@@ -491,6 +479,14 @@ class Worksheet(Storm):
             
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
+    
+    def get_xml(self):
+        """Returns the xml of this worksheet, converts from rst if required."""
+        if self.format == u'rst':
+            ws_xml = '<worksheet>' + rst(self.data) + '</worksheet>'
+            return ws_xml
+        else:
+            return self.data
 
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_exercise"

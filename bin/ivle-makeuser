@@ -41,7 +41,7 @@ from ivle.pulldown_subj import enrol_user
 # Requireds and optionals will be used to display the usage message
 # AND do argument processing
 # The names here must correspond to the fields in the database.
-requireds = ["login", "fullname", "rolenm"]
+requireds = ["login", "fullname"]
 optionals = [
     ('p', 'password', "Cleartext password for this user"),
     ('n', 'nick', "Display name (defaults to <fullname>)"),

@@ -4,8 +4,8 @@
     <title>${exception.codename}</title>
   </head>
   <body>
+    <h1>${exception.codename}</h1>
     <div id="ivle_padding">
-      <h1>${exception.codename}</h1>
       <h3>HTTP error ${exception.code}</h3>
       <p py:if="exception.message">${exception.message}</p>
     </div>

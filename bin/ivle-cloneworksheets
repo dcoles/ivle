@@ -1,0 +1,70 @@
+#!/usr/bin/python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Author: Will Grant
+
+import os
+import sys
+
+from ivle.database import get_store, Subject, Semester, Offering, Worksheet
+import ivle.worksheet.utils
+
+def die(error):
+    print >> sys.stderr, '%s: %s' % (os.path.basename(sys.argv[0]), error)
+    sys.exit(1)
+
+if len(sys.argv) != 7:
+    print >> sys.stderr, "usage: %s <oldsubjectcode> <oldyear> <oldsemester> "\
+                         "<newsubjectcode> <newyear> <newsemester>" \
+                         % os.path.basename(sys.argv[0])
+    sys.exit()
+
+store = get_store()
+
+src = store.find(Offering,
+                 Subject.code == unicode(sys.argv[1]),
+                 Semester.year == unicode(sys.argv[2]),
+                 Semester.semester == unicode(sys.argv[3]),
+                 Offering.subject_id == Subject.id,
+                 Offering.semester_id == Semester.id).one()
+
+dst = store.find(Offering,
+                 Subject.code == unicode(sys.argv[4]),
+                 Semester.year == unicode(sys.argv[5]),
+                 Semester.semester == unicode(sys.argv[6]),
+                 Offering.subject_id == Subject.id,
+                 Offering.semester_id == Semester.id).one()
+
+if dst.worksheets.count() > 0:
+    die('%r already has worksheets - doing nothing' % dst)
+
+for oldws in src.worksheets:
+    newws = Worksheet()
+    newws.seq_no = oldws.seq_no
+    newws.identifier = oldws.identifier
+    newws.name = oldws.name
+    newws.assessable = oldws.assessable
+    newws.data = oldws.data
+    newws.format = oldws.format
+    newws.offering = dst
+    store.add(newws)
+    ivle.worksheet.utils.update_exerciselist(newws)
+
+print >> sys.stderr, 'copied %d worksheets from %r to %r' \
+                     % (dst.worksheets.count(), src, dst)
+store.commit()

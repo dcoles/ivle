@@ -79,11 +79,7 @@ def rebuild_svn_config(store):
     """
     users = store.find(ivle.database.User)
     groups = {}
-    for u in users:
-        role = str(u.role)
-        if role not in groups:
-            groups[role] = []
-        groups[role].append(u.login)
+    # TODO: Populate groups with per-offering tutors/lecturers/etc.
     f = open(ivle.conf.svn_conf + ".new", "w")
     f.write("# IVLE SVN Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
@@ -197,7 +193,7 @@ def make_jail(user, force=True):
         raise Exception("Must run make_jail as root")
     
     # tempdir is for putting backup homes in
-    tempdir = os.path.join(ivle.conf.jail_base, '__temp__')
+    tempdir = os.path.join(ivle.conf.jail_src_base, '__temp__')
     if not os.path.exists(tempdir):
         os.makedirs(tempdir)
     elif not os.path.isdir(tempdir):
@@ -227,10 +223,8 @@ def make_jail(user, force=True):
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
             %(user.login, user.unixid))
-        os.chown(userhomedir, user.unixid, user.unixid)
-        for root, dirs, files in os.walk(userhomedir):
-            for fsobj in dirs + files:
-                os.chown(os.path.join(root, fsobj), user.unixid, user.unixid)
+        os.spawnvp(os.P_WAIT, 'chown', ['chown', '-R', '%d:%d' % (user.unixid,
+                                        user.unixid), userhomedir])
     else:
         # No user jail exists
         # Set up the user's home directory

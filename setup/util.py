@@ -321,4 +321,6 @@ class InstallList(object):
         "bin/ivle-config",
         "bin/ivle-createdatadirs",
         "bin/ivle-buildjail",
+        "bin/ivle-addexercise",
+        "bin/ivle-cloneworksheets",
     ]
