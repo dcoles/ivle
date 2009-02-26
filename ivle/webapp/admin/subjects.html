@@ -6,15 +6,21 @@
   <body>
     <h1>Subjects</h1>
     <div id="ivle_padding">
-      <ul>
-        <py:for each="enrolment in enrolments">
-          <li>
-            <a href="/subjects/${enrolment.offering.subject.code}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
-              ${enrolment.offering.subject.name}
-            </a>
-          </li>
-        </py:for>
-      </ul>
+      <py:for each="(semester, enrolments) in semesters">
+        <py:choose test="semester.state">
+          <h2 py:when="u'current'">${semester.year}, semester ${semester.semester}</h2>
+          <h3 py:otherwise="">${semester.year}, semester ${semester.semester}</h3>
+        </py:choose>
+        <ul>
+          <py:for each="enrolment in enrolments">
+            <li>
+              <a href="/subjects/${enrolment.offering.subject.code}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
+                ${enrolment.offering.subject.name}
+              </a>
+            </li>
+          </py:for>
+        </ul>
+      </py:for>
     </div>
   </body>
 </html>
