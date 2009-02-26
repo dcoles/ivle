@@ -4,18 +4,12 @@
     <title>Groups</title>
   </head>
   <body>
-    <h1>Group Administration</h1>
+    <h1>Groups for ${offering.subject.name}</h1>
     <div id="ivle_padding">
-      <py:if test="manage_subjects">
-        <label for="subject_select">Subject:</label>
-        <select id="subject_select">
-          <py:for each="subject in manage_subjects">
-            <option value="${subject.id}">${subject.name} (${subject.code})</option>
-          </py:for>
-        </select>
-        <input type="button" value="Manage" onclick="manage_subject()" />
-        <div id="subject_div"></div>
-      </py:if>
+      <div id="offering_groups" />
     </div>
+    <script type="text/javascript">
+      manage_subject_offering(${offering.subject.id}, document.getElementById('offering_groups'));
+    </script>
   </body>
 </html>

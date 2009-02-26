@@ -122,7 +122,7 @@ function create_new_group(projectsetid)
         alert("Error: Could not add group. Does it already exist?");
     }
     /* Reload the display */
-    manage_subject();
+    window.location.href = window.location.href;
 }
 
 function manage_group(offeringid, groupid, namespace)

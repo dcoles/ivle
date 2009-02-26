@@ -21,9 +21,7 @@
 Allows students and tutors to manage project groups.
 '''
 
-# TODO Does not distinguish between current and past subjects.
-
-from ivle.database import Subject
+from ivle.database import Subject, Offering, Semester
 
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
@@ -35,24 +33,36 @@ class GroupsView(XHTMLView):
     template = 'template.html'
     tab = 'groups'
 
+    def __init__(self, req, subject, year, semester):
+        """Find the given offering by subject, year and semester."""
+        self.context = req.store.find(Offering,
+            Offering.subject_id == Subject.id,
+            Subject.code == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
+        
+        if not self.context:
+            raise NotFound()
+
     def authorize(self, req):
-        return req.user is not None
+        enrolment = self.context.get_enrolment(req.user)
+        if not enrolment:
+            return False
+        return req.user.admin or enrolment.role in (u'tutor', u'lecturer')
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
 
-        roles = set((e.role for e in req.user.active_enrolments))
-        ctx['manage_subjects'] = req.store.find(Subject) if \
-              req.user.admin or 'tutor' in roles or 'lecturer' in roles else []
-
+        ctx['offering'] = self.context
 
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the group admin plugin.
     """
     urls = [
-        ('groups/', GroupsView),
+        ('/subjects/:subject/:year/:semester/+groups/', GroupsView),
     ]
 
     media = 'media'

@@ -29,6 +29,7 @@ import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
+from storm.exceptions import NotOneError
 
 import ivle.conf
 
@@ -293,6 +294,14 @@ class Offering(Storm):
             if user.admin:
                 perms.add('edit')
         return perms
+
+    def get_enrolment(self, user):
+        try:
+            enrolment = self.enrolments.find(user=user).one()
+        except NotOneError:
+            enrolment = None
+
+        return enrolment
 
 class Enrolment(Storm):
     __storm_table__ = "enrolment"
