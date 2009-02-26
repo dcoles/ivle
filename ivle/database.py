@@ -235,6 +235,10 @@ class Semester(Storm):
     state = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.semester_id')
+    enrolments = ReferenceSet(id,
+                              'Offering.semester_id',
+                              'Offering.id',
+                              'Enrolment.offering_id')
 
     __init__ = _kwarg_init
 
