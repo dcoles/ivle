@@ -4,43 +4,9 @@
     <title>Groups</title>
   </head>
   <body>
-    <h1>Project Groups</h1>
+    <h1>Group Administration</h1>
     <div id="ivle_padding">
-      <p py:if="enrolments.count() == 0">Error: You are not currently enrolled in any subjects.</p>
-      <py:for each="enrolment in enrolments">
-        <div id="subject${enrolment.offering.id}" class="subject">
-          <h2>${enrolment.offering.subject.name}</h2>
-          <py:for each="group in get_user_groups(enrolment.offering)">
-            <h3>${group.nick} (${group.name})</h3>
-            <!-- Need proper test (for invite/membership). -->
-            <!-- <py:choose test="group">
-              <py:when test="True"> -->
-                <p>You are a member of this group.</p>
-              <!--</py:when>
-              <py:otherwise>
-                <p>You have been invited to this group.</p>
-                <p>
-                  <input type="button" 
-                      onclick="accept(&quot;${group.name}&quot;)" 
-                      value="Accept" />
-                  <input type="button"
-                      onclick="decline(&quot;${group.name}&quot;)"
-                      value="Decline" />
-                </p>
-              </py:otherwise>
-            </py:choose>-->
-            <h4>Members</h4>
-            <ul>
-              <py:for each="member in group.members">
-                <li>${member.fullname} (${member.login})</li>
-              </py:for>
-            </ul>
-          </py:for>
-        </div>
-      </py:for>
       <py:if test="manage_subjects">
-        <hr />
-        <h2>Group Administration</h2>
         <label for="subject_select">Subject:</label>
         <select id="subject_select">
           <py:for each="subject in manage_subjects">

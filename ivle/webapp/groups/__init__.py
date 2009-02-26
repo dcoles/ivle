@@ -42,10 +42,6 @@ class GroupsView(XHTMLView):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
 
-        # Show a group panel per enrolment
-        ctx['get_user_groups'] = req.user.get_groups
-        ctx['enrolments'] = req.user.active_enrolments
-
         roles = set((e.role for e in req.user.active_enrolments))
         ctx['manage_subjects'] = req.store.find(Subject) if \
               req.user.admin or 'tutor' in roles or 'lecturer' in roles else []
