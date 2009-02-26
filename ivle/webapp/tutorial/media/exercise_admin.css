@@ -37,3 +37,7 @@
 .test_case_parts {
   display: none;
 }
+
+.add_new_part {
+  display: none;
+}

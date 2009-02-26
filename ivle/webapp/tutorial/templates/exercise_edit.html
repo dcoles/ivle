@@ -8,10 +8,9 @@
     </script>
   </head>
   <body>
+    <h1>Edit Exercise - ${exercise.id}</h1>
     <div id="ivle_padding">
-    
-      <h1>Edit Exercise - ${exercise.id}</h1>
-      <h2>Exercise Values:</h2>
+      <h3>Exercise Values:</h3>
       <label for="exercise_id">Exercise Identifier:</label>
       <input class="textinput" type="text" id="exercise_id" value="${exercise.id}" title="Exercise Identifier" />
       <br />
@@ -31,15 +30,15 @@
       <textarea cols="80" rows="5" id="exercise_solution" title="Solution">${exercise.solution}</textarea>
       <br />
       <label for="exercise_include">Exercise Included Code:</label><br />
-      <textarea cols="80" rows="5" id="exercise_included" title="Included Code">${exercise.include}</textarea>
+      <textarea cols="80" rows="5" id="exercise_include" title="Included Code">${exercise.include}</textarea>
       <br />
       <input type="submit" value="Save Changes" onclick="edit_exercise()" />
       <br />
-      <h1>Exercise Test Suites</h1>
+      <h2>Exercise Test Suites</h2>
       <ul>
         <py:for each="test_suite in exercise.test_suites">
           <li>
-            <a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')"><h2>Suite ${test_suite.seq_no + 1} - ${test_suite.description}</h2></a>
+            <a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')"><h3>Suite ${test_suite.seq_no + 1} - ${test_suite.description}</h3></a>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
               <div class="test_suite_vals">
@@ -57,7 +56,7 @@
               </div>
               <br />
           
-              <a id='variables_header_${test_suite.suiteid}' onclick="tog('variables_${test_suite.suiteid}')"><h3>Suite ${test_suite.seq_no + 1} - Variables</h3></a>
+              <a id='variables_header_${test_suite.suiteid}' onclick="tog('variables_${test_suite.suiteid}')"><h4>Suite ${test_suite.seq_no + 1} - Variables</h4></a>
         
                 <div class="test_variables" id="variables_${test_suite.suiteid}">
                   <py:for each="variable in test_suite.variables">
@@ -96,24 +95,25 @@
                     <input type="submit" value="Add" onclick="add_var('${test_suite.suiteid}')" />
                   </div>
                 </div>
-              <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h3>Suite ${test_suite.seq_no + 1} - Test Cases</h3></a>
+              <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h4>Suite ${test_suite.seq_no + 1} - Test Cases</h4></a>
 
               <div class="test_cases" id="test_cases_${test_suite.suiteid}">    
                 <ul>
                   <py:for each="test_case in test_suite.test_cases">
                     <li>
-                      <a onclick="tog('test_case_${test_case.testid}')" id="case_header_${test_case.testid}"><h4>Test Case ${test_case.seq_no}</h4></a>
+                      <a onclick="tog('test_case_${test_case.testid}')" id="case_header_${test_case.testid}"><h5>Test Case ${test_case.seq_no}</h5></a>
                       <div class="test_case" id="test_case_${test_case.testid}">
                         <label for="test_case_pass_${test_case.testid}">Pass Message:</label>
-                        <input class="textinput" type="text" id="test_case_${test_case.testid}" value="${test_case.passmsg}" />
+                        <input class="textinput" type="text" id="test_case_pass_${test_case.testid}" value="${test_case.passmsg}" />
                         <br />
                         <label for="test_case_fail_${test_case.testid}">Fail Message:</label>
                         <input class="textinput" type="text" id="test_case_fail_${test_case.testid}" value="${test_case.failmsg}" />
                         <br />
                         <label for="test_case_default_${test_case.test_default}">Default Mode:</label>
                         <input class="textinput" type="text" id="test_case_default_${test_case.test_default}" value="${test_case.test_default}" />
-                        <a onclick="tog('test_case_parts_${test_case.testid}')"><h5>Test Case Parts</h5></a>
-                        <div class="test_case_parts" id="test_case_parts_${test_case.testid}">
+                        <br />
+                        Test Case Parts
+                        <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}">
                           <py:for each="test_part in test_case.parts">
                             <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
                             <select name="Part Type" id="test_part_part_type_${test_part.partid}">
@@ -135,12 +135,27 @@
                             <br />
                             <label for="test_part_file_${test_part.partid}">Filename:</label>
                             <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
+                            <br />
                           </py:for>
                         </div>
                       </div>
                     </li>
                   </py:for>
-                  <a>Add A New Test Case</a>
+                  <li>
+                    <a onclick="tog('new_test_part_${test_suite.suiteid}')"><h5>Add A New Test Case</h5></a>
+                    <div class="add_new_part" id="new_test_part_${test_suite.suiteid}">
+                      <label for="new_test_case_pass_${test_suite.suiteid}">Pass Message:</label>
+                      <input class="textinput" type="text" id="new_test_case_pass_${test_suite.suiteid}" />
+                      <br />
+                      <label for="new_test_case_fail_${test_suite.suiteid}">Fail Message:</label>
+                      <input class="textinput" type="text" id="new_test_case_fail_${test_suite.suiteid}" />
+                      <br />
+                      <label for="new_test_case_default_${test_suite.suiteid}">Default Mode:</label>
+                      <input class="textinput" type="text" id="new_test_case_default_${test_suite.suiteid}" />
+                      <br />
+                      <input type="submit" value="Add Case" onclick="add_part('${test_suite.suiteid}')" />
+                    </div>
+                  </li>
                 </ul>
               </div>
               

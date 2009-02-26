@@ -51,9 +51,10 @@ class AttemptsRESTView(JSONRESTView):
             raise NotFound()
         
         self.worksheet_exercise = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == exercise,
+            WorksheetExercise.exercise_id == unicode(exercise),
             WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
+            Worksheet.identifier == unicode(worksheet),
             Offering.subject_id == Subject.id,
             Subject.code == subject,
             Offering.semester_id == Semester.id,

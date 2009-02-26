@@ -31,7 +31,7 @@ function edit_exercise()
     var exercise_id = $('#exercise_id').val();
     var exercise_name = $('#exercise_name').val();
     var exercise_num_rows = $('#exercise_num_rows').val();
-    var exercise_desc = $('#exercise_include').val();
+    var exercise_desc = $('#exercise_desc').val();
     var exercise_partial = $('#exercise_partial').val();
     var exercise_solution = $('#exercise_solution').val();
     var exercise_include = $('#exercise_include').val();
@@ -180,4 +180,31 @@ function add_var(suiteid)
                 'argno': argno, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
+}
+
+/* Add and edit test case parts */
+
+function add_test_case(suiteid)
+{
+    var passmsg = $("new_test_case_pass_" + suiteid).val();
+    var failmsg = $("new_test_case_fail_" + suiteid).val();
+    var case_default = $("new_test_case_default_" + suiteid).val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Variable Added Sucessfully');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Creating Test Suite');
+            return;
+        }
+    }
+    
 }

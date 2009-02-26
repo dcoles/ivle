@@ -32,7 +32,9 @@ class ExercisesRESTView(JSONRESTView):
     #Only lecturers and admins can add exercises
     def get_permissions(self, user):
         if user is not None:
-            if user.rolenm in ('admin', 'lecturer'):
+            if user.admin:
+                return set(['save'])
+            elif user in set((e.role for e in req.user.active_enrolments)):
                 return set(['save'])
             else:
                 return set()
@@ -61,8 +63,10 @@ class ExerciseRESTView(JSONRESTView):
     
     def get_permissions(self, user):
         if user is not None:
-            if user.rolenm in ('admin', 'lecturer'):
-                return set(['edit'])
+            if user.admin:
+                return set([u'edit'])
+            elif user in set((e.role for e in req.user.active_enrolments)):
+                return set([u'edit'])
             else:
                 return set()
         else:
@@ -76,7 +80,7 @@ class ExerciseRESTView(JSONRESTView):
         if self.context is None:
             raise NotFound()
 
-    @named_operation('edit')
+    @named_operation(u'edit')
     def edit_exercise(self, req, name, description, partial, 
                       solution, include, num_rows):
         
@@ -86,10 +90,9 @@ class ExerciseRESTView(JSONRESTView):
         self.context.solution = unicode(solution)
         self.context.include = unicode(include)
         self.context.num_rows = int(num_rows)
+        return {'result': 'moo'}
         
-        return {'result': 'ok'}
-        
-    @named_operation('edit')
+    @named_operation(u'edit')
     def add_suite(self, req, description, function, stdin):
         
         new_suite = TestSuite()
@@ -103,7 +106,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
         
-    @named_operation('edit')
+    @named_operation(u'edit')
     def edit_suite(self, req, suiteid, description, function, stdin):
         
         suite = req.store.find(TestSuite,
@@ -119,7 +122,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
       
-    @named_operation('edit')
+    @named_operation(u'edit')
     def add_var(self, req, suiteid, var_type, var_name, var_val, argno):
 
         suite = req.store.find(TestSuite,
@@ -140,7 +143,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
 
-    @named_operation('edit')
+    @named_operation(u'edit')
     def edit_var(self, req, suiteid, varid, var_type, var_name, var_val, argno):
         var = req.store.find(TestSuiteVar,
             TestSuiteVar.varid == int(varid),
@@ -157,5 +160,23 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation
-    def add_testcase(): pass
+    @named_operation(u'edit')
+    def add_testcase(self, req, suiteid, passmsg, failmsg, default):
+        
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        
+        if suite is None:
+            raise NotFound()
+        
+        new_case = TestCase()
+        new_case.passmsg = unicode(passmsg)
+        new_case.failmsg = unicode(failmsg)
+        new_case.default = unicode(default)
+        new_case.seq_no = suite.test_cases.count()
+        suite.test_cases.add(new_case)
+        
+        req.store.add(new_case)
+        
+        return {'result': 'ok'}
