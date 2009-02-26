@@ -26,10 +26,12 @@ import os
 import urllib
 import cgi
 
+from storm.locals import Desc
+
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
-from ivle.database import Subject
+from ivle.database import Subject, Semester
 from ivle import util
 
 
@@ -42,7 +44,12 @@ class SubjectsView(XHTMLView):
         return req.user is not None
 
     def populate(self, req, ctx):
-        ctx['enrolments'] = req.user.active_enrolments
+        ctx['semesters'] = []
+        for semester in req.store.find(Semester).order_by(Desc(Semester.year),
+                                                     Desc(Semester.semester)):
+            enrolments = semester.enrolments.find(user=req.user)
+            if enrolments.count():
+                ctx['semesters'].append((semester, enrolments))
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [

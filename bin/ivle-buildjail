@@ -43,7 +43,7 @@ parser.add_option("-u", "--upgrade",
     help='''Apply any package updates in the jail.''')
 parser.add_option("-m", "--mirror",
     action="store", dest="apt_mirror",
-    help="Sets the apt mirror used when recreating the jail.")
+    help="Sets the apt mirror.", default="http://archive.ubuntu.com/ubuntu")
 (options, args) = parser.parse_args(sys.argv)
 
 if os.geteuid() != 0:
@@ -55,6 +55,8 @@ if not options.recreate and not os.path.exists(build_path):
     sys.exit(1)
 
 if options.recreate:
+    options.upgrade = True
+
     # Create the jail and its subdirectories
     # Note: Other subdirs will be made by copying files
     if options.apt_mirror is not None:
@@ -63,6 +65,20 @@ if options.recreate:
     os.system('rm -rf --one-file-system ' + build_path)
     ivle.jailbuilder.debian.debootstrap_create_jail(conf['jail']['suite'],
               build_path, mirror=options.apt_mirror)
+
+    ivle.jailbuilder.debian.apt_update_cache(build_path)
+    ivle.jailbuilder.debian.apt_install(build_path,
+                        ['python2.5', 'python-cjson', 'python-svn'])
+
+    ivle.jailbuilder.debian.apt_clean(build_path)
+
+if options.upgrade:
+    # Run apt-get update, apt-get upgrade and apt-get clean.
+    ivle.jailbuilder.debian.mangle_sources_list(build_path, clobber=True)
+    ivle.jailbuilder.debian.mangle_sources_list(build_path, lines=[
+            'deb %s %s%s %s' % (options.apt_mirror, conf['jail']['suite'],
+                                pocket, ' '.join(['main', 'universe']))
+            for pocket in ('', '-updates', '-security')])
 
     # Add any extra site apt sources.
     if conf['jail']['extra_sources']:
@@ -75,20 +91,13 @@ if options.recreate:
                                             conf['jail']['extra_keys'])
 
     ivle.jailbuilder.debian.apt_update_cache(build_path)
-    ivle.jailbuilder.debian.apt_install(build_path,
-                        ['python2.5', 'python-cjson', 'python-svn'])
+    ivle.jailbuilder.debian.apt_upgrade(build_path)
 
     # Install any extra site packages.
     if conf['jail']['extra_packages']:
         ivle.jailbuilder.debian.apt_install(build_path,
                   conf['jail']['extra_packages'])
 
-    ivle.jailbuilder.debian.apt_clean(build_path)
-
-if options.upgrade:
-    # Run apt-get update, apt-get upgrade and apt-get clean.
-    ivle.jailbuilder.debian.apt_update_cache(build_path)
-    ivle.jailbuilder.debian.apt_upgrade(build_path)
     ivle.jailbuilder.debian.apt_clean(build_path)
 
 if conf['jail']['devmode']:

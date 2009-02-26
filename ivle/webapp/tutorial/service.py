@@ -136,6 +136,15 @@ class AttemptRESTView(JSONRESTView):
         except ValueError:
             raise NotFound()
 
+        # XXX Hack around Google Code issue #87
+        # Query from the given date +1 secnod.
+        # Date is in seconds (eg. 3:47:12), while the data is in finer time
+        # (eg. 3:47:12.3625). The query "date <= 3:47:12" will fail because
+        # 3:47:12.3625 is greater. Hence we do the query from +1 second,
+        # "date <= 3:47:13", and it finds the correct submission, UNLESS there
+        # are multiple submissions inside the same second.
+        date += datetime.timedelta(seconds=1)
+
         worksheet_exercise = req.store.find(WorksheetExercise,
             WorksheetExercise.exercise_id == exercise,
             WorksheetExercise.worksheet_id == Worksheet.id,

@@ -40,12 +40,13 @@ if not user:
 
 if user.enrolments.count() > 0:
     print 'IVLE enrolment for %s (%s):' % (user.login, user.fullname)
-    print '    Code       Name Semester Year'
-    print '-------- ---------- -------- ----'
+    print '    Code       Name Year Semester     Role'
+    print '-------- ---------- ---- -------- --------'
     for e in user.enrolments:
-        print '%8s %10s %8s %4s' % (
+        print '%8s %10s %4s %8s %8s' % (
                 e.offering.subject.code, e.offering.subject.short_name,
-                e.offering.semester.semester, e.offering.semester.year
+                e.offering.semester.year, e.offering.semester.semester,
+                e.role
                 )
 else:
     print '%s (%s) is not enrolled in any IVLE offerings' % (
