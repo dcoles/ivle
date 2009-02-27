@@ -4,12 +4,13 @@
     <title>Worksheets - ${subject.name}</title>
   </head>
   <body>
+    <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
     <h1>Worksheets for ${subject.name}</h1>
     <div id="ivle_padding">
       <ul id="tutorial-toc">
         <py:for each="worksheet in worksheets">
           <li>
-            <a href="/subjects/${subject.short_name}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+            <a href="${offering_url(offering)}/+worksheets/${worksheet.id}">${worksheet.name}</a>
             <py:if test="worksheet.assessable">
               <ul>
                 <li class="${worksheet.complete_class}">
@@ -29,6 +30,9 @@
         <p style="font-weight: bold">
           Worksheet mark: ${mark}/${max_mark}
         </p>
+      </py:if>
+      <py:if test="'edit' in offering.get_permissions(user)">
+        <p><a href="${offering_url(offering)}/+worksheets/+edit">Edit worksheets</a></p>
       </py:if>
     </div>            
   </body>

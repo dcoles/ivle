@@ -90,8 +90,8 @@ class OfferingView(XHTMLView):
         self.plugin_styles[Plugin] = ['tutorial.css']
 
         ctx['subject'] = self.context.subject
-        ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
+        ctx['offering'] = self.context
+        ctx['user'] = req.user
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
