@@ -4,6 +4,7 @@
     <title>Subjects</title>
   </head>
   <body>
+    <py:def function="offering_url(offering)">/subjects/${enrolment.offering.subject.short_name}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}</py:def>
     <h1>Subjects</h1>
     <div id="ivle_padding">
       <p py:if="len(semesters) == 0">You are not currently enrolled in any subjects.</p>
@@ -15,9 +16,10 @@
         <ul>
           <py:for each="enrolment in enrolments">
             <li>
-              <a href="/subjects/${enrolment.offering.subject.short_name}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
-                ${enrolment.offering.subject.name}
-              </a>
+              <a href="${offering_url(enrolment.offering)}/+worksheets">${enrolment.offering.subject.name}</a>
+              <py:if test="'edit' in enrolment.offering.get_permissions(user)">
+                - <a href="${offering_url(enrolment.offering)}/+groups">(administer groups)</a>
+              </py:if>
             </li>
           </py:for>
         </ul>

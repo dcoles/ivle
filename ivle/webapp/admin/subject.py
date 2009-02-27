@@ -44,6 +44,7 @@ class SubjectsView(XHTMLView):
         return req.user is not None
 
     def populate(self, req, ctx):
+        ctx['user'] = req.user
         ctx['semesters'] = []
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
