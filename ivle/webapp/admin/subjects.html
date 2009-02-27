@@ -14,7 +14,7 @@
         <ul>
           <py:for each="enrolment in enrolments">
             <li>
-              <a href="/subjects/${enrolment.offering.subject.code}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
+              <a href="/subjects/${enrolment.offering.subject.short_name}/${enrolment.offering.semester.year}/${enrolment.offering.semester.semester}/+worksheets">
                 ${enrolment.offering.subject.name}
               </a>
             </li>

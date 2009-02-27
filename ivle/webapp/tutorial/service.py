@@ -56,7 +56,7 @@ class AttemptsRESTView(JSONRESTView):
             WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
@@ -151,7 +151,7 @@ class AttemptRESTView(JSONRESTView):
             Worksheet.identifier == worksheet,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
@@ -179,7 +179,7 @@ class WorksheetExerciseRESTView(JSONRESTView):
             WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
@@ -228,7 +228,7 @@ class WorksheetRESTView(JSONRESTView):
             Worksheet.identifier == self.worksheet,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == self.subject,
+            Subject.short_name == self.subject,
             Offering.semester_id == Semester.id,
             Semester.year == self.year,
             Semester.semester == self.semester).one()
@@ -258,7 +258,7 @@ class WorksheetsRESTView(JSONRESTView):
     
         self.context = req.store.find(Offering,
             Offering.subject_id == Subject.id,
-            Subject.code == self.subject,
+            Subject.short_name == self.subject,
             Offering.semester_id == Semester.id,
             Semester.year == self.year,
             Semester.semester == self.semester).one()

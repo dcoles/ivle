@@ -9,7 +9,7 @@
       <ul id="tutorial-toc">
         <py:for each="worksheet in worksheets">
           <li>
-            <a href="/subjects/${subject.code}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+            <a href="/subjects/${subject.short_name}/${year}/${semester}/+worksheets/${worksheet.id}">${worksheet.name}</a>
             <py:if test="worksheet.assessable">
               <ul>
                 <li class="${worksheet.complete_class}">
