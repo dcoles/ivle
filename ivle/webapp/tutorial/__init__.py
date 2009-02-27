@@ -46,7 +46,7 @@ from ivle.webapp.media import BaseMediaFileView, media_url
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.webapp.tutorial.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
-                      ExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
+             WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -506,7 +506,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
-        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', ExerciseRESTView),
+        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
     ]
 
     media = 'media'

@@ -290,8 +290,11 @@ class Offering(Storm):
     def get_permissions(self, user):
         perms = set()
         if user is not None:
-            perms.add('view')
-            if user.admin:
+            enrolment = self.get_enrolment(user)
+            if enrolment or user.admin:
+                perms.add('view')
+            if (enrolment and enrolment.role in (u'tutor', u'lecturer')) \
+               or user.admin:
                 perms.add('edit')
         return perms
 
@@ -510,6 +513,9 @@ class WorksheetExercise(Storm):
     def __repr__(self):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
                                   self.worksheet.identifier)
+
+    def get_permissions(self, user):
+        return self.worksheet.get_permissions(user)
 
 class ExerciseSave(Storm):
     """

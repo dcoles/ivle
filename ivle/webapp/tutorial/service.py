@@ -170,37 +170,30 @@ class AttemptRESTView(JSONRESTView):
         return {'code': self.context.text}
 
 
-class ExerciseRESTView(JSONRESTView):
-    '''REST view of an exercise.'''
+class WorksheetExerciseRESTView(JSONRESTView):
+    '''REST view of a worksheet exercise.'''
 
-    def get_permissions(self, user):
-        # XXX: Do it properly.
-        # XXX: Does any user have the ability to save as themselves?
-        # XXX: Does a user EVER have permission to save as another user?
-        if user is not None:
-            return set(['save'])
-        else:
-            return set()
-
-    @named_operation('save')
-    def save(self, req, text):
-        # Find the appropriate WorksheetExercise to save to. If its not found,
-        # the user is submitting against a non-existant worksheet/exercise
-        worksheet_exercise = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == self.exercise,
+    def __init__(self, req, subject, year, semester, worksheet, exercise):
+        self.context = req.store.find(WorksheetExercise,
+            WorksheetExercise.exercise_id == exercise,
             WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == self.subject,
+            Subject.code == subject,
             Offering.semester_id == Semester.id,
-            Semester.year == self.year,
-            Semester.semester == self.semester).one()
+            Semester.year == year,
+            Semester.semester == semester).one()
         
-        if worksheet_exercise is None:
+        if self.context is None:
             raise NotFound()
 
+    @named_operation('view')
+    def save(self, req, text):
+        # Find the appropriate WorksheetExercise to save to. If its not found,
+        # the user is submitting against a non-existant worksheet/exercise
+
         old_save = req.store.find(ExerciseSave,
-            ExerciseSave.ws_ex_id == worksheet_exercise.id,
+            ExerciseSave.ws_ex_id == self.context.id,
             ExerciseSave.user == req.user).one()
         
         #Overwrite the old, or create a new if there isn't one
@@ -210,7 +203,7 @@ class ExerciseRESTView(JSONRESTView):
         else:
             new_save = old_save
         
-        new_save.worksheet_exercise = worksheet_exercise
+        new_save.worksheet_exercise = self.context
         new_save.user = req.user
         new_save.text = unicode(text)
         new_save.date = datetime.datetime.now()
@@ -223,18 +216,6 @@ class ExerciseRESTView(JSONRESTView):
 # by OfferingRESTView (as offerings have worksheets)
 class WorksheetRESTView(JSONRESTView):
     """View used to update a worksheet."""
-
-    def get_permissions(self, user):
-        # XXX: Do it properly.
-        # XXX: Lecturers should be allowed to add worksheets Only to subjects
-        #      under their control
-        if user is not None:
-            if user.admin:
-                return set(['save'])
-            else:
-                return set()
-        else:
-            return set()    
 
     def __init__(self, req, **kwargs):
     
@@ -255,7 +236,7 @@ class WorksheetRESTView(JSONRESTView):
         if self.context is None:
             raise NotFound()
     
-    @named_operation('save')
+    @named_operation('edit')
     def save(self, req, name, assessable, data, format):
         """Takes worksheet data and saves it."""
         self.context.name = unicode(name)
@@ -269,18 +250,6 @@ class WorksheetRESTView(JSONRESTView):
 class WorksheetsRESTView(JSONRESTView):
     """View used to update and create Worksheets."""
     
-    def get_permissions(self, user):
-        # XXX: Do it properly.
-        # XXX: Lecturers should be allowed to add worksheets Only to subjects
-        #      under their control
-        if user is not None:
-            if user.admin:
-                return set(['edit'])
-            else:
-                return set()
-        else:
-            return set()
-
     def __init__(self, req, **kwargs):
     
         self.subject = kwargs['subject']
