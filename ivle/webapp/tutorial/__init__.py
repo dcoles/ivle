@@ -176,6 +176,7 @@ class WorksheetView(XHTMLView):
         ctx['worksheet'] = self.context
         ctx['semester'] = self.semester
         ctx['year'] = self.year
+        ctx['user'] = req.user
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data)))
 
         generate_worksheet_data(ctx, req, self.context)
