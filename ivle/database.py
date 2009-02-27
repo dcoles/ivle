@@ -287,6 +287,13 @@ class Offering(Storm):
         enrolment.active = True
         enrolment.role = role
 
+    def unenrol(self, user):
+        '''Unenrol a user from this offering.'''
+        enrolment = Store.of(self).find(Enrolment,
+                               Enrolment.user_id == user.id,
+                               Enrolment.offering_id == self.id).one()
+        Store.of(enrolment).remove(enrolment)
+
     def get_permissions(self, user):
         perms = set()
         if user is not None:
