@@ -69,7 +69,7 @@ if options.year is not None and not options.year.isdigit():
     logging.error("Year must be numeric")
     sys.exit(1)
 
-options.year = unicode(options.year)
+options.year = None if options.year is None else unicode(options.year)
 
 for user in users:
     try:
