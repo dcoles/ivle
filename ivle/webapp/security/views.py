@@ -111,6 +111,7 @@ class LoginView(XHTMLView):
                         session = req.get_session()
                         session['login'] = user.login
                         session.save()
+                        session.unlock()
                         user.last_login = datetime.datetime.now()
                         req.store.commit()
 

@@ -34,6 +34,8 @@ def get_user_details(req):
     except KeyError:
         return None
 
+    session.unlock()
+
     # Get the full User object from the db associated with this login
     return ivle.database.User.get_by_login(req.store, login)
 
