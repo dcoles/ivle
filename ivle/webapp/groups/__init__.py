@@ -32,6 +32,7 @@ class GroupsView(XHTMLView):
     """
     template = 'template.html'
     tab = 'groups'
+    permission = 'edit'
 
     def __init__(self, req, subject, year, semester):
         """Find the given offering by subject, year and semester."""
@@ -41,15 +42,9 @@ class GroupsView(XHTMLView):
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
-        
+
         if not self.context:
             raise NotFound()
-
-    def authorize(self, req):
-        enrolment = self.context.get_enrolment(req.user)
-        if not enrolment:
-            return False
-        return req.user.admin or enrolment.role in (u'tutor', u'lecturer')
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']
