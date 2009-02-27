@@ -6,6 +6,7 @@
   <body>
     <h1>Subjects</h1>
     <div id="ivle_padding">
+      <p py:if="len(semesters) == 0">You are not currently enrolled in any subjects.</p>
       <py:for each="(semester, enrolments) in semesters">
         <py:choose test="semester.state">
           <h2 py:when="u'current'">${semester.year}, semester ${semester.semester}</h2>

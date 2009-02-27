@@ -41,9 +41,7 @@ class SubjectsView(XHTMLView):
     tab = 'subjects'
 
     def authorize(self, req):
-        if req.user is None:
-            return False
-        return req.user.enrolments.count() > 0
+        return req.user is not None
 
     def populate(self, req, ctx):
         ctx['semesters'] = []
