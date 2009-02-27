@@ -26,6 +26,7 @@ except ImportError:
     pass
 
 import ivle.util
+import ivle.pulldown_subj
 import ivle.webapp.security
 from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.xhtml import XHTMLView
@@ -113,7 +114,6 @@ class LoginView(XHTMLView):
                         session.save()
                         session.unlock()
                         user.last_login = datetime.datetime.now()
-                        req.store.commit()
 
                         # Create cookies for plugins that might request them.
                         for plugin in req.config.plugin_index[CookiePlugin]:
@@ -123,6 +123,10 @@ class LoginView(XHTMLView):
                                 if plugin.cookies[cookie] is not None:
                                     req.add_cookie(mod_python.Cookie.Cookie(cookie,
                                           plugin.cookies[cookie](user), path='/'))
+
+                        # Add any new enrolments.
+                        ivle.pulldown_subj.enrol_user(req.store, user)
+                        req.store.commit()
 
                         req.throw_redirect(nexturl)
 
