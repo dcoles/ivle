@@ -92,6 +92,7 @@ function list_projectgroup_contents(offeringid, groupid, elemnm)
         button.type = 'button';
         button.addEventListener("click", function()
         {
+            this.disabled = true;
             args = {'login': select.value, 'groupid': groupid};
             ajax_call(null, serviceapp, 'assign_group', args, 'POST');
             list_projectgroup_contents(offeringid, groupid, elemnm);
