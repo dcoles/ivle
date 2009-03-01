@@ -6,10 +6,27 @@
   <body>
     <h1>Groups for ${offering.subject.name}</h1>
     <div id="ivle_padding">
-      <div id="offering_groups" />
+      <div id="offering_groups" >
+        <dl>
+          <py:for each="project_set in offering.project_sets">
+            <dt>Project Set ${project_set.id}</dt>
+            <dd>
+              <ul>
+                <li py:for="group in project_set.project_groups"
+                    id="project_group_${group.id}">
+                  ${group.name}
+                  <a onclick="manage_group(${offering.id}, ${group.id} ,'project_group_${group.id}')"
+                     class="choice"
+                     id="project_group_${group.id}_button">
+                    (manage)
+                  </a>
+                </li>
+                <li><input value="New" type="button" onclick="create_new_group(${project_set.id})" /></li>
+              </ul>
+            </dd>
+          </py:for>
+        </dl>
+      </div>
     </div>
-    <script type="text/javascript">
-      manage_subject_offering(${offering.id}, document.getElementById('offering_groups'));
-    </script>
   </body>
 </html>
