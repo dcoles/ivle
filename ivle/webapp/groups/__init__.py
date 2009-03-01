@@ -32,7 +32,7 @@ class GroupsView(XHTMLView):
     The groups view
     """
     template = 'template.html'
-    tab = 'groups'
+    tab = 'subjects'
     permission = 'edit'
 
     def __init__(self, req, subject, year, semester):
