@@ -7,6 +7,7 @@
     <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
     <h1>Worksheets for ${subject.name}</h1>
     <div id="ivle_padding">
+      <p py:if="len(worksheets) == 0">There are not currently any worksheets for this subject.</p>
       <ul id="tutorial-toc">
         <py:for each="worksheet in worksheets">
           <li>
