@@ -48,6 +48,9 @@ class XHTMLView(BaseView):
         for key in kwargs:
             setattr(self, key, kwargs[key])
 
+    def filter(self, stream, ctx):
+        return stream
+
     def render(self, req):
         req.content_type = 'text/html' # TODO: Detect application/xhtml+xml
 
@@ -61,7 +64,7 @@ class XHTMLView(BaseView):
                         inspect.getmodule(self).__file__), self.template) 
         loader = genshi.template.TemplateLoader(".", auto_reload=True)
         tmpl = loader.load(app_template)
-        app = tmpl.generate(viewctx)
+        app = self.filter(tmpl.generate(viewctx), viewctx)
 
         for plugin in self.plugin_scripts:
             for path in self.plugin_scripts[plugin]:
