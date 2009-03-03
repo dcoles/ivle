@@ -18,7 +18,9 @@
             <li>
               <a href="${offering_url(enrolment.offering)}/+worksheets">${enrolment.offering.subject.name}</a>
               <py:if test="'edit' in enrolment.offering.get_permissions(user)">
-                - <a href="${offering_url(enrolment.offering)}/+groups">(administer groups)</a>
+                -
+                <a href="${offering_url(enrolment.offering)}/+groups">(administer groups)</a>
+                <a href="${offering_url(enrolment.offering)}/+enrolments/+new">(enrol users)</a>
               </py:if>
             </li>
           </py:for>
