@@ -18,7 +18,7 @@ the following ways:
       'pysrc-prompt', 'pysrc-keyword', 'pysrc-string', 'pysrc-comment',
       and 'pysrc-output'.
 """
-import re, os.path, textwrap, sys, pickle
+import re, os.path, textwrap, sys, pickle, inspect
 from optparse import OptionParser
 
 import docutils.core, docutils.nodes, docutils.io
@@ -1690,6 +1690,9 @@ _OUTPUT_RE = re.compile(r'<div class="document">\s+(.*)\s+</div>\n</body>\n</htm
 def rst(input):
     try:
         CustomizedHTMLWriter.settings_defaults.update()
+        header = '.. include:: ' + os.path.join(
+            os.path.dirname(inspect.getfile(rst)), 'definitions.txt') + '\n' 
+        input = header + input
         output = docutils.core.publish_string(input,
             writer=CustomizedHTMLWriter(), reader=CustomizedReader())
         match = _OUTPUT_RE.search(output)

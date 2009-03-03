@@ -256,7 +256,7 @@ def get_svn_revision():
 # Mime types which will automatically be placed in the list by InstallList.
 installlist_mimetypes = ['text/x-python', 'text/html',
     'application/x-javascript', 'application/javascript',
-    'text/css', 'image/png', 'image/gif', 'application/xml']
+    'text/css', 'image/png', 'image/gif', 'application/xml', 'text/plain']
 # Filenames which will automatically be placed in the list by InstallList.
 whitelist_filenames = ['ivle-spec.conf']
 
