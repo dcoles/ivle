@@ -65,11 +65,22 @@ class UserValidator(formencode.FancyValidator):
         if user:
             return user
         else:
-            raise formencode.Invalid('That user does not exist', value, state)
+            raise formencode.Invalid('User does not exist', value, state)
+
+
+class NoEnrolmentValidator(formencode.FancyValidator):
+    """A FormEncode validator that ensures absence of an enrolment.
+
+    The state must have an 'offering' attribute.
+    """
+    def _to_python(self, value, state):
+        if state.offering.get_enrolment(value):
+            raise formencode.Invalid('User already enrolled', value, state)
+        return value
 
 
 class EnrolSchema(formencode.Schema):
-    user = UserValidator()
+    user = formencode.All(NoEnrolmentValidator(), UserValidator())
 
 
 class EnrolView(XHTMLView):
@@ -98,6 +109,7 @@ class EnrolView(XHTMLView):
             data = dict(req.get_fieldstorage())
             try:
                 validator = EnrolSchema()
+                req.offering = self.context # XXX: Getting into state.
                 data = validator.to_python(data, state=req)
                 self.context.enrol(data['user'])
                 req.store.commit()
