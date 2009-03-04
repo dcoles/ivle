@@ -254,7 +254,7 @@ function console_enter_line(inputbox, which)
 
     if (typeof(inputbox) == "string")
     {
-        var inputline = inputbox;
+        var inputline = inputbox + "\n";
         inputbox = null;
     }
     else
