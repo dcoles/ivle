@@ -415,6 +415,9 @@ class Exercise(Storm):
     include = Unicode()
     num_rows = Int()
 
+    worksheet_exercises =  ReferenceSet(id,
+        'WorksheetExercise.exercise_id')
+
     worksheets = ReferenceSet(id,
         'WorksheetExercise.exercise_id',
         'WorksheetExercise.worksheet_id',

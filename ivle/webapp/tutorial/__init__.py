@@ -519,6 +519,42 @@ class ExerciseEditView(XHTMLView):
         
         ctx['test_types'] = ('norm', 'check')
 
+class ExerciseDeleteView(XHTMLView):
+    """View for confirming the deletion of an exercise."""
+    
+    permission = 'edit'
+    template = 'template/exercise_delete.html'
+    
+    def __init__(self, req, exercise):
+        self.context = req.store.find(Exercise,
+            Exercise.id == exercise).one()
+        
+        if self.context is None:
+            raise NotFound()
+        
+    def populate(self, req, ctx):
+        ctx['exercise'] = self.context
+        
+        if self.context.worksheet_exercises.count() is not 0:
+            ctx['hasworksheets'] = True
+
+class ExercisesView(XHTMLView):
+    """View for seeing the list of all exercises"""
+    
+    permission = 'edit'
+    template = 'templates/exercises.html'
+    
+    def authorize(self, req):
+        for offering in req.store.find(Offering):
+            if 'edit' in offering.get_permissions(req.user):
+                return True
+        return False
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['exercise_admin.css']
+        ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
+
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         # Worksheet View Urls
@@ -539,7 +575,9 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
         
         # Exercise View Urls
+        ('+exercises', ExercisesView),
         ('+exercises/:exercise/+edit', ExerciseEditView),
+        ('+exercises/:exercise/+edit', ExerciseDeleteView),
         
         # Exercise Api Urls
         ('api/+exercises', ExercisesRESTView),

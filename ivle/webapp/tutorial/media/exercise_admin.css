@@ -41,3 +41,9 @@
 .add_new_part {
   display: none;
 }
+
+.exercise_names div {
+  float: left;
+  text-align: left;
+  width: 250px;
+}
