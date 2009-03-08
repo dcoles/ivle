@@ -523,7 +523,7 @@ class ExerciseDeleteView(XHTMLView):
     """View for confirming the deletion of an exercise."""
     
     permission = 'edit'
-    template = 'template/exercise_delete.html'
+    template = 'templates/exercise_delete.html'
     
     def __init__(self, req, exercise):
         self.context = req.store.find(Exercise,
@@ -534,9 +534,19 @@ class ExerciseDeleteView(XHTMLView):
         
     def populate(self, req, ctx):
         ctx['exercise'] = self.context
-        
-        if self.context.worksheet_exercises.count() is not 0:
-            ctx['hasworksheets'] = True
+        ctx['deleted'] = False
+        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
+        if req.method == 'POST':
+            if self.context.worksheet_exercises.count() is not 0:
+                ctx['hasworksheets'] = True
+            else:
+                #TODO: DELETE the exercise and all its test cases
+                ctx['deleted'] = True
+        else:
+            if self.context.worksheet_exercises.count() is not 0:
+                ctx['hasworksheets'] = True
+            else:
+                ctx['hasworksheets'] = False
 
 class ExercisesView(XHTMLView):
     """View for seeing the list of all exercises"""
@@ -577,7 +587,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         # Exercise View Urls
         ('+exercises', ExercisesView),
         ('+exercises/:exercise/+edit', ExerciseEditView),
-        ('+exercises/:exercise/+edit', ExerciseDeleteView),
+        ('+exercises/:exercise/+delete', ExerciseDeleteView),
         
         # Exercise Api Urls
         ('api/+exercises', ExercisesRESTView),
