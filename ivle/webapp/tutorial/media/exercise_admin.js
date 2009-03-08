@@ -186,9 +186,9 @@ function add_var(suiteid)
 
 function add_test_case(suiteid)
 {
-    var passmsg = $("new_test_case_pass_" + suiteid).val();
-    var failmsg = $("new_test_case_fail_" + suiteid).val();
-    var case_default = $("new_test_case_default_" + suiteid).val();
+    var passmsg = $("#new_test_case_pass_" + suiteid).val();
+    var failmsg = $("#new_test_case_fail_" + suiteid).val();
+    var case_default = $("#new_test_case_default_" + suiteid).val();
     
     var callback = function(xhr)
     {
@@ -196,7 +196,7 @@ function add_test_case(suiteid)
         try
         {
             testresponse = JSON.parse(xhr.responseText);
-            alert('Variable Added Sucessfully');
+            alert('Test Case Added Sucessfully');
             window.location.reload();
             return;
         }
@@ -207,4 +207,109 @@ function add_test_case(suiteid)
         }
     }
     
+    var args = {'ivle.op': 'add_testcase', 'passmsg': passmsg, 
+                'failmsg': failmsg, 'default': case_default,
+                'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+    
 }
+
+function edit_test_case(testid, suiteid)
+{
+    var passmsg = $("#test_case_pass_" + testid + "_" + suiteid).val();
+    var failmsg = $("#test_case_fail_" + testid + "_" + suiteid).val();
+    var case_default = $("#test_case_default_" + testid + "_" + suiteid).val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Test Case Modified Sucessfully');
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Saving Test Case');
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'edit_testcase', 'passmsg': passmsg, 
+                'failmsg': failmsg, 'default': case_default,
+                'testid':testid, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+function edit_test_part(partid, testid, suiteid)
+{
+    var part_type = $("#test_part_part_type_" + partid).val();
+    var test_type = $("#test_part_test_type_" + partid).val();
+    var data = $("#test_part_data_" + partid).val();
+    var filename = $("#test_part_file_" + partid).val();
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert("Test Part Modified");
+        }
+        catch (ex)
+        {
+            alert("Error Adding Test Part");
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'edit_testpart', 'part_type': part_type, 
+                'test_type': test_type, 'data': data, 'filename': filename,
+                'partid': partid, 'testid': testid, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+function add_test_part(testid, suiteid)
+{
+    var part_type = $("#new_test_part_part_type_" + testid).val();
+    var test_type = $("#new_test_part_test_type_" + testid).val();
+    var data = $("#new_test_part_data_" + testid).val();
+    var filename = $("#new_test_part_file_" + testid).val();
+
+    var savebutton = $("#new_test_part_save_" + testid);
+    savebutton.attr('value', 'Saving...');
+    savebutton.attr('disabled', 'disabled');
+    
+    var callback = function(xhr)
+    {
+        var testresponse;
+        var test_part_id;
+        var test_parts = $("#test_case_parts_" + testid);
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            savebutton.attr('value', 'Saving...');
+            savebutton.removeAttr('disabled');
+            
+            alert("Test Part Added");
+            window.location.reload();
+            return;
+        }
+        catch (ex)
+        {
+            alert("Error Adding Test Part");
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'add_testpart', 'part_type': part_type, 
+                'test_type': test_type, 'data': data, 'filename': filename,
+                'testid': testid, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+

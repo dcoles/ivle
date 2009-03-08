@@ -104,19 +104,21 @@
                 <ul>
                   <py:for each="test_case in test_suite.test_cases">
                     <li>
-                      <a onclick="tog('test_case_${test_case.testid}')" id="case_header_${test_case.testid}"><h5>Test Case ${test_case.seq_no}</h5></a>
-                      <div class="test_case" id="test_case_${test_case.testid}">
-                        <label for="test_case_pass_${test_case.testid}">Pass Message:</label>
-                        <input class="textinput" type="text" id="test_case_pass_${test_case.testid}" value="${test_case.passmsg}" />
+                      <a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')" id="case_header_${test_case.testid}"><h5>Test Case ${test_case.seq_no + 1}</h5></a>
+                      <div class="test_case" id="test_case_${test_case.testid}_${test_suite.suiteid}">
+                        <label for="test_case_pass_${test_case.testid}_${test_suite.suiteid}">Pass Message:</label>
+                        <input class="textinput" type="text" id="test_case_pass_${test_case.testid}_${test_suite.suiteid}" value="${test_case.passmsg}" />
                         <br />
-                        <label for="test_case_fail_${test_case.testid}">Fail Message:</label>
-                        <input class="textinput" type="text" id="test_case_fail_${test_case.testid}" value="${test_case.failmsg}" />
+                        <label for="test_case_fail_${test_case.testid}_${test_suite.suiteid}">Fail Message:</label>
+                        <input class="textinput" type="text" id="test_case_fail_${test_case.testid}_${test_suite.suiteid}" value="${test_case.failmsg}" />
                         <br />
-                        <label for="test_case_default_${test_case.test_default}">Default Mode:</label>
-                        <input class="textinput" type="text" id="test_case_default_${test_case.test_default}" value="${test_case.test_default}" />
+                        <label for="test_case_default_${test_case.test_default}_${test_suite.suiteid}">Default Mode:</label>
+                        <input class="textinput" type="text" id="test_case_default_${test_case.test_default}_${test_suite.suiteid}" value="${test_case.test_default}" />
                         <br />
-                        Test Case Parts
-                        <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}">
+                        <input type="submit" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
+                        <br />
+                        <h5>Test Case Parts</h5>
+                        <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <py:for each="test_part in test_case.parts">
                             <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
                             <select name="Part Type" id="test_part_part_type_${test_part.partid}">
@@ -139,7 +141,32 @@
                             <label for="test_part_file_${test_part.partid}">Filename:</label>
                             <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
                             <br />
+                            <input type="submit" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})"/>
                           </py:for>
+                        </div>
+                        <a>Add a New part</a>
+                        <div class="new_test_part" id="new_test_part_${test_case.testid}">
+                            <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
+                            <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
+                              <py:for each="part_type in part_types">
+                                <option value="${part_type}">${part_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label>Test Type:</label>
+                            <select name="Test Type" id="new_test_part_test_type_${test_case.testid}">
+                              <py:for each="test_type in test_types">
+                                <option value="${test_type}">${test_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label>Test:</label>
+                            <textarea id="new_test_part_data_${test_case.testid}" rows="2" cols="80"></textarea>
+                            <br />
+                            <label>Filename:</label>
+                            <input type="text" id="new_test_part_file_${test_case.testid}"/>
+                            <br />
+                            <input type="submit" value="Add Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                         </div>
                       </div>
                     </li>
@@ -154,9 +181,9 @@
                       <input class="textinput" type="text" id="new_test_case_fail_${test_suite.suiteid}" />
                       <br />
                       <label for="new_test_case_default_${test_suite.suiteid}">Default Mode:</label>
-                      <input class="textinput" type="text" id="new_test_case_default_${test_suite.suiteid}" />
+                      <input class="textinput" type="text" value="ignore" id="new_test_case_default_${test_suite.suiteid}" />
                       <br />
-                      <input type="submit" value="Add Case" onclick="add_part('${test_suite.suiteid}')" />
+                      <input type="submit" value="Add Case" onclick="add_test_case('${test_suite.suiteid}')" />
                     </div>
                   </li>
                 </ul>

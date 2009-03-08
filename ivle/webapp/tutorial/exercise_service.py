@@ -180,3 +180,79 @@ class ExerciseRESTView(JSONRESTView):
         req.store.add(new_case)
         
         return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def edit_testcase(self, req, suiteid, testid, passmsg, failmsg, default):
+        
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_case.passmsg = unicode(passmsg)
+        test_case.failmsg = unicode(failmsg)
+        test_case.default = unicode(default)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def edit_testpart(self, req, suiteid, testid, partid, part_type, test_type, 
+                      data, filename):
+    
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_part = req.store.find(TestCasePart,
+            TestCasePart.testid == test_case.testid,
+            TestCasePart.partid == int(partid)).one()
+        if test_part is None:
+            raise NotFound('testcasepart')
+        
+        test_part.part_type = unicode(part_type)
+        test_part.test_type = unicode(test_type)
+        test_part.data = unicode(data)
+        test_part.filename = unicode(filename)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def add_testpart(self, req, suiteid, testid, part_type, test_type, 
+                      data, filename):
+    
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_part = TestCasePart()
+        test_part.part_type = unicode(part_type)
+        test_part.test_type = unicode(test_type)
+        test_part.data = unicode(data)
+        test_part.filename = unicode(filename)
+        
+        test_case.parts.add(test_part)
+        
+        return {'result': 'ok'}
