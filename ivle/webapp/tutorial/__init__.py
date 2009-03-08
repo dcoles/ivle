@@ -509,6 +509,8 @@ class ExerciseEditView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
+            
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
         
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else

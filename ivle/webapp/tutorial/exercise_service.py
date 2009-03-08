@@ -101,14 +101,14 @@ class ExerciseRESTView(JSONRESTView):
         #XXX: Not sure if this works
         for suite in req.context.test_suites:
             for variable in suite.variables:
-                req.store.delete(variable)
+                req.store.remove(variable)
             for test_case in suite.test_cases:
                 for test_part in test_case.parts:
-                    req.store.delete(test_part)
-                req.store.delete(test_case)
-            req.store.delete(suite)
+                    req.store.remove(test_part)
+                req.store.remove(test_case)
+            req.store.remove(suite)
         
-        req.store.delete(self.context)
+        req.store.remove(self.context)
         return {'result': 'ok'}
         
     @named_operation(u'edit')
@@ -151,12 +151,12 @@ class ExerciseRESTView(JSONRESTView):
             raise NotFound()
         
         for variable in suite.variables:
-            req.store.delete(variable)
+            req.store.remove(variable)
         for test_case in suite.test_cases:
             for test_part in test_case.parts:
-                req.store.delete(test_part)
-            req.store.delete(test_case)
-        req.store.delete(suite)
+                req.store.remove(test_part)
+            req.store.remove(test_case)
+        req.store.remove(suite)
         
         return {'result': 'ok'}
       
@@ -206,7 +206,7 @@ class ExerciseRESTView(JSONRESTView):
         if var is None:
             raise NotFound()
         
-        req.store.delete(var)
+        req.store.remove(var)
         
         return {'result': 'ok'}
     
@@ -264,12 +264,12 @@ class ExerciseRESTView(JSONRESTView):
         test_case = req.store.find(TestCase,
             TestCase.suiteid == suite.suiteid,
             TestCase.testid == int(testid)).one()
-        if rest_case is None:   
+        if test_case is None:   
             raise NotFound()
             
         for test_part in test_case.parts:
-            req.store.delete(test_part)
-        req.store.delete(test_part)
+            req.store.remove(test_part)
+        req.store.remove(test_case)
         
         return {'result': 'ok'}
     
@@ -348,6 +348,6 @@ class ExerciseRESTView(JSONRESTView):
         if test_part is None:
             raise NotFound('testcasepart')
         
-        req.store.delete(test_part)
+        req.store.remove(test_part)
         
         return {'result': 'ok'}

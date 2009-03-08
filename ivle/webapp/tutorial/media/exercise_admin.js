@@ -61,7 +61,7 @@ function edit_exercise()
     ajax_call(callback, update_path, "", args, 'POST');
 }
 
-/* Modify and add suites */
+/* Modify, add and delete suites */
 function edit_suite(suiteid)
 {
     var desc = $('#test_suite_description_' + suiteid).val();
@@ -119,6 +119,30 @@ function add_suite()
     ajax_call(callback, update_path, "", args, 'POST');
 }
 
+function delete_suite(suiteid)
+{
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Suite Deleted.');
+            window.location.reload()
+            return;
+        }
+        catch (ex)
+        {
+            alert('Could not delete suite.');
+        }
+        
+    }
+    
+    var args = {'ivle.op': 'delete_suite', 'suiteid': suiteid}
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
 /* Modify and add Variables */
 function edit_var(varid)
 {
@@ -170,7 +194,7 @@ function add_var(suiteid)
         }
         catch(ex)
         {
-            alert('Error Creating Test Suite');
+            alert('Error Adding Variable.');
             return;
         }
     }
@@ -180,6 +204,30 @@ function add_var(suiteid)
                 'argno': argno, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
+}
+
+function delete_var(varid, suiteid)
+{
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Variable Deleted.');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Deleting Variable');
+            return;
+        }
+    }
+    var args = {'ivle.op': 'delete_var', 'suiteid': suiteid, 'varid': varid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+
 }
 
 /* Add and edit test case parts */
@@ -244,6 +292,32 @@ function edit_test_case(testid, suiteid)
     ajax_call(callback, update_path, "", args, 'POST');
 }
 
+function delete_testcase(testid, suiteid)
+{
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Test Case Deleted.');
+            window.location.reload();
+            return;
+        }
+        catch(ex)
+        {
+            alert('Error Deleting Test Case');
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'delete_testcase', 'testid': testid, 
+                'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}
+
+/* Functions to add, edit, and delete test case parts */
 function edit_test_part(partid, testid, suiteid)
 {
     var part_type = $("#test_part_part_type_" + partid).val();
@@ -313,3 +387,26 @@ function add_test_part(testid, suiteid)
     ajax_call(callback, update_path, "", args, 'POST');
 }
 
+function delete_testpart(partid, testid, suiteid)
+{
+    var callback = function(xhr)
+    {
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert("Test Part Deleted.");
+            window.location.reload();
+            return;
+        }
+        catch (ex)
+        {
+            alert("Error Deleting Test Part");
+            return;
+        }
+    }
+    
+    var args = {'ivle.op': 'delete_testpart', 'partid': partid, 
+                'testid': testid, 'suiteid': suiteid};
+    update_path = "api/+exercises/" + exercise;
+    ajax_call(callback, update_path, "", args, 'POST');
+}

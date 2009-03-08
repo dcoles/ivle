@@ -1,0 +1,35 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Delete Exercise - ${exercise.id}</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+        exercise = '${exercise.id}';
+    </script>
+  </head>
+  <body>
+    <h1>Delete Exercise - ${exercise.id}</h1>
+    <div id="ivle_padding">
+    <py:if test="deleted">
+      <h3>Exercise Deleted</h3>
+      <a href="/+exercises">Return to Exercise List</a>
+    </py:if>
+    <py:if test="deleted == False">
+      <py:if test="hasworksheets == False">
+        <h3>Identifier:</h3>
+        <p>${exercise.id}</p>
+        <h3>Name:</h3>
+        <p>${exercise.name}</p>
+        <p>Are you sure you wish to delete this exercise?</p>
+        <form action="${path}" method="POST">
+          <input type="submit" value="Delete"/>
+        </form>
+      </py:if>
+      <py:if test="hasworksheets">
+          <h3>Denied</h3>
+          <p>You cannot delete this exercise, as it has been associated with a worksheet.</p>
+      </py:if>
+    </py:if>
+    </div>
+  </body>
+</html>
