@@ -415,6 +415,9 @@ class Exercise(Storm):
     include = Unicode()
     num_rows = Int()
 
+    worksheet_exercises =  ReferenceSet(id,
+        'WorksheetExercise.exercise_id')
+
     worksheets = ReferenceSet(id,
         'WorksheetExercise.exercise_id',
         'WorksheetExercise.worksheet_id',
@@ -437,6 +440,10 @@ class Exercise(Storm):
                 perms.add('edit')
                 perms.add('view')
         return perms
+    
+    def get_description(self):
+        return "<div class='exercise_description'>" + \
+                rst(self.description) + "</div>"
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"

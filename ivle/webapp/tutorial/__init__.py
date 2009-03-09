@@ -509,6 +509,8 @@ class ExerciseEditView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
+            
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
         
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else
@@ -518,6 +520,52 @@ class ExerciseEditView(XHTMLView):
                              u'exception', u'file', u'code')
         
         ctx['test_types'] = ('norm', 'check')
+
+class ExerciseDeleteView(XHTMLView):
+    """View for confirming the deletion of an exercise."""
+    
+    permission = 'edit'
+    template = 'templates/exercise_delete.html'
+    
+    def __init__(self, req, exercise):
+        self.context = req.store.find(Exercise,
+            Exercise.id == exercise).one()
+        
+        if self.context is None:
+            raise NotFound()
+        
+    def populate(self, req, ctx):
+        ctx['exercise'] = self.context
+        ctx['deleted'] = False
+        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
+        if req.method == 'POST':
+            if self.context.worksheet_exercises.count() is not 0:
+                ctx['hasworksheets'] = True
+            else:
+                #TODO: DELETE the exercise and all its test cases
+                ctx['deleted'] = True
+        else:
+            if self.context.worksheet_exercises.count() is not 0:
+                ctx['hasworksheets'] = True
+            else:
+                ctx['hasworksheets'] = False
+
+class ExercisesView(XHTMLView):
+    """View for seeing the list of all exercises"""
+    
+    permission = 'edit'
+    template = 'templates/exercises.html'
+    
+    def authorize(self, req):
+        for offering in req.store.find(Offering):
+            if 'edit' in offering.get_permissions(req.user):
+                return True
+        return False
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['exercise_admin.css']
+        ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
@@ -539,7 +587,9 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
         
         # Exercise View Urls
+        ('+exercises', ExercisesView),
         ('+exercises/:exercise/+edit', ExerciseEditView),
+        ('+exercises/:exercise/+delete', ExerciseDeleteView),
         
         # Exercise Api Urls
         ('api/+exercises', ExercisesRESTView),

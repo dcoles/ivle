@@ -23,7 +23,7 @@ from ivle.database import Exercise, TestSuite, TestCase, \
                           TestSuiteVar, TestCasePart
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
-from ivle.webapp.errors import NotFound
+from ivle.webapp.errors import NotFound, BadRequest
 
 
 class ExercisesRESTView(JSONRESTView):
@@ -91,6 +91,25 @@ class ExerciseRESTView(JSONRESTView):
         self.context.include = unicode(include)
         self.context.num_rows = int(num_rows)
         return {'result': 'moo'}
+    
+    @named_operation(u'edit')
+    def delete_exercise(self, req, id):
+        
+        if self.context.worksheets.count() is not 0:
+            raise BadRequest()
+        
+        #XXX: Not sure if this works
+        for suite in req.context.test_suites:
+            for variable in suite.variables:
+                req.store.remove(variable)
+            for test_case in suite.test_cases:
+                for test_part in test_case.parts:
+                    req.store.remove(test_part)
+                req.store.remove(test_case)
+            req.store.remove(suite)
+        
+        req.store.remove(self.context)
+        return {'result': 'ok'}
         
     @named_operation(u'edit')
     def add_suite(self, req, description, function, stdin):
@@ -119,6 +138,25 @@ class ExerciseRESTView(JSONRESTView):
         suite.description = unicode(description)
         suite.function = unicode(function)
         suite.stdin = unicode(stdin)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def delete_suite(self, req, suiteid):
+        
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound()
+        
+        for variable in suite.variables:
+            req.store.remove(variable)
+        for test_case in suite.test_cases:
+            for test_part in test_case.parts:
+                req.store.remove(test_part)
+            req.store.remove(test_case)
+        req.store.remove(suite)
         
         return {'result': 'ok'}
       
@@ -161,6 +199,18 @@ class ExerciseRESTView(JSONRESTView):
         return {'result': 'ok'}
     
     @named_operation(u'edit')
+    def delete_var(self, req, suiteid, varid):
+        var = req.store.find(TestSuiteVar,
+            TestSuiteVar.varid == int(varid),
+            TestSuiteVar.suiteid == int(suiteid)).one()
+        if var is None:
+            raise NotFound()
+        
+        req.store.remove(var)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
     def add_testcase(self, req, suiteid, passmsg, failmsg, default):
         
         suite = req.store.find(TestSuite,
@@ -178,5 +228,126 @@ class ExerciseRESTView(JSONRESTView):
         suite.test_cases.add(new_case)
         
         req.store.add(new_case)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def edit_testcase(self, req, suiteid, testid, passmsg, failmsg, default):
+        
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_case.passmsg = unicode(passmsg)
+        test_case.failmsg = unicode(failmsg)
+        test_case.default = unicode(default)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def delete_testcase(self, req, suiteid, testid):
+        
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound()
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:   
+            raise NotFound()
+            
+        for test_part in test_case.parts:
+            req.store.remove(test_part)
+        req.store.remove(test_case)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def edit_testpart(self, req, suiteid, testid, partid, part_type, test_type, 
+                      data, filename):
+    
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_part = req.store.find(TestCasePart,
+            TestCasePart.testid == test_case.testid,
+            TestCasePart.partid == int(partid)).one()
+        if test_part is None:
+            raise NotFound('testcasepart')
+        
+        test_part.part_type = unicode(part_type)
+        test_part.test_type = unicode(test_type)
+        test_part.data = unicode(data)
+        test_part.filename = unicode(filename)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def add_testpart(self, req, suiteid, testid, part_type, test_type, 
+                      data, filename):
+    
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound('testsuite')
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound('testcase')
+        
+        test_part = TestCasePart()
+        test_part.part_type = unicode(part_type)
+        test_part.test_type = unicode(test_type)
+        test_part.data = unicode(data)
+        test_part.filename = unicode(filename)
+        
+        test_case.parts.add(test_part)
+        
+        return {'result': 'ok'}
+    
+    @named_operation(u'edit')
+    def delete_testpart(self, req, suiteid, testid, partid):
+        suite = req.store.find(TestSuite,
+            TestSuite.suiteid == int(suiteid),
+            TestSuite.exercise_id == self.context.id).one()
+        if suite is None:
+            raise NotFound()
+        
+        test_case = req.store.find(TestCase,
+            TestCase.suiteid == suite.suiteid,
+            TestCase.testid == int(testid)).one()
+        if test_case is None:
+            raise NotFound()
+        
+        test_part = req.store.find(TestCasePart,
+            TestCasePart.testid == test_case.testid,
+            TestCasePart.partid == int(partid)).one()
+        if test_part is None:
+            raise NotFound('testcasepart')
+        
+        req.store.remove(test_part)
         
         return {'result': 'ok'}

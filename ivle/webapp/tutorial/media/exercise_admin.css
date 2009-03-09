@@ -1,6 +1,6 @@
 .testsuite {
   display: none;
-  width: 900px;
+  width: 1000px;
 }
 
 .test_variables {
@@ -40,4 +40,10 @@
 
 .add_new_part {
   display: none;
+}
+
+.exercise_names div {
+  float: left;
+  text-align: left;
+  width: 250px;
 }
