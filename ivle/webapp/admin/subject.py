@@ -27,11 +27,13 @@ import urllib
 import cgi
 
 from storm.locals import Desc
+from genshi.filters import HTMLFormFiller
+import formencode
 
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
-from ivle.database import Subject, Semester
+from ivle.database import Subject, Semester, Offering, Enrolment, User
 from ivle import util
 
 
@@ -44,6 +46,7 @@ class SubjectsView(XHTMLView):
         return req.user is not None
 
     def populate(self, req, ctx):
+        ctx['user'] = req.user
         ctx['semesters'] = []
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
@@ -51,9 +54,81 @@ class SubjectsView(XHTMLView):
             if enrolments.count():
                 ctx['semesters'].append((semester, enrolments))
 
+
+class UserValidator(formencode.FancyValidator):
+    """A FormEncode validator that turns a username into a user.
+
+    The state must have a 'store' attribute, which is the Storm store
+    to use."""
+    def _to_python(self, value, state):
+        user = User.get_by_login(state.store, value)
+        if user:
+            return user
+        else:
+            raise formencode.Invalid('User does not exist', value, state)
+
+
+class NoEnrolmentValidator(formencode.FancyValidator):
+    """A FormEncode validator that ensures absence of an enrolment.
+
+    The state must have an 'offering' attribute.
+    """
+    def _to_python(self, value, state):
+        if state.offering.get_enrolment(value):
+            raise formencode.Invalid('User already enrolled', value, state)
+        return value
+
+
+class EnrolSchema(formencode.Schema):
+    user = formencode.All(NoEnrolmentValidator(), UserValidator())
+
+
+class EnrolView(XHTMLView):
+    """A form to enrol a user in an offering."""
+    template = 'enrol.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    def __init__(self, req, subject, year, semester):
+        """Find the given offering by subject, year and semester."""
+        self.context = req.store.find(Offering,
+            Offering.subject_id == Subject.id,
+            Subject.short_name == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
+
+        if not self.context:
+            raise NotFound()
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = EnrolSchema()
+                req.offering = self.context # XXX: Getting into state.
+                data = validator.to_python(data, state=req)
+                self.context.enrol(data['user'])
+                req.store.commit()
+                req.throw_redirect(req.uri)
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {}
+            errors = {}
+
+        ctx['data'] = data or {}
+        ctx['offering'] = self.context
+        ctx['errors'] = errors
+
+
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/', SubjectsView),
+        ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
     ]
 
     tabs = [

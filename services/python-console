@@ -208,7 +208,17 @@ class PythonRunner(Thread):
 
         # Try to execute the buffer
         try:
-            cmd = self.cc(self.curr_cmd, '<web session>')
+            # A single trailing newline simply indicates that the line is
+            # finished. Two trailing newlines indicate the end of a block.
+            # Unfortunately, codeop.CommandCompiler causes even one to
+            # terminate a block.
+            # Thus we need to remove a trailing newline from the command,
+            # unless there are *two* trailing newlines, or multi-line indented
+            # blocks are impossible. See Google Code issue 105.
+            cmd_text = self.curr_cmd
+            if cmd_text.endswith('\n') and not cmd_text.endswith('\n\n'):
+                cmd_text = cmd_text[:-1]
+            cmd = self.cc(cmd_text, '<web session>')
             if cmd is None:
                 # The command was incomplete, so send back a None, so the              
                 # client can print a '...'

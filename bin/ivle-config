@@ -113,6 +113,13 @@ providing login-free access to student's published work:""",
 # Private mode (normal mode) requires login, and only serves files relevant to
 # the logged-in user."""))
 
+config_options.append(ConfigOption("media/version", None,
+    """Version of IVLE media resources (must change on each upgrade):""",
+    """
+# Version string for IVLE media resource URLs. When set, they are aggressively
+# cached by the browser, so it must be either left unset or changed each time
+# a media file is changed.""", ask=False))
+
 config_options.append(ConfigOption("database/host", "localhost",
     """PostgreSQL Database config
 ==========================

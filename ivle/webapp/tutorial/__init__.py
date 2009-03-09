@@ -47,6 +47,7 @@ from ivle.webapp.errors import NotFound, Forbidden
 from ivle.worksheet.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
             WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
+
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
 
@@ -78,7 +79,7 @@ class OfferingView(XHTMLView):
         """Find the given offering by subject, year and semester."""
         self.context = req.store.find(Offering,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
@@ -92,8 +93,8 @@ class OfferingView(XHTMLView):
         self.plugin_styles[Plugin] = ['tutorial.css']
 
         ctx['subject'] = self.context.subject
-        ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
+        ctx['offering'] = self.context
+        ctx['user'] = req.user
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
@@ -155,7 +156,7 @@ class WorksheetView(XHTMLView):
         self.context = req.store.find(DBWorksheet,
             DBWorksheet.offering_id == Offering.id,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester,
@@ -180,6 +181,7 @@ class WorksheetView(XHTMLView):
         ctx['year'] = self.year
 
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
+        ctx['user'] = req.user
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -194,7 +196,7 @@ class SubjectMediaView(BaseMediaFileView):
     permission = 'view'
 
     def __init__(self, req, subject, path):
-        self.context = req.store.find(Subject, code=subject).one()
+        self.context = req.store.find(Subject, short_name=subject).one()
         self.path = os.path.normpath(path)
 
     def _make_filename(self, req):
@@ -203,7 +205,7 @@ class SubjectMediaView(BaseMediaFileView):
             raise NotFound()
 
         subjectdir = os.path.join(ivle.conf.subjects_base,
-                                  self.context.code, 'media')
+                                  self.context.short_name, 'media')
         return os.path.join(subjectdir, self.path)
 
 def get_worksheets(subjectfile):
@@ -401,7 +403,7 @@ class WorksheetEditView(XHTMLView):
             Semester.year == year,
             Semester.semester == semester,
             Offering.subject_id == Subject.id,
-            Subject.code == subject
+            Subject.short_name == subject
         ).one()
         
         if self.context is None:
@@ -437,7 +439,7 @@ class WorksheetAddView(XHTMLView):
             Semester.year == year,
             Semester.semester == semester,
             Offering.subject_id == Subject.id,
-            Subject.code == subject
+            Subject.short_name == subject
         ).one()
         
         self.subject = subject
@@ -470,7 +472,7 @@ class WorksheetsEditView(XHTMLView):
             Semester.year == year,
             Semester.semester == semester,
             Offering.subject_id == Subject.id,
-            Subject.code == subject
+            Subject.short_name == subject
         ).one()
         
         self.subject = subject
@@ -585,7 +587,7 @@ class Plugin(ViewPlugin, MediaPlugin):
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
-        
+
         # Exercise View Urls
         ('+exercises', ExercisesView),
         ('+exercises/:exercise/+edit', ExerciseEditView),

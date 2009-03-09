@@ -9,9 +9,6 @@
   </head>
   <body>
     <h1>Edit Exercise - ${exercise.id}</h1>
-    <p class="system_warning">This page is currently being trialled. It is
-      missing features and contains known bugs. It is expected to change soon.
-    </p>
     <div id="ivle_padding">
       <h3>Exercise Values:</h3>
       <label for="exercise_id">Exercise Identifier:</label>
@@ -41,7 +38,7 @@
       <ul>
         <py:for each="test_suite in exercise.test_suites">
           <li>
-            <h3><a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a> <a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a></h3>
+            <h3><a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a> <a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h3>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
               <div class="test_suite_vals">
@@ -105,7 +102,7 @@
                 <ul>
                   <py:for each="test_case in test_suite.test_cases">
                     <li>
-                      <h5><a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a><a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')" id="case_header_${test_case.testid}"> Test Case ${test_case.seq_no + 1}</a></h5>
+                      <h5><a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')" id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a> <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h5>
                       <div class="test_case" id="test_case_${test_case.testid}_${test_suite.suiteid}">
                         <label for="test_case_pass_${test_case.testid}_${test_suite.suiteid}">Pass Message:</label>
                         <input class="textinput" type="text" id="test_case_pass_${test_case.testid}_${test_suite.suiteid}" value="${test_case.passmsg}" />
@@ -210,6 +207,9 @@
         </div>
         <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
       </div>
+      
+      <p><a href="/+exercises">Back To Exercise Listing</a></p>
+      
     </div>
     
   </body>

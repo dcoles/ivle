@@ -254,7 +254,7 @@ function console_enter_line(inputbox, which)
 
     if (typeof(inputbox) == "string")
     {
-        var inputline = inputbox;
+        var inputline = inputbox + "\n";
         inputbox = null;
     }
     else
@@ -464,7 +464,7 @@ function console_reset()
     else
     {
         xhr = ajax_call(null, "console", "service", {"ivle.op": "chat", "kind": "terminate", "key": server_key}, "POST");
-        console_response(null, null, null, xhr.responseText);
+        console_response(null, null, xhr.responseText);
     }
 }
 

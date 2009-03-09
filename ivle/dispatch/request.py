@@ -295,7 +295,11 @@ class Request:
     def get_session(self):
         """Returns a mod_python Session object for this request.
         Note that this is dependent on mod_python and may need to change
-        interface if porting away from mod_python."""
+        interface if porting away from mod_python.
+
+        IMPORTANT: Call unlock() on the session as soon as you are done with
+                   it! If you don't, all other requests will block!
+        """
         # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
             self.session = mod_python.Session.FileSession(self.apache_req,

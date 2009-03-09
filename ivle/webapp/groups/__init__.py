@@ -25,31 +25,27 @@ from ivle.database import Subject, Offering, Semester
 
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.errors import NotFound
 
 class GroupsView(XHTMLView):
     """
     The groups view
     """
     template = 'template.html'
-    tab = 'groups'
+    tab = 'subjects'
+    permission = 'edit'
 
     def __init__(self, req, subject, year, semester):
         """Find the given offering by subject, year and semester."""
         self.context = req.store.find(Offering,
             Offering.subject_id == Subject.id,
-            Subject.code == subject,
+            Subject.short_name == subject,
             Offering.semester_id == Semester.id,
             Semester.year == year,
             Semester.semester == semester).one()
-        
+
         if not self.context:
             raise NotFound()
-
-    def authorize(self, req):
-        enrolment = self.context.get_enrolment(req.user)
-        if not enrolment:
-            return False
-        return req.user.admin or enrolment.role in (u'tutor', u'lecturer')
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']

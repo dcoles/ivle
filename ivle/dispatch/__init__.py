@@ -128,6 +128,11 @@ def handler(apachereq):
                 return req.OK
             else:
                 return e.code
+        except mod_python.apache.SERVER_RETURN:
+            # A mod_python-specific Apache error.
+            # XXX: We need to raise these because req.throw_error() uses them.
+            # Remove this after Google Code issue 117 is fixed.
+            raise
         except Exception, e:
             # A non-HTTPError appeared. We have an unknown exception. Panic.
             handle_unknown_exception(req, *sys.exc_info())

@@ -26,6 +26,7 @@ except ImportError:
     pass
 
 import ivle.util
+import ivle.pulldown_subj
 import ivle.webapp.security
 from ivle.auth import authenticate, AuthError
 from ivle.webapp.base.xhtml import XHTMLView
@@ -46,10 +47,13 @@ class LoginView(XHTMLView):
         if nexturl is None:
             nexturl = '/'
 
-        # We are already logged in. Don't bother logging in again.
+        # We are already logged in. If it is a POST, they might be trying to
+        # clobber their session with some new credentials. That's their own
+        # business, so we let them do it. Otherwise, we don't bother prompting
+        # and just redirect to the destination.
         # Note that req.user is None even if we are 'logged in', if the user is
-        # invalid.
-        if req.user is not None:
+        # invalid (state != enabled, or expired).
+        if req.method != "POST" and req.user is not None:
             req.throw_redirect(nexturl)
 
         # Don't give any URL if we want /.
@@ -111,8 +115,8 @@ class LoginView(XHTMLView):
                         session = req.get_session()
                         session['login'] = user.login
                         session.save()
+                        session.unlock()
                         user.last_login = datetime.datetime.now()
-                        req.store.commit()
 
                         # Create cookies for plugins that might request them.
                         for plugin in req.config.plugin_index[CookiePlugin]:
@@ -122,6 +126,10 @@ class LoginView(XHTMLView):
                                 if plugin.cookies[cookie] is not None:
                                     req.add_cookie(mod_python.Cookie.Cookie(cookie,
                                           plugin.cookies[cookie](user), path='/'))
+
+                        # Add any new enrolments.
+                        ivle.pulldown_subj.enrol_user(req.store, user)
+                        req.store.commit()
 
                         req.throw_redirect(nexturl)
 
