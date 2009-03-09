@@ -24,6 +24,42 @@ function tog(something)
   $('#' + something).toggle("slow");
 }
 
+function add_exercise()
+{
+    var exercise_id = $('#exercise_id').val();
+    var exercise_name = $('#exercise_name').val();
+    var exercise_num_rows = $('#exercise_num_rows').val();
+    var exercise_desc = $('#exercise_desc').val();
+    var exercise_partial = $('#exercise_partial').val();
+    var exercise_solution = $('#exercise_solution').val();
+    var exercise_include = $('#exercise_include').val();
+
+    var callback = function(xhr)
+    {
+        var testresponse;
+        try
+        {
+            testresponse = JSON.parse(xhr.responseText);
+            alert('Exercise Created');
+            window.location = '/+exercises';
+        }
+        catch (ex)
+        {
+            alert('Error: Could not add exercise');
+            return;
+        }
+    }
+    
+    update_path = "api/+exercises";
+    
+    var args = {'identifier': exercise_id , 'name': exercise_name, 
+                'description': exercise_desc, 'partial': exercise_partial,
+                'solution': exercise_solution, 'include': exercise_include,
+                'num_rows': exercise_num_rows, 'ivle.op': 'add_exercise'};
+    ajax_call(callback, update_path, "", args, 'POST');
+    
+}
+
 /* Edit the exercise values */
 function edit_exercise()
 {

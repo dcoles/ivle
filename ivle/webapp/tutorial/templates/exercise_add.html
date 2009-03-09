@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Add Exercise</title>
+  </head>
+  <body>
+    <h1>Create Exercise</h1>
+    <div id="ivle_padding">
+      <h3>Exercise Values:</h3>
+      <label for="exercise_id">Exercise Identifier:</label>
+      <input class="textinput" type="text" id="exercise_id" title="Exercise Identifier" />
+      <br />
+      <label for="exercise_name">Exercise Name:</label>
+      <input class="textinput" type='text' id='exercise_name' title="Exercise Name" />
+      <br />
+      <label for="exercise_num_rows">Number of Rows</label>
+      <input size="5" type="text" id="exercise_num_rows" value="4" title="Number of Rows" />
+      <br />
+      <label for="exercise_desc">Exercise Description (in RST):</label><br />
+      <textarea cols="80" rows="10" id="exercise_desc" title="Exercise Description"></textarea>
+      <br />
+      <label for="exercise_partial">Exercise Partial Solution (Python):</label><br />
+      <textarea cols="80" rows="5" id="exercise_partial" title="Partial Solution"></textarea>
+      <br />
+      <label for="exercise_solution">Exercise Full Solution:</label><br />
+      <textarea cols="80" rows="5" id="exercise_solution" title="Solution"></textarea>
+      <br />
+      <label for="exercise_include">Exercise Included Code:</label><br />
+      <textarea cols="80" rows="5" id="exercise_include" title="Included Code"></textarea>
+      <br />
+      <p><input type="submit" value="Save Changes" onclick="add_exercise()" /></p>
+    </div>
+  </body>
+</html>

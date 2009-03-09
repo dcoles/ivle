@@ -46,11 +46,12 @@ class ExercisesRESTView(JSONRESTView):
     
         new_exercise = Exercise()
         new_exercise.id = unicode(identifier)
-        new_exercise.description = description
-        new_exercise.partial = partial
-        new_exercise.solution = solution
-        new_exercise.include = include
-        new_exercise.num_rows = num_rows
+        new_exercise.name = unicode(name)
+        new_exercise.description = unicode(description)
+        new_exercise.partial = unicode(partial)
+        new_exercise.solution = unicode(solution)
+        new_exercise.include = unicode(include)
+        new_exercise.num_rows = int(num_rows)
         
         req.store.add(new_exercise)
         
