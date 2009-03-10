@@ -452,8 +452,7 @@ class Exercise(Storm):
         return perms
     
     def get_description(self):
-        return "<div class='exercise_description'>" + \
-                rst(self.description) + "</div>"
+        return rst(self.description)
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
@@ -513,7 +512,7 @@ class Worksheet(Storm):
     def get_xml(self):
         """Returns the xml of this worksheet, converts from rst if required."""
         if self.format == u'rst':
-            ws_xml = '<worksheet>' + rst(self.data) + '</worksheet>'
+            ws_xml = rst(self.data)
             return ws_xml
         else:
             return self.data

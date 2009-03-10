@@ -1697,7 +1697,7 @@ def rst(input):
             writer=CustomizedHTMLWriter(), reader=CustomizedReader())
         match = _OUTPUT_RE.search(output)
         if match:
-            return match.group(1)
+            return "<div>" + match.group(1) + "</div>"
         else:
             raise ValueError('Could not process exercise definition')
 
