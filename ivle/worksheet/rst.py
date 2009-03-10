@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Natural Language Toolkit: Documentation generation script
 #
