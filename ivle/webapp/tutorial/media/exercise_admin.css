@@ -47,3 +47,7 @@
   text-align: left;
   width: 250px;
 }
+
+li {
+  list-style: none;
+}
