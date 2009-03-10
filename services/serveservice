@@ -113,12 +113,13 @@ else:
            determine_file_type(filename) in ivle.conf.app.server.interpreters:
             throw_error('is-executable', {'path': filename})
 
-        if (ivle.conf.app.server.blacklist_served_filetypes and \
+        if not download and (
+            (ivle.conf.app.server.blacklist_served_filetypes and \
                 determine_file_type(filename) in \
                 ivle.conf.app.server.served_filetypes_blacklist) or \
             (ivle.conf.app.server.served_filetypes_whitelist and \
                 determine_file_type(filename) not in \
-                ivle.conf.app.server.served_filetypes_whitelist):
+                ivle.conf.app.server.served_filetypes_whitelist)):
             throw_error('forbidden')
 
 if zipmode:
