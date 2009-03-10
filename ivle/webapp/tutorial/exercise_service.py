@@ -211,13 +211,13 @@ class ExerciseRESTView(JSONRESTView):
             TestSuite.suiteid == int(suiteid),
             TestSuite.exercise_id == self.context.id).one()
         if suite is None:
-            raise NotFound('testsuite')
+            raise NotFound()
         
         test_case = req.store.find(TestCase,
             TestCase.suiteid == suite.suiteid,
             TestCase.testid == int(testid)).one()
         if test_case is None:
-            raise NotFound('testcase')
+            raise NotFound()
         
         test_case.passmsg = unicode(passmsg)
         test_case.failmsg = unicode(failmsg)
@@ -252,13 +252,13 @@ class ExerciseRESTView(JSONRESTView):
             TestSuite.suiteid == int(suiteid),
             TestSuite.exercise_id == self.context.id).one()
         if suite is None:
-            raise NotFound('testsuite')
+            raise NotFound()
         
         test_case = req.store.find(TestCase,
             TestCase.suiteid == suite.suiteid,
             TestCase.testid == int(testid)).one()
         if test_case is None:
-            raise NotFound('testcase')
+            raise NotFound()
         
         test_part = req.store.find(TestCasePart,
             TestCasePart.testid == test_case.testid,
@@ -281,13 +281,13 @@ class ExerciseRESTView(JSONRESTView):
             TestSuite.suiteid == int(suiteid),
             TestSuite.exercise_id == self.context.id).one()
         if suite is None:
-            raise NotFound('testsuite')
+            raise NotFound()
         
         test_case = req.store.find(TestCase,
             TestCase.suiteid == suite.suiteid,
             TestCase.testid == int(testid)).one()
         if test_case is None:
-            raise NotFound('testcase')
+            raise NotFound()
         
         test_part = TestCasePart()
         test_part.part_type = unicode(part_type)
@@ -317,7 +317,7 @@ class ExerciseRESTView(JSONRESTView):
             TestCasePart.testid == test_case.testid,
             TestCasePart.partid == int(partid)).one()
         if test_part is None:
-            raise NotFound('testcasepart')
+            raise NotFound()
         
         test_part.delete(req.store)
         
