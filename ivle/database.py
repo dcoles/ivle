@@ -454,6 +454,18 @@ class Exercise(Storm):
     def get_description(self):
         return rst(self.description)
 
+    def delete(self, store):
+        """Deletes the exercise, providing it has no associated worksheets.
+        
+        Returns True if delete successful. Otherwise returns False."""
+        if self.worksheet_exercises.count() > 0:
+            return False
+
+        for suite in self.test_suites:
+            suite.delete()
+        store.remove(self)
+        return True
+
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
 
@@ -516,7 +528,20 @@ class Worksheet(Storm):
             return ws_xml
         else:
             return self.data
-
+    
+    def delete(self, store):
+        """Deletes the worksheet, provided it has no attempts on any exercises.
+        
+        Returns True if delete succeeded, or False if this worksheet has
+        attempts attached."""
+        for ws_ex in self.all_worksheet_exercises:
+            if ws_ex.saves.count() > 0 or ws_ex.attempts.count() > 0:
+                return False
+        
+        self.remove_all_exercises()
+        store.remove(self)
+        return True
+        
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_exercise"
     
@@ -541,6 +566,7 @@ class WorksheetExercise(Storm):
 
     def get_permissions(self, user):
         return self.worksheet.get_permissions(user)
+    
 
 class ExerciseSave(Storm):
     """
@@ -607,6 +633,14 @@ class TestSuite(Storm):
     exercise = Reference(exercise_id, Exercise.id)
     test_cases = ReferenceSet(suiteid, 'TestCase.suiteid', order_by="seq_no")
     variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid', order_by='arg_no')
+    
+    def delete(self, store):
+        """Delete this suite, without asking questions."""
+        for vaariable in self.variables:
+            variable.delete()
+        for test_case in self.test_cases:
+            test_case.delete()
+        store.remove(self)
 
 class TestCase(Storm):
     """A TestCase is a member of a TestSuite.
@@ -626,6 +660,11 @@ class TestCase(Storm):
     parts = ReferenceSet(testid, "TestCasePart.testid")
     
     __init__ = _kwarg_init
+    
+    def delete(self, store):
+        for part in self.parts:
+            part.delete()
+        store.remove(self)
 
 class TestSuiteVar(Storm):
     """A container for the arguments of a Test Suite"""
@@ -643,6 +682,9 @@ class TestSuiteVar(Storm):
     
     __init__ = _kwarg_init
     
+    def delete(self, store):
+        store.remove(self)
+    
 class TestCasePart(Storm):
     """A container for the test elements of a Test Case"""
     __storm_table__ = "test_case_part"
@@ -659,3 +701,6 @@ class TestCasePart(Storm):
     test = Reference(testid, "TestCase.testid")
     
     __init__ = _kwarg_init
+    
+    def delete(self, store):
+        store.remove(self)

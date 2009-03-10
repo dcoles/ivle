@@ -535,36 +535,25 @@ class ExerciseDeleteView(XHTMLView):
         
         if self.context is None:
             raise NotFound()
-    
-    #Remove the context and all of its tests
-    def remove_exercise(self, req):
-        
-        for suite in self.context.test_suites:
-            for var in suite.variables:
-                req.store.remove(var)
-            for case in suite.test_cases:
-                for part in case.parts:
-                    req.store.remove(part)
-                req.store.remove(case)
-            req.store.remove(suite)
-        req.store.remove(self.context)
-        
-        
+
     def populate(self, req, ctx):
-        ctx['exercise'] = self.context
-        ctx['deleted'] = False
-        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
+
+        # If post, delete the exercise, or display a message explaining that
+        # the exercise cannot be deleted
         if req.method == 'POST':
-            if self.context.worksheet_exercises.count() is not 0:
-                ctx['hasworksheets'] = True
-            else:
-                self.remove_exercise(req)
-                ctx['deleted'] = True
+            ctx['method'] = 'POST'
+            ctx['deleted'] = self.context.delete(req.store)
+
+        # If get, display a delete confirmation page
         else:
+            ctx['method'] = 'GET'
             if self.context.worksheet_exercises.count() is not 0:
-                ctx['hasworksheets'] = True
+                ctx['has_worksheets'] = True
             else:
-                ctx['hasworksheets'] = False
+                ctx['has_worksheets'] = False
+        # Variables for the template
+        ctx['exercise'] = self.context
+        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
 
 class ExerciseAddView(XHTMLView):
     """View for creating a new exercise."""
