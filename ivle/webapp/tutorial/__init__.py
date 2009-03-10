@@ -542,7 +542,7 @@ class ExerciseDeleteView(XHTMLView):
         # the exercise cannot be deleted
         if req.method == 'POST':
             ctx['method'] = 'POST'
-            ctx['deleted'] = self.context.delete()
+            ctx['deleted'] = self.context.delete(req.store)
 
         # If get, display a delete confirmation page
         else:

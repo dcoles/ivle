@@ -34,7 +34,7 @@ class ExercisesRESTView(JSONRESTView):
         if user is not None:
             if user.admin:
                 return set(['save'])
-            elif user in set((e.role for e in req.user.active_enrolments)):
+            elif 'lecturer' in set((e.role for e in user.active_enrolments)):
                 return set(['save'])
             else:
                 return set()
@@ -62,17 +62,6 @@ class ExercisesRESTView(JSONRESTView):
 class ExerciseRESTView(JSONRESTView):
     """View for updating Exercises"""
     
-    def get_permissions(self, user):
-        if user is not None:
-            if user.admin:
-                return set([u'edit'])
-            elif user in set((e.role for e in req.user.active_enrolments)):
-                return set([u'edit'])
-            else:
-                return set()
-        else:
-            return set()
-    
     def __init__(self, req, exercise):
         
         self.context = req.store.find(Exercise,
@@ -91,27 +80,16 @@ class ExerciseRESTView(JSONRESTView):
         self.context.solution = unicode(solution)
         self.context.include = unicode(include)
         self.context.num_rows = int(num_rows)
-        return {'result': 'moo'}
+        return {'result': 'ok'}
     
     @named_operation(u'edit')
     def delete_exercise(self, req, id):
         
-        if self.context.worksheets.count() is not 0:
+        if self.context.delete(req.store):
+            return {'result': 'ok'}
+        else:
             raise BadRequest()
-        
-        #XXX: Not sure if this works
-        for suite in req.context.test_suites:
-            for variable in suite.variables:
-                req.store.remove(variable)
-            for test_case in suite.test_cases:
-                for test_part in test_case.parts:
-                    req.store.remove(test_part)
-                req.store.remove(test_case)
-            req.store.remove(suite)
-        
-        req.store.remove(self.context)
-        return {'result': 'ok'}
-        
+    
     @named_operation(u'edit')
     def add_suite(self, req, description, function, stdin):
         
@@ -151,13 +129,7 @@ class ExerciseRESTView(JSONRESTView):
         if suite is None:
             raise NotFound()
         
-        for variable in suite.variables:
-            req.store.remove(variable)
-        for test_case in suite.test_cases:
-            for test_part in test_case.parts:
-                req.store.remove(test_part)
-            req.store.remove(test_case)
-        req.store.remove(suite)
+        suite.delete(req.store)
         
         return {'result': 'ok'}
       
@@ -195,7 +167,7 @@ class ExerciseRESTView(JSONRESTView):
         var.var_type = unicode(var_type)
         var.var_name = unicode(var_name)
         var.var_val = unicode(var_val)
-        var.argno = int(argno)
+        var.argno = argno
         
         return {'result': 'ok'}
     
@@ -207,10 +179,10 @@ class ExerciseRESTView(JSONRESTView):
         if var is None:
             raise NotFound()
         
-        req.store.remove(var)
+        var.delete(req.store)
         
         return {'result': 'ok'}
-    
+        
     @named_operation(u'edit')
     def add_testcase(self, req, suiteid, passmsg, failmsg, default):
         
@@ -267,11 +239,9 @@ class ExerciseRESTView(JSONRESTView):
             TestCase.testid == int(testid)).one()
         if test_case is None:   
             raise NotFound()
-            
-        for test_part in test_case.parts:
-            req.store.remove(test_part)
-        req.store.remove(test_case)
-        
+
+        test_case.delete(req.store)
+
         return {'result': 'ok'}
     
     @named_operation(u'edit')
@@ -349,6 +319,6 @@ class ExerciseRESTView(JSONRESTView):
         if test_part is None:
             raise NotFound('testcasepart')
         
-        req.store.remove(test_part)
+        test_part.delete(req.store)
         
         return {'result': 'ok'}
