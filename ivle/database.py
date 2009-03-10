@@ -450,12 +450,10 @@ class Exercise(Storm):
             if user.admin:
                 perms.add('edit')
                 perms.add('view')
-            for enrolment in user.enrolments():
-                if enrolment.role not in roles:
-                    roles.add(enrolment.roles)
-            if 'lecturer' in roles:
+            else if 'lecturer' in set((e.role for e in user.active_enrolments)):
                 perms.add('edit')
                 perms.add('view')
+            
         return perms
     
     def get_description(self):
