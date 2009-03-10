@@ -542,7 +542,7 @@ class ExerciseDeleteView(XHTMLView):
         # the exercise cannot be deleted
         if req.method == 'POST':
             ctx['method'] = 'POST'
-            ctx['deleted'] = self.context.delete(req.store)
+            ctx['deleted'] = self.context.delete()
 
         # If get, display a delete confirmation page
         else:
@@ -560,7 +560,7 @@ class ExerciseAddView(XHTMLView):
     
     permission = 'edit'
     template = 'templates/exercise_add.html'
-    
+    #XXX: This should be done somewhere else
     def authorize(self, req):
         for offering in req.store.find(Offering):
             if 'edit' in offering.get_permissions(req.user):
@@ -576,7 +576,7 @@ class ExercisesView(XHTMLView):
     
     permission = 'edit'
     template = 'templates/exercises.html'
-    
+    #XXX: This should be done somewhere else
     def authorize(self, req):
         for offering in req.store.find(Offering):
             if 'edit' in offering.get_permissions(req.user):

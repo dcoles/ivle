@@ -445,8 +445,15 @@ class Exercise(Storm):
 
     def get_permissions(self, user):
         perms = set()
+        roles = set()
         if user is not None:
             if user.admin:
+                perms.add('edit')
+                perms.add('view')
+            for enrolment in user.enrolments():
+                if enrolment.role not in roles:
+                    roles.add(enrolment.roles)
+            if 'lecturer' in roles:
                 perms.add('edit')
                 perms.add('view')
         return perms
