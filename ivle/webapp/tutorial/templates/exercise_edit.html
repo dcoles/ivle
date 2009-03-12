@@ -17,6 +17,11 @@
       <textarea id="${name}" cols="${select('@cols')}" rows="${select('@rows')}">${select('*|text()')}</textarea>
     </div>
 
+    <div py:match="iw:text" py:with="name=((iw_prefix + '_') or '') + str(select('@name'))">
+      <label for="${name}">${select('@desc')}:</label>
+      <input type="text" id="${name}" value="${select('*|text()')}" />
+    </div>
+
     <h1>Edit Exercise - ${exercise.id}</h1>
     <div id="ivle_padding">
       <h3>Exercise Values:</h3>
@@ -120,18 +125,13 @@
                            id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a>
                         <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
                       </h5>
-                      <div class="test_case" id="test_case_${test_case.testid}_${test_suite.suiteid}">
-                        <label for="test_case_pass_${test_case.testid}_${test_suite.suiteid}">Pass Message:</label>
-                        <input class="textinput" type="text" id="test_case_pass_${test_case.testid}_${test_suite.suiteid}" value="${test_case.passmsg}" />
-                        <br />
-                        <label for="test_case_fail_${test_case.testid}_${test_suite.suiteid}">Fail Message:</label>
-                        <input class="textinput" type="text" id="test_case_fail_${test_case.testid}_${test_suite.suiteid}" value="${test_case.failmsg}" />
-                        <br />
-                        <label for="test_case_default_${test_case.testid}_${test_suite.suiteid}">Default Mode:</label>
-                        <input class="textinput" type="text" id="test_case_default_${test_case.testid}_${test_suite.suiteid}" value="${test_case.test_default}" />
-                        <br />
+                      <div py:with="iw_prefix='test_case_%d_%d' % (test_case.testid, test_suite.suiteid)"
+                           class="test_case" id="${iw_prefix}">
+                        <iw:text name="pass" desc="Pass Message">${test_case.passmsg}</iw:text>
+                        <iw:text name="fail" desc="Fail Message">${test_case.failmsg}</iw:text>
+                        <iw:text name="default" desc="Default Mode">${test_case.test_default}</iw:text>
                         <input type="submit" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
-                        <br />
+
                         <h5>Test Case Parts</h5>
                         <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <py:for each="test_part in test_case.parts">
@@ -189,17 +189,12 @@
                     </li>
                   </py:for>
                   <li>
-                    <a onclick="tog('new_test_part_${test_suite.suiteid}')"><h5>Add A New Test Case</h5></a>
-                    <div class="add_new_part" id="new_test_part_${test_suite.suiteid}">
-                      <label for="new_test_case_pass_${test_suite.suiteid}">Pass Message:</label>
-                      <input class="textinput" type="text" id="new_test_case_pass_${test_suite.suiteid}" />
-                      <br />
-                      <label for="new_test_case_fail_${test_suite.suiteid}">Fail Message:</label>
-                      <input class="textinput" type="text" id="new_test_case_fail_${test_suite.suiteid}" />
-                      <br />
-                      <label for="new_test_case_default_${test_suite.suiteid}">Default Mode:</label>
-                      <input class="textinput" type="text" value="ignore" id="new_test_case_default_${test_suite.suiteid}" />
-                      <br />
+                    <a onclick="tog('new_test_case_${test_suite.suiteid}')"><h5>Add A New Test Case</h5></a>
+                    <div py:with="iw_prefix='new_test_case_%d' % (test_suite.suiteid)"
+                         class="add_new_part" id="${iw_prefix}">
+                      <iw:text name="pass" desc="Pass Message" />
+                      <iw:text name="fail" desc="Fail Message" />
+                      <iw:text name="default" desc="Default Mode" />
                       <input type="submit" value="Add Case" onclick="add_test_case('${test_suite.suiteid}')" />
                     </div>
                   </li>

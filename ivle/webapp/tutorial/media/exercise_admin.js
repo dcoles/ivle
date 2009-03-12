@@ -270,9 +270,9 @@ function delete_var(varid, suiteid)
 
 function add_test_case(suiteid)
 {
-    var passmsg = $("#new_test_case_pass_" + suiteid).val();
-    var failmsg = $("#new_test_case_fail_" + suiteid).val();
-    var case_default = $("#new_test_case_default_" + suiteid).val();
+    var passmsg = $("#new_test_case_" + suiteid + "_pass").val();
+    var failmsg = $("#new_test_case_" + suiteid + "_fail").val();
+    var case_default = $("#new_test_case_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -301,9 +301,9 @@ function add_test_case(suiteid)
 
 function edit_test_case(testid, suiteid)
 {
-    var passmsg = $("#test_case_pass_" + testid + "_" + suiteid).val();
-    var failmsg = $("#test_case_fail_" + testid + "_" + suiteid).val();
-    var case_default = $("#test_case_default_" + testid + "_" + suiteid).val();
+    var passmsg = $("#test_case_" + testid + "_" + suiteid + "_pass").val();
+    var failmsg = $("#test_case_" + testid + "_" + suiteid + "_fail").val();
+    var case_default = $("#test_case_" + testid + "_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
