@@ -192,21 +192,23 @@
             </div>
           </li>
         </py:for>
+        <li>
+          <a onclick="tog('add_suite')">Add A New Test Suite</a>
+          <br />
+          <div id="add_suite" class="test_suite_vals">
+            <div>
+              <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
+            </div>
+            <div>
+              <label for="new_test_suite_function">Function:</label> <textarea id="new_test_suite_function" title="Suite Function" cols="80" rows="1"></textarea>
+            </div>
+            <div>
+              <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
+            </div>
+            <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
+          </div>
+        </li>
       </ul>
-      <a onclick="tog('add_suite')">Add A New Test Suite</a>
-      <br />
-      <div id="add_suite" class="test_suite_vals">
-        <div>
-          <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
-        </div>
-        <div>
-          <label for="new_test_suite_function">Function:</label> <textarea id="new_test_suite_function" title="Suite Function" cols="80" rows="1"></textarea>
-        </div>
-        <div>
-          <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
-        </div>
-        <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
-      </div>
       
       <p><a href="/+exercises">Back To Exercise Listing</a></p>
       
