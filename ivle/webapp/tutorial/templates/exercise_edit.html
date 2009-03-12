@@ -38,7 +38,11 @@
       <ul>
         <py:for each="test_suite in exercise.test_suites">
           <li>
-            <h3><a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a> <a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h3>
+            <h3>
+              <a id="suite_header_${test_suite.suiteid}"
+                 onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a>
+              <a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+            </h3>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
               <div class="test_suite_vals">
@@ -56,8 +60,10 @@
               </div>
               <br />
           
-              <a id='variables_header_${test_suite.suiteid}' onclick="tog('variables_${test_suite.suiteid}')"><h4>Suite ${test_suite.seq_no + 1} - Variables</h4></a>
-        
+              <h4>
+                <a id='variables_header_${test_suite.suiteid}'
+                   onclick="tog('variables_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - Variables</a>
+              </h4>
                 <div class="test_variables" id="variables_${test_suite.suiteid}">
                   <py:for each="variable in test_suite.variables">
                     <span>
@@ -96,13 +102,21 @@
                     <input type="submit" value="Add" onclick="add_var('${test_suite.suiteid}')" />
                   </div>
                 </div>
-              <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h4>Suite ${test_suite.seq_no + 1} - Test Cases</h4></a>
+
+              <h4>
+                <a onclick="tog('test_cases_${test_suite.suiteid}')"
+                   id="cases_header_${test_suite.suiteid}">Suite ${test_suite.seq_no + 1} - Test Cases</a>
+              </h4>
 
               <div class="test_cases" id="test_cases_${test_suite.suiteid}">    
                 <ul>
                   <py:for each="test_case in test_suite.test_cases">
                     <li>
-                      <h5><a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')" id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a> <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h5>
+                      <h5>
+                        <a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')"
+                           id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a>
+                        <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                      </h5>
                       <div class="test_case" id="test_case_${test_case.testid}_${test_suite.suiteid}">
                         <label for="test_case_pass_${test_case.testid}_${test_suite.suiteid}">Pass Message:</label>
                         <input class="textinput" type="text" id="test_case_pass_${test_case.testid}_${test_suite.suiteid}" value="${test_case.passmsg}" />
