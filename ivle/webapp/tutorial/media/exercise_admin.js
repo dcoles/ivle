@@ -21,7 +21,7 @@
 /* Show and hide the given page element */
 function tog(something)
 {
-  $('#' + something).toggle("slow");
+  $('#' + something).slideToggle("slow");
 }
 
 function add_exercise()
