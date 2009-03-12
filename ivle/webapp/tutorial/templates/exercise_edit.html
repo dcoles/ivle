@@ -54,17 +54,11 @@
             </h3>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
-              <div class="test_suite_vals">
-                <div>
-                  <label for="test_suite_description_${test_suite.suiteid}">Description:</label> <textarea id="test_suite_description_${test_suite.suiteid}" cols="80" rows="1">${test_suite.description}</textarea>
-                </div>
-                <div>
-                  <label for="test_suite_function_${test_suite.suiteid}">Function:</label> <textarea id="test_suite_function_${test_suite.suiteid}" title="Suite Function" cols="80" rows="1">${test_suite.function}</textarea>
-                </div>
-                <div>
-                  <label for="test_suite_stdin_${test_suite.suiteid}">Stdin:</label> <textarea id="test_suite_stdin_${test_suite.suiteid}" title="Suite Stdin" cols="80" rows="4">${test_suite.stdin}</textarea>
-                </div>
-                <br />
+              <div class="test_suite_vals"
+                   py:with="iw_prefix='test_suite_%d' % test_suite.suiteid">
+                <iw:textarea name="description" desc="Description" cols="80" rows="1">${test_suite.description}</iw:textarea>
+                <iw:textarea name="function" desc="Function" cols="80" rows="1">${test_suite.function}</iw:textarea>
+                <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4">${test_suite.stdin}</iw:textarea>
                 <input type="submit" name="Save Suite" value="Save Suite" onclick="edit_suite('${test_suite.suiteid}')" />
               </div>
               <br />

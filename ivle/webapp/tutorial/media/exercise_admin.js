@@ -100,9 +100,9 @@ function edit_exercise()
 /* Modify, add and delete suites */
 function edit_suite(suiteid)
 {
-    var desc = $('#test_suite_description_' + suiteid).val();
-    var func = $('#test_suite_function_' + suiteid).val();
-    var stdin = $('#test_suite_stdin_' + suiteid).val();
+    var desc = $('#test_suite_' + suiteid + '_description').val();
+    var func = $('#test_suite_' + suiteid + '_function').val();
+    var stdin = $('#test_suite_' + suiteid + '_stdin').val();
     
     var callback = function(xhr)
     {
