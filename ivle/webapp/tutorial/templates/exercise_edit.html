@@ -1,5 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/">
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:iw="http://www.ivle.org/2009/widgets">
   <head>
     <title>Edit - ${exercise.name}</title>
     <!-- These let the javascript know which worksheet is open -->
@@ -8,6 +9,14 @@
     </script>
   </head>
   <body>
+    <!--! iw:textarea: A textarea widget wrapper.
+          Generates a textarea in a div with a label. Define iw_prefix earlier
+          to automatically give a prefix to the name. -->
+    <div py:match="iw:textarea" py:with="name=((iw_prefix + '_') or '') + str(select('@name'))">
+      <label for="${name}">${select('@desc')}:</label>
+      <textarea id="${name}" cols="${select('@cols')}" rows="${select('@rows')}">${select('*|text()')}</textarea>
+    </div>
+
     <h1>Edit Exercise - ${exercise.id}</h1>
     <div id="ivle_padding">
       <h3>Exercise Values:</h3>
@@ -208,17 +217,11 @@
         </py:for>
         <li>
           <a onclick="$(this).hide(); tog('add_suite')">New test suite</a>
-          <div id="add_suite" class="test_suite_vals">
+          <div id="add_suite" class="test_suite_vals" py:with="iw_prefix='new_test_suite'">
             <h3>New suite</h3>
-            <div>
-              <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
-            </div>
-            <div>
-              <label for="new_test_suite_function">Function:</label> <textarea id="new_test_suite_function" title="Suite Function" cols="80" rows="1"></textarea>
-            </div>
-            <div>
-              <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
-            </div>
+            <iw:textarea name="description" desc="Description" cols="80" rows="1" />
+            <iw:textarea name="function" desc="Function" cols="80" rows="1" />
+            <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4" />
             <input type='submit' name='Submit' onclick='add_suite()' value="Create" />
           </div>
         </li>
