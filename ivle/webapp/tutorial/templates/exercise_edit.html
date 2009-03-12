@@ -14,40 +14,30 @@
           to automatically give a prefix to the name. -->
     <div py:match="iw:textarea" py:with="name=((iw_prefix + '_') or '') + str(select('@name'))">
       <label for="${name}">${select('@desc')}:</label>
+      <br py:if="defined('iw_label_linebreak') and iw_label_linebreak" />
       <textarea id="${name}" cols="${select('@cols')}" rows="${select('@rows')}">${select('*|text()')}</textarea>
     </div>
 
     <div py:match="iw:text" py:with="name=((iw_prefix + '_') or '') + str(select('@name'))">
       <label for="${name}">${select('@desc')}:</label>
+      <br py:if="defined('iw_label_linebreak') and iw_label_linebreak" />
       <input type="text" id="${name}" value="${select('*|text()')}" />
     </div>
 
     <h1>Edit Exercise - ${exercise.id}</h1>
     <div id="ivle_padding">
       <h3>Exercise Values:</h3>
-      <label for="exercise_id">Exercise Identifier:</label>
-      <input class="textinput" type="text" id="exercise_id" value="${exercise.id}" title="Exercise Identifier" />
-      <br />
-      <label for="exercise_name">Exercise Name:</label>
-      <input class="textinput" type='text' id='exercise_name' value="${exercise.name}" title="Exercise Name" />
-      <br />
-      <label for="exercise_num_rows">Number of Rows</label>
-      <input size="5" type="text" id="exercise_num_rows" value="${exercise.num_rows}" title="Number of Rows" />
-      <br />
-      <label for="exercise_desc">Exercise Description (in RST):</label><br />
-      <textarea cols="80" rows="10" id="exercise_desc" title="Exercise Description">${exercise.description}</textarea>
-      <br />
-      <label for="exercise_partial">Exercise Partial Solution (Python):</label><br />
-      <textarea cols="80" rows="5" id="exercise_partial" title="Partial Solution">${exercise.partial}</textarea>
-      <br />
-      <label for="exercise_solution">Exercise Full Solution:</label><br />
-      <textarea cols="80" rows="5" id="exercise_solution" title="Solution">${exercise.solution}</textarea>
-      <br />
-      <label for="exercise_include">Exercise Included Code:</label><br />
-      <textarea cols="80" rows="5" id="exercise_include" title="Included Code">${exercise.include}</textarea>
-      <br />
-      <input type="submit" value="Save Changes" onclick="edit_exercise()" />
-      <br />
+      <div py:with="iw_prefix='exercise'; iw_label_linebreak=True">
+        <iw:text name="id" desc="Identifier">${exercise.id}</iw:text>
+        <iw:text name="name" desc="Name">${exercise.name}</iw:text>
+        <iw:text name="num_rows" desc="Number of Rows">${exercise.num_rows}</iw:text>
+        <iw:textarea name="desc" desc="Description (RST)" cols="80" rows="10">${exercise.description}</iw:textarea>
+        <iw:textarea name="solution" desc="Solution" cols="80" rows="5">${exercise.solution}</iw:textarea>
+        <iw:textarea name="partial" desc="Partial Solution" cols="80" rows="5">${exercise.partial}</iw:textarea>
+        <iw:textarea name="include" desc="Included Code" cols="80" rows="5">${exercise.include}</iw:textarea>
+        <input type="submit" value="Save Changes" onclick="edit_exercise()" />
+      </div>
+
       <h2>Exercise Test Suites</h2>
       <ul>
         <py:for each="test_suite in exercise.test_suites">
