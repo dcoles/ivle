@@ -193,9 +193,9 @@
           </li>
         </py:for>
         <li>
-          <a onclick="tog('add_suite')">Add A New Test Suite</a>
-          <br />
+          <a onclick="$(this).hide(); tog('add_suite')">New test suite</a>
           <div id="add_suite" class="test_suite_vals">
+            <h3>New suite</h3>
             <div>
               <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
             </div>
@@ -205,7 +205,7 @@
             <div>
               <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
             </div>
-            <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
+            <input type='submit' name='Submit' onclick='add_suite()' value="Create" />
           </div>
         </li>
       </ul>
