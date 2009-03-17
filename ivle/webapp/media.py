@@ -201,7 +201,7 @@ class ExternalVersionedMediaFileView(ExternalMediaFileView):
 
 class Plugin(ViewPlugin, PublicViewPlugin):
     urls = [
-        ('+media/+external/+:version/:ns/*path', ExternalVersionedMediaFileView),
+        ('+media/+:version/+external/:ns/*path', ExternalVersionedMediaFileView),
         ('+media/+external/:ns/*path', ExternalMediaFileView),
         ('+media/+:version/:ns/*path', VersionedMediaFileView),
         ('+media/:ns/*path', MediaFileView),
