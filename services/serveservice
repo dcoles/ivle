@@ -139,8 +139,16 @@ if zipmode:
 
     print cjson.encode({'type': zip_mimetype,
                         'name': zipfilename})
-    print zipfile.getvalue()
+
+    stream = zipfile
+    stream.seek(0)
 else:
+
     print cjson.encode({'type': determine_file_type(filename),
                         'name': os.path.basename(filename)})
-    print open(filename).read()
+    stream = open(filename)
+    
+next = stream.read(1024)
+while next:
+    sys.stdout.write(next)
+    next = stream.read(1024)
