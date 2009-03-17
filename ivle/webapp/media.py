@@ -140,8 +140,69 @@ class VersionedMediaFileView(MediaFileView):
                                     usegmt=True)
         return super(VersionedMediaFileView, self)._make_filename(req)
 
+
+# This maps a media namespace to an external dependency directory (in this
+# case specified by the configuration option media/externals/jquery) and a
+# list of permitted subpaths.
+EXTERNAL_MEDIA_MAP = {'jquery': ('jquery', ['jquery.js'])}
+
+class ExternalMediaFileView(BaseMediaFileView):
+    '''A view for media files from external dependencies.
+
+    This serves specific static files from external dependencies as defined in
+    the IVLE configuration.
+    '''
+    permission = None
+
+    def _make_filename(self, req):
+        try:
+            extern = EXTERNAL_MEDIA_MAP[self.ns]
+        except KeyError:
+            raise NotFound()
+
+        # Unless it's a whitelisted path, we don't want to hear about it.
+        if self.path not in extern[1]:
+            raise NotFound()
+
+        # Grab the admin-configured path for this particular external dep.
+        config = Config()
+        externdir = config['media']['externals']['jquery']
+
+        assert isinstance(externdir, basestring)
+
+        return os.path.join(externdir, self.path)
+
+    def get_permissions(self, user):
+        return set()
+
+class ExternalVersionedMediaFileView(ExternalMediaFileView):
+    '''A view for versioned media files from external dependencies, with
+    aggressive caching.
+
+    This serves specific static media files from external dependencies with a
+    version string, and requests that browsers cache them for a long time.
+    '''
+
+    def __init__(self, req, ns, path, version):
+        super(ExternalVersionedMediaFileView, self).__init__(req, ns, path)
+        self.version = version
+
+    def _make_filename(self, req):
+        if self.version != Config()['media']['version']:
+            raise NotFound()
+
+        # Don't expire for a year.
+        req.headers_out['Expires'] = email.utils.formatdate(
+                                    timeval=time.time() + (60*60*24*365),
+                                    localtime=False,
+                                    usegmt=True)
+        return super(ExternalVersionedMediaFileView, self)._make_filename(req)
+
+
 class Plugin(ViewPlugin, PublicViewPlugin):
     urls = [
+        ('+media/+external/+:version/:ns/*path', ExternalVersionedMediaFileView),
+        ('+media/+external/:ns/*path', ExternalMediaFileView),
         ('+media/+:version/:ns/*path', VersionedMediaFileView),
         ('+media/:ns/*path', MediaFileView),
     ]
