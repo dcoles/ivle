@@ -29,9 +29,10 @@ import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
-from storm.exceptions import NotOneError
+from storm.exceptions import NotOneError, IntegrityError
 
 import ivle.conf
+from ivle.worksheet.rst import rst
 
 __all__ = ['get_store',
             'User',
@@ -265,7 +266,7 @@ class Offering(Storm):
 
     worksheets = ReferenceSet(id, 
         'Worksheet.offering_id', 
-        order_by="Worksheet.seq_no"
+        order_by="seq_no"
     )
 
     __init__ = _kwarg_init
@@ -424,13 +425,18 @@ class Exercise(Storm):
     include = Unicode()
     num_rows = Int()
 
+    worksheet_exercises =  ReferenceSet(id,
+        'WorksheetExercise.exercise_id')
+
     worksheets = ReferenceSet(id,
         'WorksheetExercise.exercise_id',
         'WorksheetExercise.worksheet_id',
         'Worksheet.id'
     )
     
-    test_suites = ReferenceSet(id, 'TestSuite.exercise_id')
+    test_suites = ReferenceSet(id, 
+        'TestSuite.exercise_id',
+        order_by='seq_no')
 
     __init__ = _kwarg_init
 
@@ -439,11 +445,27 @@ class Exercise(Storm):
 
     def get_permissions(self, user):
         perms = set()
+        roles = set()
         if user is not None:
             if user.admin:
                 perms.add('edit')
                 perms.add('view')
+            elif 'lecturer' in set((e.role for e in user.active_enrolments)):
+                perms.add('edit')
+                perms.add('view')
+            
         return perms
+    
+    def get_description(self):
+        return rst(self.description)
+
+    def delete(self):
+        """Deletes the exercise, providing it has no associated worksheets."""
+        if (self.worksheet_exercises.count() > 0):
+            raise IntegrityError()
+        for suite in self.test_suites:
+            suite.delete()
+        Store.of(self).remove(self)
 
 class Worksheet(Storm):
     __storm_table__ = "worksheet"
@@ -466,6 +488,7 @@ class Worksheet(Storm):
     # Use worksheet_exercises to get access to the *active* WorksheetExercise
     # objects binding worksheets to exercises. This is required to access the
     # "optional" field.
+
     @property
     def worksheet_exercises(self):
         return self.all_worksheet_exercises.find(active=True)
@@ -487,18 +510,42 @@ class Worksheet(Storm):
         return store.find(cls, cls.subject == unicode(subjectname),
             cls.name == unicode(worksheetname)).one()
 
-    def remove_all_exercises(self, store):
+    def remove_all_exercises(self):
         """
         Remove all exercises from this worksheet.
         This does not delete the exercises themselves. It just removes them
         from the worksheet.
         """
+        store = Store.of(self)
+        for ws_ex in self.all_worksheet_exercises:
+            if ws_ex.saves.count() > 0 or ws_ex.attempts.count() > 0:
+                raise IntegrityError()
         store.find(WorksheetExercise,
             WorksheetExercise.worksheet == self).remove()
             
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
-
+    
+    def get_xml(self):
+        """Returns the xml of this worksheet, converts from rst if required."""
+        if self.format == u'rst':
+            ws_xml = rst(self.data)
+            return ws_xml
+        else:
+            return self.data
+    
+    def delete(self):
+        """Deletes the worksheet, provided it has no attempts on any exercises.
+        
+        Returns True if delete succeeded, or False if this worksheet has
+        attempts attached."""
+        for ws_ex in self.all_worksheet_exercises:
+            if ws_ex.saves.count() > 0 or ws_ex.attempts.count() > 0:
+                raise IntegrityError()
+        
+        self.remove_all_exercises()
+        Store.of(self).remove(self)
+        
 class WorksheetExercise(Storm):
     __storm_table__ = "worksheet_exercise"
     
@@ -523,6 +570,7 @@ class WorksheetExercise(Storm):
 
     def get_permissions(self, user):
         return self.worksheet.get_permissions(user)
+    
 
 class ExerciseSave(Storm):
     """
@@ -587,8 +635,16 @@ class TestSuite(Storm):
     function = Unicode()
     stdin = Unicode()
     exercise = Reference(exercise_id, Exercise.id)
-    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid')
-    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid')
+    test_cases = ReferenceSet(suiteid, 'TestCase.suiteid', order_by="seq_no")
+    variables = ReferenceSet(suiteid, 'TestSuiteVar.suiteid', order_by='arg_no')
+    
+    def delete(self):
+        """Delete this suite, without asking questions."""
+        for vaariable in self.variables:
+            variable.delete()
+        for test_case in self.test_cases:
+            test_case.delete()
+        Store.of(self).remove(self)
 
 class TestCase(Storm):
     """A TestCase is a member of a TestSuite.
@@ -608,6 +664,11 @@ class TestCase(Storm):
     parts = ReferenceSet(testid, "TestCasePart.testid")
     
     __init__ = _kwarg_init
+    
+    def delete(self):
+        for part in self.parts:
+            part.delete()
+        Store.of(self).remove(self)
 
 class TestSuiteVar(Storm):
     """A container for the arguments of a Test Suite"""
@@ -625,6 +686,9 @@ class TestSuiteVar(Storm):
     
     __init__ = _kwarg_init
     
+    def delete(self):
+        Store.of(self).remove(self)
+    
 class TestCasePart(Storm):
     """A container for the test elements of a Test Case"""
     __storm_table__ = "test_case_part"
@@ -641,3 +705,6 @@ class TestCasePart(Storm):
     test = Reference(testid, "TestCase.testid")
     
     __init__ = _kwarg_init
+    
+    def delete(self):
+        Store.of(self).remove(self)

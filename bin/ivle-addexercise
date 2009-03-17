@@ -61,8 +61,8 @@ def add_test_suite(suite_node, suite_num, store):
     cases = []
     case_num = 0
     for case_node in suite_node.getElementsByTagName('function'):
-        case_num += 1
         cases.append(add_test_case(case_node, case_num, store))
+        case_num += 1
 
     ## ALLOWED TAGS ##
     # stdin     - Stdin for the suite - Unique - Text inside element

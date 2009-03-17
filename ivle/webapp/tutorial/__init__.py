@@ -38,15 +38,18 @@ import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise
 from ivle.database import Worksheet as DBWorksheet
-import ivle.worksheet
+import ivle.worksheet.utils
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import BaseMediaFileView, media_url
 from ivle.webapp.errors import NotFound, Forbidden
-from ivle.webapp.tutorial.rst import rst as rstfunc
+from ivle.worksheet.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
-             WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
+            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
+
+from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
+                                                  ExerciseRESTView
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -106,7 +109,7 @@ class OfferingView(XHTMLView):
             if new_worksheet.assessable:
                 # Calculate the user's score for this worksheet
                 mand_done, mand_total, opt_done, opt_total = (
-                    ivle.worksheet.calculate_score(req.store, req.user,
+                    ivle.worksheet.utils.calculate_score(req.store, req.user,
                         worksheet))
                 if opt_total > 0:
                     optional_message = " (excluding optional exercises)"
@@ -167,7 +170,7 @@ class WorksheetView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
-        self.plugin_styles[Plugin] = ['tutorial.css']
+        self.plugin_styles[Plugin] = ['tutorial.css', 'worksheet.css']
 
         if not self.context:
             raise NotFound()
@@ -176,8 +179,9 @@ class WorksheetView(XHTMLView):
         ctx['worksheet'] = self.context
         ctx['semester'] = self.semester
         ctx['year'] = self.year
+
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
         ctx['user'] = req.user
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data)))
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -332,7 +336,6 @@ def present_exercise(req, src, worksheet):
     # work than we need. We just need to get the exercise name and a few other
     # fields from the XML.
 
-    #TODO: Replace calls to minidom with calls to the database directly
     curctx['exercise'] = exercise
     if exercise.description is not None:
         desc = rstfunc(exercise.description)
@@ -345,12 +348,12 @@ def present_exercise(req, src, worksheet):
     # an attempt, then use that text instead of the supplied "partial".
     # Get exercise stored text will return a save, or the most recent attempt,
     # whichever is more recent
-    save = ivle.worksheet.get_exercise_stored_text(
+    save = ivle.worksheet.utils.get_exercise_stored_text(
                         req.store, req.user, worksheet_exercise)
 
     # Also get the number of attempts taken and whether this is complete.
     complete, curctx['attempts'] = \
-            ivle.worksheet.get_exercise_status(req.store, req.user, 
+            ivle.worksheet.utils.get_exercise_status(req.store, req.user, 
                                                worksheet_exercise)
     if save is not None:
         curctx['exercisesave'] = save.text
@@ -490,17 +493,116 @@ class WorksheetsEditView(XHTMLView):
         ctx['worksheets'] = self.context.worksheets
         
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
-        
 
+
+class ExerciseEditView(XHTMLView):
+    """View for editing a worksheet."""
+    
+    permission = 'edit'
+    template = 'templates/exercise_edit.html'
+    
+    def __init__(self, req, exercise):
+        self.context = req.store.find(Exercise, 
+            Exercise.id == exercise).one()
+
+        if self.context is None:
+            raise NotFound()
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['exercise_admin.css']
+        self.plugin_scripts[Plugin] = ['exercise_admin.js']
+            
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
+        
+        ctx['exercise'] = self.context
+        #XXX: These should come from somewhere else
+
+        ctx['var_types'] = (u'file', u'var', u'arg', u'exception')
+        ctx['part_types'] = (u'stdout',u'stderr', u'result',
+                             u'exception', u'file', u'code')
+        
+        ctx['test_types'] = ('norm', 'check')
+
+class ExerciseDeleteView(XHTMLView):
+    """View for confirming the deletion of an exercise."""
+    
+    permission = 'edit'
+    template = 'templates/exercise_delete.html'
+    
+    def __init__(self, req, exercise):
+        self.context = req.store.find(Exercise,
+            Exercise.id == exercise).one()
+        
+        if self.context is None:
+            raise NotFound()
+
+    def populate(self, req, ctx):
+
+        # If post, delete the exercise, or display a message explaining that
+        # the exercise cannot be deleted
+        if req.method == 'POST':
+            ctx['method'] = 'POST'
+            try:
+                self.context.delete()
+                ctx['deleted'] = True
+            except:
+                ctx['deleted'] = False
+
+        # If get, display a delete confirmation page
+        else:
+            ctx['method'] = 'GET'
+            if self.context.worksheet_exercises.count() is not 0:
+                ctx['has_worksheets'] = True
+            else:
+                ctx['has_worksheets'] = False
+        # Variables for the template
+        ctx['exercise'] = self.context
+        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
+
+class ExerciseAddView(XHTMLView):
+    """View for creating a new exercise."""
+    
+    permission = 'edit'
+    template = 'templates/exercise_add.html'
+    #XXX: This should be done somewhere else
+    def authorize(self, req):
+        for offering in req.store.find(Offering):
+            if 'edit' in offering.get_permissions(req.user):
+                return True
+        return False
+        
+    def populate(self, req, ctx):
+        self.plugin_scripts[Plugin] = ['exercise_admin.js']
+
+
+class ExercisesView(XHTMLView):
+    """View for seeing the list of all exercises"""
+    
+    permission = 'edit'
+    template = 'templates/exercises.html'
+    #XXX: This should be done somewhere else
+    def authorize(self, req):
+        for offering in req.store.find(Offering):
+            if 'edit' in offering.get_permissions(req.user):
+                return True
+        return False
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ['exercise_admin.css']
+        ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
+        # Worksheet View Urls
         ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/:year/:semester/+worksheets/+new', WorksheetAddView),
         ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
         ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
+        
+        # Worksheet Api Urls
         ('api/subjects/:subject/:year/:semester/+worksheets', WorksheetsRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
             '+attempts/:username', AttemptsRESTView),
@@ -508,6 +610,16 @@ class Plugin(ViewPlugin, MediaPlugin):
                 '+attempts/:username/:date', AttemptRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
         ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
+
+        # Exercise View Urls
+        ('+exercises', ExercisesView),
+        ('+exercises/+add', ExerciseAddView),
+        ('+exercises/:exercise/+edit', ExerciseEditView),
+        ('+exercises/:exercise/+delete', ExerciseDeleteView),
+        
+        # Exercise Api Urls
+        ('api/+exercises', ExercisesRESTView),
+        ('api/+exercises/*exercise', ExerciseRESTView),
     ]
 
     media = 'media'

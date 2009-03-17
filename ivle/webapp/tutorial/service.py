@@ -28,10 +28,9 @@ import ivle.console
 import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
                           Offering, Subject, Semester, WorksheetExercise
-import ivle.worksheet
+import ivle.worksheet.utils
 import ivle.conf
 import ivle.webapp.tutorial.test
-
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
@@ -52,9 +51,10 @@ class AttemptsRESTView(JSONRESTView):
             raise NotFound()
         
         self.worksheet_exercise = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == exercise,
+            WorksheetExercise.exercise_id == unicode(exercise),
             WorksheetExercise.worksheet_id == Worksheet.id,
             Worksheet.offering_id == Offering.id,
+            Worksheet.identifier == unicode(worksheet),
             Offering.subject_id == Subject.id,
             Subject.short_name == subject,
             Offering.semester_id == Semester.id,
@@ -113,8 +113,8 @@ class AttemptsRESTView(JSONRESTView):
         # Query the DB to get an updated score on whether or not this problem
         # has EVER been completed (may be different from "passed", if it has
         # been completed before), and the total number of attempts.
-        completed, attempts = ivle.worksheet.get_exercise_status(req.store,
-            req.user, self.worksheet_exercise)
+        completed, attempts = ivle.worksheet.utils.get_exercise_status(
+                req.store, req.user, self.worksheet_exercise)
         test_results["completed"] = completed
         test_results["attempts"] = attempts
 
@@ -156,7 +156,7 @@ class AttemptRESTView(JSONRESTView):
             Semester.year == year,
             Semester.semester == semester).one()
             
-        attempt = ivle.worksheet.get_exercise_attempt(req.store, user,
+        attempt = ivle.worksheet.utils.get_exercise_attempt(req.store, user,
                         worksheet_exercise, as_of=date,
                         allow_inactive=HISTORY_ALLOW_INACTIVE) 
 
@@ -211,7 +211,6 @@ class WorksheetExerciseRESTView(JSONRESTView):
         return {"result": "ok"}
 
 
-
 # Note that this is the view of an existing worksheet. Creation is handled
 # by OfferingRESTView (as offerings have worksheets)
 class WorksheetRESTView(JSONRESTView):
@@ -243,7 +242,7 @@ class WorksheetRESTView(JSONRESTView):
         self.context.assessable = self.convert_bool(assessable)
         self.context.data = unicode(data)
         self.context.format = unicode(format)
-        ivle.worksheet.update_exerciselist(self.context)
+        ivle.worksheet.utils.update_exerciselist(self.context)
         
         return {"result": "ok"}
 
@@ -283,9 +282,9 @@ class WorksheetsRESTView(JSONRESTView):
         
         # This call is added for clarity, as the worksheet is implicitly added.        
         req.store.add(new_worksheet)
-        
-        ivle.worksheet.update_exerciselist(new_worksheet)
-        
+
+        ivle.worksheet.utils.update_exerciselist(new_worksheet)
+
         return {"result": "ok"}
 
     @named_operation('edit')

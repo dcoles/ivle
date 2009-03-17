@@ -1,0 +1,23 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Exercises</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+    </script>
+  </head>
+  <body>
+    <h1>Exercises</h1>
+    <div id="ivle_padding">
+    <a href="/+exercises/+add"><h3>Add a New Exercise</h3></a>
+    <ul>
+      <py:for each="exercise in exercises">
+        <li class="exercise_names">
+          <div><a href="/+exercises/${exercise.id}/+delete"><img src="${mediapath}cross.png"/></a> <a class="exercise_header" href="/+exercises/${exercise.id}/+edit">${exercise.id}</a></div>${exercise.name}
+        </li>
+        <br />
+      </py:for>
+    </ul>
+    </div>
+  </body>
+</html>

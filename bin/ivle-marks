@@ -30,7 +30,7 @@ import csv
 from xml.dom import minidom
 
 import ivle.database
-import ivle.worksheet
+import ivle.worksheet.utils
 import ivle.conf
 
 if os.getuid() != 0:
@@ -132,7 +132,7 @@ def get_marks_user(subject, worksheet_names, user):
             subject, worksheet_name)
         # We simply ignore optional exercises here
         mand_done, mand_total, _, _ = (
-            ivle.worksheet.calculate_score(store, user, worksheet))
+            ivle.worksheet.utils.calculate_score(store, user, worksheet))
         worksheet_pcts.append(float(mand_done) / mand_total)
         problems_done += mand_done
         problems_total += mand_total

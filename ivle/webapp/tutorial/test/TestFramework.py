@@ -579,13 +579,13 @@ class TestSuite:
         # if empty, make sure it can still be executed
         if include_code == "":
             include_code = "pass"
-        self._include_code = str(include_code)
+        self._include_code = include_code
         
         include_space = {}
         try:
             exec self._include_code in include_space
         except:
-            raise TestCreationError("Bad include code")
+            raise TestCreationError("-= Bad include code =-\n" + include_code)
 
         self._include_space = include_space
 

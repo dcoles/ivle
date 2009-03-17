@@ -1,0 +1,216 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit - ${exercise.name}</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+      exercise = '${exercise.id}';
+    </script>
+  </head>
+  <body>
+    <h1>Edit Exercise - ${exercise.id}</h1>
+    <div id="ivle_padding">
+      <h3>Exercise Values:</h3>
+      <label for="exercise_id">Exercise Identifier:</label>
+      <input class="textinput" type="text" id="exercise_id" value="${exercise.id}" title="Exercise Identifier" />
+      <br />
+      <label for="exercise_name">Exercise Name:</label>
+      <input class="textinput" type='text' id='exercise_name' value="${exercise.name}" title="Exercise Name" />
+      <br />
+      <label for="exercise_num_rows">Number of Rows</label>
+      <input size="5" type="text" id="exercise_num_rows" value="${exercise.num_rows}" title="Number of Rows" />
+      <br />
+      <label for="exercise_desc">Exercise Description (in RST):</label><br />
+      <textarea cols="80" rows="10" id="exercise_desc" title="Exercise Description">${exercise.description}</textarea>
+      <br />
+      <label for="exercise_partial">Exercise Partial Solution (Python):</label><br />
+      <textarea cols="80" rows="5" id="exercise_partial" title="Partial Solution">${exercise.partial}</textarea>
+      <br />
+      <label for="exercise_solution">Exercise Full Solution:</label><br />
+      <textarea cols="80" rows="5" id="exercise_solution" title="Solution">${exercise.solution}</textarea>
+      <br />
+      <label for="exercise_include">Exercise Included Code:</label><br />
+      <textarea cols="80" rows="5" id="exercise_include" title="Included Code">${exercise.include}</textarea>
+      <br />
+      <input type="submit" value="Save Changes" onclick="edit_exercise()" />
+      <br />
+      <h2>Exercise Test Suites</h2>
+      <ul>
+        <py:for each="test_suite in exercise.test_suites">
+          <li>
+            <h3><a id="suite_header_${test_suite.suiteid}" onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a> <a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h3>
+            
+            <div class="testsuite" id="suite_data_${test_suite.suiteid}">
+              <div class="test_suite_vals">
+                <div>
+                  <label for="test_suite_description_${test_suite.suiteid}">Description:</label> <textarea id="test_suite_description_${test_suite.suiteid}" cols="80" rows="1">${test_suite.description}</textarea>
+                </div>
+                <div>
+                  <label for="test_suite_function_${test_suite.suiteid}">Function:</label> <textarea id="test_suite_function_${test_suite.suiteid}" title="Suite Function" cols="80" rows="1">${test_suite.function}</textarea>
+                </div>
+                <div>
+                  <label for="test_suite_stdin_${test_suite.suiteid}">Stdin:</label> <textarea id="test_suite_stdin_${test_suite.suiteid}" title="Suite Stdin" cols="80" rows="4">${test_suite.stdin}</textarea>
+                </div>
+                <br />
+                <input type="submit" name="Save Suite" value="Save Suite" onclick="edit_suite('${test_suite.suiteid}')" />
+              </div>
+              <br />
+          
+              <a id='variables_header_${test_suite.suiteid}' onclick="tog('variables_${test_suite.suiteid}')"><h4>Suite ${test_suite.seq_no + 1} - Variables</h4></a>
+        
+                <div class="test_variables" id="variables_${test_suite.suiteid}">
+                  <py:for each="variable in test_suite.variables">
+                    <span>
+                      <a onclick="delete_var('${variable.varid}', '${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                      <label for="var_type_${variable.varid}">Type:</label>
+                      <select name="Variable Type" id="var_type_${variable.varid}">
+                        <py:for each="var_type in var_types">
+                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_type}</option>
+                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_type}</option>
+                        </py:for>
+                      </select>
+                      <label for="var_name_${variable.varid}">Var Name:</label>
+                      <input type="text" id="var_name_${variable.varid}" value="${variable.var_name}" />
+                      <label for="var_val_${variable.varid}">Var Value:</label>
+                      <input type="text" id="var_val_${variable.varid}" value="${variable.var_value}"/>
+                      <label for="var_argno_${variable.varid}">Arg Num:</label>
+                      <input size="5" type="text" id="var_argno_${variable.varid}" value="${variable.arg_no}" />
+                      <input type="submit" value="Save" onclick="edit_var('${variable.varid}', '${test_suite.suiteid}')" />
+                    </span>
+                    <br />          
+                  </py:for>
+                  <a onclick="tog('add_variable_${test_suite.suiteid}')">Add A New Variable</a>
+                  <div class="add_variable" id="add_variable_${test_suite.suiteid}">
+                    <label for="new_var_type_${test_suite.suiteid}">Type:</label>
+                    <select name="Variable Type" id="new_var_type_${test_suite.suiteid}">
+                      <py:for each="var_type in var_types">
+                        <option  value="${var_type}">${var_type}</option>
+                      </py:for>
+                    </select>
+                    <label for="new_var_name_${test_suite.suiteid}">Var Name:</label>
+                    <input type="text" id="new_var_name_${test_suite.suiteid}" />
+                    <label for="new_var_val_${test_suite.suiteid}">Var Value:</label>
+                    <input type="text" id="new_var_val_${test_suite.suiteid}" />
+                    <label for="new_var_argno_${test_suite.suiteid}">Arg Num:</label>
+                    <input size="5" type="text" id="new_var_argno_${test_suite.suiteid}" />
+                    <input type="submit" value="Add" onclick="add_var('${test_suite.suiteid}')" />
+                  </div>
+                </div>
+              <a onclick="tog('test_cases_${test_suite.suiteid}')" id="cases_header_${test_suite.suiteid}"><h4>Suite ${test_suite.seq_no + 1} - Test Cases</h4></a>
+
+              <div class="test_cases" id="test_cases_${test_suite.suiteid}">    
+                <ul>
+                  <py:for each="test_case in test_suite.test_cases">
+                    <li>
+                      <h5><a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')" id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a> <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a></h5>
+                      <div class="test_case" id="test_case_${test_case.testid}_${test_suite.suiteid}">
+                        <label for="test_case_pass_${test_case.testid}_${test_suite.suiteid}">Pass Message:</label>
+                        <input class="textinput" type="text" id="test_case_pass_${test_case.testid}_${test_suite.suiteid}" value="${test_case.passmsg}" />
+                        <br />
+                        <label for="test_case_fail_${test_case.testid}_${test_suite.suiteid}">Fail Message:</label>
+                        <input class="textinput" type="text" id="test_case_fail_${test_case.testid}_${test_suite.suiteid}" value="${test_case.failmsg}" />
+                        <br />
+                        <label for="test_case_default_${test_case.test_default}_${test_suite.suiteid}">Default Mode:</label>
+                        <input class="textinput" type="text" id="test_case_default_${test_case.test_default}_${test_suite.suiteid}" value="${test_case.test_default}" />
+                        <br />
+                        <input type="submit" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
+                        <br />
+                        <h5>Test Case Parts</h5>
+                        <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
+                          <py:for each="test_part in test_case.parts">
+                            <a onclick="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                            <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
+                            <select name="Part Type" id="test_part_part_type_${test_part.partid}">
+                              <py:for each="part_type in part_types">
+                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
+                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
+                              </py:for>
+                            </select>
+                            <label for="">Test Type</label>
+                            <select name="Test Type" id="test_part_test_type_${test_part.partid}">
+                              <py:for each="test_type in test_types">
+                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
+                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label for="test_part_data_${test_part.partid}">Test:</label><br />
+                            <textarea id="test_part_data_${test_part.partid}" rows="2" cols="80">${test_part.data}</textarea>
+                            <br />
+                            <label for="test_part_file_${test_part.partid}">Filename:</label>
+                            <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
+                            <br />
+                            <input type="submit" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})"/>
+                            <br />
+                          </py:for>
+                        </div>
+                        <a onclick="tog('new_test_part_${test_case.testid}')">Add a New part</a>
+                        <div class="add_new_part" id="new_test_part_${test_case.testid}">
+                            <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
+                            <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
+                              <py:for each="part_type in part_types">
+                                <option value="${part_type}">${part_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label>Test Type:</label>
+                            <select name="Test Type" id="new_test_part_test_type_${test_case.testid}">
+                              <py:for each="test_type in test_types">
+                                <option value="${test_type}">${test_type}</option>
+                              </py:for>
+                            </select>
+                            <br />
+                            <label>Test:</label>
+                            <textarea id="new_test_part_data_${test_case.testid}" rows="2" cols="80"></textarea>
+                            <br />
+                            <label>Filename:</label>
+                            <input type="text" id="new_test_part_file_${test_case.testid}"/>
+                            <br />
+                            <input type="submit" value="Add Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
+                        </div>
+                      </div>
+                    </li>
+                  </py:for>
+                  <li>
+                    <a onclick="tog('new_test_part_${test_suite.suiteid}')"><h5>Add A New Test Case</h5></a>
+                    <div class="add_new_part" id="new_test_part_${test_suite.suiteid}">
+                      <label for="new_test_case_pass_${test_suite.suiteid}">Pass Message:</label>
+                      <input class="textinput" type="text" id="new_test_case_pass_${test_suite.suiteid}" />
+                      <br />
+                      <label for="new_test_case_fail_${test_suite.suiteid}">Fail Message:</label>
+                      <input class="textinput" type="text" id="new_test_case_fail_${test_suite.suiteid}" />
+                      <br />
+                      <label for="new_test_case_default_${test_suite.suiteid}">Default Mode:</label>
+                      <input class="textinput" type="text" value="ignore" id="new_test_case_default_${test_suite.suiteid}" />
+                      <br />
+                      <input type="submit" value="Add Case" onclick="add_test_case('${test_suite.suiteid}')" />
+                    </div>
+                  </li>
+                </ul>
+              </div>
+              
+            </div>
+          </li>
+        </py:for>
+      </ul>
+      <a onclick="tog('add_suite')">Add A New Test Suite</a>
+      <br />
+      <div id="add_suite" class="test_suite_vals">
+        <div>
+          <label for="new_test_suite_description">Description:</label> <textarea id="new_test_suite_description" cols="80" rows="1"></textarea>
+        </div>
+        <div>
+          <label for="new_test_suite_function">Function:</label> <textarea id="new_test_suite_function" title="Suite Function" cols="80" rows="1"></textarea>
+        </div>
+        <div>
+          <label for="new_test_suite_stdin">Stdin:</label> <textarea id="new_test_suite_stdin" title="Suite Stdin" cols="80" rows="4"></textarea>
+        </div>
+        <input type='submit' name='Submit' onclick='add_suite()' value="Add Suite" />
+      </div>
+      
+      <p><a href="/+exercises">Back To Exercise Listing</a></p>
+      
+    </div>
+    
+  </body>
+</html>

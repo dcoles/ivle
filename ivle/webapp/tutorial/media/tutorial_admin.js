@@ -62,7 +62,7 @@ function move_down(worksheet)
     var ws_row = document.getElementById(worksheet);
     var ws_row_index = ws_row.rowIndex;
     
-    if (ws_row_index == ws_table.rows) {
+    if (ws_row_index == (ws_table.rows.length - 1)) {
         alert('Item already at bottom of list.');
         return;
     }

@@ -1,0 +1,53 @@
+.testsuite {
+  display: none;
+  width: 1000px;
+}
+
+.test_variables {
+  display: none;
+}
+
+.test_cases {
+  display: none;
+}
+
+.test_case {
+  display: none;
+}
+
+
+.textinput {
+  width: 350px;
+}
+
+.test_suite_vals div label {
+  float: left;
+  text-align: right;
+  width: 100px;
+}
+
+#add_suite {
+  display: none;
+}
+
+.add_variable {
+  display: none;
+}
+
+.test_case_parts {
+  display: none;
+}
+
+.add_new_part {
+  display: none;
+}
+
+.exercise_names div {
+  float: left;
+  text-align: left;
+  width: 250px;
+}
+
+li {
+  list-style: none;
+}
