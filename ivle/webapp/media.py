@@ -166,7 +166,7 @@ class ExternalMediaFileView(BaseMediaFileView):
 
         # Grab the admin-configured path for this particular external dep.
         config = Config()
-        externdir = config['media']['externals']['jquery']
+        externdir = config['media']['externals'][extern[0]]
 
         assert isinstance(externdir, basestring)
 
