@@ -180,7 +180,7 @@ function delete_suite(suiteid)
 }
 
 /* Modify and add Variables */
-function edit_var(varid)
+function edit_var(varid, suiteid)
 {
     var var_name = $('#var_type_' + varid).val();
     var var_val = $('#var_val' + varid).val();
@@ -204,7 +204,9 @@ function edit_var(varid)
         }
     }
 
-    var args = {'ivle.op': 'edit_var'};
+    var args = {'ivle.op': 'edit_var', 'var_name': var_name,
+                'var_val': var_val, 'var_type': var_type, 'argno': argno,
+                'varid': varid, 'suiteid': suiteid};
     
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST')
@@ -213,9 +215,9 @@ function edit_var(varid)
 
 function add_var(suiteid)
 {
-    var var_name = $('#new_var_type_' + suiteid).val();
-    var var_val = $('#new_var_val' + suiteid).val();
-    var var_type = $('#new_var_name_' + suiteid).val();
+    var var_name = $('#new_var_name_' + suiteid).val();
+    var var_val = $('#new_var_val_' + suiteid).val();
+    var var_type = $('#new_var_type_' + suiteid).val();
     var argno = $('#new_var_argno_' + suiteid).val();
     
     var callback = function(xhr)

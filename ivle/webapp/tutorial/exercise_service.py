@@ -85,11 +85,9 @@ class ExerciseRESTView(JSONRESTView):
     @named_operation(u'edit')
     def delete_exercise(self, req, id):
         
-        if self.context.delete(req.store):
-            return {'result': 'ok'}
-        else:
-            raise BadRequest()
-    
+        self.context.delete()
+        return {'result': 'ok'}
+
     @named_operation(u'edit')
     def add_suite(self, req, description, function, stdin):
         
@@ -129,7 +127,7 @@ class ExerciseRESTView(JSONRESTView):
         if suite is None:
             raise NotFound()
         
-        suite.delete(req.store)
+        suite.delete()
         
         return {'result': 'ok'}
       
@@ -162,7 +160,7 @@ class ExerciseRESTView(JSONRESTView):
         ).one()
         
         if var is None:
-            raise NotFound()
+            raise NotFound("Var not found.")
             
         var.var_type = unicode(var_type)
         var.var_name = unicode(var_name)
@@ -179,7 +177,7 @@ class ExerciseRESTView(JSONRESTView):
         if var is None:
             raise NotFound()
         
-        var.delete(req.store)
+        var.delete()
         
         return {'result': 'ok'}
         
@@ -240,7 +238,7 @@ class ExerciseRESTView(JSONRESTView):
         if test_case is None:   
             raise NotFound()
 
-        test_case.delete(req.store)
+        test_case.delete()
 
         return {'result': 'ok'}
     
@@ -319,6 +317,6 @@ class ExerciseRESTView(JSONRESTView):
         if test_part is None:
             raise NotFound()
         
-        test_part.delete(req.store)
+        test_part.delete()
         
         return {'result': 'ok'}

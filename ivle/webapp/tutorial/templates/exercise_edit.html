@@ -79,7 +79,7 @@
                       <input type="text" id="var_val_${variable.varid}" value="${variable.var_value}"/>
                       <label for="var_argno_${variable.varid}">Arg Num:</label>
                       <input size="5" type="text" id="var_argno_${variable.varid}" value="${variable.arg_no}" />
-                      <input type="button" value="Save Variable" onclick="edit_var_${variable.varid}" />
+                      <input type="button" value="Save Variable" onclick="edit_var('${variable.varid}', '${test_suite.suiteid}')" />
                     </span>
                     <br />          
                   </py:for>
@@ -151,8 +151,8 @@
                             <br />
                           </py:for>
                         </div>
-                        <a>Add a New part</a>
-                        <div class="new_test_part" id="new_test_part_${test_case.testid}">
+                        <a onclick="tog('new_test_part_${test_case.testid}')">Add a New part</a>
+                        <div class="add_new_part" id="new_test_part_${test_case.testid}">
                             <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
                             <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
                               <py:for each="part_type in part_types">

@@ -439,9 +439,11 @@ def execute_raw(user, jail_dir, working_dir, binary, args):
          working_dir, binary] + args,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
-    exitcode = proc.wait()
+
+    (stdout, stderr) = proc.communicate()
+    exitcode = proc.returncode
 
     if exitcode != 0:
         raise ExecutionError('subprocess ended with code %d, stderr %s' %
                              (exitcode, proc.stderr.read()))
-    return (proc.stdout.read(), proc.stderr.read())
+    return (stdout, stderr)
