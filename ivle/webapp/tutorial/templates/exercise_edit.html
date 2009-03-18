@@ -24,6 +24,8 @@
       <input type="text" id="${name}" value="${select('*|text()')}" />
     </div>
 
+    <a py:match="iw:delete" href="javascript:${select('@action')}"><img title="Delete" alt="Delete" src="${mediapath}cross.png"/></a>
+
     <h1>Edit Exercise - ${exercise.id}</h1>
     <div id="ivle_padding">
       <h3>Exercise Values:</h3>
@@ -45,7 +47,7 @@
             <h3>
               <a id="suite_header_${test_suite.suiteid}"
                  onclick="tog('suite_data_${test_suite.suiteid}')">Suite ${test_suite.seq_no + 1} - ${test_suite.description}</a>
-              <a onclick="delete_suite('${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+              <iw:delete action="delete_suite('${test_suite.suiteid}')" />
             </h3>
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
@@ -65,7 +67,7 @@
                 <div class="test_variables" id="variables_${test_suite.suiteid}">
                   <py:for each="variable in test_suite.variables">
                     <span>
-                      <a onclick="delete_var('${variable.varid}', '${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                      <iw:delete action="delete_var('${variable.varid}', '${test_suite.suiteid}')" />
                       <label for="var_type_${variable.varid}">Type:</label>
                       <select name="Variable Type" id="var_type_${variable.varid}">
                         <py:for each="var_type in var_types">
@@ -113,7 +115,7 @@
                       <h5>
                         <a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')"
                            id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a>
-                        <a onclick="delete_testcase('${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                        <iw:delete action="delete_testcase('${test_case.testid}','${test_suite.suiteid}')" />
                       </h5>
                       <div py:with="iw_prefix='test_case_%d_%d' % (test_case.testid, test_suite.suiteid)"
                            class="test_case" id="${iw_prefix}">
@@ -126,7 +128,7 @@
                         <ul class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
-                            <a onclick="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
+                            <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
                             <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
