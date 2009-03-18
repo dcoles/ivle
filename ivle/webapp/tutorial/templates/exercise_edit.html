@@ -124,31 +124,26 @@
 
                         <h5>Test Case Parts</h5>
                         <ul class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
-                          <li py:for="test_part in test_case.parts">
+                          <li py:for="test_part in test_case.parts"
+                              py:with="iw_prefix='test_part_%d' % test_part.partid">
                             <a onclick="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
-                            <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
-                            <select name="Part Type" id="test_part_part_type_${test_part.partid}">
+                            <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
+                            <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
                                 <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
                                 <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
                               </py:for>
                             </select>
-                            <label for="">Test Type</label>
-                            <select name="Test Type" id="test_part_test_type_${test_part.partid}">
+                            <label for="test_part_${test_part.partid}_test_type">Test Type</label>
+                            <select name="Test Type" id="test_part_${test_part.partid}_test_type">
                               <py:for each="test_type in test_types">
                                 <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
                                 <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
                               </py:for>
                             </select>
-                            <br />
-                            <label for="test_part_data_${test_part.partid}">Test:</label><br />
-                            <textarea id="test_part_data_${test_part.partid}" rows="2" cols="80">${test_part.data}</textarea>
-                            <br />
-                            <label for="test_part_file_${test_part.partid}">Filename:</label>
-                            <input type="text" id="test_part_file_${test_part.partid}" value="${test_part.filename}" />
-                            <br />
+                            <iw:textarea name="data" desc="Test" rows="2" cols="80">${test_part.data}</iw:textarea>
+                            <iw:text name="file" desc="Filename">${test_part.filename}</iw:text>
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
-                            <br />
                           </li>
                         </ul>
                         <a onclick="tog('new_test_part_${test_case.testid}')">Add a New part</a>

@@ -358,10 +358,10 @@ function delete_testcase(testid, suiteid)
 /* Functions to add, edit, and delete test case parts */
 function edit_test_part(partid, testid, suiteid)
 {
-    var part_type = $("#test_part_part_type_" + partid).val();
-    var test_type = $("#test_part_test_type_" + partid).val();
-    var data = $("#test_part_data_" + partid).val();
-    var filename = $("#test_part_file_" + partid).val();
+    var part_type = $("#test_part_" + partid + "_part_type").val();
+    var test_type = $("#test_part_" + partid + "_test_type").val();
+    var data = $("#test_part_" + partid + "_data").val();
+    var filename = $("#test_part_" + partid + "_file").val();
     
     var callback = function(xhr)
     {
