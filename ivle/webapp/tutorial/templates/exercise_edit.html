@@ -123,8 +123,8 @@
                         <input type="button" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
 
                         <h5>Test Case Parts</h5>
-                        <div class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
-                          <py:for each="test_part in test_case.parts">
+                        <ul class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
+                          <li py:for="test_part in test_case.parts">
                             <a onclick="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')"><img src="${mediapath}cross.png"/></a>
                             <label for="test_part_part_type_${test_part.partid}">Part Type:</label>
                             <select name="Part Type" id="test_part_part_type_${test_part.partid}">
@@ -149,8 +149,8 @@
                             <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                             <br />
-                          </py:for>
-                        </div>
+                          </li>
+                        </ul>
                         <a onclick="tog('new_test_part_${test_case.testid}')">Add a New part</a>
                         <div class="add_new_part" id="new_test_part_${test_case.testid}">
                             <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
