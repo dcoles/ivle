@@ -11,7 +11,19 @@
   display: none;
 }
 
+.test_cases > ul > li {
+  margin: 0.5em;
+  border: 1px solid #aaa;
+}
+
+.test_cases > ul > li > h5 {
+  padding: 0.2em;
+  margin: 0;
+  background: #e8e8e8;
+}
+
 .test_case {
+  display: none;
   margin: 1.5em;
 }
 
