@@ -1,6 +1,7 @@
 .testsuite {
   display: none;
-  width: 1000px;
+  width: 80%;
+  margin: 0.5em;
 }
 
 .test_variables {
@@ -20,6 +21,17 @@
   padding: 0.2em;
   margin: 0;
   background: #e8e8e8;
+}
+
+.test_suites > li {
+  margin: 0.5em;
+  border: 2px solid #888;
+}
+
+.test_suites > li > h3 {
+  padding: 0.2em;
+  margin: 0;
+  background: #e6e6e6;
 }
 
 .test_cases > ul > li > h5 img{
