@@ -4,14 +4,6 @@
   margin: 0.5em;
 }
 
-.test_variables {
-  display: none;
-}
-
-.test_cases {
-  display: none;
-}
-
 .test_cases > ul > li {
   margin: 0.5em;
   border: 1px solid #aaa;
