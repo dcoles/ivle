@@ -1,27 +1,4 @@
-.testsuite {
-  display: none;
-  width: 80%;
-  margin: 0.5em;
-}
-
-.testsuite > h4 {
-  margin: 1em 0 0.2em 0;
-}
-
-.test_cases > ul {
-  padding: 0em 0 0 0.5em;
-}
-
-.test_cases > ul > li {
-  margin: 0.5em;
-  border: 1px solid #aaa;
-}
-
-.test_cases > ul > li > h5 {
-  padding: 0.2em;
-  margin: 0;
-  background: #e8e8e8;
-}
+/* Test suites */
 
 .test_suites {
   padding: 0;
@@ -36,6 +13,34 @@
   padding: 0.2em;
   margin: 0;
   background: #e6e6e6;
+}
+
+.testsuite {
+  display: none;
+  width: 80%;
+  margin: 0.5em;
+}
+
+.testsuite > h4 {
+  margin: 1em 0 0.2em 0;
+}
+
+
+/* Test cases */
+
+.test_cases > ul {
+  padding: 0em 0 0 0.5em;
+}
+
+.test_cases > ul > li {
+  margin: 0.5em;
+  border: 1px solid #aaa;
+}
+
+.test_cases > ul > li > h5 {
+  padding: 0.2em;
+  margin: 0;
+  background: #e8e8e8;
 }
 
 .test_cases > ul > li > h5 img{
