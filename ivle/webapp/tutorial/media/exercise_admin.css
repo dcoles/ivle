@@ -53,6 +53,12 @@
 }
 
 
+/* Test case parts */
+.test_case_parts {
+  padding: 0em 0 0 0.5em;
+}
+
+
 .textinput {
   width: 350px;
 }
@@ -68,10 +74,6 @@
 }
 
 .add_variable {
-  display: none;
-}
-
-.test_case_parts {
   display: none;
 }
 

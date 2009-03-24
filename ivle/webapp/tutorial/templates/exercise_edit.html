@@ -116,7 +116,7 @@
                         <input type="button" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
 
                         <h5>Test Case Parts</h5>
-                        <ul class="disabled_test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
+                        <ul class="test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
