@@ -104,7 +104,7 @@
                     <li>
                       <h5>
                         <a onclick="tog('test_case_${test_case.testid}_${test_suite.suiteid}')"
-                           id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}</a>
+                           id="case_header_${test_case.testid}">Test Case ${test_case.seq_no + 1}: &ldquo;${test_case.passmsg}&rdquo;</a>
                         <iw:delete action="delete_testcase('${test_case.testid}','${test_suite.suiteid}')" />
                       </h5>
                       <div py:with="iw_prefix='test_case_%d_%d' % (test_case.testid, test_suite.suiteid)"
