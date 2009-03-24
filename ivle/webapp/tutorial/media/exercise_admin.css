@@ -55,6 +55,15 @@
   vertical-align: top;
 }
 
+.test_cases > ul > li.new {
+  border: 1px solid #bbbbbb;
+}
+
+.test_cases > ul > li.new > h5 {
+  background: #eeeeee;
+}
+
+
 .test_case {
   display: none;
   margin: 0.5em;

@@ -165,7 +165,7 @@
                       </div>
                     </li>
                   </py:for>
-                  <li>
+                  <li class="new">
                     <h5><a onclick="$(this).hide(); tog('new_test_case_${test_suite.suiteid}')">New test case</a></h5>
                     <div py:with="iw_prefix='new_test_case_%d' % (test_suite.suiteid)"
                          class="add_new_part" id="${iw_prefix}">
