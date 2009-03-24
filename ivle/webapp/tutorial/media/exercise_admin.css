@@ -15,6 +15,14 @@
   background: #e6e6e6;
 }
 
+.test_suites > li.new {
+  border: 2px solid #bbbbbb;
+}
+
+.test_suites > li.new > h3 {
+  background: #eeeeee;
+}
+
 .testsuite {
   display: none;
   width: 80%;
