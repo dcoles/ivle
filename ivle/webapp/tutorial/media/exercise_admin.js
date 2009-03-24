@@ -387,10 +387,10 @@ function edit_test_part(partid, testid, suiteid)
 
 function add_test_part(testid, suiteid)
 {
-    var part_type = $("#new_test_part_part_type_" + testid).val();
-    var test_type = $("#new_test_part_test_type_" + testid).val();
-    var data = $("#new_test_part_data_" + testid).val();
-    var filename = $("#new_test_part_file_" + testid).val();
+    var part_type = $("#test_part_new_part_type_" + testid).val();
+    var test_type = $("#test_part_new_test_type_" + testid).val();
+    var data = $("#test_part_new_data_" + testid).val();
+    var filename = $("#test_part_new_file_" + testid).val();
 
     var savebutton = $("#new_test_part_save_" + testid);
     savebutton.attr('value', 'Saving...');
