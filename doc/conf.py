@@ -35,7 +35,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General substitutions.
-project = 'ivle'
+project = 'IVLE'
 copyright = '2009, University of Melbourne'
 
 # The default replacements for |version| and |release|, also used in various
