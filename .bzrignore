@@ -7,3 +7,5 @@
 /bin/trampoline/trampoline
 /www/php/phpBB3/config.php
 /etc/ivle.conf
+
+/doc/build
