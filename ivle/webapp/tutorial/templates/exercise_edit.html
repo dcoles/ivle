@@ -136,31 +136,33 @@
                             <iw:text name="file" desc="Filename">${test_part.filename}</iw:text>
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
+                          <li>
+                            <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
+                            <div class="add_new_part" id="new_test_part_${test_case.testid}">
+                              <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
+                              <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
+                                <py:for each="part_type in part_types">
+                                  <option value="${part_type}">${part_type}</option>
+                                </py:for>
+                              </select>
+                              <br />
+                              <label>Test Type:</label>
+                              <select name="Test Type" id="new_test_part_test_type_${test_case.testid}">
+                                <py:for each="test_type in test_types">
+                                  <option value="${test_type}">${test_type}</option>
+                                </py:for>
+                              </select>
+                              <br />
+                              <label>Test:</label>
+                              <textarea id="new_test_part_data_${test_case.testid}" rows="2" cols="80"></textarea>
+                              <br />
+                              <label>Filename:</label>
+                              <input type="text" id="new_test_part_file_${test_case.testid}"/>
+                              <br />
+                              <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
+                            </div>
+                          </li>
                         </ul>
-                        <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
-                        <div class="add_new_part" id="new_test_part_${test_case.testid}">
-                            <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
-                            <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
-                              <py:for each="part_type in part_types">
-                                <option value="${part_type}">${part_type}</option>
-                              </py:for>
-                            </select>
-                            <br />
-                            <label>Test Type:</label>
-                            <select name="Test Type" id="new_test_part_test_type_${test_case.testid}">
-                              <py:for each="test_type in test_types">
-                                <option value="${test_type}">${test_type}</option>
-                              </py:for>
-                            </select>
-                            <br />
-                            <label>Test:</label>
-                            <textarea id="new_test_part_data_${test_case.testid}" rows="2" cols="80"></textarea>
-                            <br />
-                            <label>Filename:</label>
-                            <input type="text" id="new_test_part_file_${test_case.testid}"/>
-                            <br />
-                            <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
-                        </div>
                       </div>
                     </li>
                   </py:for>
