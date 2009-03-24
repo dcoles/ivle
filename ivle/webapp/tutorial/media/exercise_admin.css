@@ -4,6 +4,10 @@
   margin: 0.5em;
 }
 
+.test_cases > ul {
+  padding: 0.5em;
+}
+
 .test_cases > ul > li {
   margin: 0.5em;
   border: 1px solid #aaa;
@@ -13,6 +17,10 @@
   padding: 0.2em;
   margin: 0;
   background: #e8e8e8;
+}
+
+.test_suites {
+  padding: 0.5em;
 }
 
 .test_suites > li {
@@ -32,7 +40,7 @@
 
 .test_case {
   display: none;
-  margin: 1.5em;
+  margin: 0.5em;
 }
 
 
