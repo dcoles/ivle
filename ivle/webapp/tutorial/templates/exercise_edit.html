@@ -184,14 +184,15 @@
             </div>
           </li>
         </py:for>
-        <li>
-          <a onclick="$(this).hide(); tog('add_suite')">New test suite</a>
-          <div id="add_suite" class="test_suite_vals" py:with="iw_prefix='new_test_suite'">
-            <h3>New suite</h3>
+        <li class="new">
+          <h3><a onclick="tog('suite_data_new')">New test suite</a></h3>
+          <div class="testsuite" id="suite_data_new">
+          <div class="test_suite_vals" py:with="iw_prefix='new_test_suite'">
             <iw:textarea name="description" desc="Description" cols="80" rows="1" />
             <iw:textarea name="function" desc="Function" cols="80" rows="1" />
             <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4" />
             <input type="button" value="Create Suite" onclick="add_suite()" />
+          </div>
           </div>
         </li>
       </ul>
