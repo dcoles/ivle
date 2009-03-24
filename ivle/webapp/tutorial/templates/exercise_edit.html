@@ -117,7 +117,6 @@
                         <ul class="test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
-                            <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
                             <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
@@ -132,6 +131,7 @@
                                 <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
                               </py:for>
                             </select>
+                            <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
                             <iw:textarea name="data" desc="Test" rows="2" cols="80">${test_part.data}</iw:textarea>
                             <iw:text name="file" desc="Filename">${test_part.filename}</iw:text>
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
