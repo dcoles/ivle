@@ -166,16 +166,13 @@
                     </li>
                   </py:for>
                   <li class="new">
-                    <h5><a onclick="$(this).hide(); tog('new_test_case_${test_suite.suiteid}')">New test case</a></h5>
+                    <h5><a onclick="tog('new_test_case_${test_suite.suiteid}')">New test case</a></h5>
                     <div py:with="iw_prefix='new_test_case_%d' % (test_suite.suiteid)"
-                         class="add_new_part" id="${iw_prefix}">
-                      <h5>New case</h5>
-                      <div class="test_case">
+                         class="test_case" id="${iw_prefix}">
                         <iw:text name="pass" desc="Pass Message" />
                         <iw:text name="fail" desc="Fail Message" />
                         <iw:text name="default" desc="Default Mode" />
                         <input type="button" value="Create Case" onclick="add_test_case('${test_suite.suiteid}')" />
-                      </div>
                     </div>
                   </li>
                 </ul>
