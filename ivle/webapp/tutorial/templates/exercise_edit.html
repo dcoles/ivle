@@ -60,8 +60,8 @@
           
               <h4>Variables</h4>
                 <div class="test_variables" id="variables_${test_suite.suiteid}">
-                  <py:for each="variable in test_suite.variables">
-                    <span>
+                  <ul>
+                    <li py:for="variable in test_suite.variables">
                       <iw:delete action="delete_var('${variable.varid}', '${test_suite.suiteid}')" />
                       <label for="var_type_${variable.varid}">Type:</label>
                       <select name="Variable Type" id="var_type_${variable.varid}">
@@ -77,9 +77,8 @@
                       <label for="var_argno_${variable.varid}">Arg Num:</label>
                       <input size="5" type="text" id="var_argno_${variable.varid}" value="${variable.arg_no}" />
                       <input type="button" value="Save Variable" onclick="edit_var('${variable.varid}', '${test_suite.suiteid}')" />
-                    </span>
-                    <br />          
-                  </py:for>
+                    </li>
+                  </ul>
                   <a onclick="tog('add_variable_${test_suite.suiteid}')">Add A New Variable</a>
                   <div class="add_variable" id="add_variable_${test_suite.suiteid}">
                     <label for="new_var_type_${test_suite.suiteid}">Type:</label>
