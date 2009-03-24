@@ -79,7 +79,7 @@
                       <input type="button" value="Save Variable" onclick="edit_var('${variable.varid}', '${test_suite.suiteid}')" />
                     </li>
                   </ul>
-                  <a onclick="tog('add_variable_${test_suite.suiteid}')">Add A New Variable</a>
+                  <a onclick="tog('add_variable_${test_suite.suiteid}')">New variable</a>
                   <div class="add_variable" id="add_variable_${test_suite.suiteid}">
                     <label for="new_var_type_${test_suite.suiteid}">Type:</label>
                     <select name="Variable Type" id="new_var_type_${test_suite.suiteid}">
@@ -137,7 +137,7 @@
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
                         </ul>
-                        <a onclick="tog('new_test_part_${test_case.testid}')">Add a New part</a>
+                        <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
                         <div class="add_new_part" id="new_test_part_${test_case.testid}">
                             <label for="new_test_part_part_type_${test_case.testid}">Part Type:</label>
                             <select name="Part Type" id="new_test_part_part_type_${test_case.testid}">
