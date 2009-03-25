@@ -760,7 +760,7 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state(["svnadd",], numsel >= 1 && current_file.svnstatus);
+    set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
     /* And these are only usefull is ALL the selected files are versioned */
     set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
             "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);
