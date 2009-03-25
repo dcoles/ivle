@@ -144,7 +144,7 @@ function do_action(action, path, args, content_type, ignore_response)
             /* Check for action errors reported by the server, and report them
              * to the user */
             var error = response.getResponseHeader("X-IVLE-Action-Error");
-            if (error != null)
+            if (error != null && error != "")
                 /* Note: This header (in particular) comes URI-encoded, to
                  * allow multi-line error messages. Decode */
                 alert("Error: " + decodeURIComponent(error.toString()) + ".");
