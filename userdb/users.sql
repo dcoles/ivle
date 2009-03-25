@@ -61,11 +61,39 @@ CREATE TABLE project_set (
 
 CREATE TABLE project (
     projectid   SERIAL PRIMARY KEY NOT NULL,
-    synopsis    VARCHAR,
-    url         VARCHAR,
+    short_name  TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    synopsis    TEXT,
+    url         TEXT,
     projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
     deadline    TIMESTAMP
 );
+
+CREATE OR REPLACE FUNCTION check_project_namespacing_insertupdate()
+RETURNS trigger AS '
+    DECLARE
+        oid INTEGER;
+    BEGIN
+        IF TG_OP = ''UPDATE'' THEN
+            IF NEW.projectsetid = OLD.projectsetid AND NEW.short_name = OLD.short_name THEN
+                RETURN NEW;
+            END IF;
+        END IF;
+        SELECT offeringid INTO oid FROM project_set WHERE project_set.projectsetid = NEW.projectsetid;
+        PERFORM 1 FROM project, project_set
+        WHERE project_set.offeringid = oid AND
+              project.projectsetid = project_set.projectsetid AND
+              project.short_name = NEW.short_name;
+        IF found THEN
+            RAISE EXCEPTION ''a project named % already exists in offering ID %'', NEW.short_name, oid;
+        END IF;
+        RETURN NEW;
+    END;
+' LANGUAGE 'plpgsql';
+
+CREATE TRIGGER check_project_namespacing
+    BEFORE INSERT OR UPDATE ON project
+    FOR EACH ROW EXECUTE PROCEDURE check_project_namespacing_insertupdate();
 
 CREATE TABLE project_group (
     groupnm     VARCHAR NOT NULL,
