@@ -135,6 +135,7 @@ CREATE TABLE assessed (
 );
 
 CREATE TABLE project_extension (
+    extensionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
@@ -142,6 +143,7 @@ CREATE TABLE project_extension (
 );
 
 CREATE TABLE project_submission (
+    submissionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     path        VARCHAR NOT NULL,
     revision    INT4 NOT NULL,
