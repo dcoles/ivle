@@ -232,7 +232,7 @@ function get_testoutput(exercisediv)
     var i;
     var testoutput;
     for (i=0; i<childs.length; i++)
-        if (childs[i].nodeType == exercisediv.ELEMENT_NODE &&
+        if (childs[i].nodeType == 1 && /* 1 = ELEMENT_NODE */
             childs[i].getAttribute("class") == "testoutput")
             return childs[i];
     return null;
