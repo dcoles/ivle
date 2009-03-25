@@ -728,12 +728,12 @@ function update_actions()
             publish.setAttribute("value", "unpublish");
             publish.setAttribute("title" ,"Make it so this directory "
                 + "can not be seen by anyone on the web");
-            publish.textContent = "Unpublish";
+            publish.firstChild.nodeValue = "Unpublish";
         } else {
             publish.setAttribute("value", "publish");
             publish.setAttribute("title","Make it so this directory "
                 + "can be seen by anyone on the web");
-            publish.textContent = "Publish";
+            publish.firstChild.nodeValue = "Publish";
         }
     }
     set_action_state(["publish", "submit"], pubcond);
