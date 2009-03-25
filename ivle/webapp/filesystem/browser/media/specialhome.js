@@ -253,8 +253,8 @@ function create_if_needed(path)
  */
 function obj_length(obj)
 {
-    length = 0;
+    len = 0;
     for (prop in obj)
-        length++;
-    return length;
+        len++;
+    return len;
 }
