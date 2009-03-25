@@ -90,13 +90,13 @@ function list_projectgroup_contents(offeringid, groupid, elemnm)
         var button = document.createElement("input");
         button.value = "Add";
         button.type = 'button';
-        button.addEventListener("click", function()
+        $(button).click(function()
         {
             this.disabled = true;
             args = {'login': select.value, 'groupid': groupid};
             ajax_call(null, serviceapp, 'assign_group', args, 'POST');
             list_projectgroup_contents(offeringid, groupid, elemnm);
-        }, false);
+        });
         add_li.appendChild(select);
         add_li.appendChild(button);
         ul.appendChild(add_li);

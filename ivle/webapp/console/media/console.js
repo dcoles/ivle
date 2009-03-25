@@ -270,7 +270,7 @@ function console_enter_line(inputbox, which)
         var span = document.createElement("span");
         span.setAttribute("class", "inputPrompt");
         span.appendChild(document.createTextNode(
-              document.getElementById("console_prompt").firstChild.textContent)
+              document.getElementById("console_prompt").firstChild.nodeValue)
                         );
         output.appendChild(span);
         // Print input line itself in a span
