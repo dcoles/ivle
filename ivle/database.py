@@ -372,6 +372,12 @@ class Project(Storm):
     project_set = Reference(project_set_id, ProjectSet.id)
     deadline = DateTime()
 
+    assesseds = ReferenceSet(id, 'Assessed.project_id')
+    submissions = ReferenceSet(id,
+                               'Assessed.project_id',
+                               'Assessed.id',
+                               'ProjectSubmission.assessed_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
@@ -427,6 +433,9 @@ class Assessed(Storm):
 
     project_id = Int(name="projectid")
     project = Reference(project_id, Project.id)
+
+    extensions = ReferenceSet(id, 'ProjectExtension.assessed_id')
+    submissions = ReferenceSet(id, 'ProjectSubmission.assessed_id')
 
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__,
