@@ -38,6 +38,7 @@ __all__ = ['get_store',
             'User',
             'Subject', 'Semester', 'Offering', 'Enrolment',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
+            'Assessed', 'ProjectSubmission', 'ProjectExtension',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
             'TestCase', 'TestSuite', 'TestSuiteVar'
@@ -363,6 +364,8 @@ class Project(Storm):
     __storm_table__ = "project"
 
     id = Int(name="projectid", primary=True)
+    name = Unicode()
+    short_name = Unicode()
     synopsis = Unicode()
     url = Unicode()
     project_set_id = Int(name="projectsetid")
@@ -372,7 +375,7 @@ class Project(Storm):
     __init__ = _kwarg_init
 
     def __repr__(self):
-        return "<%s '%s' in %r>" % (type(self).__name__, self.synopsis,
+        return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
 
 class ProjectGroup(Storm):
@@ -412,6 +415,44 @@ class ProjectGroupMembership(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.project_group)
+
+class Assessed(Storm):
+    __storm_table__ = "assessed"
+
+    id = Int(name="assessedid", primary=True)
+    user_id = Int(name="loginid")
+    user = Reference(user_id, User.id)
+    project_group_id = Int(name="groupid")
+    project_group = Reference(project_group_id, ProjectGroup.id)
+
+    project_id = Int(name="projectid")
+    project = Reference(project_id, Project.id)
+
+    def __repr__(self):
+        return "<%s %r in %r>" % (type(self).__name__,
+            self.user or self.project_group, self.project)
+
+class ProjectExtension(Storm):
+    __storm_table__ = "project_extension"
+
+    id = Int(name="extensionid", primary=True)
+    assessed_id = Int(name="assessedid")
+    assessed = Reference(assessed_id, Assessed.id)
+    deadline = DateTime()
+    approver_id = Int(name="approver")
+    approver = Reference(approver_id, User.id)
+    notes = Unicode()
+
+class ProjectSubmission(Storm):
+    __storm_table__ = "project_submission"
+
+    id = Int(name="submissionid", primary=True)
+    assessed_id = Int(name="assessedid")
+    assessed = Reference(assessed_id, Assessed.id)
+    path = Unicode()
+    revision = Int()
+    date_submitted = DateTime()
+
 
 # WORKSHEETS AND EXERCISES #
 
