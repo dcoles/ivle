@@ -27,6 +27,8 @@ from ivle.webapp.errors import NotFound
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
 
+import ivle.date
+
 
 class SubmitView(XHTMLView):
     """A view to submit a Subversion repository path for a project."""
@@ -50,6 +52,7 @@ class SubmitView(XHTMLView):
     def populate(self, req, ctx):
         ctx['principal'] = self.context
         ctx['path'] = self.path
+        ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
 
 
 class UserSubmitView(SubmitView):

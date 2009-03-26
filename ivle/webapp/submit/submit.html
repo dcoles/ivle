@@ -12,7 +12,8 @@
         <ul style="list-style: none">
           <li py:for="project in principal.get_projects()">
             <input type="radio" name="project" value="${project.id}">
-              ${project.name} - <em>${project.synopsis}</em>
+              ${project.name} - <em>${project.synopsis}</em> - (due
+${format_datetime(project.deadline)})
             </input>
           </li>
         </ul>
