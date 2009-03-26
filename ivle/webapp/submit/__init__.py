@@ -23,8 +23,8 @@ import os.path
 import datetime
 
 from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
-                           ProjectSet)
-from ivle.webapp.errors import NotFound
+                           ProjectSet, Project)
+from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
 
@@ -51,6 +51,23 @@ class SubmitView(XHTMLView):
         raise NotImplementedError()
 
     def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            if 'project' not in data:
+                raise BadRequest('"project" argument required')
+
+            try:
+                projectid = int(data['project'])
+            except ValueError:
+                raise BadRequest('"project" must be an integer')
+
+            project = req.store.find(Project, Project.id == projectid).one()
+
+            if project is None:
+                raise BadRequest('Specified project does not exist')
+
+            project.submit(self.context, self.path, 1) # XXX: Fix rev.
+
         ctx['principal'] = self.context
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
