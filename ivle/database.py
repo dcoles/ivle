@@ -430,6 +430,29 @@ class ProjectGroup(Storm):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
 
+    def get_projects(self, offering=None, active_only=True):
+        '''Return Projects that the group can submit.
+
+        This will include projects in the project set which owns this group,
+        unless the project set disallows groups (in which case none will be
+        returned).
+
+        Unless active_only is False, projects will only be returned if the
+        group's offering is active.
+
+        If an offering is specified, projects will only be returned if it
+        matches the group's.
+        '''
+        return Store.of(self).find(Project,
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.id == self.project_set.id,
+            ProjectSet.max_students_per_group > 0,
+            ProjectSet.offering_id == Offering.id,
+            (offering is None) or (Offering.id == offering.id),
+            Semester.id == Offering.semester_id,
+            (not active_only) or (Semester.state == u'current'))
+
+
     def get_permissions(self, user):
         if user.admin or user in self.members:
             return set(['submit_project'])
