@@ -199,7 +199,7 @@ class User(Storm):
 
     def get_permissions(self, user):
         if user and user.admin or user is self:
-            return set(['view', 'edit'])
+            return set(['view', 'edit', 'submit_project'])
         else:
             return set()
 
@@ -406,6 +406,12 @@ class ProjectGroup(Storm):
     def __repr__(self):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
+
+    def get_permissions(self, user):
+        if user.admin or user in self.members:
+            return set(['submit_project'])
+        else:
+            return set()
 
 class ProjectGroupMembership(Storm):
     __storm_table__ = "group_member"
