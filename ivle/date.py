@@ -66,3 +66,62 @@ def make_date_nice_short(datetime_or_seconds):
     # Else, include the year (mmm dd, yyyy)
     else:
         return dt.strftime("%b %d, %Y")
+
+def format_datetime_for_paragraph(datetime_or_seconds):
+    """Generate a compact representation of a datetime for use in a paragraph.
+
+    Given a datetime or number of seconds elapsed since the epoch, generates
+    a compact string representing the date and time in human-readable form.
+
+    Unlike make_date_nice_short, the time will always be included.
+
+    Also unlike make_date_nice_short, it is suitable for use in the middle of
+    a block of prose and properly handles timestamps in the future nicely.
+    """
+
+    dt = get_datetime(datetime_or_seconds)
+    now = datetime.datetime.now()
+
+    delta = dt - now
+
+    # If the date is earlier than now, we want to either say something like
+    # '5 days ago' or '25 seconds ago', 'yesterday at 08:54' or
+    # 'on 2009-03-26 at 20:09'.
+
+    # If the time is within one hour of now, we show it nicely in either
+    # minutes or seconds.
+
+    if abs(delta).days == 0 and abs(delta).seconds <= 1:
+        return 'now'
+
+    if abs(delta).days == 0 and abs(delta).seconds < 60*60:
+        if abs(delta) == delta:
+            # It's in the future.
+            prefix = 'in '
+            suffix = ''
+        else:
+            prefix = ''
+            suffix = ' ago'
+
+        # Show the number of minutes unless we are within two minutes.
+        if abs(delta).seconds >= 120:
+            return (prefix + '%d minutes' + suffix) % (abs(delta).seconds / 60)
+        else:
+            return (prefix + '%d seconds' + suffix) % (abs(delta).seconds)
+
+    if dt < now:
+        if dt.date() == now.date():
+            # Today.
+            return dt.strftime('today at %H:%M')
+        elif dt.date() == now.date() - datetime.timedelta(days=1):
+            # Yesterday.
+            return dt.strftime('yesterday at %H:%M')
+    elif dt > now:
+        if dt.date() == now.date():
+            # Today.
+            return dt.strftime('today at %H:%M')
+        elif dt.date() == now.date() + datetime.timedelta(days=1):
+            # Tomorrow
+            return dt.strftime('tomorrow at %H:%M')
+
+    return dt.strftime('on %Y-%m-%d at %H:%M')
