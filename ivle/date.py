@@ -15,48 +15,54 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: Date utilities
-# Author: William Grant
-# Date: 16/07/2008
+'''Utilities for making nice, human readable dates.'''
 
 import time
+import datetime
 
-seconds_per_day = 86400 # 60 * 60 * 24
-if time.daylight:
-    timezone_offset = time.altzone
-else:
-    timezone_offset = time.timezone
+def get_datetime(datetime_or_seconds):
+    '''Return the given datetime, or convert the given seconds since epoch.'''
+    if type(datetime_or_seconds) is datetime.datetime:
+        return datetime_or_seconds
+    return datetime.datetime.fromtimestamp(datetime_or_seconds)
 
-def make_date_nice(seconds_since_epoch):
-    """Given a number of seconds elapsed since the epoch,
+def make_date_nice(datetime_or_seconds):
+    """Generate a full human-readable representation of a date and time.
+
+    Given a datetime or number of seconds elapsed since the epoch,
     generates a string representing the date/time in human-readable form.
     "ddd mmm dd, yyyy h:m a"
     """
-    #return time.ctime(seconds_since_epoch)
-    return time.strftime("%a %b %d %Y, %I:%M %p",
-        time.localtime(seconds_since_epoch))
+    dt = get_datetime(datetime_or_seconds)
+    return dt.strftime("%a %b %d %Y, %I:%M %p")
 
-def make_date_nice_short(seconds_since_epoch):
-    """Given a number of seconds elapsed since the epoch,
+def make_date_nice_short(datetime_or_seconds):
+    """Generate a very compact human-readable representation of a date.
+
+    Given a datetime or number of seconds elapsed since the epoch,
     generates a string representing the date in human-readable form.
     Does not include the time.
-    This function generates a very compact representation."""
+    """
+
+    dt = get_datetime(datetime_or_seconds)
+    now = datetime.datetime.now()
+
     # Use a "naturalisation" algorithm.
-    days_ago = (int(time.time() - timezone_offset) / seconds_per_day
-        - int(seconds_since_epoch - timezone_offset) / seconds_per_day)
-    if days_ago <= 5:
+    delta = now - dt
+
+    if delta.days <= 5:
         # Dates today or yesterday, return "today" or "yesterday".
-        if days_ago == 0:
+        if delta.days == 0:
             return "Today"
-        elif days_ago == 1:
+        elif delta.days == 1:
             return "Yesterday"
         else:
-            return str(days_ago) + " days ago"
-        # Dates in the last 5 days, return "n days ago".
+            # Dates in the last 5 days, return "n days ago".
+            return str(delta.days) + " days ago"
     # Other dates, return a short date format.
     # If within the same year, omit the year (mmm dd)
-    if time.localtime(seconds_since_epoch).tm_year==time.localtime().tm_year:
-        return time.strftime("%b %d", time.localtime(seconds_since_epoch))
+    if dt.year == now.year:
+        return dt.strftime("%b %d")
     # Else, include the year (mmm dd, yyyy)
     else:
-        return time.strftime("%b %d, %Y", time.localtime(seconds_since_epoch))
+        return dt.strftime("%b %d, %Y")
