@@ -493,6 +493,29 @@ class Assessed(Storm):
         return "<%s %r in %r>" % (type(self).__name__,
             self.user or self.project_group, self.project)
 
+    @classmethod
+    def get(cls, store, principal, project):
+        t = type(principal)
+        if t not in (User, ProjectGroup):
+            raise AssertionError('principal must be User or ProjectGroup')
+
+        a = store.find(cls,
+            (t is User) or (cls.project_group_id == principal.id),
+            (t is ProjectGroup) or (cls.user_id == principal.id),
+            Project.id == project.id).one()
+
+        if a is None:
+            a = cls()
+            if t is User:
+                a.user = principal
+            else:
+                a.project_group = principal
+            a.project = project
+            store.add(a)
+
+        return a
+
+
 class ProjectExtension(Storm):
     __storm_table__ = "project_extension"
 
