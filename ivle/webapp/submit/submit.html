@@ -10,8 +10,9 @@
       <p>Which project do you wish to submit this for?</p>
       <form action="" method="POST">
         <ul style="list-style: none">
-          <li py:for="project in principal.get_projects()">
-            <input type="radio" name="project" value="${project.id}">
+          <li py:for="project in principal.get_projects()"
+              py:with="attrs = {'disabled': 'disabled'} if project.deadline &lt; now else {}">
+            <input type="radio" name="project" value="${project.id}" py:attrs="attrs">
               ${project.name} - <em>${project.synopsis}</em> - (due
 ${format_datetime(project.deadline)})
             </input>

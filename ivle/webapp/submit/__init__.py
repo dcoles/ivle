@@ -20,6 +20,7 @@
 """Project submissions user interface."""
 
 import os.path
+import datetime
 
 from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
                            ProjectSet)
@@ -52,6 +53,7 @@ class SubmitView(XHTMLView):
     def populate(self, req, ctx):
         ctx['principal'] = self.context
         ctx['path'] = self.path
+        ctx['now'] = datetime.datetime.now()
         ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
 
 
