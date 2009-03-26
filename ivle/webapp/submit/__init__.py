@@ -19,6 +19,8 @@
 
 """Project submissions user interface."""
 
+import os.path
+
 from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
                            ProjectSet)
 from ivle.webapp.errors import NotFound
@@ -36,6 +38,7 @@ class SubmitView(XHTMLView):
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
+        self.path = os.path.normpath(path)
 
         if self.context is None:
             raise NotFound()
@@ -45,7 +48,8 @@ class SubmitView(XHTMLView):
         raise NotImplementedError()
 
     def populate(self, req, ctx):
-        pass
+        ctx['principal'] = self.context
+        ctx['path'] = self.path
 
 
 class UserSubmitView(SubmitView):

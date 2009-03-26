@@ -5,5 +5,20 @@
   </head>
   <body>
     <h1>Submit project</h1>
+    <div id="ivle_padding">
+      <p>You are submitting '${path}' from the repository for ${principal}.</p>
+      <p>Which project do you wish to submit this for?</p>
+      <form action="" method="POST">
+        <ul style="list-style: none">
+          <li py:for="project in principal.get_projects()">
+            <input type="radio" name="project" value="${project.id}">
+              ${project.name} - <em>${project.synopsis}</em>
+            </input>
+          </li>
+        </ul>
+        <p>You may resubmit this project again at any time until the deadline.</p>
+        <input type="submit" value="Submit Project" />
+      </form>
+    </div>
   </body>
 </html>
