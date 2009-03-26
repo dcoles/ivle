@@ -185,12 +185,15 @@ class User(Storm):
         '''A sanely ordered list of all of the user's enrolments.'''
         return self._get_enrolments(False) 
 
-    def get_projects(self, offering=None):
+    def get_projects(self, offering=None, active_only=True):
         '''Return Projects that the user can submit.
 
-        This will include projects for active offerings in which the user is
+        This will include projects for offerings in which the user is
         enrolled, as long as the project is not in a project set which has
         groups (ie. if maximum number of group members is 0).
+
+        Unless active_only is False, only projects for active offerings will
+        be returned.
 
         If an offering is specified, returned projects will be limited to
         those for that offering.
@@ -199,8 +202,9 @@ class User(Storm):
             Project.project_set_id == ProjectSet.id,
             ProjectSet.max_students_per_group == 0,
             ProjectSet.offering_id == Offering.id,
+            (offering is None) or (Offering.id == offering.id),
             Semester.id == Offering.semester_id,
-            Semester.state == u'current',
+            (not active_only) or (Semester.state == u'current'),
             Enrolment.offering_id == Offering.id,
             Enrolment.user_id == self.id)
 
