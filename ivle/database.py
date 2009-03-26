@@ -407,6 +407,24 @@ class Project(Storm):
         return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
 
+    def can_submit(self, principal):
+        return (self in principal.get_projects() and
+                self.deadline > datetime.datetime.now())
+
+    def submit(self, principal, path, revision):
+        if not self.can_submit(principal):
+            raise Exception('cannot submit')
+
+        a = Assessed.get(Store.of(self), principal, self)
+        ps = ProjectSubmission()
+        ps.path = path
+        ps.revision = revision
+        ps.date_submitted = datetime.datetime.now()
+        ps.assessed = a
+
+        return ps
+
+
 class ProjectGroup(Storm):
     __storm_table__ = "project_group"
 
