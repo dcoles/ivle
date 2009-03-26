@@ -32,34 +32,51 @@ class SubmitView(XHTMLView):
     tab = 'files'
     permission = 'submit_project'
 
-    def __init__(self, req, rtype, rname, path):
+    def __init__(self, req, name, path):
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
-        if rtype == 'users':
-            self.context = User.get_by_login(req.store, rname)
-        elif rtype == 'groups':
-            namebits = rname.split('_', 3)
-            if len(namebits) != 4:
-                raise NotFound()
-            self.context = req.store.find(ProjectGroup,
-                ProjectGroup.name == namebits[3],
-                ProjectGroup.project_set_id == ProjectSet.id,
-                ProjectSet.offering_id == Offering.id,
-                Offering.subject_id == Subject.id,
-                Subject.short_name == namebits[0],
-                Offering.semester_id == Semester.id,
-                Semester.year == namebits[1],
-                Semester.semester == namebits[2]).one()
-        else:
-            raise NotFound()
+        self.context = self.get_repository_owner(req.store, name)
 
         if self.context is None:
             raise NotFound()
 
+    def get_repository_owner(self, store, name):
+        """Return the owner of the repository given the name and a Store."""
+        raise NotImplementedError()
+
     def populate(self, req, ctx):
         pass
 
+
+class UserSubmitView(SubmitView):
+    def get_repository_owner(self, store, name):
+        '''Resolve the user name into a user.'''
+        return User.get_by_login(store, name)
+
+
+class GroupSubmitView(SubmitView):
+    def get_repository_owner(self, store, name):
+        '''Resolve the subject_year_semester_group name into a group.'''
+        namebits = name.split('_', 3)
+        if len(namebits) != 4:
+            return None
+
+        # Find the project group with the given name in any project set in the
+        # offering of the given subject in the semester with the given year
+        # and semester.
+        return store.find(ProjectGroup,
+            ProjectGroup.name == namebits[3],
+            ProjectGroup.project_set_id == ProjectSet.id,
+            ProjectSet.offering_id == Offering.id,
+            Offering.subject_id == Subject.id,
+            Subject.short_name == namebits[0],
+            Offering.semester_id == Semester.id,
+            Semester.year == namebits[1],
+            Semester.semester == namebits[2]).one()
+
+
 class Plugin(ViewPlugin):
     urls = [
-        ('+submit/:rtype/:rname/*path', SubmitView),
+        ('+submit/users/:name/*path', UserSubmitView),
+        ('+submit/groups/:name/*path', GroupSubmitView),
     ]
