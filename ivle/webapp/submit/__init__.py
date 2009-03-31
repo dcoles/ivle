@@ -60,6 +60,14 @@ class SubmitView(XHTMLView):
     def populate(self, req, ctx):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
+            if 'revision' not in data:
+                raise BadRequest('"revision" argument required')
+
+            try:
+                revision = int(data['revision'])
+            except ValueError:
+                raise BadRequest('"revision" must be an integer')
+
             if 'project' not in data:
                 raise BadRequest('"project" argument required')
 
@@ -78,7 +86,7 @@ class SubmitView(XHTMLView):
             if project is None:
                 raise BadRequest('Specified project does not exist')
 
-            project.submit(self.context, self.path, 1) # XXX: Fix rev.
+            project.submit(self.context, self.path, revision)
 
         ctx['principal'] = self.context
         ctx['offering'] = self.offering
