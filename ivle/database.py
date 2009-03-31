@@ -118,6 +118,10 @@ class User(Storm):
         return self.hash_password(password) == self.passhash
 
     @property
+    def display_name(self):
+        return self.fullname
+
+    @property
     def password_expired(self):
         fieldval = self.pass_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
@@ -447,6 +451,10 @@ class ProjectGroup(Storm):
     def __repr__(self):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
+
+    @property
+    def display_name(self):
+        return '%s (%s)' % (self.nick, self.name)
 
     def get_projects(self, offering=None, active_only=True):
         '''Return Projects that the group can submit.
