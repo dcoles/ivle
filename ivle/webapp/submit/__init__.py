@@ -44,10 +44,11 @@ class SubmitView(XHTMLView):
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
         self.path = os.path.normpath(path)
-        self.offering = self.get_offering()
 
         if self.context is None:
             raise NotFound()
+
+        self.offering = self.get_offering()
 
     def get_repository_owner(self, store, name):
         """Return the owner of the repository given the name and a Store."""
