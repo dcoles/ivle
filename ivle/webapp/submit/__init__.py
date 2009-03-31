@@ -44,6 +44,7 @@ class SubmitView(XHTMLView):
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
         self.path = os.path.normpath(path)
+        self.offering = self.get_offering()
 
         if self.context is None:
             raise NotFound()
@@ -69,13 +70,18 @@ class SubmitView(XHTMLView):
 
             project = req.store.find(Project, Project.id == projectid).one()
 
+            # This view's offering will be the sole offering for which the
+            # path is permissible. We need to check that.
+            if project.project_set.offering is not self.offering:
+                raise BadRequest('Path is not permissible for this offering')
+
             if project is None:
                 raise BadRequest('Specified project does not exist')
 
             project.submit(self.context, self.path, 1) # XXX: Fix rev.
 
         ctx['principal'] = self.context
-        ctx['offering'] = self.get_offering()
+        ctx['offering'] = self.offering
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
         ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
