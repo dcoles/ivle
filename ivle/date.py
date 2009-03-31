@@ -112,16 +112,16 @@ def format_datetime_for_paragraph(datetime_or_seconds):
     if dt < now:
         if dt.date() == now.date():
             # Today.
-            return dt.strftime('today at %H:%M')
+            return dt.strftime('today at %I:%M %p')
         elif dt.date() == now.date() - datetime.timedelta(days=1):
             # Yesterday.
-            return dt.strftime('yesterday at %H:%M')
+            return dt.strftime('yesterday at %I:%M %p')
     elif dt > now:
         if dt.date() == now.date():
             # Today.
-            return dt.strftime('today at %H:%M')
+            return dt.strftime('today at %I:%M %p')
         elif dt.date() == now.date() + datetime.timedelta(days=1):
             # Tomorrow
-            return dt.strftime('tomorrow at %H:%M')
+            return dt.strftime('tomorrow at %I:%M %p')
 
-    return dt.strftime('on %Y-%m-%d at %H:%M')
+    return dt.strftime('on %Y-%m-%d at %I:%M %p')
