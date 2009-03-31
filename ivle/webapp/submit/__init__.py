@@ -88,6 +88,7 @@ class SubmitView(XHTMLView):
 
             project.submit(self.context, self.path, revision)
 
+        ctx['req'] = req
         ctx['principal'] = self.context
         ctx['offering'] = self.offering
         ctx['path'] = self.path
