@@ -22,8 +22,10 @@
 import os.path
 import datetime
 
+from storm.locals import Store
+
 from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
-                           ProjectSet, Project)
+                           ProjectSet, Project, Enrolment)
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
@@ -50,6 +52,10 @@ class SubmitView(XHTMLView):
         """Return the owner of the repository given the name and a Store."""
         raise NotImplementedError()
 
+    def get_offering(self):
+        """Return the offering that this path can be submitted to."""
+        raise NotImplementedError()
+
     def populate(self, req, ctx):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
@@ -69,6 +75,7 @@ class SubmitView(XHTMLView):
             project.submit(self.context, self.path, 1) # XXX: Fix rev.
 
         ctx['principal'] = self.context
+        ctx['offering'] = self.get_offering()
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
         ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
@@ -78,6 +85,16 @@ class UserSubmitView(SubmitView):
     def get_repository_owner(self, store, name):
         '''Resolve the user name into a user.'''
         return User.get_by_login(store, name)
+
+    def get_offering(self):
+        return Store.of(self.context).find(Offering,
+            Offering.id == Enrolment.offering_id,
+            Enrolment.user_id == self.context.id,
+            Offering.semester_id == Semester.id,
+            Semester.state == u'current',
+            Offering.subject_id == Subject.id,
+            Subject.short_name == self.path.split('/')[0],
+            ).one()
 
 
 class GroupSubmitView(SubmitView):
@@ -99,6 +116,9 @@ class GroupSubmitView(SubmitView):
             Offering.semester_id == Semester.id,
             Semester.year == namebits[1],
             Semester.semester == namebits[2]).one()
+
+    def get_offering(self):
+        return self.context.project_set.offering
 
 
 class Plugin(ViewPlugin):

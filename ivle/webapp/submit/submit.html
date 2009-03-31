@@ -7,10 +7,10 @@
     <h1>Submit project</h1>
     <div id="ivle_padding">
       <p>You are submitting '${path}' from the repository for ${principal}.</p>
-      <p>Which project do you wish to submit this for?</p>
+      <p>You may submit to any open project in ${offering}. Which project do you wish to submit this for?</p>
       <form action="" method="post">
         <ul style="list-style: none">
-          <li py:for="project in principal.get_projects()"
+          <li py:for="project in principal.get_projects(offering=offering)"
               py:with="attrs = {'disabled': 'disabled'} if project.deadline &lt; now else {}">
             <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
             <label for="project_${project.id}">${project.name} - <em>${project.synopsis}</em> - (due ${format_datetime(project.deadline)})</label>
