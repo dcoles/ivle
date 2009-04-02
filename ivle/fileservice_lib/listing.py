@@ -327,6 +327,15 @@ def PysvnStatus_to_fileinfo(path, status):
         filename = os.path.basename(fullpath)
     text_status = status.text_status
     d = {'svnstatus': str(text_status)}
+
+    if status.entry is not None:
+        d.update({
+           'svnurl': status.entry.url,
+           'svnrevision': status.entry.revision.number
+             if status.entry.revision.kind == pysvn.opt_revision_kind.number
+             else None,
+        })
+
     try:
         d.update(_fullpath_stat_fileinfo(fullpath))
     except OSError:
