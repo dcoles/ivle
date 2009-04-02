@@ -846,8 +846,12 @@ function handle_moreactions()
         window.open(public_app_path("~" + current_path, filename), 'share')
         break;
     case "submit":
-        // TODO
-        alert("Not yet implemented: Submit");
+        if (selected_files.length == 1)
+            stat = file_listing[selected_files[0]];
+        else
+            stat = current_file;
+        path = stat.svnurl.substr(svn_base.length);
+        window.location = path_join(app_path('+submit'), path) + '?revision=' + stat.svnrevision;
         break;
     case "rename":
         action_rename(filename);
