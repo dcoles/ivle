@@ -781,6 +781,14 @@ function update_actions()
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
 
+    single_ivle_versioned_path = (
+         (
+          (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
+          (numsel == 0 && (stat = current_file))
+         ) && stat.svnstatus != "unversioned"
+           && stat.svnurl.substr(0, svn_base.length) == svn_base);
+    set_action_state(["submit"], single_ivle_versioned_path);
+
     /* There is currently nothing on the More Actions menu of use
      * when the current file is not a directory. Hence, just remove
      * it entirely.
