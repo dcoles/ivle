@@ -103,6 +103,7 @@ class XHTMLView(BaseView):
         ctx['favicon'] = None
         ctx['root_dir'] = ivle.conf.root_dir
         ctx['public_host'] = ivle.conf.public_host
+        ctx['svn_base'] = ivle.conf.svn_addr
         ctx['write_javascript_settings'] = req.write_javascript_settings
         if req.user:
             ctx['login'] = req.user.login
