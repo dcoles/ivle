@@ -73,6 +73,8 @@ class DiffView(XHTMLView):
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
 
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
+
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
                              for fd in diff_matcher.findall(diff)
