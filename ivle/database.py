@@ -612,7 +612,10 @@ class Exercise(Storm):
             if user.admin:
                 perms.add('edit')
                 perms.add('view')
-            elif 'lecturer' in set((e.role for e in user.active_enrolments)):
+            elif u'lecturer' in set((e.role for e in user.active_enrolments)):
+                perms.add('edit')
+                perms.add('view')
+            elif u'tutor' in set((e.role for e in user.active_enrolments)):
                 perms.add('edit')
                 perms.add('view')
             

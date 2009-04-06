@@ -124,11 +124,38 @@ class EnrolView(XHTMLView):
         ctx['offering'] = self.context
         ctx['errors'] = errors
 
+class SubjectProjectSetView(XHTMLView):
+    """View the ProjectSets for a subject."""
+    template = 'subject_projects.html'
+    permission = 'edit'
+    
+    def __init__(self, req, subject, year, semester):
+        self.context = req.store.find(Offering,
+            Offering.subject_id == Subject.id,
+            Subject.short_name == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
+
+        if not self.context:
+            raise NotFound()
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ["project.css"]
+        ctx['offering'] = self.context
+
+class ProjectSetView(XHTMLView):
+    """View the submissions for a ProjectSet"""
+    template = 'projectsubmissions.html'
+    permission = 'edit'
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/', SubjectsView),
         ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
+        ('subjects/:subject/:year/:semester/+projects', SubjectProjectSetView),
+        #API Views
+        
     ]
 
     tabs = [
