@@ -175,7 +175,8 @@ CREATE TABLE project_submission (
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     path        VARCHAR NOT NULL,
     revision    INT4 NOT NULL,
-    date_submitted TIMESTAMP NOT NULL
+    date_submitted TIMESTAMP NOT NULL,
+    submitter   INT4 REFERENCES login (loginid) NOT NULL
 );
 
 CREATE TABLE project_mark (

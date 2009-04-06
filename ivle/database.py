@@ -415,7 +415,15 @@ class Project(Storm):
         return (self in principal.get_projects() and
                 self.deadline > datetime.datetime.now())
 
-    def submit(self, principal, path, revision):
+    def submit(self, principal, path, revision, who):
+        """Submit a Subversion path and revision to a project.
+
+        'principal' is the owner of the Subversion repository, and the
+        entity on behalf of whom the submission is being made. 'path' is
+        a path within that repository, and 'revision' specifies which
+        revision of that path. 'who' is the person making the submission.
+        """
+
         if not self.can_submit(principal):
             raise Exception('cannot submit')
 
@@ -425,6 +433,7 @@ class Project(Storm):
         ps.revision = revision
         ps.date_submitted = datetime.datetime.now()
         ps.assessed = a
+        ps.submitter = who
 
         return ps
 
@@ -561,6 +570,8 @@ class ProjectSubmission(Storm):
     assessed = Reference(assessed_id, Assessed.id)
     path = Unicode()
     revision = Int()
+    submitter_id = Int(name="submitter")
+    submitter = Reference(submitter_id, User.id)
     date_submitted = DateTime()
 
 

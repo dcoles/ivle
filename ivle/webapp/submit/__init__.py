@@ -87,7 +87,7 @@ class SubmitView(XHTMLView):
             if project is None:
                 raise BadRequest('Specified project does not exist')
 
-            project.submit(self.context, self.path, revision)
+            project.submit(self.context, self.path, revision, req.user)
 
         ctx['req'] = req
         ctx['principal'] = self.context
