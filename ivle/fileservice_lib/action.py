@@ -197,7 +197,7 @@ def handle_action(req, action, fields):
     except KeyError:
         # Default, just send an error but then continue
         raise ActionError("Unknown action")
-    action(req, fields)
+    return action(req, fields)
 
 def actionpath_to_urlpath(req, path):
     """Determines the URL path (relative to the student home) upon which the
