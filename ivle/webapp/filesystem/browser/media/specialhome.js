@@ -170,11 +170,10 @@ function make_subject_item(path, repopath, name, description)
                 li.appendChild(span);
 
                 var button = document.createElement("input");
-                button.addEventListener("click", function(event)
+                $(button).click(function(event)
                 {
                     action_rename(path_join(path, name));
-                },
-                false);
+                });
                 button.setAttribute("type", "button");
                 button.setAttribute("value", "Rename");
                 span.appendChild(button);
@@ -190,7 +189,7 @@ function make_subject_item(path, repopath, name, description)
             li.appendChild(span);
 
             var button = document.createElement("input");
-            button.addEventListener("click", function(event)
+            $(button).click(function(event)
             {
                 li.setAttribute("class", "listing-loading");
 
@@ -206,8 +205,7 @@ function make_subject_item(path, repopath, name, description)
                 {
                     li.setAttribute("class", "listing-dir");
                 }
-            },
-            false);
+            });
             button.setAttribute("type", "button");
             button.setAttribute("value", "Checkout");
             span.appendChild(button);
@@ -255,8 +253,8 @@ function create_if_needed(path)
  */
 function obj_length(obj)
 {
-    length = 0;
+    len = 0;
     for (prop in obj)
-        length++;
-    return length;
+        len++;
+    return len;
 }

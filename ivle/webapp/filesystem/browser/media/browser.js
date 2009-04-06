@@ -144,7 +144,7 @@ function do_action(action, path, args, content_type, ignore_response)
             /* Check for action errors reported by the server, and report them
              * to the user */
             var error = response.getResponseHeader("X-IVLE-Action-Error");
-            if (error != null)
+            if (error != null && error != "")
                 /* Note: This header (in particular) comes URI-encoded, to
                  * allow multi-line error messages. Decode */
                 alert("Error: " + decodeURIComponent(error.toString()) + ".");
@@ -728,12 +728,12 @@ function update_actions()
             publish.setAttribute("value", "unpublish");
             publish.setAttribute("title" ,"Make it so this directory "
                 + "can not be seen by anyone on the web");
-            publish.textContent = "Unpublish";
+            publish.firstChild.nodeValue = "Unpublish";
         } else {
             publish.setAttribute("value", "publish");
             publish.setAttribute("title","Make it so this directory "
                 + "can be seen by anyone on the web");
-            publish.textContent = "Publish";
+            publish.firstChild.nodeValue = "Publish";
         }
     }
     set_action_state(["publish", "submit"], pubcond);
@@ -760,7 +760,7 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state(["svnadd",], numsel >= 1 && current_file.svnstatus);
+    set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
     /* And these are only usefull is ALL the selected files are versioned */
     set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
             "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);

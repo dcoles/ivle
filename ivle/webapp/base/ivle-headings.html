@@ -29,7 +29,7 @@
       <!-- Plugin JavaScript to be run on page load -->
       <script type="text/javascript">
         <py:for each="init_script in scripts_init">
-          window.addEventListener("load", ${init_script}, false);
+          $(document).ready(${init_script});
         </py:for>
       </script>
       ${select('*[local-name()!="title"]')}

@@ -708,7 +708,7 @@ function handle_dir_listing(path, listing)
         /* Column 2: Filetype and subversion icons. */
         td = document.createElement("td");
         td.setAttribute("class", "thincol");
-        td.addEventListener("click", select_row, false);
+        $(td).click(select_row);
         /* Directories don't really have a MIME type, so we fake one. */
         if (file.isdir) file.type = "text/directory";
         td.appendChild(dom_make_img(mime_type_to_icon(file.type),
@@ -734,17 +734,17 @@ function handle_dir_listing(path, listing)
         {
             td = dom_make_text_elem("td", filename);
         }
-        td.addEventListener("click", select_row, false);
+        $(td).click(select_row);
         row.appendChild(td);
 
         /* Column 4: Size */
         td = dom_make_text_elem("td", nice_filesize(file.size));
-        td.addEventListener("click", select_row, false);
+        $(td).click(select_row);
         row.appendChild(td);
 
         /* Column 5: Date */
         td = dom_make_text_elem("td", file.mtime_short, file.mtime_nice);
-        td.addEventListener("click", select_row, false);
+        $(td).click(select_row);
         row.appendChild(td);
         files.appendChild(row);
     }
