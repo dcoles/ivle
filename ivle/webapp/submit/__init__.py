@@ -62,20 +62,20 @@ class SubmitView(XHTMLView):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
             if 'revision' not in data:
-                raise BadRequest('"revision" argument required')
+                raise BadRequest('No revision selected.')
 
             try:
                 revision = int(data['revision'])
             except ValueError:
-                raise BadRequest('"revision" must be an integer')
+                raise BadRequest('Revision must be an integer.')
 
             if 'project' not in data:
-                raise BadRequest('"project" argument required')
+                raise BadRequest('No project selected.')
 
             try:
                 projectid = int(data['project'])
             except ValueError:
-                raise BadRequest('"project" must be an integer')
+                raise BadRequest('Project must be an integer.')
 
             project = req.store.find(Project, Project.id == projectid).one()
 
