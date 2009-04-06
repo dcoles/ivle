@@ -852,7 +852,20 @@ function handle_moreactions()
         else
             stat = current_file;
         path = stat.svnurl.substr(svn_base.length);
-        window.location = path_join(app_path('+submit'), path) + '?revision=' + stat.svnrevision;
+
+        /* The working copy might not have an up-to-date version of the
+         * directory. While submitting like this could yield unexpected
+         * results, we should really submit the latest revision to minimise
+         * terrible mistakes - so we run off and ask fileservice for the
+         * latest revision.*/
+        $.post(app_path(service_app, current_path),
+            {"action": "svnrepostat", "path": path},
+            function(result)
+            {
+                window.location = path_join(app_path('+submit'), path) + '?revision=' + result.svnrevision;
+            },
+            "json");
+
         break;
     case "rename":
         action_rename(filename);
