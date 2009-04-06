@@ -786,6 +786,7 @@ function update_actions()
           (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
           (numsel == 0 && (stat = current_file))
          ) && stat.svnstatus != "unversioned"
+           && stat.svnurl
            && stat.svnurl.substr(0, svn_base.length) == svn_base);
     set_action_state(["submit"], single_ivle_versioned_path);
 
