@@ -39,7 +39,7 @@ class SubmitView(XHTMLView):
     tab = 'files'
     permission = 'submit_project'
 
-    def __init__(self, req, name, path):
+    def __init__(self, req, name, path=""):
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
@@ -142,6 +142,8 @@ class GroupSubmitView(SubmitView):
 
 class Plugin(ViewPlugin):
     urls = [
+        ('+submit/users/:name', UserSubmitView),
+        ('+submit/groups/:name', GroupSubmitView),
         ('+submit/users/:name/*path', UserSubmitView),
         ('+submit/groups/:name/*path', GroupSubmitView),
     ]
