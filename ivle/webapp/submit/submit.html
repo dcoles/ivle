@@ -1,0 +1,43 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Submit project</title>
+  </head>
+  <body>
+    <h1>Submit project</h1>
+    <div id="ivle_padding">
+      <py:choose test="offering">
+        <div py:when="None">
+          <p>You may not submit files from <span style="font-family: monospace">${path}</span> in
+            <py:choose test="">
+              <span py:when="principal is req.user">your repository.</span>
+              <span py:otherwise="">the repository for ${principal.display_name}.</span>
+            </py:choose>
+            You can only submit files from a subject directory.
+          </p>
+        </div>
+        <div py:otherwise="">
+          <p>You are submitting <span style="font-family: monospace">${path}</span> from
+            <py:choose test="">
+              <span py:when="principal is req.user">your repository.</span>
+              <span py:otherwise="">the repository for ${principal.display_name}.</span>
+            </py:choose>
+          </p>
+          <p>You may submit to any open project in ${offering.subject.name}. Which project do you wish to submit this for?</p>
+          <form action="" method="post">
+            <ul style="list-style: none">
+              <li py:for="project in principal.get_projects(offering=offering)"
+                  py:with="attrs = {'disabled': 'disabled'} if project.deadline &lt; now else {}">
+                <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
+                <label for="project_${project.id}">${project.name} - <em>${project.synopsis}</em> - (due ${format_datetime(project.deadline)})</label>
+              </li>
+            </ul>
+            <p>Ensure that you have committed all changes - only changes in the repository will be submitted.</p>
+            <p>You may resubmit a project again at any time until its deadline.</p>
+            <p><input type="submit" value="Submit Project" /></p>
+          </form>
+        </div>
+      </py:choose>
+    </div>
+  </body>
+</html>

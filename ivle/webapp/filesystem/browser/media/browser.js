@@ -781,6 +781,15 @@ function update_actions()
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
 
+    single_ivle_versioned_path = (
+         (
+          (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
+          (numsel == 0 && (stat = current_file))
+         ) && stat.svnstatus != "unversioned"
+           && stat.svnurl
+           && stat.svnurl.substr(0, svn_base.length) == svn_base);
+    set_action_state(["submit"], single_ivle_versioned_path);
+
     /* There is currently nothing on the More Actions menu of use
      * when the current file is not a directory. Hence, just remove
      * it entirely.
@@ -838,8 +847,25 @@ function handle_moreactions()
         window.open(public_app_path("~" + current_path, filename), 'share')
         break;
     case "submit":
-        // TODO
-        alert("Not yet implemented: Submit");
+        if (selected_files.length == 1)
+            stat = file_listing[selected_files[0]];
+        else
+            stat = current_file;
+        path = stat.svnurl.substr(svn_base.length);
+
+        /* The working copy might not have an up-to-date version of the
+         * directory. While submitting like this could yield unexpected
+         * results, we should really submit the latest revision to minimise
+         * terrible mistakes - so we run off and ask fileservice for the
+         * latest revision.*/
+        $.post(app_path(service_app, current_path),
+            {"action": "svnrepostat", "path": path},
+            function(result)
+            {
+                window.location = path_join(app_path('+submit'), path) + '?revision=' + result.svnrevision;
+            },
+            "json");
+
         break;
     case "rename":
         action_rename(filename);

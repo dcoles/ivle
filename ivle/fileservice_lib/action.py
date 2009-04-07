@@ -197,7 +197,7 @@ def handle_action(req, action, fields):
     except KeyError:
         # Default, just send an error but then continue
         raise ActionError("Unknown action")
-    action(req, fields)
+    return action(req, fields)
 
 def actionpath_to_urlpath(req, path):
     """Determines the URL path (relative to the student home) upon which the
@@ -738,15 +738,22 @@ def action_svnrepomkdir(req, fields):
 def action_svnrepostat(req, fields):
     """Discovers whether a path exists in a repo under the IVLE SVN root.
 
+    If it does exist, returns a dict containing its metadata.
+
     Reads fields: 'path'
     """
     path = fields.getfirst('path')
     url = ivle.conf.svn_addr + "/" + path
-    svnclient.exception_style = 1 
+    svnclient.exception_style = 1
 
     try:
         svnclient.callback_get_login = get_login
-        svnclient.info2(url)
+        info = svnclient.info2(url,
+            revision=pysvn.Revision(pysvn.opt_revision_kind.head))[0][1]
+        return {'svnrevision': info['rev'].number
+                  if info['rev'] and
+                     info['rev'].kind == pysvn.opt_revision_kind.number
+                  else None}
     except pysvn.ClientError, e:
         # Error code 170000 means ENOENT in this revision.
         if e[1][0][1] == 170000:

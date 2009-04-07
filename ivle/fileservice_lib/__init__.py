@@ -80,6 +80,8 @@
 
 import urllib
 
+import cjson
+
 import ivle.fileservice_lib.action
 import ivle.fileservice_lib.listing
 
@@ -102,12 +104,19 @@ def handle(req):
     fields = req.get_fieldstorage()
     if req.method == 'POST':
         act = fields.getfirst('action')
-    
+
+    out = None
+
     if act is not None:
         try:
-            ivle.fileservice_lib.action.handle_action(req, act, fields)
+            out = ivle.fileservice_lib.action.handle_action(req, act, fields)
         except action.ActionError, message:
             req.headers_out['X-IVLE-Action-Error'] = urllib.quote(str(message))
 
-    return_type = fields.getfirst('return')
-    ivle.fileservice_lib.listing.handle_return(req, return_type == "contents")
+    if out:
+        req.content_type = 'application/json'
+        req.write(cjson.encode(out))
+    else:
+        return_type = fields.getfirst('return')
+        ivle.fileservice_lib.listing.handle_return(req,
+                                                   return_type == "contents")

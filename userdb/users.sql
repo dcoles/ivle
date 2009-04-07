@@ -56,16 +56,44 @@ CREATE TABLE offering (
 CREATE TABLE project_set (
     projectsetid  SERIAL PRIMARY KEY NOT NULL,
     offeringid    INTEGER REFERENCES offering (offeringid) NOT NULL,
-    max_students_per_group  INTEGER NOT NULL DEFAULT 4
+    max_students_per_group  INTEGER
 );
 
 CREATE TABLE project (
     projectid   SERIAL PRIMARY KEY NOT NULL,
-    synopsis    VARCHAR,
-    url         VARCHAR,
+    short_name  TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    synopsis    TEXT,
+    url         TEXT,
     projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
     deadline    TIMESTAMP
 );
+
+CREATE OR REPLACE FUNCTION check_project_namespacing_insertupdate()
+RETURNS trigger AS '
+    DECLARE
+        oid INTEGER;
+    BEGIN
+        IF TG_OP = ''UPDATE'' THEN
+            IF NEW.projectsetid = OLD.projectsetid AND NEW.short_name = OLD.short_name THEN
+                RETURN NEW;
+            END IF;
+        END IF;
+        SELECT offeringid INTO oid FROM project_set WHERE project_set.projectsetid = NEW.projectsetid;
+        PERFORM 1 FROM project, project_set
+        WHERE project_set.offeringid = oid AND
+              project.projectsetid = project_set.projectsetid AND
+              project.short_name = NEW.short_name;
+        IF found THEN
+            RAISE EXCEPTION ''a project named % already exists in offering ID %'', NEW.short_name, oid;
+        END IF;
+        RETURN NEW;
+    END;
+' LANGUAGE 'plpgsql';
+
+CREATE TRIGGER check_project_namespacing
+    BEFORE INSERT OR UPDATE ON project
+    FOR EACH ROW EXECUTE PROCEDURE check_project_namespacing_insertupdate();
 
 CREATE TABLE project_group (
     groupnm     VARCHAR NOT NULL,
@@ -135,6 +163,7 @@ CREATE TABLE assessed (
 );
 
 CREATE TABLE project_extension (
+    extensionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     deadline    TIMESTAMP NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
@@ -142,9 +171,12 @@ CREATE TABLE project_extension (
 );
 
 CREATE TABLE project_submission (
+    submissionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
     path        VARCHAR NOT NULL,
-    revision    INT4 NOT NULL
+    revision    INT4 NOT NULL,
+    date_submitted TIMESTAMP NOT NULL,
+    submitter   INT4 REFERENCES login (loginid) NOT NULL
 );
 
 CREATE TABLE project_mark (

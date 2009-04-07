@@ -38,6 +38,7 @@ __all__ = ['get_store',
             'User',
             'Subject', 'Semester', 'Offering', 'Enrolment',
             'ProjectSet', 'Project', 'ProjectGroup', 'ProjectGroupMembership',
+            'Assessed', 'ProjectSubmission', 'ProjectExtension',
             'Exercise', 'Worksheet', 'WorksheetExercise',
             'ExerciseSave', 'ExerciseAttempt',
             'TestCase', 'TestSuite', 'TestSuiteVar'
@@ -117,6 +118,10 @@ class User(Storm):
         return self.hash_password(password) == self.passhash
 
     @property
+    def display_name(self):
+        return self.fullname
+
+    @property
     def password_expired(self):
         fieldval = self.pass_exp
         return fieldval is not None and datetime.datetime.now() > fieldval
@@ -184,6 +189,29 @@ class User(Storm):
         '''A sanely ordered list of all of the user's enrolments.'''
         return self._get_enrolments(False) 
 
+    def get_projects(self, offering=None, active_only=True):
+        '''Return Projects that the user can submit.
+
+        This will include projects for offerings in which the user is
+        enrolled, as long as the project is not in a project set which has
+        groups (ie. if maximum number of group members is 0).
+
+        Unless active_only is False, only projects for active offerings will
+        be returned.
+
+        If an offering is specified, returned projects will be limited to
+        those for that offering.
+        '''
+        return Store.of(self).find(Project,
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.max_students_per_group == None,
+            ProjectSet.offering_id == Offering.id,
+            (offering is None) or (Offering.id == offering.id),
+            Semester.id == Offering.semester_id,
+            (not active_only) or (Semester.state == u'current'),
+            Enrolment.offering_id == Offering.id,
+            Enrolment.user_id == self.id)
+
     @staticmethod
     def hash_password(password):
         return md5.md5(password).hexdigest()
@@ -198,7 +226,7 @@ class User(Storm):
 
     def get_permissions(self, user):
         if user and user.admin or user is self:
-            return set(['view', 'edit'])
+            return set(['view', 'edit', 'submit_project'])
         else:
             return set()
 
@@ -363,17 +391,52 @@ class Project(Storm):
     __storm_table__ = "project"
 
     id = Int(name="projectid", primary=True)
+    name = Unicode()
+    short_name = Unicode()
     synopsis = Unicode()
     url = Unicode()
     project_set_id = Int(name="projectsetid")
     project_set = Reference(project_set_id, ProjectSet.id)
     deadline = DateTime()
 
+    assesseds = ReferenceSet(id, 'Assessed.project_id')
+    submissions = ReferenceSet(id,
+                               'Assessed.project_id',
+                               'Assessed.id',
+                               'ProjectSubmission.assessed_id')
+
     __init__ = _kwarg_init
 
     def __repr__(self):
-        return "<%s '%s' in %r>" % (type(self).__name__, self.synopsis,
+        return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
+
+    def can_submit(self, principal):
+        return (self in principal.get_projects() and
+                self.deadline > datetime.datetime.now())
+
+    def submit(self, principal, path, revision, who):
+        """Submit a Subversion path and revision to a project.
+
+        'principal' is the owner of the Subversion repository, and the
+        entity on behalf of whom the submission is being made. 'path' is
+        a path within that repository, and 'revision' specifies which
+        revision of that path. 'who' is the person making the submission.
+        """
+
+        if not self.can_submit(principal):
+            raise Exception('cannot submit')
+
+        a = Assessed.get(Store.of(self), principal, self)
+        ps = ProjectSubmission()
+        ps.path = path
+        ps.revision = revision
+        ps.date_submitted = datetime.datetime.now()
+        ps.assessed = a
+        ps.submitter = who
+
+        return ps
+
 
 class ProjectGroup(Storm):
     __storm_table__ = "project_group"
@@ -398,6 +461,39 @@ class ProjectGroup(Storm):
         return "<%s %s in %r>" % (type(self).__name__, self.name,
                                   self.project_set.offering)
 
+    @property
+    def display_name(self):
+        return '%s (%s)' % (self.nick, self.name)
+
+    def get_projects(self, offering=None, active_only=True):
+        '''Return Projects that the group can submit.
+
+        This will include projects in the project set which owns this group,
+        unless the project set disallows groups (in which case none will be
+        returned).
+
+        Unless active_only is False, projects will only be returned if the
+        group's offering is active.
+
+        If an offering is specified, projects will only be returned if it
+        matches the group's.
+        '''
+        return Store.of(self).find(Project,
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.id == self.project_set.id,
+            ProjectSet.max_students_per_group != None,
+            ProjectSet.offering_id == Offering.id,
+            (offering is None) or (Offering.id == offering.id),
+            Semester.id == Offering.semester_id,
+            (not active_only) or (Semester.state == u'current'))
+
+
+    def get_permissions(self, user):
+        if user.admin or user in self.members:
+            return set(['submit_project'])
+        else:
+            return set()
+
 class ProjectGroupMembership(Storm):
     __storm_table__ = "group_member"
     __storm_primary__ = "user_id", "project_group_id"
@@ -412,6 +508,72 @@ class ProjectGroupMembership(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.project_group)
+
+class Assessed(Storm):
+    __storm_table__ = "assessed"
+
+    id = Int(name="assessedid", primary=True)
+    user_id = Int(name="loginid")
+    user = Reference(user_id, User.id)
+    project_group_id = Int(name="groupid")
+    project_group = Reference(project_group_id, ProjectGroup.id)
+
+    project_id = Int(name="projectid")
+    project = Reference(project_id, Project.id)
+
+    extensions = ReferenceSet(id, 'ProjectExtension.assessed_id')
+    submissions = ReferenceSet(id, 'ProjectSubmission.assessed_id')
+
+    def __repr__(self):
+        return "<%s %r in %r>" % (type(self).__name__,
+            self.user or self.project_group, self.project)
+
+    @classmethod
+    def get(cls, store, principal, project):
+        t = type(principal)
+        if t not in (User, ProjectGroup):
+            raise AssertionError('principal must be User or ProjectGroup')
+
+        a = store.find(cls,
+            (t is User) or (cls.project_group_id == principal.id),
+            (t is ProjectGroup) or (cls.user_id == principal.id),
+            Project.id == project.id).one()
+
+        if a is None:
+            a = cls()
+            if t is User:
+                a.user = principal
+            else:
+                a.project_group = principal
+            a.project = project
+            store.add(a)
+
+        return a
+
+
+class ProjectExtension(Storm):
+    __storm_table__ = "project_extension"
+
+    id = Int(name="extensionid", primary=True)
+    assessed_id = Int(name="assessedid")
+    assessed = Reference(assessed_id, Assessed.id)
+    deadline = DateTime()
+    approver_id = Int(name="approver")
+    approver = Reference(approver_id, User.id)
+    notes = Unicode()
+
+class ProjectSubmission(Storm):
+    __storm_table__ = "project_submission"
+
+    id = Int(name="submissionid", primary=True)
+    assessed_id = Int(name="assessedid")
+    assessed = Reference(assessed_id, Assessed.id)
+    path = Unicode()
+    revision = Int()
+    submitter_id = Int(name="submitter")
+    submitter = Reference(submitter_id, User.id)
+    date_submitted = DateTime()
+
 
 # WORKSHEETS AND EXERCISES #
 
