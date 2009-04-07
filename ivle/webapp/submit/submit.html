@@ -29,7 +29,7 @@
               <li py:for="project in principal.get_projects(offering=offering)"
                   py:with="attrs = {'disabled': 'disabled'} if project.deadline &lt; now else {}">
                 <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
-                <label for="project_${project.id}">${project.name} - <em>${project.synopsis}</em> - (due ${format_datetime(project.deadline)})</label>
+                <label for="project_${project.id}"><a href="${project.url}">${project.name}</a> - <em>${project.synopsis}</em> - (due ${format_datetime(project.deadline)})</label>
               </li>
             </ul>
             <p>Ensure that you have committed all changes - only changes in the repository will be submitted.</p>
