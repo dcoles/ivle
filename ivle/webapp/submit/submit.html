@@ -32,7 +32,7 @@
                   <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
                 </td>
                 <td>
-                  <label for="project_${project.id}"><a href="${project.url}">${project.name}</a> (due ${format_datetime(project.deadline)})<br />${project.synopsis}</label>
+                  <label for="project_${project.id}"><a href="${project.url}">${project.name}</a> (<span title="Due ${format_datetime(project.deadline)}">due ${format_datetime_short(project.deadline)}</span>)<br />${project.synopsis}</label>
                 </td>
               </tr>
             </table>

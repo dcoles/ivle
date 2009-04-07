@@ -97,7 +97,8 @@ class SubmitView(XHTMLView):
         ctx['offering'] = self.offering
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
-        ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
 
 class UserSubmitView(SubmitView):
