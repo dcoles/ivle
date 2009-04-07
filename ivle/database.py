@@ -204,7 +204,7 @@ class User(Storm):
         '''
         return Store.of(self).find(Project,
             Project.project_set_id == ProjectSet.id,
-            ProjectSet.max_students_per_group == 0,
+            ProjectSet.max_students_per_group == None,
             ProjectSet.offering_id == Offering.id,
             (offering is None) or (Offering.id == offering.id),
             Semester.id == Offering.semester_id,
@@ -481,7 +481,7 @@ class ProjectGroup(Storm):
         return Store.of(self).find(Project,
             Project.project_set_id == ProjectSet.id,
             ProjectSet.id == self.project_set.id,
-            ProjectSet.max_students_per_group > 0,
+            ProjectSet.max_students_per_group != None,
             ProjectSet.offering_id == Offering.id,
             (offering is None) or (Offering.id == offering.id),
             Semester.id == Offering.semester_id,
