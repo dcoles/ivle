@@ -213,12 +213,14 @@ def make_jail(user, force=True):
         warnings.simplefilter('ignore')
         homebackup = os.tempnam(tempdir)
         warnings.resetwarnings()
-        # Note: shutil.move does not behave like "mv" - it does not put a file
-        # into a directory if it already exists, just fails. Therefore it is
-        # not susceptible to tmpnam symlink attack.
+        # Back up the /home directory, delete the entire jail, recreate the
+        # jail directory tree, then copy the /home back
+        # NOTE that shutil.move changed in Python 2.6, it now moves a
+        # directory INTO the target (like `mv`), which it didn't use to do.
+        # This code works regardless.
         shutil.move(homedir, homebackup)
         shutil.rmtree(userdir)
-        os.makedirs(homedir)
+        os.makedirs(userdir)
         shutil.move(homebackup, homedir)
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
