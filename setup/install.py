@@ -57,7 +57,7 @@ chown and chmod the installed trampoline.
     parser.add_option("--python-site-packages",
         action="store", dest="python_site_packages",
         help="Path to Python site packages directory.",
-        default='/usr/local/lib/python%s/site-packages' % PYTHON_VERSION)
+        default=None)
     (options, args) = parser.parse_args(args)
 
     # Prefix must be absolute (not really necessary, but since a relative
@@ -69,6 +69,11 @@ chown and chmod the installed trampoline.
     (This will be interpreted relative to root, so provide --root=. if you
     want a path relative to the working directory)."""
         return 1
+
+    # Calculate python_site_packages using the supplied prefix
+    if options.python_site_packages is None:
+        options.python_site_packages = os.path.join(options.prefix,
+            'lib/python%s/site-packages' % PYTHON_VERSION)
 
     # Call the real function
     return __install(prefix=options.prefix,
