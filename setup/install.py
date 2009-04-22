@@ -23,10 +23,9 @@ import optparse
 import os
 import sys
 import functools
+import distutils.sysconfig
 
 from setup import util
-
-PYTHON_VERSION = sys.version[:3]
 
 def install(args):
     usage = """usage: %prog install [options]
@@ -72,8 +71,8 @@ chown and chmod the installed trampoline.
 
     # Calculate python_site_packages using the supplied prefix
     if options.python_site_packages is None:
-        options.python_site_packages = os.path.join(options.prefix,
-            'lib/python%s/site-packages' % PYTHON_VERSION)
+        options.python_site_packages = distutils.sysconfig.get_python_lib(
+            prefix=options.prefix)
 
     # Call the real function
     return __install(prefix=options.prefix,
