@@ -38,9 +38,9 @@ class ConfigError(Exception):
 
 def search_confdir():
     """
-    Search for the config file, and return it as a filename.
+    Search for the config file, and return the directory it is in.
     1. Environment var IVLECONF (path to directory)
-    2. /etc/ivle/ivle.conf
+    2. /etc/ivle
     Raises a ConfigError on error.
     """
     if 'IVLECONF' in os.environ:
