@@ -236,63 +236,33 @@ def make_jail(user, force=True):
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    make_conf_py(user.login, userdir, user.svn_pass)
+    make_ivle_conf(user.login, userdir, user.svn_pass)
     make_etc_passwd(user.login, userdir, ivle.conf.jail_system, user.unixid)
 
     return userhomedir
 
-def make_conf_py(username, user_jail_dir, svn_pass):
+def make_ivle_conf(username, user_jail_dir, svn_pass):
     """
     Creates (overwriting any existing file, and creating directories) a
-    file ${python_site_packages}/ivle/conf/conf.py in a given user's jail.
+    file /etc/ivle/ivle.conf in a given user's jail.
     username: Username.
     user_jail_dir: User's jail dir, ie. ivle.conf.jail_base + username
     svn_pass: User's SVN password.
     """
-    conf_path = os.path.join(user_jail_dir,
-            ivle.conf.python_site_packages[1:], "ivle/conf/conf.py")
+    conf_path = os.path.join(user_jail_dir, "etc/ivle/ivle.conf")
     os.makedirs(os.path.dirname(conf_path))
 
     # In the "in-jail" version of conf, we don't need MOST of the details
     # (it would be a security risk to have them here).
-    # So we just write root_dir, and jail_base is "/".
-    # (jail_base being "/" means "jail-relative" paths are relative to "/"
-    # when inside the jail.)
-
-    # XXX: jail_base is wrong and shouldn't be here. Unfortunately, jail code
-    #      uses ivle.studpath.url_to_{local,jailpaths}, both of which use
-    #      jail_base. Note that they don't use the bits of the return value
-    #      that depend on jail_base, so it can be any string.
-    conf_file = open(conf_path, "w")
-    conf_file.write("""# IVLE jail configuration
-
-# In URL space, where in the site is IVLE located. (All URLs will be prefixed
-# with this).
-# eg. "/" or "/ivle".
-root_dir = %(root_dir)r
-
-# This value is not relevant inside the jail, but must remain for now. See
-# the XXX in ivle.makeuser.make_conf_py.
-jail_base = '/'
-
-# The hostname for serving publicly accessible pages
-public_host = %(public_host)r
-
-# The URL under which the Subversion repositories are located.
-svn_addr = %(svn_addr)r
-
-# The login name for the owner of the jail
-login = %(username)r
-
-# The subversion-only password for the owner of the jail
-svn_pass = %(svn_pass)r
-""" % {'root_dir': ivle.conf.root_dir,
-       'public_host': ivle.conf.public_host,
-       'svn_addr': ivle.conf.svn_addr,
-       'username': username,
-       'svn_pass': svn_pass,
-      })
-    conf_file.close()
+    # So we just write root_dir.
+    conf_obj = ivle.config.Config(blank=True)
+    conf_obj.filename = conf_path
+    conf_obj['urls']['root'] = ivle.conf.root_dir
+    conf_obj['urls']['public_host'] = ivle.conf.public_host
+    conf_obj['urls']['svn_addr'] = ivle.conf.svn_addr
+    conf_obj['user_info']['login'] = username
+    conf_obj['user_info']['svn_pass'] = svn_pass
+    conf_obj.write()
 
     # Make this file world-readable
     # (chmod 644 conf_path)

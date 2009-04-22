@@ -116,13 +116,6 @@ if conf['jail']['devmode']:
         shutil.rmtree(jail_site_packages)
     shutil.copytree(ivle_site_packages, jail_site_packages)
 
-    # IMPORTANT: ivle/conf/conf.py contains details which could compromise security
-    # if left in the jail (such as the DB password). We delete it now! It would be
-    # shadowed by the per-user conf.py anyway, but it's best to be safe.
-    os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
-    # XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
-    os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
-
 if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
               build_path + '/', ivle.conf.jail_system]) != 0:
     print >> sys.stderr, "Jail copying failed."

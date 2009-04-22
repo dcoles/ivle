@@ -58,6 +58,10 @@ CONFIG_OPTIONS = {
     'usrmgt_host': 'usrmgt/host',
     'usrmgt_port': 'usrmgt/port',
     'usrmgt_magic': 'usrmgt/magic',
+
+    # These two are only relevant inside the jail.
+    'login': 'user_info/login',
+    'svn_pass': 'user_info/svn_pass',
 }
 
 for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
@@ -100,6 +104,11 @@ else:
 # In the local file system, where the student/user jails will be mounted.
 # Only a single copy of the jail's system components will be stored here -
 # all user jails will be virtually mounted here.
+# XXX: Some jail code calls ivle.studpath.url_to_{local,jailpaths}, both
+#      of which use jail_base. Note that they don't use the bits of the
+#      return value that depend on jail_base, so it can be any string inside
+#      the jail. The value computed here may be meaningless inside the jail,
+#      but that's OK for now.
 jail_base = os.path.join(data_path, 'jailmounts')
 
 # In the local file system, where are the student/user file spaces located.
