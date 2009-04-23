@@ -75,16 +75,6 @@ is installed. (This should either be /usr or /usr/local):""",
 # ('/usr/local' for the usual install, '/usr' for distribution packages)""",
     ask=False))
 
-config_options.append(ConfigOption("paths/site_packages",
-    None,
-    """site-packages directory in Python, where Python libraries are to be
-installed. May be left as the default, in which case the value will be
-computed from prefix and the current Python version:""",
-    """
-# 'site-packages' directory in Python, where Python libraries are to be
-# installed. May be omitted (recommended), in which case the value will be
-# computed from prefix and the current Python version.""", ask=False))
-
 config_options.append(ConfigOption("paths/data",
     "/var/lib/ivle",
     "In the local file system, where user-modifiable data files should be "

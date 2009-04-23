@@ -43,7 +43,6 @@ CONFIG_OPTIONS = {
     'prefix': 'paths/prefix',
     'data_path': 'paths/data',
     'log_path': 'paths/logs',
-    'python_site_packages_override': 'paths/site_packages',
     'public_host': 'urls/public_host',
     'db_host': 'database/host',
     'db_port': 'database/port',
@@ -91,15 +90,6 @@ share_path = os.path.join(prefix, 'share/ivle')
 
 # Path where user-executable binaries are installed.
 bin_path = os.path.join(prefix, 'bin')
-
-# 'site-packages' directory in Python, where Python libraries are to be
-# installed.
-if python_site_packages_override is None:
-    PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
-    python_site_packages = os.path.join(prefix,
-                               'lib/python%s/site-packages' % PYTHON_VERSION)
-else:
-    python_site_packages = python_site_packages_override
 
 # In the local file system, where the student/user jails will be mounted.
 # Only a single copy of the jail's system components will be stored here -
