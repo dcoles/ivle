@@ -48,6 +48,16 @@ def revision_exists(client, path, revision):
     except pysvn.ClientError:
         return False
 
+def revision_is_dir(client, path, revision):
+    """Returns True if the given path+revision is a directory.
+    @raises a pysvn.ClientError if it does not exist.
+    """
+    # XXX I *think* the first element of the list is the requested object, and
+    # subsequent items are its possible children (so ignore them).
+    list_object, _ = client.list(path, revision=revision)[0]
+    # list_object is a PySvnList object
+    return list_object.kind == pysvn.node_kind.dir
+
 class PysvnListStatWrapper:
     '''Wrap a pysvn listing object to look somewhat like a result of
        os.stat.

@@ -151,7 +151,15 @@ def handle_return(req, return_contents):
         req.status = req.HTTP_FORBIDDEN
         req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
         req.write("Forbidden")
-    elif not os.access(path, os.R_OK):
+        return
+
+    # If this is a repository-revision request, it needs to be treated
+    # differently than if it were a regular file request.
+    # Note: If there IS a revision requested but the file doesn't exist in
+    # that revision, this will terminate.
+    revision = _get_revision_or_die(req, svnclient, path)
+
+    if not os.access(path, os.R_OK):
         req.status = req.HTTP_NOT_FOUND
         req.headers_out['X-IVLE-Return-Error'] = 'File not found'
         req.write("File not found")
@@ -160,7 +168,7 @@ def handle_return(req, return_contents):
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
         # TODO: Fix this dirty, dirty hack
-        newjson = get_dirlisting(req, svnclient, path)
+        newjson = get_dirlisting(req, svnclient, path, revision)
         if ("X-IVLE-Action-Error" in req.headers_out):
             newjson["Error"] = req.headers_out["X-IVLE-Action-Error"]
         req.write(cjson.encode(newjson))
@@ -174,12 +182,13 @@ def handle_return(req, return_contents):
         req.content_type = type
         req.headers_out['X-IVLE-Return'] = 'File'
 
-        send_file(req, svnclient, path)
+        send_file(req, svnclient, path, revision)
     else:
         # It's a file. Return a "fake directory listing" with just this file.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'File'
-        req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
+        req.write(cjson.encode(get_dirlisting(req, svnclient, path,
+                                              revision)))
 
 def _get_revision_or_die(req, svnclient, path):
     """Looks for a revision specification in req's URL.
@@ -206,24 +215,31 @@ def _get_revision_or_die(req, svnclient, path):
         sys.exit()
     return revision
 
-def send_file(req, svnclient, path):
-    revision = _get_revision_or_die(req, svnclient, path)
+def send_file(req, svnclient, path, revision):
+    """Given a local absolute path to a file, sends the contents of the file
+    to the client.
+
+    @param req: Request object. Will not be mutated; just reads the session.
+    @param svnclient: Svn client object.
+    @param path: String. Absolute path on the local file system. Not checked,
+        must already be guaranteed safe. May be a file or a directory.
+    @param revision: pysvn Revision object for the given path, or None.
+    """
     if revision:
         req.write(svnclient.cat(path, revision=revision))
     else:
         req.sendfile(path)
 
-def get_dirlisting(req, svnclient, path):
+def get_dirlisting(req, svnclient, path, revision):
     """Given a local absolute path, creates a directory listing object
     ready to be JSONized and sent to the client.
 
-    req: Request object. Will not be mutated; just reads the session.
-    svnclient: Svn client object.
-    path: String. Absolute path on the local file system. Not checked,
+    @param req: Request object. Will not be mutated; just reads the session.
+    @param svnclient: Svn client object.
+    @param path: String. Absolute path on the local file system. Not checked,
         must already be guaranteed safe. May be a file or a directory.
+    @param revision: pysvn Revision object for the given path, or None.
     """
-
-    revision = _get_revision_or_die(req, svnclient, path)
 
     # Start by trying to do an SVN status, so we can report file version
     # status
