@@ -62,7 +62,6 @@ chown and chmod the installed trampoline.
     # Prefix must be absolute (not really necessary, but since a relative
     # prefix will be taken relative to *root* not working directory, it is
     # confusing if we allow it).
-    print options.prefix[:1]
     if options.prefix[:1] not in (os.path.sep, os.path.altsep):
         print >>sys.stderr, """prefix must be an absolute path.
     (This will be interpreted relative to root, so provide --root=. if you
