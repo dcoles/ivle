@@ -159,11 +159,17 @@ def handle_return(req, return_contents):
     # that revision, this will terminate.
     revision = _get_revision_or_die(req, svnclient, path)
 
-    if not os.access(path, os.R_OK):
-        req.status = req.HTTP_NOT_FOUND
-        req.headers_out['X-IVLE-Return-Error'] = 'File not found'
-        req.write("File not found")
-    elif os.path.isdir(path):
+    if revision is None:
+        if not os.access(path, os.R_OK):
+            req.status = req.HTTP_NOT_FOUND
+            req.headers_out['X-IVLE-Return-Error'] = 'File not found'
+            req.write("File not found")
+            return
+        is_dir = os.path.isdir(path)
+    else:
+        is_dir = ivle.svn.revision_is_dir(svnclient, path, revision)
+
+    if is_dir:
         # It's a directory. Return the directory listing.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
