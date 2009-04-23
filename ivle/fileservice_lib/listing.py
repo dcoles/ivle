@@ -214,9 +214,11 @@ def _get_revision_or_die(req, svnclient, path):
     if r_str and not (revision and
                       ivle.svn.revision_exists(svnclient, path, revision)):
         req.status = req.HTTP_NOT_FOUND
-        req.headers_out['X-IVLE-Return-Error'] = 'Revision not found'
+        message = ('Revision not found or file not found in revision %d' %
+                   revision.number)
+        req.headers_out['X-IVLE-Return-Error'] = message
         req.ensure_headers_written()
-        req.write('Revision not found')
+        req.write(message)
         req.flush()
         sys.exit()
     return revision
