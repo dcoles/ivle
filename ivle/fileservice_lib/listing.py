@@ -182,11 +182,15 @@ def handle_return(req, return_contents):
         req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
 
 def _get_revision_or_die(req, svnclient, path):
-    '''Looks for a revision specification in req's URL, returning the revision
-       specified. Returns None if there was no revision specified. Errors and
-       terminates the request if the specification was bad, or it doesn't exist
-       for the given path.
-    '''
+    """Looks for a revision specification in req's URL.
+    Errors and terminates the request if the specification was bad, or it
+    doesn't exist for the given path.
+    @param req: Request object.
+    @param svnclient: pysvn Client object.
+    @param path: Path to the file whose revision is to be retrieved.
+    @returns: pysvn Revision object, for the file+revision specified, or None
+        if there was no revision specified.
+    """
     # Work out the revisions from query
     r_str = req.get_fieldstorage().getfirst("r")
     revision = ivle.svn.revision_from_string(r_str)
