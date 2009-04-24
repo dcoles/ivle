@@ -194,6 +194,29 @@ def calculate_score(store, user, worksheet):
 
     return mand_done, mand_total, opt_done, opt_total
 
+def calculate_mark(mand_done, mand_total):
+    """Calculate a subject mark, given the result of all worksheets.
+    @param mand_done: The total number of mandatory exercises completed by
+        some student, across all worksheets.
+    @param mand_total: The total number of mandatory exercises across all
+        worksheets in the offering.
+    @return: (percent, mark, mark_total)
+        percent: The percentage of exercises the student has completed, as an
+            integer between 0 and 100 inclusive.
+        mark: The mark the student has received, based on the percentage.
+        mark_total: The total number of marks available (currently hard-coded
+            as 5).
+    """
+    # We want to display a students mark out of 5. However, they are
+    # allowed to skip 1 in 5 questions and still get 'full marks'.
+    # Hence we divide by 16, essentially making 16 percent worth
+    # 1 star, and 80 or above worth 5.
+    percent_int = (100 * mand_done) / mand_total
+    # percent / 16, rounded down, with a maximum mark of 5
+    max_mark = 5
+    mark = min(percent_int // 16, max_mark)
+    return (percent_int, mark, max_mark)
+
 def update_exerciselist(worksheet):
     """Runs through the worksheetstream, generating the appropriate
     WorksheetExercises, and de-activating the old ones."""

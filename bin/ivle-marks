@@ -78,13 +78,9 @@ def get_marks_user(worksheets, user):
         worksheet_pcts.append(float(mand_done) / mand_total)
         problems_done += mand_done
         problems_total += mand_total
-    problems_pct = float(problems_done) / problems_total
-    problems_pct_int = (100 * problems_done) / problems_total
-    # XXX Marks calculation (should be abstracted out of here!)
-    # percent / 16, rounded down, with a maximum mark of 5
-    max_mark = 5
-    mark = min(problems_pct_int / 16, max_mark)
-    return worksheet_pcts + [problems_pct, mark]
+    percent, mark, _ = (
+        ivle.worksheet.utils.calculate_mark(problems_done, problems_total))
+    return worksheet_pcts + [float(percent)/100, mark]
 
 def writeuser(worksheets, user, csvfile):
     userdata = get_userdata(user)
