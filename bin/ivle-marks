@@ -49,42 +49,6 @@ def get_userdata(user):
     return [user.studentid, user.login, user.fullname, last_login]
 userdata_header = ["Student ID", "Login", "Full name", "Last login"]
 
-def get_assessable_worksheets(subject):
-    """
-    Given a subject name, returns a list of strings - the worksheet names (not
-    primary key IDs) for all assessable worksheets for that subject.
-    May raise Exceptions, which are fatal.
-    """
-    # NOTE: This code is copy/edited from
-    # www/apps/tutorial/__init__.py:handle_subject_menu
-    # Should be factored out of there.
-
-    # Parse the subject description file
-    # The subject directory must have a file "subject.xml" in it,
-    # or it does not exist (raise exception).
-    try:
-        subjectfile = open(os.path.join(ivle.conf.subjects_base, subject,
-            "subject.xml"))
-    except:
-        raise Exception("Subject %s not found." % repr(subject))
-
-    assessable_worksheets = []
-    # Read in data about the subject
-    subjectdom = minidom.parse(subjectfile)
-    subjectfile.close()
-    # TEMP: All of this is for a temporary XML format, which will later
-    # change.
-    worksheetsdom = subjectdom.documentElement
-    worksheets = []     # List of string IDs
-    for worksheetdom in worksheetsdom.childNodes:
-        if worksheetdom.nodeType == worksheetdom.ELEMENT_NODE:
-            # (Note: assessable will default to False, unless it is explicitly
-            # set to "true").
-            if worksheetdom.getAttribute("assessable") == "true":
-                assessable_worksheets.append(worksheetdom.getAttribute("id"))
-
-    return assessable_worksheets
-
 def get_marks_header(worksheets):
     """
     Given a list of strings - the assessable worksheets - returns a new list
@@ -201,12 +165,18 @@ def main(argv=None):
                 % (subject_name, year, semester))
             return 1
 
-    # TEMP (since the code below is going to fail)
+    # TEMP
     print "Offering = %r" % offering
-    return
 
-    # Get the list of assessable worksheets from the subject.xml file.
-    worksheets = get_assessable_worksheets(subject_name)
+    # Get the list of assessable worksheets
+    worksheets = list(offering.worksheets.find(assessable=True))
+    # TEMP
+    print "Worksheets:"
+    for ws in worksheets:
+        print "    %r" % ws
+
+    # TEMP (since the code below is going to fail)
+    return
 
     # Start writing the CSV file - header
     csvfile = csv.writer(sys.stdout)
