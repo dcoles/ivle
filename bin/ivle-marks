@@ -38,23 +38,6 @@ import ivle.database
 import ivle.worksheet.utils
 import ivle.conf
 
-usage = """usage: %prog [options] subject
-(requires root)
-Reports each student's marks for a given subject offering."""
-
-# Parse arguments
-parser = optparse.OptionParser(usage)
-parser.add_option("-s", "--semester",
-    action="store", dest="semester", metavar="YEAR/SEMESTER",
-    help="Semester of the subject's offering (eg. 2009/1). "
-    "Defaults to the currently active semester.",
-    default=None)
-(options, args) = parser.parse_args()
-
-if len(args) < 1:
-    parser.print_help()
-    parser.exit()
-
 # Regex for valid identifiers (subject/worksheet names)
 re_ident = re.compile("[0-9A-Za-z_]+")
 
@@ -62,24 +45,6 @@ re_ident = re.compile("[0-9A-Za-z_]+")
 def is_valid_subjname(subject):
     m = re_ident.match(subject)
     return m is not None and m.end() == len(subject)
-
-subject = args[0]
-
-# Subject names must be valid identifiers
-if not is_valid_subjname(subject):
-    print >>sys.stderr, "Invalid subject name: %s." % repr(subject)
-    sys.exit()
-
-# Get the semester
-if options.semester is None:
-    year, semester = None, None
-else:
-    try:
-        year, semester = options.semester.split('/')
-        if len(year) == 0 or len(semester) == 0:
-            raise ValueError()
-    except ValueError:
-        parser.error('Invalid semester (must have form "year/semester")')
 
 def get_userdata(user):
     """
@@ -174,18 +139,61 @@ def writeuser(subject, worksheets, user, csvfile):
     marksdata = get_marks_user(subject, worksheets, user)
     csvfile.writerow(userdata + marksdata)
 
-try:
-    # Get the list of assessable worksheets from the subject.xml file.
-    worksheets = get_assessable_worksheets(subject)
-    store = ivle.database.get_store()
-except Exception, message:
-    print >>sys.stderr, "Error: " + str(message)
-    sys.exit(1)
+def main(argv=None):
+    global store
+    if argv is None:
+        argv = sys.argv
 
-# Start writing the CSV file - header
-csvfile = csv.writer(sys.stdout)
-csvfile.writerow(userdata_header + get_marks_header(worksheets))
+    usage = """usage: %prog [options] subject
+    (requires root)
+    Reports each student's marks for a given subject offering."""
 
-for user in store.find(ivle.database.User).order_by(ivle.database.User.login):
-    writeuser(subject, worksheets, user, csvfile)
+    # Parse arguments
+    parser = optparse.OptionParser(usage)
+    parser.add_option("-s", "--semester",
+        action="store", dest="semester", metavar="YEAR/SEMESTER",
+        help="Semester of the subject's offering (eg. 2009/1). "
+        "Defaults to the currently active semester.",
+        default=None)
+    (options, args) = parser.parse_args(argv[1:])
 
+    if len(args) < 1:
+        parser.print_help()
+        parser.exit()
+
+    subject = args[0]
+
+    # Subject names must be valid identifiers
+    if not is_valid_subjname(subject):
+        print >>sys.stderr, "Invalid subject name: %s." % repr(subject)
+        sys.exit()
+
+    # Get the semester
+    if options.semester is None:
+        year, semester = None, None
+    else:
+        try:
+            year, semester = options.semester.split('/')
+            if len(year) == 0 or len(semester) == 0:
+                raise ValueError()
+        except ValueError:
+            parser.error('Invalid semester (must have form "year/semester")')
+
+    try:
+        # Get the list of assessable worksheets from the subject.xml file.
+        worksheets = get_assessable_worksheets(subject)
+        store = ivle.database.get_store()
+    except Exception, message:
+        print >>sys.stderr, "Error: " + str(message)
+        sys.exit(1)
+
+    # Start writing the CSV file - header
+    csvfile = csv.writer(sys.stdout)
+    csvfile.writerow(userdata_header + get_marks_header(worksheets))
+
+    users = store.find(ivle.database.User).order_by(ivle.database.User.login)
+    for user in users:
+        writeuser(subject, worksheets, user, csvfile)
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
