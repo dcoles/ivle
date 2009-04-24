@@ -162,15 +162,8 @@ def main(argv=None):
                 % (subject_name, year, semester))
             return 1
 
-    # TEMP
-    print "Offering = %r" % offering
-
     # Get the list of assessable worksheets
     worksheets = list(offering.worksheets.find(assessable=True))
-    # TEMP
-    print "Worksheets:"
-    for ws in worksheets:
-        print "    %r" % ws
 
     # Start writing the CSV file - header
     csvfile = csv.writer(sys.stdout)
