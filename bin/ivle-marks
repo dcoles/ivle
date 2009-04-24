@@ -90,7 +90,10 @@ def get_marks_user(worksheets, user):
 def writeuser(worksheets, user, csvfile):
     userdata = get_userdata(user)
     marksdata = get_marks_user(worksheets, user)
-    csvfile.writerow(userdata + marksdata)
+    data = userdata + marksdata
+    # CSV writer can't handle non-ASCII characters. Encode to UTF-8.
+    data = [unicode(x).encode('utf-8') for x in data]
+    csvfile.writerow(data)
 
 def main(argv=None):
     global store
