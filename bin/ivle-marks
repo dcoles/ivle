@@ -174,6 +174,37 @@ def main(argv=None):
         print >>sys.stderr, "No subject with short name '%s'" % subject_name
         return 1
 
+    # Get the offering from the DB
+    if semester is None:
+        # None specified - get the current offering from the DB
+        offerings = list(subject.active_offerings())
+        if len(offerings) == 0:
+            print >>sys.stderr, ("No active offering for subject '%s'"
+                                 % subject_name)
+            return 1
+        elif len(offerings) > 1:
+            print >>sys.stderr, ("Multiple active offerings for subject '%s':"
+                                 % subject_name)
+            print >>sys.stderr, "Please use one of:"
+            for offering in offerings:
+                print >>sys.stderr, ("    --semester=%s/%s"
+                    % (offering.semester.year, offering.semester.semester))
+            return 1
+        else:
+            offering = offerings[0]
+    else:
+        # Get the offering for the specified semester
+        offering = subject.offering_for_semester(year, semester)
+        if offering is None:
+            print >>sys.stderr, (
+                "No offering for subject '%s' in semester %s/%s"
+                % (subject_name, year, semester))
+            return 1
+
+    # TEMP (since the code below is going to fail)
+    print "Offering = %r" % offering
+    return
+
     # Get the list of assessable worksheets from the subject.xml file.
     worksheets = get_assessable_worksheets(subject_name)
 
