@@ -261,8 +261,14 @@ class Subject(Storm):
         (offerings whose semester.state is "current"). There should be 0 or 1
         elements in this sequence, but it's possible there are more.
         """
-        return self.offerings.find(Offering.semester_id == Semester.id
-                                   and Semester.state == u'current')
+        return self.offerings.find(Offering.semester_id == Semester.id,
+                                   Semester.state == u'current')
+
+    def offering_for_semester(self, year, semester):
+        """Get the offering for the given year/semester, or None."""
+        return self.offerings.find(Offering.semester_id == Semester.id,
+                               Semester.year == unicode(year),
+                               Semester.semester == unicode(semester)).one()
 
 class Semester(Storm):
     __storm_table__ = "semester"
