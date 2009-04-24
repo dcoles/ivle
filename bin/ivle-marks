@@ -47,35 +47,32 @@ def get_userdata(user):
     last_login = (None if user.last_login is None else
                     user.last_login.strftime("%d/%m/%y"))
     return [user.studentid, user.login, user.fullname, last_login]
+
 userdata_header = ["Student ID", "Login", "Full name", "Last login"]
+def get_header(worksheets):
+    """
+    Given a list of Worksheet objects (the assessable worksheets), returns a
+    list of strings -- the column headings for the marks section of the CSV
+    output.
+    """
+    return (userdata_header + [ws.name for ws in worksheets]
+            + ["Total %", "Mark"])
 
-def get_marks_header(worksheets):
-    """
-    Given a list of strings - the assessable worksheets - returns a new list
-    of strings - the column headings for the marks section of the CSV output.
-    """
-    return worksheets + ["Total %", "Mark"]
-
-def get_marks_user(subject, worksheet_names, user):
-    """
-    Given a subject, a list of strings (the assessable worksheets), and a user
-    object, returns the user's percentage for each worksheet, overall, and
+def get_marks_user(worksheets, user):
+    """Gets marks for a particular user for a particular set of worksheets.
+    @param worksheets: List of Worksheet objects to get marks for.
+    @param user: User to get marks for.
+    @returns: The user's percentage for each worksheet, overall, and
     their final mark, as a list of strings, in a manner which corresponds to
     the headings produced by get_marks_header.
     """
-    # NOTE: This code is copy/edited from
-    # www/apps/tutorial/__init__.py:handle_subject_menu
-    # Should be factored out of there.
-
     worksheet_pcts = []
     # As we go, calculate the total score for this subject
     # (Assessable worksheets only, mandatory problems only)
     problems_done = 0
     problems_total = 0
 
-    for worksheet_name in worksheet_names:
-        worksheet = ivle.database.Worksheet.get_by_name(store,
-            subject, worksheet_name)
+    for worksheet in worksheets:
         # We simply ignore optional exercises here
         mand_done, mand_total, _, _ = (
             ivle.worksheet.utils.calculate_score(store, user, worksheet))
@@ -90,9 +87,9 @@ def get_marks_user(subject, worksheet_names, user):
     mark = min(problems_pct_int / 16, max_mark)
     return worksheet_pcts + [problems_pct, mark]
 
-def writeuser(subject, worksheets, user, csvfile):
+def writeuser(worksheets, user, csvfile):
     userdata = get_userdata(user)
-    marksdata = get_marks_user(subject, worksheets, user)
+    marksdata = get_marks_user(worksheets, user)
     csvfile.writerow(userdata + marksdata)
 
 def main(argv=None):
@@ -175,16 +172,13 @@ def main(argv=None):
     for ws in worksheets:
         print "    %r" % ws
 
-    # TEMP (since the code below is going to fail)
-    return
-
     # Start writing the CSV file - header
     csvfile = csv.writer(sys.stdout)
-    csvfile.writerow(userdata_header + get_marks_header(worksheets))
+    csvfile.writerow(get_header(worksheets))
 
     users = store.find(ivle.database.User).order_by(ivle.database.User.login)
     for user in users:
-        writeuser(subject, worksheets, user, csvfile)
+        writeuser(worksheets, user, csvfile)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
