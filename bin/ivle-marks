@@ -38,14 +38,6 @@ import ivle.database
 import ivle.worksheet.utils
 import ivle.conf
 
-# Regex for valid identifiers (subject/worksheet names)
-re_ident = re.compile("[0-9A-Za-z_]+")
-
-# This code copy/edited from www/apps/tutorial/__init__.py
-def is_valid_subjname(subject):
-    m = re_ident.match(subject)
-    return m is not None and m.end() == len(subject)
-
 def get_userdata(user):
     """
     Given a User object, returns a list of strings for the user data which
@@ -161,14 +153,8 @@ def main(argv=None):
         parser.print_help()
         parser.exit()
 
-    subject = args[0]
+    subject_name = unicode(args[0])
 
-    # Subject names must be valid identifiers
-    if not is_valid_subjname(subject):
-        print >>sys.stderr, "Invalid subject name: %s." % repr(subject)
-        sys.exit()
-
-    # Get the semester
     if options.semester is None:
         year, semester = None, None
     else:
@@ -179,13 +165,17 @@ def main(argv=None):
         except ValueError:
             parser.error('Invalid semester (must have form "year/semester")')
 
-    try:
-        # Get the list of assessable worksheets from the subject.xml file.
-        worksheets = get_assessable_worksheets(subject)
-        store = ivle.database.get_store()
-    except Exception, message:
-        print >>sys.stderr, "Error: " + str(message)
-        sys.exit(1)
+    store = ivle.database.get_store()
+
+    # Get the subject from the DB
+    subject = store.find(ivle.database.Subject,
+                     ivle.database.Subject.short_name == subject_name).one()
+    if subject is None:
+        print >>sys.stderr, "No subject with short name '%s'" % subject_name
+        return 1
+
+    # Get the list of assessable worksheets from the subject.xml file.
+    worksheets = get_assessable_worksheets(subject_name)
 
     # Start writing the CSV file - header
     csvfile = csv.writer(sys.stdout)
