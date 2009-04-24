@@ -171,7 +171,11 @@ def main(argv=None):
     csvfile = csv.writer(sys.stdout)
     csvfile.writerow(get_header(worksheets))
 
-    users = store.find(ivle.database.User).order_by(ivle.database.User.login)
+    # Get all users enrolled in this offering
+    users = store.find(ivle.database.User,
+                   ivle.database.User.id == ivle.database.Enrolment.user_id,
+                   offering.id == ivle.database.Enrolment.offering).order_by(
+                        ivle.database.User.login)
     for user in users:
         writeuser(worksheets, user, csvfile)
 
