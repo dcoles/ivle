@@ -211,7 +211,11 @@ def calculate_mark(mand_done, mand_total):
     # allowed to skip 1 in 5 questions and still get 'full marks'.
     # Hence we divide by 16, essentially making 16 percent worth
     # 1 star, and 80 or above worth 5.
-    percent_int = (100 * mand_done) / mand_total
+    if mand_total > 0:
+        percent_int = (100 * mand_done) // mand_total
+    else:
+        # Avoid Div0, just give everyone 0 marks if there are none available
+        percent_int = 0
     # percent / 16, rounded down, with a maximum mark of 5
     max_mark = 5
     mark = min(percent_int // 16, max_mark)
