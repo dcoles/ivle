@@ -24,8 +24,8 @@
 
 import sys
 import os
-import re
 import csv
+import datetime
 import optparse
 from xml.dom import minidom
 
@@ -57,10 +57,11 @@ def get_header(worksheets):
     return (userdata_header + [ws.name for ws in worksheets]
             + ["Total %", "Mark"])
 
-def get_marks_user(worksheets, user):
+def get_marks_user(worksheets, user, as_of=None):
     """Gets marks for a particular user for a particular set of worksheets.
     @param worksheets: List of Worksheet objects to get marks for.
     @param user: User to get marks for.
+    @param as_of: Optional datetime. If supplied, gets the marks as of as_of.
     @returns: The user's percentage for each worksheet, overall, and
     their final mark, as a list of strings, in a manner which corresponds to
     the headings produced by get_marks_header.
@@ -74,7 +75,8 @@ def get_marks_user(worksheets, user):
     for worksheet in worksheets:
         # We simply ignore optional exercises here
         mand_done, mand_total, _, _ = (
-            ivle.worksheet.utils.calculate_score(store, user, worksheet))
+            ivle.worksheet.utils.calculate_score(store, user, worksheet,
+                                                 as_of))
         if mand_total > 0:
             worksheet_pcts.append(float(mand_done) / mand_total)
         else:
@@ -86,9 +88,9 @@ def get_marks_user(worksheets, user):
         ivle.worksheet.utils.calculate_mark(problems_done, problems_total))
     return worksheet_pcts + [float(percent)/100, mark]
 
-def writeuser(worksheets, user, csvfile):
+def writeuser(worksheets, user, csvfile, cutoff=None):
     userdata = get_userdata(user)
-    marksdata = get_marks_user(worksheets, user)
+    marksdata = get_marks_user(worksheets, user, cutoff)
     data = userdata + marksdata
     # CSV writer can't handle non-ASCII characters. Encode to UTF-8.
     data = [unicode(x).encode('utf-8') for x in data]
@@ -108,7 +110,12 @@ def main(argv=None):
     parser.add_option("-s", "--semester",
         action="store", dest="semester", metavar="YEAR/SEMESTER",
         help="Semester of the subject's offering (eg. 2009/1). "
-        "Defaults to the currently active semester.",
+             "Defaults to the currently active semester.",
+        default=None)
+    parser.add_option("-c", "--cutoff",
+        action="store", dest="cutoff", metavar="DATE",
+        help="Cutoff date (calculate the marks as of this date). "
+             "YYYY-MM-DD H:M:S.",
         default=None)
     (options, args) = parser.parse_args(argv[1:])
 
@@ -127,6 +134,16 @@ def main(argv=None):
                 raise ValueError()
         except ValueError:
             parser.error('Invalid semester (must have form "year/semester")')
+
+    if options.cutoff is not None:
+        try:
+            cutoff = datetime.datetime.strptime(options.cutoff,
+                                                "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            parser.error("Invalid date format: '%s' "
+                         "(must be YYYY-MM-DD H:M:S)." % options.cutoff)
+    else:
+        cutoff = None
 
     store = ivle.database.get_store()
 
@@ -177,7 +194,7 @@ def main(argv=None):
                    offering.id == ivle.database.Enrolment.offering).order_by(
                         ivle.database.User.login)
     for user in users:
-        writeuser(worksheets, user, csvfile)
+        writeuser(worksheets, user, csvfile, cutoff)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

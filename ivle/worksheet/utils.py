@@ -34,9 +34,13 @@ __all__ = ['get_exercise_status', 'get_exercise_stored_text',
            'get_exercise_attempts', 'get_exercise_attempt',
           ]
 
-def get_exercise_status(store, user, worksheet_exercise):
+def get_exercise_status(store, user, worksheet_exercise, as_of=None):
     """Given a storm.store, User and Exercise, returns information about
     the user's performance on that problem.
+    @param store: A storm.store
+    @param user: A User.
+    @param worksheet_exercise: An Exercise.
+    @param as_of: Optional datetime. If supplied, gets the status as of as_of.
     Returns a tuple of:
         - A boolean, whether they have successfully passed this exercise.
         - An int, the number of attempts they have made up to and
@@ -48,6 +52,8 @@ def get_exercise_status(store, user, worksheet_exercise):
     is_relevant = ((ExerciseAttempt.user_id == user.id) &
             (ExerciseAttempt.ws_ex_id == worksheet_exercise.id) &
             (ExerciseAttempt.active == True))
+    if as_of is not None:
+        is_relevant &= ExerciseAttempt.date <= as_of
 
     # Get the first successful active attempt, or None if no success yet.
     # (For this user, for this exercise).
@@ -162,10 +168,14 @@ def save_exercise(store, user, worksheet_exercise, text, date):
     saved.date = date
     saved.text = text
 
-def calculate_score(store, user, worksheet):
+def calculate_score(store, user, worksheet, as_of=None):
     """
     Given a storm.store, User, Exercise and Worksheet, calculates a score for
     the user on the given worksheet.
+    @param store: A storm.store
+    @param user: A User.
+    @param worksheet: A Worksheet.
+    @param as_of: Optional datetime. If supplied, gets the score as of as_of.
     Returns a 4-tuple of ints, consisting of:
     (No. mandatory exercises completed,
      Total no. mandatory exercises,
@@ -183,7 +193,7 @@ def calculate_score(store, user, worksheet):
         worksheet = worksheet_exercise.worksheet
         optional = worksheet_exercise.optional
 
-        done, _ = get_exercise_status(store, user, worksheet_exercise)
+        done, _ = get_exercise_status(store, user, worksheet_exercise, as_of)
         # done is a bool, whether this student has completed that problem
         if optional:
             opt_total += 1
