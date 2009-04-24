@@ -161,7 +161,7 @@ def main(argv=None):
             return 1
 
     # Get the list of assessable worksheets
-    worksheets = list(offering.worksheets.find(assessable=True))
+    worksheets = offering.worksheets.find(assessable=True)
 
     # Start writing the CSV file - header
     csvfile = csv.writer(sys.stdout)
