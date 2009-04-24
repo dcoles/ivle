@@ -30,13 +30,13 @@ import csv
 import optparse
 from xml.dom import minidom
 
-import ivle.database
-import ivle.worksheet.utils
-import ivle.conf
-
 if os.getuid() != 0:
     print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit()
+
+import ivle.database
+import ivle.worksheet.utils
+import ivle.conf
 
 usage = """usage: %prog [options] subject
 (requires root)
