@@ -256,6 +256,14 @@ class Subject(Storm):
                 perms.add('edit')
         return perms
 
+    def active_offerings(self):
+        """Return a sequence of currently active offerings for this subject
+        (offerings whose semester.state is "current"). There should be 0 or 1
+        elements in this sequence, but it's possible there are more.
+        """
+        return self.offerings.find(Offering.semester_id == Semester.id
+                                   and Semester.state == u'current')
+
 class Semester(Storm):
     __storm_table__ = "semester"
 
