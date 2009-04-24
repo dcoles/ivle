@@ -27,6 +27,7 @@ import sys
 import os
 import re
 import csv
+import optparse
 from xml.dom import minidom
 
 import ivle.database
@@ -37,9 +38,22 @@ if os.getuid() != 0:
     print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit()
 
-if len(sys.argv) <= 1:
-    print >>sys.stderr, "Usage: %s subject" % os.path.basename(sys.argv[0])
-    sys.exit()
+usage = """usage: %prog [options] subject
+(requires root)
+Reports each student's marks for a given subject offering."""
+
+# Parse arguments
+parser = optparse.OptionParser(usage)
+parser.add_option("-s", "--semester",
+    action="store", dest="semester", metavar="YEAR/SEMESTER",
+    help="Semester of the subject's offering (eg. 2009/1). "
+    "Defaults to the currently active semester.",
+    default=None)
+(options, args) = parser.parse_args()
+
+if len(args) < 1:
+    parser.print_help()
+    parser.exit()
 
 # Regex for valid identifiers (subject/worksheet names)
 re_ident = re.compile("[0-9A-Za-z_]+")
@@ -49,12 +63,23 @@ def is_valid_subjname(subject):
     m = re_ident.match(subject)
     return m is not None and m.end() == len(subject)
 
-subject = sys.argv[1]
+subject = args[0]
 
 # Subject names must be valid identifiers
 if not is_valid_subjname(subject):
     print >>sys.stderr, "Invalid subject name: %s." % repr(subject)
     sys.exit()
+
+# Get the semester
+if options.semester is None:
+    year, semester = None, None
+else:
+    try:
+        year, semester = options.semester.split('/')
+        if len(year) == 0 or len(semester) == 0:
+            raise ValueError()
+    except ValueError:
+        parser.error('Invalid semester (must have form "year/semester")')
 
 def get_userdata(user):
     """
