@@ -18,7 +18,6 @@
 
 # Program: Marks
 # Author:  Matt Giuca
-# Date:    17/4/2008
 
 # Script to calculate the marks for all students for a particular subject.
 # Requires root to run.
