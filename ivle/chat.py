@@ -21,7 +21,7 @@
 
 import cjson
 import cStringIO
-import md5
+import hashlib
 import sys
 import os
 import socket
@@ -97,7 +97,7 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             env = cjson.decode(inp)
             
             # Check that the message is 
-            digest = md5.new(env['content'] + magic).digest().encode('hex')
+            digest = hashlib.md5(env['content'] + magic).hexdigest()
             if env['digest'] != digest:
                 conn.close()
                 continue
@@ -134,7 +134,7 @@ def chat(host, port, msg, magic, decode = True):
     sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sok.connect((host, port))
     content = cjson.encode(msg)
-    digest = md5.new(content + magic).digest().encode("hex")
+    digest = hashlib.md5(content + magic).hexdigest()
     env = {'digest':digest,'content':content}
     sok.send(cjson.encode(env))
 

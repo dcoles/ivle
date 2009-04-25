@@ -35,7 +35,7 @@
 # Do not call os.system("chown www-data") - use Python lib
 # and use the web server uid given in conf. (Several places).
 
-import md5
+import hashlib
 import os
 import stat
 import shutil
@@ -124,7 +124,7 @@ def make_svn_auth(store, login, throw_on_error=True):
     """Setup svn authentication for the given user.
        Uses the given DB store object. Does not commit to the db.
     """
-    passwd = md5.new(uuid.uuid4().bytes).digest().encode('hex')
+    passwd = hashlib.md5(uuid.uuid4().bytes).hexdigest()
     if os.path.exists(ivle.conf.svn_auth_ivle):
         create = ""
     else:

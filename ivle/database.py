@@ -24,7 +24,7 @@ This module provides all of the classes which map to database tables.
 It also provides miscellaneous utility functions for database interaction.
 """
 
-import md5
+import hashlib
 import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
@@ -214,7 +214,7 @@ class User(Storm):
 
     @staticmethod
     def hash_password(password):
-        return md5.md5(password).hexdigest()
+        return hashlib.md5(password).hexdigest()
 
     @classmethod
     def get_by_login(cls, store, login):
