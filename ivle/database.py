@@ -256,6 +256,20 @@ class Subject(Storm):
                 perms.add('edit')
         return perms
 
+    def active_offerings(self):
+        """Return a sequence of currently active offerings for this subject
+        (offerings whose semester.state is "current"). There should be 0 or 1
+        elements in this sequence, but it's possible there are more.
+        """
+        return self.offerings.find(Offering.semester_id == Semester.id,
+                                   Semester.state == u'current')
+
+    def offering_for_semester(self, year, semester):
+        """Get the offering for the given year/semester, or None."""
+        return self.offerings.find(Offering.semester_id == Semester.id,
+                               Semester.year == unicode(year),
+                               Semester.semester == unicode(semester)).one()
+
 class Semester(Storm):
     __storm_table__ = "semester"
 
@@ -659,18 +673,6 @@ class Worksheet(Storm):
 
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
-
-    # XXX Refactor this - make it an instance method of Subject rather than a
-    # class method of Worksheet. Can't do that now because Subject isn't
-    # linked referentially to the Worksheet.
-    @classmethod
-    def get_by_name(cls, store, subjectname, worksheetname):
-        """
-        Get the Worksheet from the db associated with a given store, subject
-        name and worksheet name.
-        """
-        return store.find(cls, cls.subject == unicode(subjectname),
-            cls.name == unicode(worksheetname)).one()
 
     def remove_all_exercises(self):
         """
