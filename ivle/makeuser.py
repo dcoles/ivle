@@ -254,7 +254,7 @@ def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
     Creates (overwriting any existing file, and creating directories) a
     file /etc/ivle/ivle.conf in a given user's jail.
     @param username: Username.
-    @param user_jail_dir: User's jail dir, ie. ivle.conf.jail_base + username
+    @param user_jail_dir: User's jail dir, ie. ['jails']['src'] + username
     @param svn_pass: User's SVN password.
     @param sys_config: An ivle.config.Config object (the system-wide config).
     """
