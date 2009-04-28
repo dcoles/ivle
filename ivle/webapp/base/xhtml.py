@@ -28,7 +28,6 @@ from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
-import ivle.util
 
 class XHTMLView(BaseView):
     """
@@ -135,7 +134,7 @@ class XHTMLView(BaseView):
                         ctx['favicon'] = icon_url
                 else:
                     new_app['has_icon'] = False
-                new_app['path'] = ivle.util.make_path(tab[4])
+                new_app['path'] = req.make_path(tab[4])
                 new_app['desc'] = tab[2]
                 new_app['name'] = tab[1]
                 new_app['weight'] = tab[5]

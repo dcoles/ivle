@@ -25,7 +25,6 @@ except ImportError:
     # This needs to be importable from outside Apache.
     pass
 
-import ivle.util
 import ivle.pulldown_subj
 import ivle.webapp.security
 from ivle.auth import authenticate, AuthError
@@ -62,7 +61,7 @@ class LoginView(XHTMLView):
         else:
             query_string = '?url=' + urllib.quote(nexturl, safe="/~")
 
-        ctx['path'] = ivle.util.make_path('+login') + query_string
+        ctx['path'] = req.make_path('+login') + query_string
 
         # If this succeeds, the user is invalid.
         user = ivle.webapp.security.get_user_details(req)
@@ -73,7 +72,7 @@ class LoginView(XHTMLView):
                 # if you are not planning to display a ToS page - the ToS
                 # acceptance process actually calls usrmgt to create the user
                 # jails and related stuff.
-                req.throw_redirect(ivle.util.make_path('+tos') + query_string)
+                req.throw_redirect(req.make_path('+tos') + query_string)
             elif user.state == "pending":
                 # FIXME: this isn't quite the right answer, but it
                 # should be more robust in the short term.
@@ -152,4 +151,4 @@ class LogoutView(XHTMLView):
         if req.method == "POST":
             req.logout()
         else:
-            ctx['path'] =  ivle.util.make_path('+logout')
+            ctx['path'] =  req.make_path('+logout')

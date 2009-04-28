@@ -26,7 +26,6 @@ from urllib import quote
 
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
-import ivle.util
 import ivle.config
 
 class ForumView(XHTMLView):
@@ -42,7 +41,7 @@ class ForumView(XHTMLView):
         self.plugin_styles[Plugin] = ['forum.css']
         forum_base = req.config.plugin_configs[Plugin]['base']
 
-        ctx['url'] = ivle.util.make_path(os.path.join(forum_base, self.path))
+        ctx['url'] = req.make_path(os.path.join(forum_base, self.path))
 
 class ForumBoardView(ForumView):
     def __init__(self, req, board):

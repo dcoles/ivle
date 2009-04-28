@@ -56,7 +56,7 @@ class SubversionLogView(XHTMLView):
 
         # No error. We must be safe.
         ctx['path'] = self.path
-        ctx['url'] = ivle.util.make_path(os.path.join('svnlog', self.path))
+        ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
@@ -69,7 +69,7 @@ class SubversionLogView(XHTMLView):
         for log in ctx['logs']:
             log['date'] = ivle.date.make_date_nice(log['date'])
             for pathaction in log['paths']:
-                pathaction.append(ivle.util.make_path(os.path.join('files',
+                pathaction.append(req.make_path(os.path.join('files',
                                   ivle.util.split_path(req.path)[0],
                                   pathaction[0][1:])) + '?r=%d' % log['revno'])
 

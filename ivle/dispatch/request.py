@@ -253,7 +253,7 @@ class Request:
                 for cookie in plugin.cookies:
                     self.add_cookie(mod_python.Cookie.Cookie(cookie, '',
                                                     expires=1, path='/'))
-        self.throw_redirect(ivle.util.make_path('')) 
+        self.throw_redirect(self.make_path(''))
 
 
     def flush(self):

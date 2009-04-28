@@ -32,7 +32,6 @@ import os.path
 
 import ivle.conf
 import ivle.interpret
-import ivle.util
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
 
@@ -53,8 +52,8 @@ class FileserviceView(BaseView):
         """Handler for the File Services application."""
         if len(self.path) == 0:
             # If no path specified, default to the user's home directory
-            req.throw_redirect(ivle.util.make_path(os.path.join('fileservice',
-                                                           req.user.login)))
+            req.throw_redirect(req.make_path(os.path.join('fileservice',
+                                                          req.user.login)))
 
         interp_object = ivle.interpret.interpreter_objects["cgi-python"]
         user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
