@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 
+import ivle.config
 import ivle.conf
 import ivle.database
 import ivle.chat
@@ -139,7 +140,7 @@ def initializer():
 def dispatch(props):
     logging.debug(repr(props))
 
-    store = ivle.database.get_store()
+    store = ivle.database.get_store(ivle.config.Config())
     action = props.keys()[0]
     res = actions[action](store, props[action])
 
