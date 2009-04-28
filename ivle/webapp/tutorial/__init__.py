@@ -32,7 +32,6 @@ from xml.dom import minidom
 
 import genshi
 
-import ivle.conf
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise
@@ -199,7 +198,8 @@ class SubjectMediaView(BaseMediaFileView):
         if not self.context:
             raise NotFound()
 
-        subjectdir = os.path.join(ivle.conf.subjects_base,
+        subjectdir = os.path.join(req.config['paths']['data'],
+                                  'content/subjects',
                                   self.context.short_name, 'media')
         return os.path.join(subjectdir, self.path)
 
