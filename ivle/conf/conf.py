@@ -117,15 +117,6 @@ jail_system_build = os.path.join(jail_src_base, '__base_build__')
 # (The 'subjects' and 'exercises' directories).
 content_path = os.path.join(data_path, 'content')
 
-# In the local file system, where are the per-subject file spaces located.
-# The individual subject directories are expected to be located immediately
-# in subdirectories of this location.
-subjects_base = os.path.join(content_path, 'subjects')
-
-# In the local file system, where are the subject-independent exercise sheet
-# file spaces located.
-exercises_base = os.path.join(content_path, 'exercises')
-
 # In the local file system, where the system notices are stored (such as terms
 # of service and MOTD).
 notices_path = os.path.join(data_path, 'notices')
