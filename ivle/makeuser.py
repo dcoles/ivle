@@ -126,12 +126,14 @@ def rebuild_svn_group_config(store, config):
     os.rename(temp_name, conf_name)
     chown_to_webserver(conf_name)
 
-def make_svn_auth(store, login, throw_on_error=True):
+def make_svn_auth(store, login, config, throw_on_error=True):
     """Setup svn authentication for the given user.
        Uses the given DB store object. Does not commit to the db.
     """
+    # filename is, eg, /var/lib/ivle/svn/ivle.auth
+    filename = config['paths']['svn']['auth_ivle']
     passwd = hashlib.md5(uuid.uuid4().bytes).hexdigest()
-    if os.path.exists(ivle.conf.svn_auth_ivle):
+    if os.path.exists(filename):
         create = ""
     else:
         create = "c"
@@ -139,15 +141,14 @@ def make_svn_auth(store, login, throw_on_error=True):
     user = ivle.database.User.get_by_login(store, login)
     user.svn_pass = unicode(passwd)
 
-    res = os.system("htpasswd -%smb %s %s %s" % (create,
-                                              ivle.conf.svn_auth_ivle,
+    res = os.system("htpasswd -%smb %s %s %s" % (create, filename,
                                               login, passwd))
     if res != 0 and throw_on_error:
         raise Exception("Unable to create ivle-auth for %s" % login)
 
     # Make sure the file is owned by the web server
     if create == "c":
-        chown_to_webserver(ivle.conf.svn_auth_ivle)
+        chown_to_webserver(filename)
 
     return passwd
 

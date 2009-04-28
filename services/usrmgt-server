@@ -55,7 +55,7 @@ def activate_user(store, props, config):
     rebuild_svn_config(store, props, config)
 
     logging.debug("Adding Subversion authentication")
-    passwd = ivle.makeuser.make_svn_auth(store, login,
+    passwd = ivle.makeuser.make_svn_auth(store, login, config,
                                          throw_on_error=True)
 
     logging.debug("Creating jail")
