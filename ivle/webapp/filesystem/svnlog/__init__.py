@@ -22,7 +22,6 @@ import os
 import cjson
 import pysvn
 
-import ivle.conf
 import ivle.date
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
@@ -38,10 +37,11 @@ class SubversionLogView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['log.css']
 
-        svnlogservice_path = os.path.join(ivle.conf.share_path,
+        svnlogservice_path = os.path.join(req.config['paths']['share'],
                                           'services/svnlogservice')
 
-        user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                     req.user.login)
         (out, err) = ivle.interpret.execute_raw(req.user, user_jail_dir,
                              '/home', svnlogservice_path, [self.path])
         assert not err
