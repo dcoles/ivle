@@ -25,13 +25,14 @@
 import os
 import sys
 
+import ivle.config
 import ivle.database
 
 if len(sys.argv) != 2:
     print >> sys.stderr, "usage: %s <login>" % os.path.basename(sys.argv[0])
     sys.exit(1)
 
-store = ivle.database.get_store()
+store = ivle.database.get_store(ivle.config.Config())
 user = ivle.database.User.get_by_login(store, sys.argv[1])
 
 if not user:

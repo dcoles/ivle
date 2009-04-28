@@ -34,7 +34,6 @@ except ImportError:
     pass
 
 import ivle.util
-import ivle.conf
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
 
@@ -187,7 +186,7 @@ class Request:
 
         # Open a database connection and transaction, keep it around for users
         # of the Request object to use
-        self.store = ivle.database.get_store()
+        self.store = ivle.database.get_store(config)
 
         # Default values for the output members
         self.status = Request.HTTP_OK

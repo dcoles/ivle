@@ -31,7 +31,6 @@ from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
 from storm.exceptions import NotOneError, IntegrityError
 
-import ivle.conf
 from ivle.worksheet.rst import rst
 
 __all__ = ['get_store',
@@ -51,31 +50,32 @@ def _kwarg_init(self, **kwargs):
                 % (self.__class__.__name__, k))
         setattr(self, k, v)
 
-def get_conn_string():
-    """
-    Returns the Storm connection string, generated from the conf file.
+def get_conn_string(config):
+    """Create a Storm connection string to the IVLE database
+
+    @param config: The IVLE configuration.
     """
 
     clusterstr = ''
-    if ivle.conf.db_user:
-        clusterstr += ivle.conf.db_user
-        if ivle.conf.db_password:
-            clusterstr += ':' + ivle.conf.db_password
+    if config['database']['username']:
+        clusterstr += config['database']['username']
+        if config['database']['password']:
+            clusterstr += ':' + config['database']['password']
         clusterstr += '@'
 
-    host = ivle.conf.db_host or 'localhost'
-    port = ivle.conf.db_port or 5432
+    host = config['database']['host'] or 'localhost'
+    port = config['database']['port'] or 5432
 
     clusterstr += '%s:%d' % (host, port)
 
-    return "postgres://%s/%s" % (clusterstr, ivle.conf.db_dbname)
+    return "postgres://%s/%s" % (clusterstr, config['database']['name'])
 
-def get_store():
+def get_store(config):
+    """Create a Storm store connected to the IVLE database.
+
+    @param config: The IVLE configuration.
     """
-    Open a database connection and transaction. Return a storm.store.Store
-    instance connected to the configured IVLE database.
-    """
-    return Store(create_database(get_conn_string()))
+    return Store(create_database(get_conn_string(config)))
 
 # USERS #
 

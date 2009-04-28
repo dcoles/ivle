@@ -33,9 +33,9 @@ if os.getuid() != 0:
     print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit()
 
+import ivle.config
 import ivle.database
 import ivle.worksheet.utils
-import ivle.conf
 
 def get_userdata(user):
     """
@@ -145,7 +145,7 @@ def main(argv=None):
     else:
         cutoff = None
 
-    store = ivle.database.get_store()
+    store = ivle.database.get_store(ivle.config.Config())
 
     # Get the subject from the DB
     subject = store.find(ivle.database.Subject,

@@ -27,6 +27,7 @@ import sys
 import os
 import getopt
 
+import ivle.config
 import ivle.database
 
 # Options processing
@@ -56,7 +57,7 @@ if os.getuid() != 0:
     print "Must run listusers.py as root."
     sys.exit()
 
-store = ivle.database.get_store()
+store = ivle.database.get_store(ivle.config.Config())
 users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 
 for user in users:
