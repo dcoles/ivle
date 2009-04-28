@@ -82,6 +82,7 @@ class Config(ConfigObj):
             confdir = search_confdir()
             conffile = os.path.join(confdir, 'ivle.conf')
             super(Config, self).__init__(infile=conffile, configspec=specfile,
+                                         interpolation='template',
                                          *args, **kwargs)
             # XXX This doesn't raise errors if it doesn't validate
             self.validate(Validator())
