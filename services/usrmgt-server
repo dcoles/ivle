@@ -28,13 +28,14 @@ import ivle.makeuser
 #   - Rebuild svn auth file
 #   - Rebuild passwd + push to nodes.
 
-def activate_user(store, props):
+def activate_user(store, props, config):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
+    @param config: An ivle.config.Config object.
        Expected properties:
         login       - the user name for the jail
                       STRING REQUIRED
-       Return Value: None
+    @return: None
     """
 
     os.umask(0022) # Bad, but start_server sets it worse.
@@ -51,7 +52,7 @@ def activate_user(store, props):
     logging.debug("Creating user's Subversion repository")
     ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
-    rebuild_svn_config(store, props)
+    rebuild_svn_config(store, props, config)
 
     logging.debug("Adding Subversion authentication")
     passwd = ivle.makeuser.make_svn_auth(store, login,
@@ -65,10 +66,10 @@ def activate_user(store, props):
 
     return {"response": "okay"}
 
-def rebuild_svn_config(store, props):
+def rebuild_svn_config(store, props, config):
     """Rebuilds the svn config file
-    Return value:
-        response (okay, failure)
+    @param config: An ivle.config.Config object.
+    @return: response (okay, failure)
     """
     try:
         ivle.makeuser.rebuild_svn_config(store)
@@ -78,10 +79,10 @@ def rebuild_svn_config(store, props):
 
     return {'response': 'okay'}
 
-def rebuild_svn_group_config(store, props):
+def rebuild_svn_group_config(store, props, config):
     """Rebuilds the svn group config file
-    Return value:
-        response (okay, failure)
+    @param config: An ivle.config.Config object.
+    @return: response (okay, failure)
     """
     try:
         ivle.makeuser.rebuild_svn_group_config(store)
@@ -92,12 +93,12 @@ def rebuild_svn_group_config(store, props):
 
     return {'response': 'okay'}
 
-def create_group_repository(store, props):
+def create_group_repository(store, props, config):
     """Creates on disk repository for the given group
+    @param config: An ivle.config.Config object.
     Expected properties:
         subj_short_name, year, semester, groupnm
-    Return value:
-        response (okay, failure)
+    @return: response (okay, failure)
     """
 
     subj_short_name = props['subj_short_name']
@@ -140,9 +141,10 @@ def initializer():
 def dispatch(props):
     logging.debug(repr(props))
 
-    store = ivle.database.get_store(ivle.config.Config())
+    config = ivle.config.Config()
+    store = ivle.database.get_store(config)
     action = props.keys()[0]
-    res = actions[action](store, props[action])
+    res = actions[action](store, props[action], config)
 
     if res['response'] == 'okay':
         store.commit()
