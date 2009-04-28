@@ -23,7 +23,7 @@
 
 import errno
 import cPickle
-import md5
+import hashlib
 import os
 import random
 import socket
@@ -154,7 +154,7 @@ class Console(object):
 
         # Create magic
         # TODO
-        self.magic = md5.new(uuid.uuid4().bytes).digest().encode('hex')
+        self.magic = hashlib.md5(uuid.uuid4().bytes).hexdigest()
 
         # Try to find a free port on the server.
         # Just try some random ports in the range [3000,8000)
