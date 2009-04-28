@@ -13,18 +13,6 @@
 # type.
 default_mimetype = "text/plain"
 
-# Mapping file extensions to mime types
-# Note that IVLE uses Python's mimetype library which looks in a bunch of
-# files such as /etc/mime.types. This section allows you to add new mime types
-# solely for use in IVLE.
-# File extensions should include the leading '.'.
-
-additional_mime_types = {
-    ".py" : "text/x-python",    # Redundant, but just in case
-    ".psp" : "text/x-python-server-page",
-    ".js" : "application/javascript",   # Override bad default
-}
-
 # Mapping mime types to friendly names
 
 nice_mimetypes = {

@@ -127,11 +127,6 @@ def split_path(path):
     else:
         return tuple(splitpath)
 
-# Initialise mime types library
-mimetypes.init()
-for (ext, mimetype) in ivle.conf.mimetypes.additional_mime_types.items():
-    mimetypes.add_type(mimetype, ext)
-
 def nice_filetype(filename):
     """Given a filename or basename, returns a "friendly" name for that
     file's type.
