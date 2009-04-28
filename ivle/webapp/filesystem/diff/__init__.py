@@ -26,7 +26,6 @@ import cgi
 import cjson
 import genshi
 
-import ivle.conf
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
@@ -51,10 +50,12 @@ class DiffView(XHTMLView):
 
         revs = [revfield.value for revfield in revfields]
 
-        jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                req.user.login)
         (out, err) = ivle.interpret.execute_raw(req.user, jail_dir, '/home',
-                    os.path.join(ivle.conf.share_path, 'services/diffservice'),
-                    [self.path] + revs)
+                                    os.path.join(req.config['paths']['share'],
+                                                 'services/diffservice'),
+                                    [self.path] + revs)
         assert not err
 
         response = cjson.decode(out)
