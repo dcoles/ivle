@@ -33,7 +33,7 @@ import uuid
 import cjson
 
 import ivle.conf
-from ivle import (chat, util)
+from ivle import chat
 
 # Outside Jail
 trampoline_path = os.path.join(ivle.conf.lib_path, "trampoline")

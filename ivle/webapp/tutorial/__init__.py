@@ -32,7 +32,6 @@ from xml.dom import minidom
 
 import genshi
 
-import ivle.util
 import ivle.conf
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \

@@ -34,7 +34,6 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
 from ivle.database import Subject, Semester, Offering, Enrolment, User
-from ivle import util
 
 
 class SubjectsView(XHTMLView):

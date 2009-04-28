@@ -23,7 +23,6 @@ This is mainly for the benefit of the link in ivle.webapp.help."""
 
 import os.path
 
-import ivle.util
 import ivle.webapp.security
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin

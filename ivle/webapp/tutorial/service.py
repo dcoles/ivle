@@ -23,7 +23,6 @@ import os
 import datetime
 import genshi
 
-import ivle.util
 import ivle.console
 import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
