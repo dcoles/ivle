@@ -139,7 +139,6 @@ import cjson
 
 import ivle.database
 from ivle import (util, chat)
-from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 from ivle.webapp.security import get_user_details
 import ivle.pulldown_subj
 
@@ -249,7 +248,11 @@ def handle_activate_me(req, fields):
 
     # Try and contact the usrmgt server
     try:
-        response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        response = chat.chat(req.config['usrmgt']['host'],
+                             req.config['usrmgt']['port'],
+                             msg,
+                             req.config['usrmgt']['magic'],
+                            )
     except cjson.DecodeError:
         # Gave back rubbish - set the response to failure
         response = {'response': 'usrmgt-failure'}
@@ -564,7 +567,11 @@ def handle_create_group(req, fields):
 
     # Contact the usrmgt server
     try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
     except cjson.DecodeError, e:
         raise Exception("Could not understand usrmgt server response:" +
                         e.message)
@@ -649,7 +656,11 @@ def handle_assign_group(req, fields):
     # Contact the usrmgt server
     msg = {'rebuild_svn_group_config': {}}
     try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
     except cjson.DecodeError, e:
         raise Exception("Could not understand usrmgt server response: %s" +
                         e.message)
@@ -689,7 +700,11 @@ def handle_unassign_group(req, fields):
     # Contact the usrmgt server
     msg = {'rebuild_svn_group_config': {}}
     try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
     except cjson.DecodeError, e:
         raise Exception("Could not understand usrmgt server response: %s" +
                         e.message)
