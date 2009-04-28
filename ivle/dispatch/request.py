@@ -33,6 +33,8 @@ except ImportError:
     # This needs to be importable from outside Apache.
     pass
 
+import os.path
+
 import ivle.util
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
@@ -177,7 +179,7 @@ class Request:
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        path = ivle.util.unmake_path(req.uri)
+        path = self.unmake_path(req.uri)
         (self.app, self.path) = (ivle.util.split_path(path))
         self.user = None
         self.hostname = req.hostname
@@ -290,6 +292,22 @@ class Request:
             mod_python.Cookie.add_cookie(self.apache_req, cookie)
         else:
             mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
+
+    def unmake_path(self, path):
+        """Strip the IVLE URL prefix from the given path, if present.
+
+        Also normalises the path.
+        """
+        path = os.path.normpath(path)
+        root = os.path.normpath(self.config['urls']['root'])
+
+        if path.startswith(root):
+            path = path[len(root):]
+            # Take out the slash as well
+            if len(path) > 0 and path[0] == os.sep:
+                path = path[1:]
+
+        return path
 
     def get_session(self):
         """Returns a mod_python Session object for this request.

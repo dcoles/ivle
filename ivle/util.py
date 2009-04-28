@@ -72,22 +72,6 @@ def make_path(path):
     the client."""
     return os.path.join(ivle.conf.root_dir, path)
 
-def unmake_path(path):
-    """Given a path relative to the site root, makes the path relative to the
-    IVLE root by removing ivle.conf.root_dir if it appears at the beginning. If
-    it does not appear at the beginning, returns path unchanged. Also
-    normalises the path."""
-    path = os.path.normpath(path)
-    root = os.path.normpath(ivle.conf.root_dir)
-
-    if path.startswith(root):
-        path = path[len(root):]
-        # Take out the slash as well
-        if len(path) > 0 and path[0] == os.sep:
-            path = path[1:]
-
-    return path
-
 def split_path(path):
     """Given a path, returns a tuple consisting of the top-level directory in
     the path, and the rest of the path. Note that both items in the tuple will
