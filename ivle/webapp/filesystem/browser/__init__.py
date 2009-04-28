@@ -28,6 +28,7 @@ take place in the FileService app (for handling Ajax requests).
 
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.errors import NotFound
 
 import os.path
 import cgi
