@@ -22,20 +22,12 @@
 # Contains common utility functions.
 
 import os
-import datetime
-
-import ivle.conf
 
 class IVLEError(Exception):
-    """
-    This is the "standard" exception class for IVLE errors.
-    It is the ONLY exception which should propagate to the top - it will then
-    be displayed to the user as an HTTP error with the given code.
+    """Legacy general IVLE exception.
 
-    All other exceptions are considered IVLE bugs and should not occur
-    (they will display a traceback).
-
-    This error should not be raised directly. Call req.throw_error.
+    This is the old "standard" exception class for IVLE errors. It is only
+    used in fileservice, and should not be used in any new code.
     """
     def __init__(self, httpcode, message=None):
         self.httpcode = httpcode
@@ -43,7 +35,8 @@ class IVLEError(Exception):
         self.args = (httpcode, message)
 
 class IVLEJailError(Exception):
-    """
+    """Exception proxying an in-jail error.
+
     This exception indicates an error that occurred inside an IVLE CGI script
     inside the jail. It should never be raised directly - only by the 
     interpreter.
@@ -65,12 +58,6 @@ class FakeObject(object):
 
     def __repr__(self):
         return "<Fake %s %s>"%(self.type, self.name)
-
-def make_path(path):
-    """Given a path relative to the IVLE root, makes the path relative to the
-    site root using ivle.conf.root_dir. This path can be used in URLs sent to
-    the client."""
-    return os.path.join(ivle.conf.root_dir, path)
 
 def split_path(path):
     """Given a path, returns a tuple consisting of the top-level directory in
@@ -108,8 +95,8 @@ def split_path(path):
         return tuple(splitpath)
 
 def incomplete_utf8_sequence(byteseq):
-    """
-    str -> int
+    """Calculate the completeness of a UTF-8 encoded string.
+
     Given a UTF-8-encoded byte sequence (str), returns the number of bytes at
     the end of the string which comprise an incomplete UTF-8 character
     sequence.
@@ -187,12 +174,13 @@ def incomplete_utf8_sequence(byteseq):
         return count
 
 def object_to_dict(attrnames, obj):
-    """
-    Convert an object into a dictionary. This takes a shallow copy of the
-    object.
-    attrnames: Set (or iterable) of names of attributes to be copied into the
-        dictionary. (We don't auto-lookup, because this function needs to be
-        used on magical objects).
+    """Convert an object into a dictionary.
+
+    This takes a shallow copy of the object.
+
+    @param attrnames: Set (or iterable) of names of attributes to be copied
+                      into the dictionary. (We don't auto-lookup, because this
+                      function needs to be used on magical objects).
     """
     return dict((k, getattr(obj, k))
         for k in attrnames if not k.startswith('_'))
