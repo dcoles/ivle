@@ -244,19 +244,20 @@ def make_jail(user, config, force=True):
         # Chmod to rwxr-xr-x (755)
         os.chmod(userhomedir, 0755)
 
-    make_ivle_conf(user.login, userdir, user.svn_pass)
+    make_ivle_conf(user.login, userdir, user.svn_pass, config)
     make_etc_passwd(user.login, userdir, config['paths']['jails']['template'],
                     user.unixid)
 
     return userhomedir
 
-def make_ivle_conf(username, user_jail_dir, svn_pass):
+def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
     """
     Creates (overwriting any existing file, and creating directories) a
     file /etc/ivle/ivle.conf in a given user's jail.
-    username: Username.
-    user_jail_dir: User's jail dir, ie. ivle.conf.jail_base + username
-    svn_pass: User's SVN password.
+    @param username: Username.
+    @param user_jail_dir: User's jail dir, ie. ivle.conf.jail_base + username
+    @param svn_pass: User's SVN password.
+    @param sys_config: An ivle.config.Config object (the system-wide config).
     """
     conf_path = os.path.join(user_jail_dir, "etc/ivle/ivle.conf")
     os.makedirs(os.path.dirname(conf_path))
@@ -266,9 +267,9 @@ def make_ivle_conf(username, user_jail_dir, svn_pass):
     # So we just write root_dir.
     conf_obj = ivle.config.Config(blank=True)
     conf_obj.filename = conf_path
-    conf_obj['urls']['root'] = ivle.conf.root_dir
-    conf_obj['urls']['public_host'] = ivle.conf.public_host
-    conf_obj['urls']['svn_addr'] = ivle.conf.svn_addr
+    conf_obj['urls']['root'] = sys_config['urls']['root']
+    conf_obj['urls']['public_host'] = sys_config['urls']['public_host']
+    conf_obj['urls']['svn_addr'] = sys_config['urls']['svn_addr']
     conf_obj['user_info']['login'] = username
     conf_obj['user_info']['svn_pass'] = svn_pass
     conf_obj.write()
