@@ -72,7 +72,7 @@ def rebuild_svn_config(store, props, config):
     @return: response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_config(store)
+        ivle.makeuser.rebuild_svn_config(store, config)
     except Exception, e:
         logging.warning('Rebuild of Subversion authorization config failed!')
         return{'response': 'failure', 'msg': repr(e)}
@@ -85,7 +85,7 @@ def rebuild_svn_group_config(store, props, config):
     @return: response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_group_config(store)
+        ivle.makeuser.rebuild_svn_group_config(store, config)
     except Exception, e:
         logging.warning(
             'Rebuild of Subversion group authorization config failed!')

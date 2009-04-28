@@ -74,13 +74,16 @@ def make_svn_repo(path, throw_on_error=True):
 
     chown_to_webserver(path)
 
-def rebuild_svn_config(store):
+def rebuild_svn_config(store, config):
     """Build the complete SVN configuration file.
+    @param config: An ivle.config.Config object.
     """
     users = store.find(ivle.database.User)
     groups = {}
     # TODO: Populate groups with per-offering tutors/lecturers/etc.
-    f = open(ivle.conf.svn_conf + ".new", "w")
+    conf_name = config['paths']['svn']['conf']
+    temp_name = conf_name + ".new"
+    f = open(temp_name, "w")
     f.write("# IVLE SVN Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
     f.write("\n")
@@ -96,13 +99,16 @@ def rebuild_svn_config(store):
         #f.write("@admin = rw\n")
         f.write("\n")
     f.close()
-    os.rename(ivle.conf.svn_conf + ".new", ivle.conf.svn_conf)
-    chown_to_webserver(ivle.conf.svn_conf)
+    os.rename(temp_name, conf_name)
+    chown_to_webserver(conf_name)
 
-def rebuild_svn_group_config(store):
+def rebuild_svn_group_config(store, config):
     """Build the complete SVN configuration file for groups
+    @param config: An ivle.config.Config object.
     """
-    f = open(ivle.conf.svn_group_conf + ".new", "w")
+    conf_name = config['paths']['svn']['group_conf']
+    temp_name = conf_name + ".new"
+    f = open(temp_name, "w")
     f.write("# IVLE SVN Group Repositories Configuration\n")
     f.write("# Auto-generated on %s\n" % time.asctime())
     f.write("\n")
@@ -117,8 +123,8 @@ def rebuild_svn_group_config(store):
             f.write("%s = rw\n" % user.login)
         f.write("\n")
     f.close()
-    os.rename(ivle.conf.svn_group_conf + ".new", ivle.conf.svn_group_conf)
-    chown_to_webserver(ivle.conf.svn_group_conf)
+    os.rename(temp_name, conf_name)
+    chown_to_webserver(conf_name)
 
 def make_svn_auth(store, login, throw_on_error=True):
     """Setup svn authentication for the given user.
