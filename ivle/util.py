@@ -70,18 +70,11 @@ class FakeObject(object):
     def __repr__(self):
         return "<Fake %s %s>"%(self.type, self.name)
 
-
 def make_path(path):
     """Given a path relative to the IVLE root, makes the path relative to the
     site root using ivle.conf.root_dir. This path can be used in URLs sent to
     the client."""
     return os.path.join(ivle.conf.root_dir, path)
-
-def make_local_path(path):
-    """Given a path relative to the IVLE root, on the local file system, makes
-    the path relative to the root using ivle.conf.share_path. This path can
-    be used in reading files from the local file system."""
-    return os.path.join(ivle.conf.share_path, 'www', path)
 
 def unmake_path(path):
     """Given a path relative to the site root, makes the path relative to the
@@ -133,24 +126,6 @@ def split_path(path):
         return (splitpath[0], '')
     else:
         return tuple(splitpath)
-
-def open_exercise_file(exercisename):
-    """Given an exercise name, opens the corresponding XML file for reading.
-    Returns None if the exercise file was not found.
-    (For tutorials / worksheets).
-    """
-    # First normalise the path
-    exercisename = os.path.normpath(exercisename)
-    # Now if it begins with ".." or separator, then it's illegal
-    if exercisename.startswith("..") or exercisename.startswith(os.sep):
-        exercisefile = None
-    else:
-        exercisefile = os.path.join(ivle.conf.exercises_base, exercisename)
-
-    try:
-        return open(exercisefile)
-    except (TypeError, IOError):    # TypeError if exercisefile == None
-        return None
 
 # Initialise mime types library
 mimetypes.init()
@@ -206,12 +181,6 @@ just be the contents of a body element (IVLE will wrap it accordingly).</p>
 <p>This will automatically be used as the license text instead of this
 placeholder text.</p>
 """
-
-def parse_iso8601(str):
-    """Parses ISO8601 string into a datetime object."""
-    # FIXME: Terrific hack that means we only accept the format that is 
-    # produced by json.js module when it encodes date objects.
-    return datetime.datetime.strptime(str, "%Y-%m-%dT%H:%M:%SZ")
 
 def incomplete_utf8_sequence(byteseq):
     """
