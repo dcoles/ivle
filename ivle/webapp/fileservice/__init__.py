@@ -30,12 +30,9 @@ See the documentation in ivle.fileservice_lib for details.
 
 import os.path
 
-import ivle.conf
 import ivle.interpret
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
-
-fileservice_path = os.path.join(ivle.conf.share_path, 'services/fileservice')
 
 # XXX: Writes to req directly. This is a direct port of the legacy version.
 #      This needs to be rewritten soon.
@@ -56,9 +53,13 @@ class FileserviceView(BaseView):
                                                           req.user.login)))
 
         interp_object = ivle.interpret.interpreter_objects["cgi-python"]
-        user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                     req.user.login)
+
         ivle.interpret.interpret_file(req, req.user, user_jail_dir,
-            fileservice_path, interp_object, gentle=False)
+                                  os.path.join(req.config['paths']['share'],
+                                               'services/fileservice'),
+                                  interp_object, gentle=False)
 
 class Plugin(ViewPlugin):
     urls = [
