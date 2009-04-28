@@ -28,7 +28,6 @@ import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
                           Offering, Subject, Semester, WorksheetExercise
 import ivle.worksheet.utils
-import ivle.conf
 import ivle.webapp.tutorial.test
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
@@ -85,7 +84,8 @@ class AttemptsRESTView(JSONRESTView):
             raise NotFound()
 
         # Start a console to run the tests on
-        jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
+        jail_path = os.path.join(req.config['paths']['jails']['mounts'],
+                                 req.user.login)
         working_dir = os.path.join("/home", req.user.login)
         cons = ivle.console.Console(req.user.unixid, jail_path, working_dir)
 
