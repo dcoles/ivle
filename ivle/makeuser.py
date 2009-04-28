@@ -44,7 +44,6 @@ import uuid
 import warnings
 import filecmp
 import logging
-import ivle.conf
 import ivle.pulldown_subj
 
 from ivle.database import ProjectGroup
