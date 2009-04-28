@@ -110,8 +110,8 @@ import pysvn
 
 import ivle.svn
 import ivle.date
-from ivle import (util, studpath)
-import ivle.conf.mimetypes
+import ivle.mimetypes
+from ivle import studpath
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
@@ -181,10 +181,9 @@ def handle_return(req, return_contents):
     elif return_contents:
         # It's a file. Return the file contents.
         # First get the mime type of this file
-        # (Note that importing ivle.util has already initialised mime types)
         (type, _) = mimetypes.guess_type(path)
         if type is None:
-            type = ivle.conf.mimetypes.default_mimetype
+            type = ivle.mimetypes.DEFAULT_MIMETYPE
         req.content_type = type
         req.headers_out['X-IVLE-Return'] = 'File'
 
@@ -312,7 +311,7 @@ def _stat_fileinfo(fullpath, file_stat):
     d = {}
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
-        d["type_nice"] = util.nice_filetype("/")
+        d["type_nice"] = ivle.mimetypes.nice_filetype("/")
         # Only directories can be published
         d["published"] = studpath.published(fullpath)
     else:
@@ -320,9 +319,9 @@ def _stat_fileinfo(fullpath, file_stat):
         d["size"] = file_stat.st_size
         (type, _) = mimetypes.guess_type(fullpath)
         if type is None:
-            type = ivle.conf.mimetypes.default_mimetype
+            type = ivle.mimetypes.DEFAULT_MIMETYPE
         d["type"] = type
-        d["type_nice"] = util.nice_filetype(fullpath)
+        d["type_nice"] = ivle.mimetypes.nice_filetype(fullpath)
     d["mtime"] = file_stat.st_mtime
     d["mtime_nice"] = ivle.date.make_date_nice(file_stat.st_mtime)
     d["mtime_short"] = ivle.date.make_date_nice_short(file_stat.st_mtime)

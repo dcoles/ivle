@@ -20,15 +20,11 @@
 # Date: 12/12/2007
 
 # Contains common utility functions.
-# Also initialises mime types library. You must import util before using
-# Python's builtin mimetypes module to make sure local settings are applied.
 
 import os
-import mimetypes
 import datetime
 
 import ivle.conf
-import ivle.conf.mimetypes
 
 class IVLEError(Exception):
     """
@@ -126,26 +122,6 @@ def split_path(path):
         return (splitpath[0], '')
     else:
         return tuple(splitpath)
-
-def nice_filetype(filename):
-    """Given a filename or basename, returns a "friendly" name for that
-    file's type.
-    eg. nice_mimetype("file.py") == "Python source code".
-        nice_filetype("file.bzg") == "BZG file".
-        nice_filetype("directory/") == "Directory".
-    """
-    if filename[-1] == os.sep:
-        return "Directory"
-    else:
-        try:
-            return ivle.conf.mimetypes.nice_mimetypes[
-                mimetypes.guess_type(filename)[0]]
-        except KeyError:
-            filename = os.path.basename(filename)
-            try:
-                return filename[filename.rindex('.')+1:].upper() + " file"
-            except ValueError:
-                return "File"
 
 def incomplete_utf8_sequence(byteseq):
     """
