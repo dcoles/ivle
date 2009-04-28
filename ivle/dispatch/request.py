@@ -154,21 +154,21 @@ class Request:
     HTTP_INSUFFICIENT_STORAGE         = 507
     HTTP_NOT_EXTENDED                 = 510
 
-    def __init__(self, req):
-        """Builds an IVLE request object from a mod_python request object.
-        This results in an object with all of the necessary methods and
-        additional fields.
+    def __init__(self, req, config):
+        """Create an IVLE request from a mod_python one.
 
-        req: A mod_python request object.
+        @param req: A mod_python request.
+        @param config: An IVLE configuration.
         """
 
         # Methods are mostly wrappers around the Apache request object
         self.apache_req = req
+        self.config = config
         self.headers_written = False
 
         # Determine if the browser used the public host name to make the
         # request (in which case we are in "public mode")
-        if req.hostname == ivle.conf.public_host:
+        if req.hostname == config['urls']['public_host']:
             self.publicmode = True
         else:
             self.publicmode = False
