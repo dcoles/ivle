@@ -5,10 +5,11 @@ import sys
 import logging
 
 import ivle.config
-import ivle.conf
 import ivle.database
 import ivle.chat
 import ivle.makeuser
+
+config = ivle.config.Config()
 
 # usage:
 #   usrmgt-server <port> <magic>
@@ -48,7 +49,8 @@ def activate_user(store, props, config):
     user = ivle.database.User.get_by_login(store, login)
 
     # make svn config/auth
-    repopath = os.path.join(ivle.conf.svn_repo_path, 'users', login)
+    repopath = os.path.join(config['paths']['svn']['repo_path'],
+                            'users', login)
     logging.debug("Creating user's Subversion repository")
     ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
@@ -107,7 +109,8 @@ def create_group_repository(store, props, config):
     groupnm = props['groupnm']
 
     namespace = "_".join([subj_short_name, year, semester, groupnm])
-    repopath = os.path.join(ivle.conf.svn_repo_path, 'groups', namespace)
+    repopath = os.path.join(config['paths']['svn']['repo_path'],
+                            'groups', namespace)
     logging.debug("Creating Subversion repository %s"%repopath)
     try:
         ivle.makeuser.make_svn_repo(repopath)
@@ -128,7 +131,7 @@ actions = {
 def initializer():
     logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
     logging.info("Starting usrmgt server on port %d (pid = %d)" %
-                 (ivle.conf.usrmgt_port, pid))
+                 (config['usrmgt']['port'], pid))
 
     try:
         pidfile = open('/var/run/usrmgt-server.pid', 'w')
@@ -141,7 +144,6 @@ def initializer():
 def dispatch(props):
     logging.debug(repr(props))
 
-    config = ivle.config.Config()
     store = ivle.database.get_store(config)
     action = props.keys()[0]
     res = actions[action](store, props[action], config)
@@ -156,5 +158,5 @@ def dispatch(props):
 if __name__ == "__main__":
     pid = os.getpid()
 
-    ivle.chat.start_server(ivle.conf.usrmgt_port, ivle.conf.usrmgt_magic,
+    ivle.chat.start_server(config['usrmgt']['port'],config['usrmgt']['magic'],
                            True, dispatch, initializer)
