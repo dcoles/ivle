@@ -49,7 +49,8 @@ if os.getuid() != 0:
                           os.path.basename(sys.argv[0])
     sys.exit(1)
 
-store = ivle.database.get_store(ivle.config.Config())
+config = ivle.config.Config()
+store = ivle.database.get_store(config)
 
 if options.all:
     users = store.find(ivle.database.User).order_by(ivle.database.User.login)
@@ -63,7 +64,7 @@ logging.info("rebuild started")
 
 for user in users:
     try:
-        ivle.makeuser.make_jail(user)
+        ivle.makeuser.make_jail(user, config)
     except Exception, message:
         logging.warning(str(message))
         continue

@@ -181,7 +181,7 @@ def generate_manifest(basedir, targetdir, parent=''):
     return (to_add, to_remove)
 
 
-def make_jail(user, force=True):
+def make_jail(user, config, force=True):
     """Creates a new user's jail space, in the jail directory as configured in
     conf.py.
 
@@ -200,13 +200,14 @@ def make_jail(user, force=True):
         raise Exception("Must run make_jail as root")
     
     # tempdir is for putting backup homes in
-    tempdir = os.path.join(ivle.conf.jail_src_base, '__temp__')
+    jail_src_base = config['paths']['jails']['src']
+    tempdir = os.path.join(jail_src_base, '__temp__')
     if not os.path.exists(tempdir):
         os.makedirs(tempdir)
     elif not os.path.isdir(tempdir):
         os.unlink(tempdir)
         os.mkdir(tempdir)
-    userdir = os.path.join(ivle.conf.jail_src_base, user.login)
+    userdir = os.path.join(jail_src_base, user.login)
     homedir = os.path.join(userdir, 'home')
     userhomedir = os.path.join(homedir, user.login)   # Return value
 
@@ -244,7 +245,8 @@ def make_jail(user, force=True):
         os.chmod(userhomedir, 0755)
 
     make_ivle_conf(user.login, userdir, user.svn_pass)
-    make_etc_passwd(user.login, userdir, ivle.conf.jail_system, user.unixid)
+    make_etc_passwd(user.login, userdir, config['paths']['jails']['template'],
+                    user.unixid)
 
     return userhomedir
 
