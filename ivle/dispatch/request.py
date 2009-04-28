@@ -293,10 +293,21 @@ class Request:
         else:
             mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
 
+    def make_path(self, path):
+        """Prepend the IVLE URL prefix to the given path.
+
+        This is used when generating URLs to send to the client.
+
+        This method is DEPRECATED. We no longer support use of a prefix.
+        """
+        return os.path.join(self.config['urls']['root'], path)
+
     def unmake_path(self, path):
         """Strip the IVLE URL prefix from the given path, if present.
 
         Also normalises the path.
+
+        This method is DEPRECATED. We no longer support use of a prefix.
         """
         path = os.path.normpath(path)
         root = os.path.normpath(self.config['urls']['root'])
