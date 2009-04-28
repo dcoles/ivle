@@ -295,16 +295,17 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
                       % (username, unixid, unixid, username))
     passwd_file.close()
 
-def mount_jail(login):
+def mount_jail(login, config):
     # This is where we'll mount to...
-    destdir = os.path.join(ivle.conf.jail_base, login)
+    destdir = os.path.join(config['paths']['jails']['mounts'], login)
     # ... and this is where we'll get the user bits.
-    srcdir = os.path.join(ivle.conf.jail_src_base, login)
+    srcdir = os.path.join(config['paths']['jails']['src'], login)
     try:
         if not os.path.exists(destdir):
             os.mkdir(destdir)
         if os.system('/bin/mount -t aufs -o dirs=%s:%s=ro none %s'
-                     % (srcdir, ivle.conf.jail_system, destdir)) == 0:
+                     % (srcdir, config['paths']['jails']['template'],
+                        destdir)) == 0:
             logging.info("mounted user %s's jail." % login)
         else:
             logging.error("failed to mount user %s's jail!" % login)
