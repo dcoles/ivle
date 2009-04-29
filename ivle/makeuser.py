@@ -44,26 +44,23 @@ import uuid
 import warnings
 import filecmp
 import logging
+import subprocess
 import ivle.pulldown_subj
 
 from ivle.database import ProjectGroup
 
 def chown_to_webserver(filename):
-    """
-    Chowns a file so the web server user owns it.
-    (This is useful in setting up Subversion conf files).
+    """chown a directory and its contents to the web server.
+
+    Recursively chowns a file or directory so the web server user owns it.
     Assumes root.
     """
-    try:
-        os.system("chown -R www-data:www-data %s" % filename)
-    except:
-        pass
+    subprocess.call(['chown', '-R', 'www-data:www-data', filename])
 
 def make_svn_repo(path, throw_on_error=True):
-    """Create a Subversion repository at the given path.
-    """
+    """Create a Subversion repository at the given path."""
     try:
-        res = os.system("svnadmin create '%s'" % path)
+        res = subprocess.call(['svnadmin', 'create', path])
         if res != 0 and throw_on_error:
             raise Exception("Cannot create repository: %s" % path)
     except Exception, exc:
