@@ -1,5 +1,5 @@
 # IVLE - Informatics Virtual Learning Environment
-# Copyright (C) 2007-2008 The University of Melbourne
+# Copyright (C) 2007-2009 The University of Melbourne
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,25 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Module: MakeUser
-# Author: Matt Giuca
-# Date:   1/2/2008
-
-# Allows creation of users. This sets up the following:
-# * User's jail and home directory within the jail.
-# * Subversion repository (TODO)
-# * Check out Subversion workspace into jail (TODO)
-# * Database details for user
-# * Unix user account
-
-# TODO: Sanitize login name and other fields.
-# Users must not be called "temp" or "template".
-
-# TODO: When creating a new home directory, chown it to its owner
-
-# TODO: In chown_to_webserver:
-# Do not call os.system("chown www-data") - use Python lib
-# and use the web server uid given in conf. (Several places).
+"""User and group filesystem management helpers."""
 
 import hashlib
 import os
@@ -42,10 +24,8 @@ import shutil
 import time
 import uuid
 import warnings
-import filecmp
 import logging
 import subprocess
-import ivle.pulldown_subj
 
 from ivle.database import ProjectGroup
 
@@ -72,6 +52,7 @@ def make_svn_repo(path, throw_on_error=True):
 
 def rebuild_svn_config(store, config):
     """Build the complete SVN configuration file.
+
     @param config: An ivle.config.Config object.
     """
     users = store.find(ivle.database.User)
@@ -100,6 +81,7 @@ def rebuild_svn_config(store, config):
 
 def rebuild_svn_group_config(store, config):
     """Build the complete SVN configuration file for groups
+
     @param config: An ivle.config.Config object.
     """
     conf_name = config['paths']['svn']['group_conf']
@@ -123,8 +105,10 @@ def rebuild_svn_group_config(store, config):
     chown_to_webserver(conf_name)
 
 def make_svn_auth(store, login, config, throw_on_error=True):
-    """Setup svn authentication for the given user.
-       Uses the given DB store object. Does not commit to the db.
+    """Create a Subversion password for a user.
+
+    Generates a new random Subversion password, and assigns it to the user.
+    The password is added to Apache's Subversion authentication file.
     """
     # filename is, eg, /var/lib/ivle/svn/ivle.auth
     filename = config['paths']['svn']['auth_ivle']
@@ -137,8 +121,8 @@ def make_svn_auth(store, login, config, throw_on_error=True):
     user = ivle.database.User.get_by_login(store, login)
     user.svn_pass = unicode(passwd)
 
-    res = os.system("htpasswd -%smb %s %s %s" % (create, filename,
-                                              login, passwd))
+    res = subprocess.call(['htpasswd', '-%smb' % create,
+                           filename, login, passwd])
     if res != 0 and throw_on_error:
         raise Exception("Unable to create ivle-auth for %s" % login)
 
@@ -148,48 +132,18 @@ def make_svn_auth(store, login, config, throw_on_error=True):
 
     return passwd
 
-def generate_manifest(basedir, targetdir, parent=''):
-    """ From a basedir and a targetdir work out which files are missing or out 
-    of date and need to be added/updated and which files are redundant and need 
-    to be removed.
-    
-    parent: This is used for the recursive call to track the relative paths 
-    that we have decended.
-    """
-    
-    cmp = filecmp.dircmp(basedir, targetdir)
-
-    # Add all new files and files that have changed
-    to_add = [os.path.join(parent,x) for x in (cmp.left_only + cmp.diff_files)]
-
-    # Remove files that are redundant
-    to_remove = [os.path.join(parent,x) for x in cmp.right_only]
-    
-    # Recurse
-    for d in cmp.common_dirs:
-        newbasedir = os.path.join(basedir, d)
-        newtargetdir = os.path.join(targetdir, d)
-        newparent = os.path.join(parent, d)
-        (sadd,sremove) = generate_manifest(newbasedir, newtargetdir, newparent)
-        to_add += sadd
-        to_remove += sremove
-
-    return (to_add, to_remove)
-
-
 def make_jail(user, config, force=True):
-    """Creates a new user's jail space, in the jail directory as configured in
-    conf.py.
+    """Create or update a user's jail.
 
-    This only creates things within /home - everything else is expected to be
-    part of another UnionFS branch.
+    Only the user-specific parts of the jail are created here - everything
+    else is expected to be part of another aufs branch.
 
     Returns the path to the user's home directory.
 
     Chowns the user's directory within the jail to the given UID.
 
-    force: If false, exception if jail already exists for this user.
-    If true (default), overwrites it, but preserves home directory.
+    @param force: If False, raise an exception if the user already has a jail.
+                  If True (default), rebuild the jail preserving /home.
     """
     # MUST run as root or some of this may fail
     if os.getuid() != 0:
@@ -247,9 +201,11 @@ def make_jail(user, config, force=True):
     return userhomedir
 
 def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
-    """
+    """Generate an ivle.conf for a user's jail.
+
     Creates (overwriting any existing file, and creating directories) a
     file /etc/ivle/ivle.conf in a given user's jail.
+
     @param username: Username.
     @param user_jail_dir: User's jail dir, ie. ['jails']['src'] + username
     @param svn_pass: User's SVN password.
@@ -276,7 +232,8 @@ def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
                         | stat.S_IROTH)
 
 def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
-    """
+    """Create a passwd file for a user's jail.
+
     Creates /etc/passwd in the given user's jail. This will be identical to
     that in the template jail, except for the added entry for this user.
     """
@@ -290,20 +247,3 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
     passwd_file.write('%s:x:%d:%d::/home/%s:/bin/bash'
                       % (username, unixid, unixid, username))
     passwd_file.close()
-
-def mount_jail(login, config):
-    # This is where we'll mount to...
-    destdir = os.path.join(config['paths']['jails']['mounts'], login)
-    # ... and this is where we'll get the user bits.
-    srcdir = os.path.join(config['paths']['jails']['src'], login)
-    try:
-        if not os.path.exists(destdir):
-            os.mkdir(destdir)
-        if os.system('/bin/mount -t aufs -o dirs=%s:%s=ro none %s'
-                     % (srcdir, config['paths']['jails']['template'],
-                        destdir)) == 0:
-            logging.info("mounted user %s's jail." % login)
-        else:
-            logging.error("failed to mount user %s's jail!" % login)
-    except Exception, message:
-        logging.warning(str(message))
