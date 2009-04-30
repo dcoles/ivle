@@ -27,7 +27,8 @@ import warnings
 import logging
 import subprocess
 
-from ivle.database import ProjectGroup
+import ivle.config
+from ivle.database import ProjectGroup, User
 
 def chown_to_webserver(filename):
     """chown a directory and its contents to the web server.
@@ -55,26 +56,21 @@ def rebuild_svn_config(store, config):
 
     @param config: An ivle.config.Config object.
     """
-    users = store.find(ivle.database.User)
-    groups = {}
-    # TODO: Populate groups with per-offering tutors/lecturers/etc.
+    users = store.find(User)
     conf_name = config['paths']['svn']['conf']
     temp_name = conf_name + ".new"
     f = open(temp_name, "w")
-    f.write("# IVLE SVN Repositories Configuration\n")
-    f.write("# Auto-generated on %s\n" % time.asctime())
-    f.write("\n")
-    f.write("[groups]\n")
-    for (g,ls) in groups.iteritems():
-        f.write("%s = %s\n" % (g, ",".join(ls)))
-    f.write("\n")
+    f.write("""\
+# IVLE SVN repository authorisation configuration
+# Generated: %(time)s
+""" % {'time': time.asctime()})
+
     for u in users:
-        f.write("[%s:/]\n" % u.login)
-        f.write("%s = rw\n" % u.login)
-        #f.write("@tutor = r\n")
-        #f.write("@lecturer = rw\n")
-        #f.write("@admin = rw\n")
-        f.write("\n")
+        f.write("""
+[%(login)s:/]
+%(login)s = rw
+""" % {'login': u.login})
+
     f.close()
     os.rename(temp_name, conf_name)
     chown_to_webserver(conf_name)
@@ -87,19 +83,25 @@ def rebuild_svn_group_config(store, config):
     conf_name = config['paths']['svn']['group_conf']
     temp_name = conf_name + ".new"
     f = open(temp_name, "w")
-    f.write("# IVLE SVN Group Repositories Configuration\n")
-    f.write("# Auto-generated on %s\n" % time.asctime())
-    f.write("\n")
+
+    f.write("""\
+# IVLE SVN group repository authorisation configuration
+# Generated: %(time)s
+
+""" % {'time': time.asctime()})
+
     for group in store.find(ProjectGroup):
         offering = group.project_set.offering
         reponame = "_".join([offering.subject.short_name,
                              offering.semester.year,
                              offering.semester.semester,
                              group.name])
-        f.write("[%s:/]\n"%reponame)
+
+        f.write("[%s:/]\n" % reponame)
         for user in group.members:
             f.write("%s = rw\n" % user.login)
         f.write("\n")
+
     f.close()
     os.rename(temp_name, conf_name)
     chown_to_webserver(conf_name)
@@ -118,7 +120,7 @@ def make_svn_auth(store, login, config, throw_on_error=True):
     else:
         create = "c"
 
-    user = ivle.database.User.get_by_login(store, login)
+    user = User.get_by_login(store, login)
     user.svn_pass = unicode(passwd)
 
     res = subprocess.call(['htpasswd', '-%smb' % create,
