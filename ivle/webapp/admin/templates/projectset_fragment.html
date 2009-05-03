@@ -4,6 +4,7 @@
     style="display: none;">
   <h3>ProjectSet</h3>
   <p>Max Students Per Group: ${group_size}</p>
+  <a href="+groups"><h4>Administer Groups</h4></a>
   <py:choose test='len(projects)'>
     <py:when test="0">
       <ul id="projectslist_${projectset_id}" class="emptylist">

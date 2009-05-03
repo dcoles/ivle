@@ -25,3 +25,19 @@
 .add-project div {
     display: none;
 }
+
+li {
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+}
+
+.project-title {
+    float: left;
+    text-align: left;
+    width: 250px;
+}
+
+.project-title img {
+    border: medium none;
+}
