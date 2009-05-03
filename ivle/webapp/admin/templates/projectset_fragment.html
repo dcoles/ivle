@@ -4,25 +4,38 @@
     style="display: none;">
   <h3>ProjectSet</h3>
   <p>Max Students Per Group: ${group_size}</p>
-  <ul id="projectslist_${projectset_id}">
-    <py:for each="project in projects">
-      ${project}
-    </py:for>
-  </ul>
-  <a href="#" id="add_new_project_${ projectset_id }"><h3>Add a New Project</h3></a>
-  <div id="new_project_${ projectset_id }">
-    <form class="new_project" method="POST" action="${ new_project_url }">
-      <label for="new_project_name_${ projectset_id }">Name:</label>
-      <input id="new_project_name_${ projectset_id }" type="text" name="name" value="" />
-      <br />
-      <label for="new_project_short_name_${ projectset_id }">Short Name:</label>
-      <input id="new_project_short_name_${ projectset_id }" type="text" name="short_name" value="" />
-      <br />
-      <label for="new_project_syn_${ projectset_id }">Synopsis:</label>
-      <textarea id="new_project_syn_${ projectset_id }" name="synopsis"></textarea>
-      <br />
-      <input type="hidden" name="ivle.op" value="add_project" />
-      <input type="submit" value="Create" id="submit_project_${ projectset_id}" />
-    </form>
+  <py:choose test='len(projects)'>
+    <py:when test="0">
+      <ul id="projectslist_${projectset_id}" class="emptylist">
+        <h4>No Projects</h4>
+      </ul>
+    </py:when>
+    <py:otherwise>
+      <ul id="projectslist_${projectset_id}">
+        <py:for each="project in projects">
+          ${project}
+        </py:for>
+      </ul>
+    </py:otherwise>
+  </py:choose>
+  <div class="add-project">
+    <a href="#" id="add_new_project_${ projectset_id }"
+      class="add-project-link"><h4>Add a New Project</h4></a>
+    <div id="new_project_${ projectset_id }">
+      <form class="new_project" method="POST" action="${ new_project_url }">
+        <label for="new_project_name_${ projectset_id }">Name:</label>
+        <input id="new_project_name_${ projectset_id }" type="text" name="name" value="" />
+        <br />
+        <label for="new_project_short_name_${ projectset_id }">Short Name:</label>
+        <input id="new_project_short_name_${ projectset_id }" type="text" name="short_name" value="" />
+        <br />
+        <label for="new_project_syn_${ projectset_id }">Synopsis:</label>
+        <textarea id="new_project_syn_${ projectset_id }" name="synopsis" rows="6"></textarea>
+        <br />
+        <input type="hidden" name="ivle.op" value="add_project" />
+        <input type="submit" value="Create" id="submit_project_${
+            projectset_id}" class="submit-project" />
+      </form>
+    </div>
   </div>
 </li>

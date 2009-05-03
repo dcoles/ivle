@@ -2,6 +2,7 @@ $(document).ready(function(){
     $("#new_projectset_form").submit(add_projectset);
     $(".new_project").submit(add_project);
     $('li').show('slow');
+    $('.add-project-link').click(show_add);
 });
 
 function serializeForm(form){
@@ -16,14 +17,18 @@ function serializeForm(form){
 };
 
 function add_project(){
-    $(this).attr('disabled', 'disabled');
 
+    $(this).hide('normal');
+    
     function callback(xhr) {
         var response = JSON.parse(xhr.responseText);
         var projectlist = $('#projectslist_' + response.projectset_id);
-        projectlist.append(response.html).hide();
-        projectlist.show('normal');
-        $(this).removeAttr('disabled');
+        var new_element = response.html.split('\n').slice(1).join('\n');
+        if (projectlist.hasClass("emptylist")){
+            projectlist.children().hide('normal');
+            projectlist.removeClass("emptylist");
+        }
+        $(new_element).appendTo(projectlist).hide().show('normal');
     };
 
     var data = serializeForm($(this));
@@ -54,3 +59,8 @@ function add_projectset(){
 
     return false;
 };
+
+function show_add(){
+    $(this).next().toggle('normal');
+    return false;
+}

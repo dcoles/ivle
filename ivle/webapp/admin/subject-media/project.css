@@ -1,3 +1,27 @@
 #add_projectset {
     padding: 10px;
 }
+
+.add-project {
+    width: 600px;
+    padding-left: 40px;
+}
+
+.add-project label {
+    position: absolute;
+    text-align: right;
+}
+
+.add-project input, textarea {
+    margin-left: 100px;
+    width: 400px;
+}
+
+.project-synopsis {
+    width: 400px;
+    white-space: pre-wrap;
+}
+
+.add-project div {
+    display: none;
+}
