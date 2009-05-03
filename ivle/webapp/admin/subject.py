@@ -36,7 +36,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
-                          ProjectSet, Project
+                          ProjectSet, Project, ProjectSubmission
 from ivle import util
 
 from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
@@ -220,6 +220,12 @@ class ProjectView(XHTMLView):
     def populate(self, req, ctx):
         ctx['project'] = self.context
         ctx['assesseds'] = self.context.assesseds
+
+        ctx['submissions'] = []
+        for assessed in self.context.assesseds:
+            if assessed.submissions.count() > 0:
+                ctx['submissions'].append(
+                        assessed.submissions.order_by(ProjectSubmission.date_submitted)[:-1])
 
 
 class Plugin(ViewPlugin, MediaPlugin):

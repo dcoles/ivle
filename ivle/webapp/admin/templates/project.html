@@ -6,9 +6,14 @@
   <body>
     <h1>Project - ${project.short_name}</h1>
     <div id="ivle_padding">
+      <h2>${project.name}</h2>
       <p>${project.synopsis}</p>
       <p>Number of Asesseds - <strong>${project.assesseds.count()}</strong></p>
-      <h3>Assesseds</h3>
+      <p>Number of Submissions - <strong>${len(submissions)}</strong></p>
+      <h3>Latest Submissions</h3>
+      <py:for each='submission in submissions'>
+        <p>Submitted By: <strong>Somebody.</strong></p>
+      </py:for>
     </div>
   </body>
 </html>
