@@ -23,6 +23,7 @@
 import os, sys, traceback
 import xml.dom.minidom as minidom
 
+from ivle.config import Config
 from ivle.database import Exercise, TestSuite, TestCase, TestSuiteVar, TestCasePart, get_store
 
 class XMLMalformedError(Exception):
@@ -175,8 +176,6 @@ def add_test_case(case_node, case_num, store):
 xmlfile = sys.argv[1]
 
 def add_exercise(xmlfile):
-    store = get_store()
-
     # Skip existing ones.
     if store.find(Exercise, id=unicode(xmlfile)).count():
         return
@@ -239,7 +238,9 @@ def add_exercise(xmlfile):
 
     store.add(new_exercise)
     store.commit()
-    
+
+store = get_store(Config())
+
 xmlfiles = sys.argv[1:]
 for xmlfile in xmlfiles:
     try:

@@ -32,8 +32,6 @@ from xml.dom import minidom
 
 import genshi
 
-import ivle.util
-import ivle.conf
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise
@@ -137,14 +135,10 @@ class OfferingView(XHTMLView):
                 ctx['complete_class'] = "semicomplete"
             else:
                 ctx['complete_class'] = "incomplete"
-            ctx['problems_pct'] = (100 * problems_done) / problems_total
-
-            # We want to display a students mark out of 5. However, they are
-            # allowed to skip 1 in 5 questions and still get 'full marks'.
-            # Hence we divide by 16, essentially making 16 percent worth
-            # 1 star, and 80 or above worth 5.
-            ctx['max_mark'] = 5
-            ctx['mark'] = min(ctx['problems_pct'] / 16, ctx['max_mark'])
+            # Calculate the final percentage and mark for the subject
+            ctx['problems_pct'], ctx['mark'], ctx['max_mark'] = (
+                ivle.worksheet.utils.calculate_mark(
+                    problems_done, problems_total))
 
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
@@ -204,7 +198,8 @@ class SubjectMediaView(BaseMediaFileView):
         if not self.context:
             raise NotFound()
 
-        subjectdir = os.path.join(ivle.conf.subjects_base,
+        subjectdir = os.path.join(req.config['paths']['data'],
+                                  'content/subjects',
                                   self.context.short_name, 'media')
         return os.path.join(subjectdir, self.path)
 

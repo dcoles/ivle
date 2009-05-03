@@ -25,6 +25,7 @@
 import os
 import sys
 
+from ivle.config import Config
 from ivle.database import get_store, Subject, Semester, Offering, User
 
 def die(error):
@@ -39,7 +40,7 @@ If an enrolment already exists, it will be reactivated and its role set.''' \
                          % os.path.basename(sys.argv[0])
     sys.exit()
 
-store = get_store()
+store = get_store(Config())
 
 user = User.get_by_login(store, sys.argv[1])
 if user is None:

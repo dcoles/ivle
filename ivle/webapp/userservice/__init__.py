@@ -139,7 +139,6 @@ import cjson
 
 import ivle.database
 from ivle import (util, chat)
-from ivle.conf import (usrmgt_host, usrmgt_port, usrmgt_magic)
 from ivle.webapp.security import get_user_details
 import ivle.pulldown_subj
 
@@ -249,7 +248,11 @@ def handle_activate_me(req, fields):
 
     # Try and contact the usrmgt server
     try:
-        response = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        response = chat.chat(req.config['usrmgt']['host'],
+                             req.config['usrmgt']['port'],
+                             msg,
+                             req.config['usrmgt']['magic'],
+                            )
     except cjson.DecodeError:
         # Gave back rubbish - set the response to failure
         response = {'response': 'usrmgt-failure'}
@@ -564,7 +567,11 @@ def handle_create_group(req, fields):
 
     # Contact the usrmgt server
     try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
     except cjson.DecodeError, e:
         raise Exception("Could not understand usrmgt server response:" +
                         e.message)
@@ -649,7 +656,55 @@ def handle_assign_group(req, fields):
     # Contact the usrmgt server
     msg = {'rebuild_svn_group_config': {}}
     try:
-        usrmgt = chat.chat(usrmgt_host, usrmgt_port, msg, usrmgt_magic)
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
+    except cjson.DecodeError, e:
+        raise Exception("Could not understand usrmgt server response: %s" +
+                        e.message)
+
+        if 'response' not in usrmgt or usrmgt['response']=='failure':
+            raise Exception("Failure creating repository: " + str(usrmgt))
+
+    return(cjson.encode({'response': 'okay'}))
+
+@require_method('POST')
+@require_role_anywhere('tutor', 'lecturer')
+def handle_unassign_group(req, fields):
+    """Remove a user from a project group.
+
+    The user is removed from the group in the database, and access to the
+    group Subversion repository is revoked.
+
+    Note that any checkouts will remain, although they will be unusable.
+    """
+
+    # Get required fields
+    login = fields.getfirst('login')
+    groupid = fields.getfirst('groupid')
+    if login is None or groupid is None:
+        raise BadRequest("Required: login, groupid")
+
+    group = req.store.get(ivle.database.ProjectGroup, int(groupid))
+    user = ivle.database.User.get_by_login(req.store, login)
+
+    # Remove membership from the database
+    # We can't keep a transaction open until the end here, as usrmgt-server
+    # needs to see the changes!
+    group.members.remove(user)
+    req.store.commit()
+
+    # Rebuild the svn config file
+    # Contact the usrmgt server
+    msg = {'rebuild_svn_group_config': {}}
+    try:
+        usrmgt = chat.chat(req.config['usrmgt']['host'],
+                           req.config['usrmgt']['port'],
+                           msg,
+                           req.config['usrmgt']['magic'],
+                          )
     except cjson.DecodeError, e:
         raise Exception("Could not understand usrmgt server response: %s" +
                         e.message)
@@ -672,4 +727,5 @@ actions_map = {
     "get_group_membership": handle_get_group_membership,
     "create_group": handle_create_group,
     "assign_group": handle_assign_group,
+    "unassign_group": handle_unassign_group,
 }

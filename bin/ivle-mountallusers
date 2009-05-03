@@ -29,6 +29,7 @@ import os.path
 import optparse
 import logging
 
+import ivle.config
 import ivle.database
 import ivle.conf
 
@@ -49,7 +50,7 @@ if os.getuid() != 0:
                           os.path.basename(sys.argv[0])
     sys.exit(1)
 
-store = ivle.database.get_store()
+store = ivle.database.get_store(ivle.config.Config())
 users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 
 logging.info("mass aufs mount started")

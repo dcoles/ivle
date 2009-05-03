@@ -44,6 +44,10 @@ parser.add_option("-u", "--upgrade",
 parser.add_option("-m", "--mirror",
     action="store", dest="apt_mirror",
     help="Sets the apt mirror.", default="http://archive.ubuntu.com/ubuntu")
+parser.add_option("--python-site-packages",
+    action="store", dest="python_site_packages",
+    help="Path to Python site packages directory inside the jail.",
+    default=None)
 (options, args) = parser.parse_args(sys.argv)
 
 if os.geteuid() != 0:
@@ -52,6 +56,11 @@ if os.geteuid() != 0:
 
 if not options.recreate and not os.path.exists(build_path):
     print >> sys.stderr, "No jail exists -- please rerun with -r."
+    sys.exit(1)
+
+if (options.python_site_packages is not None and
+    options.python_site_packages[:1] not in (os.path.sep, os.path.altsep)):
+    print >> sys.stderr, "python-site-packages must be an absolute path."
     sys.exit(1)
 
 if options.recreate:
@@ -110,18 +119,23 @@ if conf['jail']['devmode']:
 
     # Also copy the IVLE lib directory into the jail
     # This is necessary for running certain services
-    ivle_site_packages = os.path.join(ivle.conf.python_site_packages, 'ivle')
-    jail_site_packages = os.path.join(build_path, ivle_site_packages[1:])
+
+    # ivle_site_packages is the IVLE install location outside the jail
+    ivle_site_packages = os.path.dirname(ivle.__file__)
+
+    if options.python_site_packages is None:
+        # Get the site packages from the IVLE install location *OUTSIDE* the
+        # jail. Warning! This only works if you have the same Python site
+        # packages directory inside and out (ie. same Python version).
+        # If not, you should use --python-site-packages.
+        jail_site_packages = os.path.join(build_path, ivle_site_packages[1:])
+    else:
+        # User-specified site packages
+        jail_site_packages = os.path.join(build_path,
+                                options.python_site_packages[1:], "ivle")
     if os.path.exists(jail_site_packages):
         shutil.rmtree(jail_site_packages)
     shutil.copytree(ivle_site_packages, jail_site_packages)
-
-    # IMPORTANT: ivle/conf/conf.py contains details which could compromise security
-    # if left in the jail (such as the DB password). We delete it now! It would be
-    # shadowed by the per-user conf.py anyway, but it's best to be safe.
-    os.unlink(os.path.join(jail_site_packages, 'conf/conf.py'))
-    # XXX: Shouldn't copy the compiled files at all, but compile them in the jail!
-    os.unlink(os.path.join(jail_site_packages, 'conf/conf.pyc'))
 
 if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
               build_path + '/', ivle.conf.jail_system]) != 0:

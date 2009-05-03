@@ -131,6 +131,7 @@
 import os
 import cStringIO
 import shutil
+import urllib
 
 import pysvn
 
@@ -713,7 +714,7 @@ def action_svncheckout(req, fields):
     paths = fields.getlist('path')
     if len(paths) != 2:
         raise ActionError("usage: svncheckout url local-path")
-    url = ivle.conf.svn_addr + "/" + paths[0]
+    url = ivle.conf.svn_addr + "/" + urllib.quote(paths[0])
     local_path = actionpath_to_local(req, str(paths[1]))
     try:
         svnclient.callback_get_login = get_login

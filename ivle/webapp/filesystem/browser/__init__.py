@@ -28,11 +28,12 @@ take place in the FileService app (for handling Ajax requests).
 
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.errors import NotFound
 
 import os.path
 import cgi
 
-from ivle import (util, studpath)
+from ivle import studpath
 import ivle.svn
 
 class BrowserView(XHTMLView):
@@ -49,8 +50,8 @@ class BrowserView(XHTMLView):
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):
             # If no path specified, default to the user's home directory
-            redirectPath = util.make_path(os.path.join('files', req.user.login))
-            req.throw_redirect(util.make_path(redirectPath))
+            redirectPath = req.make_path(os.path.join('files', req.user.login))
+            req.throw_redirect(redirectPath)
 
         # Set request attributes
         self.plugin_styles[Plugin] = ['browser.css',
@@ -87,14 +88,14 @@ class BrowserView(XHTMLView):
         # The page title should contain the name of the file being browsed
         ctx['title'] = self.path.rsplit('/', 1)[-1]
 
-        ctx['fileservice_action'] = util.make_path(os.path.join("fileservice",
+        ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
                                                                 self.path))
         ctx['filename'] = cgi.escape(self.path)
 
     #TODO: Move all this logic into the template
     def gen_path(self, req, ctx):
 
-        href_path = util.make_path('files')
+        href_path = req.make_path('files')
         nav_path = ""
         revision = ivle.svn.revision_from_string(
                          req.get_fieldstorage().getfirst('r'))

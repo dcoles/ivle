@@ -56,7 +56,7 @@ CREATE TABLE offering (
 CREATE TABLE project_set (
     projectsetid  SERIAL PRIMARY KEY NOT NULL,
     offeringid    INTEGER REFERENCES offering (offeringid) NOT NULL,
-    max_students_per_group  INTEGER NOT NULL DEFAULT 4
+    max_students_per_group  INTEGER
 );
 
 CREATE TABLE project (

@@ -28,8 +28,6 @@ from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
-import ivle.conf
-import ivle.util
 
 class XHTMLView(BaseView):
     """
@@ -101,9 +99,9 @@ class XHTMLView(BaseView):
 
     def populate_headings(self, req, ctx):
         ctx['favicon'] = None
-        ctx['root_dir'] = ivle.conf.root_dir
-        ctx['public_host'] = ivle.conf.public_host
-        ctx['svn_base'] = ivle.conf.svn_addr
+        ctx['root_dir'] = req.config['urls']['root']
+        ctx['public_host'] = req.config['urls']['public_host']
+        ctx['svn_base'] = req.config['urls']['svn_addr']
         ctx['write_javascript_settings'] = req.write_javascript_settings
         if req.user:
             ctx['login'] = req.user.login
@@ -136,7 +134,7 @@ class XHTMLView(BaseView):
                         ctx['favicon'] = icon_url
                 else:
                     new_app['has_icon'] = False
-                new_app['path'] = ivle.util.make_path(tab[4])
+                new_app['path'] = req.make_path(tab[4])
                 new_app['desc'] = tab[2]
                 new_app['name'] = tab[1]
                 new_app['weight'] = tab[5]

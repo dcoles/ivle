@@ -23,10 +23,9 @@ import optparse
 import os
 import sys
 import functools
+import distutils.sysconfig
 
 from setup import util
-
-PYTHON_VERSION = sys.version[:3]
 
 def install(args):
     usage = """usage: %prog install [options]
@@ -43,9 +42,6 @@ chown and chmod the installed trampoline.
     parser.add_option("-n", "--dry",
         action="store_true", dest="dry",
         help="Print out the actions but don't do anything.")
-    parser.add_option("-R", "--nosvnrevno",
-        action="store_true", dest="nosvnrevno",
-        help="Don't write out the Subversion revision to the share directory.")
     parser.add_option("--root",
         action="store", dest="rootdir",
         help="Install into a different root directory.",
@@ -57,17 +53,29 @@ chown and chmod the installed trampoline.
     parser.add_option("--python-site-packages",
         action="store", dest="python_site_packages",
         help="Path to Python site packages directory.",
-        default='/usr/local/lib/python%s/site-packages' % PYTHON_VERSION)
+        default=None)
     (options, args) = parser.parse_args(args)
+
+    # Prefix must be absolute (not really necessary, but since a relative
+    # prefix will be taken relative to *root* not working directory, it is
+    # confusing if we allow it).
+    if options.prefix[:1] not in (os.path.sep, os.path.altsep):
+        print >>sys.stderr, """prefix must be an absolute path.
+    (This will be interpreted relative to root, so provide --root=. if you
+    want a path relative to the working directory)."""
+        return 1
+
+    # Calculate python_site_packages using the supplied prefix
+    if options.python_site_packages is None:
+        options.python_site_packages = distutils.sysconfig.get_python_lib(
+            prefix=options.prefix)
 
     # Call the real function
     return __install(prefix=options.prefix,
                      python_site_packages=options.python_site_packages,
-                     dry=options.dry, rootdir=options.rootdir,
-                     nosvnrevno=options.nosvnrevno)
+                     dry=options.dry, rootdir=options.rootdir)
 
-def __install(prefix, python_site_packages, dry=False, rootdir=None,
-              nosvnrevno=False):
+def __install(prefix, python_site_packages, dry=False, rootdir=None):
     install_list = util.InstallList()
 
     # We need to apply make_install_path with the rootdir to an awful lot of
@@ -115,27 +123,6 @@ def __install(prefix, python_site_packages, dry=False, rootdir=None,
 
     # Copy the lib directory (using the list)
     util.action_copylist(install_list.list_ivle_lib, python_site_packages, dry)
-
-    if not nosvnrevno:
-        # Create the ivle working revision record file
-        ivle_revision_file = os.path.join(share_path, 'revision.txt')
-        if not dry:
-            try:
-                conf = open(ivle_revision_file, "w")
-
-                conf.write("""# SVN revision r%s
-# Source tree location: %s
-# Modified files:
-""" % (util.get_svn_revision(), os.getcwd()))
-
-                conf.close()
-            except IOError, (errno, strerror):
-                print "IO error(%s): %s" % (errno, strerror)
-                sys.exit(1)
-
-            os.system("svn status . >> %s" % ivle_revision_file)
-
-        print "Wrote IVLE code revision status to %s" % ivle_revision_file
 
     return 0
 

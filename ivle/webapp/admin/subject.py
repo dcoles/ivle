@@ -35,6 +35,7 @@ import formencode
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
+
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
                           ProjectSet, Project, ProjectSubmission
 from ivle import util

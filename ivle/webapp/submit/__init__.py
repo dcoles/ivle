@@ -39,11 +39,12 @@ class SubmitView(XHTMLView):
     tab = 'files'
     permission = 'submit_project'
 
-    def __init__(self, req, name, path):
+    def __init__(self, req, name, path=u"/"):
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
-        self.path = os.path.normpath(path)
+        # XXX Re-convert to unicode (os.path.normpath(u"/") returns a str).
+        self.path = unicode(os.path.normpath(path))
 
         if self.context is None:
             raise NotFound()
@@ -97,7 +98,8 @@ class SubmitView(XHTMLView):
         ctx['offering'] = self.offering
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
-        ctx['format_datetime'] = ivle.date.format_datetime_for_paragraph
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
 
 class UserSubmitView(SubmitView):
@@ -142,6 +144,8 @@ class GroupSubmitView(SubmitView):
 
 class Plugin(ViewPlugin):
     urls = [
+        ('+submit/users/:name', UserSubmitView),
+        ('+submit/groups/:name', GroupSubmitView),
         ('+submit/users/:name/*path', UserSubmitView),
         ('+submit/groups/:name/*path', GroupSubmitView),
     ]

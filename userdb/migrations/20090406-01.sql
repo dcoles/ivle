@@ -1,5 +1,8 @@
 BEGIN;
 
+ALTER TABLE project_set ALTER COLUMN max_students_per_group DROP NOT NULL;
+ALTER TABLE project_set ALTER COLUMN max_students_per_group DROP DEFAULT;
+
 ALTER TABLE project ALTER COLUMN synopsis TYPE TEXT;
 ALTER TABLE project ALTER COLUMN url TYPE TEXT;
 ALTER TABLE project ADD COLUMN short_name TEXT NOT NULL;

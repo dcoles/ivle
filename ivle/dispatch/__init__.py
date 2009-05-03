@@ -40,14 +40,16 @@ import mod_python
 import routes
 
 from ivle import util
-import ivle.conf
+import ivle.config
 from ivle.dispatch.request import Request
 import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
 from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
 
-def generate_route_mapper(view_plugins, attr):
+config = ivle.config.Config()
+
+def generate_router(view_plugins, attr):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
@@ -71,7 +73,7 @@ def handler(apachereq):
     @param apachereq: An Apache request object.
     """
     # Make the request object into an IVLE request which can be given to views
-    req = Request(apachereq)
+    req = Request(apachereq, config)
 
     # Hack? Try and get the user login early just in case we throw an error
     # (most likely 404) to stop us seeing not logged in even when we are.
@@ -82,15 +84,11 @@ def handler(apachereq):
         if user and user.valid:
             req.user = user
 
-    conf = ivle.config.Config()
-    req.config = conf
-
     if req.publicmode:
-        req.mapper = generate_route_mapper(conf.plugin_index[PublicViewPlugin],
-                                           'public_urls')
+        req.mapper = generate_router(config.plugin_index[PublicViewPlugin],
+                                    'public_urls')
     else:
-        req.mapper = generate_route_mapper(conf.plugin_index[ViewPlugin],
-                                           'urls')
+        req.mapper = generate_router(config.plugin_index[ViewPlugin], 'urls')
 
     matchdict = req.mapper.match(req.uri)
     if matchdict is not None:
@@ -155,7 +153,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     the IVLE request is created.
     """
     req.content_type = "text/html"
-    logfile = os.path.join(ivle.conf.log_path, 'ivle_error.log')
+    logfile = os.path.join(config['paths']['logs'], 'ivle_error.log')
     logfail = False
     try:
         httpcode = exc_value.httpcode

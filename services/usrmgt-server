@@ -4,10 +4,12 @@ import os
 import sys
 import logging
 
-import ivle.conf
+import ivle.config
 import ivle.database
 import ivle.chat
 import ivle.makeuser
+
+config = ivle.config.Config()
 
 # usage:
 #   usrmgt-server <port> <magic>
@@ -27,13 +29,14 @@ import ivle.makeuser
 #   - Rebuild svn auth file
 #   - Rebuild passwd + push to nodes.
 
-def activate_user(store, props):
+def activate_user(store, props, config):
     """Create the on-disk stuff for the given user.
        Sets the state of the user in the db from pending to enabled.
+    @param config: An ivle.config.Config object.
        Expected properties:
         login       - the user name for the jail
                       STRING REQUIRED
-       Return Value: None
+    @return: None
     """
 
     os.umask(0022) # Bad, but start_server sets it worse.
@@ -46,44 +49,45 @@ def activate_user(store, props):
     user = ivle.database.User.get_by_login(store, login)
 
     # make svn config/auth
-    repopath = os.path.join(ivle.conf.svn_repo_path, 'users', login)
+    repopath = os.path.join(config['paths']['svn']['repo_path'],
+                            'users', login)
     logging.debug("Creating user's Subversion repository")
     ivle.makeuser.make_svn_repo(repopath, throw_on_error=True)
 
-    rebuild_svn_config(store, props)
+    rebuild_svn_config(store, props, config)
 
     logging.debug("Adding Subversion authentication")
-    passwd = ivle.makeuser.make_svn_auth(store, login,
+    passwd = ivle.makeuser.make_svn_auth(store, login, config,
                                          throw_on_error=True)
 
     logging.debug("Creating jail")
-    ivle.makeuser.make_jail(user)
+    ivle.makeuser.make_jail(user, config)
 
     logging.info("Enabling user")
     user.state = u'enabled'
 
     return {"response": "okay"}
 
-def rebuild_svn_config(store, props):
+def rebuild_svn_config(store, props, config):
     """Rebuilds the svn config file
-    Return value:
-        response (okay, failure)
+    @param config: An ivle.config.Config object.
+    @return: response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_config(store)
+        ivle.makeuser.rebuild_svn_config(store, config)
     except Exception, e:
         logging.warning('Rebuild of Subversion authorization config failed!')
         return{'response': 'failure', 'msg': repr(e)}
 
     return {'response': 'okay'}
 
-def rebuild_svn_group_config(store, props):
+def rebuild_svn_group_config(store, props, config):
     """Rebuilds the svn group config file
-    Return value:
-        response (okay, failure)
+    @param config: An ivle.config.Config object.
+    @return: response (okay, failure)
     """
     try:
-        ivle.makeuser.rebuild_svn_group_config(store)
+        ivle.makeuser.rebuild_svn_group_config(store, config)
     except Exception, e:
         logging.warning(
             'Rebuild of Subversion group authorization config failed!')
@@ -91,12 +95,12 @@ def rebuild_svn_group_config(store, props):
 
     return {'response': 'okay'}
 
-def create_group_repository(store, props):
+def create_group_repository(store, props, config):
     """Creates on disk repository for the given group
+    @param config: An ivle.config.Config object.
     Expected properties:
         subj_short_name, year, semester, groupnm
-    Return value:
-        response (okay, failure)
+    @return: response (okay, failure)
     """
 
     subj_short_name = props['subj_short_name']
@@ -105,7 +109,8 @@ def create_group_repository(store, props):
     groupnm = props['groupnm']
 
     namespace = "_".join([subj_short_name, year, semester, groupnm])
-    repopath = os.path.join(ivle.conf.svn_repo_path, 'groups', namespace)
+    repopath = os.path.join(config['paths']['svn']['repo_path'],
+                            'groups', namespace)
     logging.debug("Creating Subversion repository %s"%repopath)
     try:
         ivle.makeuser.make_svn_repo(repopath)
@@ -126,7 +131,7 @@ actions = {
 def initializer():
     logging.basicConfig(filename="/var/log/usrmgt.log", level=logging.INFO)
     logging.info("Starting usrmgt server on port %d (pid = %d)" %
-                 (ivle.conf.usrmgt_port, pid))
+                 (config['usrmgt']['port'], pid))
 
     try:
         pidfile = open('/var/run/usrmgt-server.pid', 'w')
@@ -139,9 +144,9 @@ def initializer():
 def dispatch(props):
     logging.debug(repr(props))
 
-    store = ivle.database.get_store()
+    store = ivle.database.get_store(config)
     action = props.keys()[0]
-    res = actions[action](store, props[action])
+    res = actions[action](store, props[action], config)
 
     if res['response'] == 'okay':
         store.commit()
@@ -153,5 +158,5 @@ def dispatch(props):
 if __name__ == "__main__":
     pid = os.getpid()
 
-    ivle.chat.start_server(ivle.conf.usrmgt_port, ivle.conf.usrmgt_magic,
+    ivle.chat.start_server(config['usrmgt']['port'],config['usrmgt']['magic'],
                            True, dispatch, initializer)

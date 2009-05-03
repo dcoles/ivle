@@ -21,10 +21,42 @@
 
 This is mainly for the benefit of the link in ivle.webapp.help."""
 
-import ivle.util
+import os.path
+
 import ivle.webapp.security
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
+
+def get_terms_of_service(config):
+    """
+    Sends the Terms of Service document to the req object.
+    This consults conf to find out where the TOS is located on disk, and sends
+    that. If it isn't found, it sends a generic message explaining to admins
+    how to create a real one.
+    """
+    try:
+        return open(os.path.join(config['paths']['data'],
+                    'notices/tos.html')).read()
+    except IOError:
+        return """\
+<p><b>*** SAMPLE ONLY ***</b></p>
+<p>This is the text of the IVLE Terms of Service.</p>
+<p>The administrator should create a license file with an appropriate
+"Terms of Service" license for your organisation.</p>
+<h2>Instructions for Administrators</h2>
+<p>You are seeing this message because you have not configured a Terms of
+Service document.</p>
+<p>When you configured IVLE, you specified a path to the Terms of Service
+document (this is found in <b><tt>ivle/conf/conf.py</tt></b> under
+"<tt>tos_path</tt>").</p>
+<p>Create a file at this location; an HTML file with the appropriately-worded
+license.</p>
+<p>This should be a normal XHTML file, except it should not contain
+<tt>html</tt>, <tt>head</tt> or <tt>body</tt> elements - it should
+just be the contents of a body element (IVLE will wrap it accordingly).</p>
+<p>This will automatically be used as the license text instead of this
+placeholder text.</p>
+"""
 
 class TermsOfServiceView(XHTMLView):
     """View of the Terms of Service, allowing acceptance.
@@ -54,7 +86,7 @@ class TermsOfServiceView(XHTMLView):
         return ivle.webapp.security.get_user_details(req) is not None
 
     def populate(self, req, ctx):
-        ctx['text'] = ivle.util.get_terms_of_service()
+        ctx['text'] = get_terms_of_service(req.config)
 
         if self.mode == 'accept':
             self.plugin_scripts[Plugin] = ['tos.js']

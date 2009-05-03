@@ -25,8 +25,6 @@ import inspect
 import mimetypes
 import email.utils
 
-import ivle.conf
-from ivle.config import Config
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import PublicViewPlugin, ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
@@ -43,12 +41,10 @@ def media_url(req, plugin, path):
     if not isinstance(plugin, basestring):
         plugin = req.config.reverse_plugins[plugin]
 
-    config = Config()
+    media_path = os.path.join('+media', '+' + req.config['media']['version']) \
+                    if req.config['media']['version'] else '+media'
 
-    media_path = os.path.join('+media', '+' + config['media']['version']) if \
-                              config['media']['version'] else '+media'
-
-    return os.path.join(ivle.conf.root_dir, media_path, plugin, path)
+    return req.make_path(os.path.join(media_path, plugin, path))
 
 class BaseMediaFileView(BaseView):
     '''A view for media files.
@@ -130,7 +126,7 @@ class VersionedMediaFileView(MediaFileView):
         self.version = version
 
     def _make_filename(self, req):
-        if self.version != Config()['media']['version']:
+        if self.version != req.config['media']['version']:
             raise NotFound()
 
         # Don't expire for a year.
@@ -165,8 +161,7 @@ class ExternalMediaFileView(BaseMediaFileView):
             raise NotFound()
 
         # Grab the admin-configured path for this particular external dep.
-        config = Config()
-        externdir = config['media']['externals'][extern[0]]
+        externdir = req.config['media']['externals'][extern[0]]
 
         assert isinstance(externdir, basestring)
 
@@ -188,7 +183,7 @@ class ExternalVersionedMediaFileView(ExternalMediaFileView):
         self.version = version
 
     def _make_filename(self, req):
-        if self.version != Config()['media']['version']:
+        if self.version != req.config['media']['version']:
             raise NotFound()
 
         # Don't expire for a year.

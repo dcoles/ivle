@@ -35,6 +35,7 @@ if os.getuid() != 0:
     print "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit(1)
 
+from ivle.config import Config
 from ivle.database import get_store, User
 from ivle.pulldown_subj import enrol_user
 
@@ -80,7 +81,7 @@ login = user['login']
 if 'nick' not in user:
     user['nick'] = user['fullname']
 
-store = get_store()
+store = get_store(Config())
 
 try:
     # Make the user's database entry

@@ -3,7 +3,6 @@ import os, inspect
 import genshi
 import genshi.template
 
-import ivle.conf
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound, Forbidden

@@ -38,9 +38,9 @@ class ConfigError(Exception):
 
 def search_confdir():
     """
-    Search for the config file, and return it as a filename.
+    Search for the config file, and return the directory it is in.
     1. Environment var IVLECONF (path to directory)
-    2. /etc/ivle/ivle.conf
+    2. /etc/ivle
     Raises a ConfigError on error.
     """
     if 'IVLECONF' in os.environ:
@@ -82,6 +82,7 @@ class Config(ConfigObj):
             confdir = search_confdir()
             conffile = os.path.join(confdir, 'ivle.conf')
             super(Config, self).__init__(infile=conffile, configspec=specfile,
+                                         interpolation='template',
                                          *args, **kwargs)
             # XXX This doesn't raise errors if it doesn't validate
             self.validate(Validator())
