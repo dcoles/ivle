@@ -1,0 +1,28 @@
+<li xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:py="http://genshi.edgewall.org/"
+    id='projectset_${ projectset_id }'
+    style="display: none;">
+  <h3>ProjectSet</h3>
+  <p>Max Students Per Group: ${group_size}</p>
+  <ul id="projectslist_${projectset_id}">
+    <py:for each="project in projects">
+      ${project}
+    </py:for>
+  </ul>
+  <a href="#" id="add_new_project_${ projectset_id }"><h3>Add a New Project</h3></a>
+  <div id="new_project_${ projectset_id }">
+    <form class="new_project" method="POST" action="${ new_project_url }">
+      <label for="new_project_name_${ projectset_id }">Name:</label>
+      <input id="new_project_name_${ projectset_id }" type="text" name="name" value="" />
+      <br />
+      <label for="new_project_short_name_${ projectset_id }">Short Name:</label>
+      <input id="new_project_short_name_${ projectset_id }" type="text" name="short_name" value="" />
+      <br />
+      <label for="new_project_syn_${ projectset_id }">Synopsis:</label>
+      <textarea id="new_project_syn_${ projectset_id }" name="synopsis"></textarea>
+      <br />
+      <input type="hidden" name="ivle.op" value="add_project" />
+      <input type="submit" value="Create" id="submit_project_${ projectset_id}" />
+    </form>
+  </div>
+</li>

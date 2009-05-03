@@ -387,6 +387,9 @@ class ProjectSet(Storm):
         return "<%s %d in %r>" % (type(self).__name__, self.id,
                                   self.offering)
 
+    def get_permissions(self, user):
+        return self.offering.get_permissions(user)
+
 class Project(Storm):
     __storm_table__ = "project"
 
@@ -436,6 +439,9 @@ class Project(Storm):
         ps.submitter = who
 
         return ps
+
+    def get_permissions(self, user):
+        return self.project_set.offering.get_permissions(user)
 
 
 class ProjectGroup(Storm):
