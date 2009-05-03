@@ -15,8 +15,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca, Will Grant
+# Author: Matt Giuca, Will Grant, Nick Chadwick
 
+import os
 import cgi
 import urlparse
 import inspect
@@ -167,6 +168,11 @@ class XHTMLRESTView(JSONRESTView):
     def render_fragment(self):
         if self.template is None:
             raise NotImplementedError()
+
+        rest_template = os.path.join(os.path.dirname(
+                inspect.getmodule(self).__file__), self.template)
+        loader = genshi.template.TemplateLoader(".", auto_reload=True)
+        tmpl = loader.load(rest_template)
 
         return tmpl.generate(self.ctx).render('xhtml', doctype='xhtml')
     
