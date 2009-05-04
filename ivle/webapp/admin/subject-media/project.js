@@ -48,6 +48,7 @@ function add_projectset(){
         $('#projectset_' + response.projectset_id).hide();
         $('#projectset_' + response.projectset_id).slideDown();
         $("#add_projectset").removeAttr('disabled');
+        $(".add-project-link").click(show_add);
     };
 
     var data = serializeForm($("#new_projectset_form"));
