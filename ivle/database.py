@@ -592,6 +592,10 @@ class Assessed(Storm):
         return "<%s %r in %r>" % (type(self).__name__,
             self.user or self.project_group, self.project)
 
+    @property
+    def principal(self):
+        return self.project_group or self.user
+
     @classmethod
     def get(cls, store, principal, project):
         """Find or create an Assessed for the given user or group and project.
