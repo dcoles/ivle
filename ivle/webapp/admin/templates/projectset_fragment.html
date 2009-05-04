@@ -2,9 +2,15 @@
     xmlns:py="http://genshi.edgewall.org/"
     id='projectset_${ projectset_id }'
     style="display: none;">
-  <h3>ProjectSet</h3>
-  <p>Max Students Per Group: ${group_size}</p>
-  <a href="+groups"><h4>Administer Groups</h4></a>
+  <py:choose test="group_size">
+    <h3 py:when="None">
+      Solo projects
+    </h3>
+    <h3 py:otherwise="">
+      Group projects - max. ${group_size} students per group
+      <a href="+groups">(administer groups)</a>
+    </h3>
+  </py:choose>
   <py:choose test='len(projects)'>
     <py:when test="0">
       <ul id="projectslist_${projectset_id}" class="emptylist">
