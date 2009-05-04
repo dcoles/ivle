@@ -6,6 +6,10 @@
     <h3 py:when="None">
       Solo projects
     </h3>
+    <h3 py:when="0">
+      Group projects
+      <a href="+groups">(administer groups)</a>
+    </h3>
     <h3 py:otherwise="">
       Group projects - up to ${group_size} students per group
       <a href="+groups">(administer groups)</a>
