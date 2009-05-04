@@ -133,9 +133,9 @@ class EnrolView(XHTMLView):
         ctx['offering'] = self.context
         ctx['errors'] = errors
 
-class SubjectProjectSetView(XHTMLView):
-    """View the ProjectSets for a subject."""
-    template = 'templates/subject_projects.html'
+class OfferingProjectsView(XHTMLView):
+    """View the projects for an offering."""
+    template = 'templates/offering_projects.html'
     permission = 'edit'
     tab = 'subjects'
     
@@ -240,7 +240,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/', SubjectsView),
         ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
-        ('subjects/:subject/:year/:semester/+projects', SubjectProjectSetView),
+        ('subjects/:subject/:year/:semester/+projects', OfferingProjectsView),
         ('subjects/:subject/:year/:semester/+projects/:project', ProjectView),
         #API Views
         ('api/subjects/:subject/:year/:semester/+projectsets/+new',
