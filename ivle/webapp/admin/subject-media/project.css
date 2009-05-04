@@ -2,6 +2,10 @@
   padding: 0;
 }
 
+#projectset_list > li > ul {
+  padding: 0.5em;
+}
+
 #projectset_list > li {
   margin: 0.5em 0;
   border: 2px solid #bbb;
