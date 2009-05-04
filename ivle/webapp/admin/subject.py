@@ -226,7 +226,7 @@ class ProjectView(XHTMLView):
         for assessed in self.context.assesseds:
             if assessed.submissions.count() > 0:
                 ctx['submissions'].append(
-                        assessed.submissions.order_by(ProjectSubmission.date_submitted)[:-1])
+                        assessed.submissions.order_by(ProjectSubmission.date_submitted)[-1])
 
 
 class Plugin(ViewPlugin, MediaPlugin):
