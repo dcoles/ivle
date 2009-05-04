@@ -1,3 +1,14 @@
+#projectset_list > li {
+  margin: 0.5em 0;
+  border: 2px solid #bbb;
+}
+
+#projectset_list > li > h3 {
+  padding: 0.2em;
+  margin: 0;
+  background: #eee;
+}
+
 #add_projectset {
     padding: 10px;
 }
