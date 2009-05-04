@@ -20,24 +20,24 @@
     <py:for each="project in projects">
       ${project}
     </py:for>
+    <li class="add-project">
+      <a href="#" id="add_new_project_${projectset.id}"
+         class="add-project-link">Add a new project</a>
+      <div id="new_project_${projectset.id}">
+        <form class="new_project" method="POST" action="${new_project_url}">
+          <label for="new_project_name_${projectset.id}">Name:</label>
+          <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
+          <br />
+          <label for="new_project_short_name_${projectset.id}">Short Name:</label>
+          <input id="new_project_short_name_${projectset.id}" type="text" name="short_name" value="" />
+          <br />
+          <label for="new_project_syn_${projectset.id}">Synopsis:</label>
+          <textarea id="new_project_syn_${projectset.id}" name="synopsis" rows="6"></textarea>
+          <br />
+          <input type="hidden" name="ivle.op" value="add_project" />
+          <input type="submit" value="Create" id="submit_project_${projectset.id}" class="submit-project" />
+        </form>
+      </div>
+    </li>
   </ul>
-  <div class="add-project">
-    <a href="#" id="add_new_project_${projectset.id}"
-      class="add-project-link">Add a new project</a>
-    <div id="new_project_${projectset.id}">
-      <form class="new_project" method="POST" action="${new_project_url}">
-        <label for="new_project_name_${projectset.id}">Name:</label>
-        <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
-        <br />
-        <label for="new_project_short_name_${projectset.id}">Short Name:</label>
-        <input id="new_project_short_name_${projectset.id}" type="text" name="short_name" value="" />
-        <br />
-        <label for="new_project_syn_${projectset.id}">Synopsis:</label>
-        <textarea id="new_project_syn_${projectset.id}" name="synopsis" rows="6"></textarea>
-        <br />
-        <input type="hidden" name="ivle.op" value="add_project" />
-        <input type="submit" value="Create" id="submit_project_${projectset.id}" class="submit-project" />
-      </form>
-    </div>
-  </div>
 </li>

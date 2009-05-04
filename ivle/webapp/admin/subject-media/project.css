@@ -17,7 +17,7 @@
     padding: 10px;
 }
 
-.add-project {
+.add-project > div{
     width: 600px;
     padding-left: 40px;
 }
