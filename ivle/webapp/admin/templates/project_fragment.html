@@ -2,9 +2,8 @@
     xmlns:py='http://genshi.edgewall.org/'
     id='project_${project.id}'>
   <div class='project-title'>
-    <a href='#' class="delete-project"><img
-        src='/+media/ivle.webapp.core/images/interface/cross.png' /></a>
     <a href='${project_url}'><strong>${project.short_name} - ${project.name}</strong></a>
-  </div><br />
+    <a href='#' class="delete-project"><img src='/+media/ivle.webapp.core/images/interface/cross.png' /></a>
+  </div>
   <pre class='project-synopsis'>${project.synopsis}</pre>
 </li>
