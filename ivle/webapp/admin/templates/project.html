@@ -1,12 +1,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Project - ${project.short_name}</title>
+    <title>${project.name} for ${project.project_set.offering.subject.name}</title>
   </head>
   <body>
-    <h1>Project - ${project.short_name}</h1>
+    <h1>${project.name} for ${project.project_set.offering.subject.name}</h1>
     <div id="ivle_padding">
-      <h2>${project.name}</h2>
       <p>${project.synopsis}</p>
       <p>Submissions: ${len(submissions)}/${project.assesseds.count()}</p>
       <h3>Latest Submissions</h3>
