@@ -1,7 +1,7 @@
 $(document).ready(function(){
     $("#new_projectset_form").submit(add_projectset);
     $(".new_project").submit(add_project);
-    $('li').show('slow');
+    $('li').slideDown();
     $('.add-project-link').click(show_add);
 });
 
@@ -18,17 +18,17 @@ function serializeForm(form){
 
 function add_project(){
 
-    $(this).hide('normal');
+    $(this).slideUp();
     
     function callback(xhr) {
         var response = JSON.parse(xhr.responseText);
         var projectlist = $('#projectslist_' + response.projectset_id);
         var new_element = response.html.split('\n').slice(1).join('\n');
         if (projectlist.hasClass("emptylist")){
-            projectlist.children().hide('normal');
+            projectlist.children().slideUp();
             projectlist.removeClass("emptylist");
         }
-        $(new_element).appendTo(projectlist).hide().show('normal');
+        $(new_element).appendTo(projectlist).hide().slideDown();
     };
 
     var data = serializeForm($(this));
@@ -46,7 +46,7 @@ function add_projectset(){
         var response = JSON.parse(xhr.responseText);
         $('#projectset_list').append(response.html);
         $('#projectset_' + response.projectset_id).hide();
-        $('#projectset_' + response.projectset_id).show('normal');
+        $('#projectset_' + response.projectset_id).slideDown();
         $("#add_projectset").removeAttr('disabled');
     };
 
@@ -61,6 +61,6 @@ function add_projectset(){
 };
 
 function show_add(){
-    $(this).next().toggle('normal');
+    $(this).next().slideToggle();
     return false;
 }
