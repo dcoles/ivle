@@ -15,20 +15,12 @@
       <a href="+groups">(administer groups)</a>
     </h3>
   </py:choose>
-  <py:choose test='len(projects)'>
-    <py:when test="0">
-      <ul id="projectslist_${projectset.id}">
-        <p class="list_empty_indicator">No projects.</p>
-      </ul>
-    </py:when>
-    <py:otherwise>
-      <ul id="projectslist_${projectset.id}">
-        <py:for each="project in projects">
-          ${project}
-        </py:for>
-      </ul>
-    </py:otherwise>
-  </py:choose>
+  <ul id="projectslist_${projectset.id}">
+    <p py:if="len(projects) == 0" class="list_empty_indicator">No projects.</p>
+    <py:for each="project in projects">
+      ${project}
+    </py:for>
+  </ul>
   <div class="add-project">
     <a href="#" id="add_new_project_${projectset.id}"
       class="add-project-link">Add a new project</a>
