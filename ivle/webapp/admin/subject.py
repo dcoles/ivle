@@ -137,6 +137,7 @@ class SubjectProjectSetView(XHTMLView):
     """View the ProjectSets for a subject."""
     template = 'templates/subject_projects.html'
     permission = 'edit'
+    tab = 'subjects'
     
     def __init__(self, req, subject, year, semester):
         self.context = req.store.find(Offering,
@@ -207,6 +208,7 @@ class ProjectView(XHTMLView):
     """View the submissions for a ProjectSet"""
     template = "templates/project.html"
     permission = "edit"
+    tab = 'subjects'
 
     def __init__(self, req, subject, year, semester, project):
         self.context = req.store.find(Project,
