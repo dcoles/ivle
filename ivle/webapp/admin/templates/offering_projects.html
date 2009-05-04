@@ -13,14 +13,14 @@
       </ul>
       <div id="add_projectset">
         <a>Add a new project set</a>
-        <div id="new_projectset_div">
-          <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
+        <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
+          <div id="new_projectset_div">
             <label for="group_size">Group Size:</label>
             <input type="text" name="group_size" id="group_size"></input>
             <input type="submit" id="submit_new_projectset" name="Bob"
                 value="Create Project Set"/>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </body>

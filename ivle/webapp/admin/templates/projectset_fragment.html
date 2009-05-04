@@ -16,15 +16,15 @@
     </h3>
   </py:choose>
   <ul id="projectslist_${projectset.id}">
-    <p py:if="len(projects) == 0" class="list_empty_indicator">No projects.</p>
+    <li py:if="len(projects) == 0" class="list_empty_indicator">No projects.</li>
     <py:for each="project in projects">
       ${project}
     </py:for>
     <li class="add-project">
       <a href="#" id="add_new_project_${projectset.id}"
          class="add-project-link">Add a new project</a>
-      <div id="new_project_${projectset.id}">
-        <form class="new_project" method="POST" action="${new_project_url}">
+      <form id="new_project_${projectset.id}" class="new_project" method="post" action="${new_project_url}">
+        <div>
           <label for="new_project_name_${projectset.id}">Name:</label>
           <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
           <br />
@@ -36,8 +36,8 @@
           <br />
           <input type="hidden" name="ivle.op" value="add_project" />
           <input type="submit" value="Create" id="submit_project_${projectset.id}" class="submit-project" />
-        </form>
-      </div>
+        </div>
+      </form>
     </li>
   </ul>
 </li>
