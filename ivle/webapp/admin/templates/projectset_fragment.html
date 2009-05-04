@@ -17,8 +17,8 @@
   </py:choose>
   <py:choose test='len(projects)'>
     <py:when test="0">
-      <ul id="projectslist_${projectset.id}" class="emptylist">
-        <p>No projects.</p>
+      <ul id="projectslist_${projectset.id}">
+        <p class="list_empty_indicator">No projects.</p>
       </ul>
     </py:when>
     <py:otherwise>
@@ -31,7 +31,7 @@
   </py:choose>
   <div class="add-project">
     <a href="#" id="add_new_project_${projectset.id}"
-      class="add-project-link"><h4>Add a New Project</h4></a>
+      class="add-project-link">Add a new project</a>
     <div id="new_project_${projectset.id}">
       <form class="new_project" method="POST" action="${new_project_url}">
         <label for="new_project_name_${projectset.id}">Name:</label>

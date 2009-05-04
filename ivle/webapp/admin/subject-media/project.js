@@ -18,16 +18,13 @@ function serializeForm(form){
 
 function add_project(){
 
-    $(this).slideUp();
+    $(this.parentNode).slideToggle();
     
     function callback(xhr) {
         var response = JSON.parse(xhr.responseText);
         var projectlist = $('#projectslist_' + response.projectset_id);
         var new_element = response.html.split('\n').slice(1).join('\n');
-        if (projectlist.hasClass("emptylist")){
-            projectlist.children().slideUp();
-            projectlist.removeClass("emptylist");
-        }
+        projectlist.children(".list_empty_indicator").remove()
         $(new_element).appendTo(projectlist).hide().slideDown();
     };
 
