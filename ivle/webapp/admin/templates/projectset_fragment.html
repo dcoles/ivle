@@ -1,8 +1,8 @@
 <li xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
-    id='projectset_${ projectset_id }'
+    id='projectset_${projectset.id}'
     style="display: none;">
-  <py:choose test="group_size">
+  <py:choose test="projectset.max_students_per_group">
     <h3 py:when="None">
       Solo projects
     </h3>
@@ -11,18 +11,18 @@
       <a href="+groups">(administer groups)</a>
     </h3>
     <h3 py:otherwise="">
-      Group projects - up to ${group_size} students per group
+      Group projects - up to ${projectset.max_students_per_group} students per group
       <a href="+groups">(administer groups)</a>
     </h3>
   </py:choose>
   <py:choose test='len(projects)'>
     <py:when test="0">
-      <ul id="projectslist_${projectset_id}" class="emptylist">
+      <ul id="projectslist_${projectset.id}" class="emptylist">
         <p>No projects.</p>
       </ul>
     </py:when>
     <py:otherwise>
-      <ul id="projectslist_${projectset_id}">
+      <ul id="projectslist_${projectset.id}">
         <py:for each="project in projects">
           ${project}
         </py:for>
@@ -30,22 +30,21 @@
     </py:otherwise>
   </py:choose>
   <div class="add-project">
-    <a href="#" id="add_new_project_${ projectset_id }"
+    <a href="#" id="add_new_project_${projectset.id}"
       class="add-project-link"><h4>Add a New Project</h4></a>
-    <div id="new_project_${ projectset_id }">
-      <form class="new_project" method="POST" action="${ new_project_url }">
-        <label for="new_project_name_${ projectset_id }">Name:</label>
-        <input id="new_project_name_${ projectset_id }" type="text" name="name" value="" />
+    <div id="new_project_${projectset.id}">
+      <form class="new_project" method="POST" action="${new_project_url}">
+        <label for="new_project_name_${projectset.id}">Name:</label>
+        <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
         <br />
-        <label for="new_project_short_name_${ projectset_id }">Short Name:</label>
-        <input id="new_project_short_name_${ projectset_id }" type="text" name="short_name" value="" />
+        <label for="new_project_short_name_${projectset.id}">Short Name:</label>
+        <input id="new_project_short_name_${projectset.id}" type="text" name="short_name" value="" />
         <br />
-        <label for="new_project_syn_${ projectset_id }">Synopsis:</label>
-        <textarea id="new_project_syn_${ projectset_id }" name="synopsis" rows="6"></textarea>
+        <label for="new_project_syn_${projectset.id}">Synopsis:</label>
+        <textarea id="new_project_syn_${projectset.id}" name="synopsis" rows="6"></textarea>
         <br />
         <input type="hidden" name="ivle.op" value="add_project" />
-        <input type="submit" value="Create" id="submit_project_${
-            projectset_id}" class="submit-project" />
+        <input type="submit" value="Create" id="submit_project_${projectset.id}" class="submit-project" />
       </form>
     </div>
   </div>

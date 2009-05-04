@@ -183,8 +183,7 @@ class OfferingProjectsView(XHTMLView):
         for projectset in self.context.project_sets:
             settmpl = loader.load(set_fragment)
             setCtx = Context()
-            setCtx['group_size'] = projectset.max_students_per_group
-            setCtx['projectset_id'] = projectset.id
+            setCtx['projectset'] = projectset
             setCtx['new_project_url'] = self.new_project_url(projectset)
             setCtx['projects'] = []
 

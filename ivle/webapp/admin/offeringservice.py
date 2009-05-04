@@ -43,8 +43,7 @@ class OfferingRESTView(XHTMLRESTView):
         req.store.add(new_projectset)
         req.store.flush()
 
-        self.ctx['group_size'] = new_projectset.max_students_per_group
-        self.ctx['projectset_id'] = new_projectset.id
+        self.ctx['projectset'] = new_projectset
         self.ctx['projects'] = []
         self.ctx['new_project_url'] = self.new_project_url(new_projectset)
 
