@@ -44,11 +44,10 @@ class ProjectSetRESTView(XHTMLRESTView):
             raise NotFound()
 
     def _project_url(self, project):
-        return "/subjects/%s/%s/%s/+projectsets/%d/+projects/%s" % \
-                (self.context.offering.subject.short_name, 
+        return "/subjects/%s/%s/%s/+projects/%s" % \
+                (self.context.offering.subject.short_name,
                  self.context.offering.semester.year,
                  self.context.offering.semester.semester,
-                 self.context.id,
                  project.short_name)
 
     @named_operation('edit')

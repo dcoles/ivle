@@ -150,10 +150,12 @@ class SubjectProjectSetView(XHTMLView):
             raise NotFound()
 
     def project_url(self, projectset, project):
-        return "/subjects/" + self.context.subject.short_name + "/" +\
-                self.context.semester.year + "/" + \
-                self.context.semester.semester + "/+projectsets/" +\
-                str(projectset.id) + "/+projects/" + project.short_name
+        return "/subjects/%s/%s/%s/+projects/%s" % (
+                    self.context.subject.short_name,
+                    self.context.semester.year,
+                    self.context.semester.semester,
+                    project.short_name
+                    )
 
     def new_project_url(self, projectset):
         return "/api/subjects/" + self.context.subject.short_name + "/" +\
@@ -206,7 +208,7 @@ class ProjectView(XHTMLView):
     template = "templates/project.html"
     permission = "edit"
 
-    def __init__(self, req, subject, year, semester, projectset, project):
+    def __init__(self, req, subject, year, semester, project):
         self.context = req.store.find(Project,
                 Project.short_name == project,
                 Project.project_set_id == ProjectSet.id,
@@ -237,13 +239,13 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('subjects/', SubjectsView),
         ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
         ('subjects/:subject/:year/:semester/+projects', SubjectProjectSetView),
-        ('subjects/:subject/:year/:semester/+projectsets/:projectset/+projects/:project', ProjectView),
+        ('subjects/:subject/:year/:semester/+projects/:project', ProjectView),
         #API Views
         ('api/subjects/:subject/:year/:semester/+projectsets/+new',
             OfferingRESTView),
         ('api/subjects/:subject/:year/:semester/+projectsets/:projectset/+projects/+new',
             ProjectSetRESTView),
-        ('api/subjects/:subject/:year/:semester/+projectsets/:projectset/+projects/:project', 
+        ('api/subjects/:subject/:year/:semester/+projects/:project', 
             ProjectRESTView),
 
     ]
