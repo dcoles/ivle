@@ -39,6 +39,7 @@ from ivle.webapp.errors import NotFound
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
                           ProjectSet, Project, ProjectSubmission
 from ivle import util
+import ivle.date
 
 from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
                                              ProjectRESTView
@@ -219,6 +220,8 @@ class ProjectView(XHTMLView):
             raise NotFound()
 
     def populate(self, req, ctx):
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+
         ctx['project'] = self.context
         ctx['assesseds'] = self.context.assesseds
 

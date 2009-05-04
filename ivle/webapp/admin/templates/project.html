@@ -8,11 +8,10 @@
     <div id="ivle_padding">
       <h2>${project.name}</h2>
       <p>${project.synopsis}</p>
-      <p>Number of Asesseds - <strong>${project.assesseds.count()}</strong></p>
-      <p>Number of Submissions - <strong>${len(submissions)}</strong></p>
+      <p>Submissions: ${len(submissions)}/${project.assesseds.count()}</p>
       <h3>Latest Submissions</h3>
-      <py:for each='submission in submissions'>
-        <p>Submitted By: <strong>Somebody.</strong></p>
+      <py:for each="submission in submissions">
+        <p>Submitted ${format_datetime_short(submission.date_submitted)} on behalf of <em>${submission.assessed.principal.display_name}</em> by <em>${submission.submitter.display_name}</em></p>
       </py:for>
     </div>
   </body>
