@@ -4,7 +4,6 @@
     <title>Projects for ${offering.subject.name}</title>
   </head>
   <body>
-    <py:def function="project_url(offering, project)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+project/${project.short_name}</py:def>
     <h1>Projects for ${offering.subject.name}</h1>
     <div id="ivle_padding">
       <ul id="projectset_list">
@@ -15,7 +14,7 @@
       <div id="add_projectset">
         <a>Add a new project set</a>
         <div id="new_projectset_div">
-          <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${subject}/${year}/${semester}/+projectsets/+new">
+          <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
             <label for="group_size">Group Size:</label>
             <input type="text" name="group_size" id="group_size"></input>
             <input type="submit" id="submit_new_projectset" name="Bob"

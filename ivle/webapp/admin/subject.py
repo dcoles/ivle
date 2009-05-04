@@ -168,10 +168,6 @@ class OfferingProjectsView(XHTMLView):
         self.plugin_styles[Plugin] = ["project.css"]
         self.plugin_scripts[Plugin] = ["project.js"]
         ctx['offering'] = self.context
-        ctx['subject'] = self.context.subject.short_name
-        ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
-
         ctx['projectsets'] = []
 
         #Open the projectset Fragment, and render it for inclusion
