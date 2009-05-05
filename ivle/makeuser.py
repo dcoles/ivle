@@ -112,7 +112,10 @@ def rebuild_svn_config(store, config):
 """ % {'login': login, 'id': psid, 'path': pspath})
 
         for viewer_login in offering_viewers_cache[offeringid]:
-            f.write("%s = r\n" % viewer_login)
+            # We don't want to override the owner's write privilege,
+            # so we don't add them to the read-only ACL.
+            if login != viewer_login:
+                f.write("%s = r\n" % viewer_login)
 
     f.close()
     os.rename(temp_name, conf_name)
