@@ -43,8 +43,10 @@ class SubmitView(XHTMLView):
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
+
+        # Ensure that the path is absolute (required for SVNAuthzFile).
         # XXX Re-convert to unicode (os.path.normpath(u"/") returns a str).
-        self.path = unicode(os.path.normpath(path))
+        self.path = os.path.join(u"/", unicode(os.path.normpath(path)))
 
         if self.context is None:
             raise NotFound()
@@ -114,7 +116,7 @@ class UserSubmitView(SubmitView):
             Offering.semester_id == Semester.id,
             Semester.state == u'current',
             Offering.subject_id == Subject.id,
-            Subject.short_name == self.path.split('/')[0],
+            Subject.short_name == self.path.split('/')[1],
             ).one()
 
 
