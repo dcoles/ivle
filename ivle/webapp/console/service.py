@@ -81,6 +81,9 @@ class ConsoleServiceRESTView(JSONRESTView):
         working_dir = os.path.join("/home", req.user.login)   # Within jail
         uid = req.user.unixid
 
+        # XXX: JSONRESTView should do this for us.
+        text = text.decode('utf-8')
+
         msg = {'cmd':kind, 'text':text}
         try:
             json_response = ivle.chat.chat(host, port, msg, magic,decode=False)
