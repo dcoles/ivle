@@ -27,8 +27,11 @@ import warnings
 import logging
 import subprocess
 
+from storm.expr import Select, Max
+
 import ivle.config
-from ivle.database import ProjectGroup, User
+from ivle.database import (User, ProjectGroup, Assessed, ProjectSubmission,
+        Project, ProjectSet, Offering, Enrolment)
 
 def chown_to_webserver(filename):
     """chown a directory and its contents to the web server.
@@ -70,6 +73,46 @@ def rebuild_svn_config(store, config):
 [%(login)s:/]
 %(login)s = rw
 """ % {'login': u.login})
+
+    # Now we need to grant offering tutors and lecturers access to the latest
+    # submissions in their offerings. There are much prettier ways to do this,
+    # but a lot of browser requests call this function, so it needs to be
+    # fast. We can grab all of the paths needing authorisation directives with
+    # a single query, and we cache the list of viewers for each offering.
+    offering_viewers_cache = {}
+    for (login, psid, pspath, offeringid) in store.find(
+        (User.login, ProjectSubmission.id, ProjectSubmission.path,
+         Offering.id),
+            Assessed.id == ProjectSubmission.assessed_id,
+            User.id == Assessed.user_id,
+            Project.id == Assessed.project_id,
+            ProjectSet.id == Project.project_set_id,
+            Offering.id == ProjectSet.id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        ):
+
+        # Do we already have the list of logins authorised for this offering
+        # cached? If not, get it.
+        if offeringid not in offering_viewers_cache:
+            offering_viewers_cache[offeringid] = list(store.find(
+                    User.login,
+                    User.id == Enrolment.user_id,
+                    Enrolment.offering_id == offeringid,
+                    Enrolment.role.is_in((u'tutor', u'lecturer'))
+                )
+            )
+
+        f.write("""
+# Submission %(id)d
+[%(login)s:%(path)s]
+""" % {'login': login, 'id': psid, 'path': pspath})
+
+        for viewer_login in offering_viewers_cache[offeringid]:
+            f.write("%s = r\n" % viewer_login)
 
     f.close()
     os.rename(temp_name, conf_name)
