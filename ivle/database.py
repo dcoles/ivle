@@ -28,6 +28,7 @@ import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
+from storm.expr import Select, Max
 from storm.exceptions import NotOneError, IntegrityError
 
 from ivle.worksheet.rst import rst
@@ -516,6 +517,19 @@ class Project(Storm):
 
     def get_permissions(self, user):
         return self.project_set.offering.get_permissions(user)
+
+    @property
+    def latest_submissions(self):
+        """Return the latest submission for each Assessed."""
+        return Store.of(self).find(ProjectSubmission,
+            Assessed.project_id == self.id,
+            ProjectSubmission.assessed_id == Assessed.id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        )
 
 
 class ProjectGroup(Storm):
