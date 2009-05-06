@@ -37,7 +37,10 @@ class OfferingRESTView(XHTMLRESTView):
     def add_projectset(self, req, group_size):
         """Add a new ProjectSet"""
         new_projectset = ProjectSet()
-        new_projectset.max_students_per_group = int(group_size)
+        if group_size == '':
+            new_projectset.max_students_per_group = None
+        else:
+            new_projectset.max_students_per_group = int(group_size)
         new_projectset.offering = self.context
 
         req.store.add(new_projectset)
