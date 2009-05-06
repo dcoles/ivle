@@ -220,9 +220,7 @@ class ProjectView(XHTMLView):
 
     def populate(self, req, ctx):
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
-
         ctx['project'] = self.context
-        ctx['assesseds'] = self.context.assesseds
 
         ctx['submissions'] = []
         for assessed in self.context.assesseds:
@@ -230,7 +228,6 @@ class ProjectView(XHTMLView):
                 ctx['submissions'].append(
                         assessed.submissions.order_by(
                             ProjectSubmission.date_submitted)[-1])
-        ctx['assigned'] = self.context.project_set.assigned
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
