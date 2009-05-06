@@ -230,7 +230,7 @@ class ProjectView(XHTMLView):
                 ctx['submissions'].append(
                         assessed.submissions.order_by(
                             ProjectSubmission.date_submitted)[-1])
-        ctx['assigned'] = self.context.project_set.get_assigned()
+        ctx['assigned'] = self.context.project_set.assigned
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [

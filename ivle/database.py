@@ -386,7 +386,8 @@ class Offering(Storm):
                 Enrolment.role == role
                 )
 
-    def get_students(self):
+    @property
+    def students(self):
         return self.get_members_by_role(u'student')
 
 class Enrolment(Storm):
@@ -448,11 +449,15 @@ class ProjectSet(Storm):
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
 
-    # Get the individuals (groups or users) Assigned to this project
-    def get_assigned(self):
-        #If its a Solo project, return everyone in offering
+    @property
+    def assigned(self):
+        """Get the entities (groups or users) assigned to submit this project.
+
+        This will be a Storm ResultSet.
+        """
+        #If its a solo project, return everyone in offering
         if self.max_students_per_group is None:
-            return self.offering.get_students()
+            return self.offering.students
         else:
             return self.project_groups
 
