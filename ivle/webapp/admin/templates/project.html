@@ -12,6 +12,12 @@
       <py:for each="submission in submissions">
         <p>Submitted ${format_datetime_short(submission.date_submitted)} on behalf of <em>${submission.assessed.principal.display_name}</em> by <em>${submission.submitter.display_name}</em></p>
       </py:for>
+      <table>
+        <tr><th>Assigned</th></tr>
+        <py:for each="assignee in assigned">
+          <tr><td>${assignee.display_name}</td></tr>
+        </py:for>
+      </table>
     </div>
   </body>
 </html>

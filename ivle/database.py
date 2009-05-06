@@ -380,7 +380,8 @@ class Offering(Storm):
         return enrolment
 
     def get_students(self):
-        return self.enrolments.find(role='student')
+        enrolments = self.enrolments.find(role=u'student')
+        return [enrolment.user for enrolment in enrolments]
 
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
