@@ -7,15 +7,16 @@
     <h1>${project.name} for ${project.project_set.offering.subject.name}</h1>
     <div id="ivle_padding">
       <p>${project.synopsis}</p>
-      <p>Submissions: ${len(submissions)}/${project.project_set.assigned.count()}</p>
-      <table border="1" summary="Latest Submissions" py:if="len(submissions) > 0">
+      <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
+      <table border="1" summary="Latest Submissions"
+             py:if="project.latest_submissions.count() > 0">
         <tr>
           <th>Name</th>
           <th>Submitted By</th>
           <th>Time Submitted</th>
           <th>Repository</th>
         </tr>
-      <py:for each="submission in submissions">
+      <py:for each="submission in project.latest_submissions">
         <tr>
           <td>${submission.assessed.principal.display_name}</td>
           <td>${submission.submitter.display_name}</td>
