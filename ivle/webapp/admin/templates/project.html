@@ -7,7 +7,7 @@
     <h1>${project.name} for ${project.project_set.offering.subject.name}</h1>
     <div id="ivle_padding">
       <p>${project.synopsis}</p>
-      <p>Submissions: ${len(submissions)}/${len(assigned)}</p>
+      <p>Submissions: ${len(submissions)}/${assigned.count()}</p>
       <table border="1" summary="Latest Submissions" 
           py:if="len(submissions) > 0">
         <tr>

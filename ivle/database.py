@@ -379,9 +379,15 @@ class Offering(Storm):
 
         return enrolment
 
+    def get_members_by_role(self, role):
+        return Store.of(self).find(User,
+                Enrolment.user_id == User.id,
+                Enrolment.offering_id == self.id,
+                Enrolment.role == role
+                )
+
     def get_students(self):
-        enrolments = self.enrolments.find(role=u'student')
-        return [enrolment.user for enrolment in enrolments]
+        return self.get_members_by_role(u'student')
 
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
