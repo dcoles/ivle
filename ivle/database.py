@@ -379,6 +379,9 @@ class Offering(Storm):
 
         return enrolment
 
+    def get_students(self):
+        return self.enrolments.find(role='student')
+
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
 
@@ -437,6 +440,14 @@ class ProjectSet(Storm):
 
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
+
+    # Get the individuals (groups or users) Assigned to this project
+    def get_assigned(self):
+        #If its a Solo project, return everyone in offering
+        if self.max_students_per_group is None:
+            return self.offering.get_students()
+        else:
+            return self.project_groups
 
 class Project(Storm):
     """A student project for which submissions can be made."""
