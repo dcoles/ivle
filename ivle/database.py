@@ -630,6 +630,11 @@ class Assessed(Storm):
             self.user or self.project_group, self.project)
 
     @property
+    def is_group(self):
+        """True if the Assessed is a group, False if it is a user."""
+        return self.project_group is not None
+
+    @property
     def principal(self):
         return self.project_group or self.user
 

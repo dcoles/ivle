@@ -36,12 +36,13 @@ import ivle.database
 
 from ivle.database import Project, ProjectSet, Offering, Subject
 
-def fetch_submission(submission, target):
+def fetch_submission(submission, target, config):
     """Fetch a submission from a user's repository, and dump it in a given
     directory.
     @param submission: Submission object, detailing the submission.
     @param target: Target directory for the project (will create a
         subdirectory for each submission).
+    @param config: Config object.
     """
     # submission_name is the name of the user or group who owns the repo
     submission_name = submission.assessed.principal.name
@@ -52,6 +53,33 @@ def fetch_submission(submission, target):
     # TODO: Actually get the repo and extract the files
     print "Submission by %s, path %s" % (
         submission.assessed.principal.name, submission.path)
+    url = get_repo_url(submission, config)
+    print "    from %s" % url
+
+def get_repo_url(submission, config):
+    """Gets a local (file:) URL to the repository for a given submission.
+    @param submission: Submission object, detailing the submission.
+    @param config: Config object.
+    """
+    # NOTE: This code is mostly copied from services/usrmgt-server
+    if submission.assessed.is_group:
+        # The offering this group is in
+        offering = submission.assessed.project.project_set.offering
+        groupname = submission.assessed.principal.name
+        # The name of the repository directory within 'groups' is
+        # SUBJECT_YEAR_SEMESTER_GROUP
+        namespace = "_".join([offering.subject.short_name,
+            offering.semester.year, offering.semester.semester, groupname])
+        repo_path = os.path.join(config['paths']['svn']['repo_path'],
+                                'groups', namespace)
+    else:
+        # The name of the repository directory within 'users' is the username
+        username = submission.assessed.principal.name
+        repo_path = os.path.join(config['paths']['svn']['repo_path'],
+                                'users', username)
+
+    # Attach "file://" to the front of the absolute path, to make it a URL
+    return "file://" + os.path.abspath(repo_path)
 
 def main(argv=None):
     global store
@@ -109,7 +137,8 @@ def main(argv=None):
     else:
         cutoff = None
 
-    store = ivle.database.get_store(ivle.config.Config(plugins=False))
+    config = ivle.config.Config(plugins=False)
+    store = ivle.database.get_store(config)
 
     # Get the subject from the DB
     subject = store.find(Subject,
@@ -161,7 +190,7 @@ def main(argv=None):
         os.makedirs(target_dir)
 
     for submission in project.latest_submissions:
-        fetch_submission(submission, target_dir)
+        fetch_submission(submission, target_dir, config)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
