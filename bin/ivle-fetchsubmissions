@@ -27,6 +27,8 @@ import os
 import datetime
 import optparse
 
+import pysvn
+
 if os.getuid() != 0:
     print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
     sys.exit()
@@ -36,7 +38,7 @@ import ivle.database
 
 from ivle.database import Project, ProjectSet, Offering, Subject
 
-def fetch_submission(submission, target, config):
+def fetch_submission(submission, target, svnclient, config):
     """Fetch a submission from a user's repository, and dump it in a given
     directory.
     @param submission: Submission object, detailing the submission.
@@ -51,10 +53,15 @@ def fetch_submission(submission, target, config):
     if not os.path.exists(target_final):
         os.makedirs(target_final)
     # TODO: Actually get the repo and extract the files
-    print "Submission by %s, path %s" % (
-        submission.assessed.principal.name, submission.path)
+    print "Submission by %s, path %s, revision %d" % (
+        submission.assessed.principal.name, submission.path,
+        submission.revision)
     url = get_repo_url(submission, config)
     print "    from %s" % url
+    revision = pysvn.Revision(pysvn.opt_revision_kind.number,
+                              submission.revision)
+    svnclient.export(url, target_final, force=True,
+        revision=revision, recurse=True)
 
 def get_repo_url(submission, config):
     """Gets a local (file:) URL to the repository for a given submission.
@@ -144,6 +151,7 @@ def main(argv=None):
     else:
         cutoff = None
 
+    svnclient = pysvn.Client()
     config = ivle.config.Config(plugins=False)
     store = ivle.database.get_store(config)
 
@@ -197,7 +205,7 @@ def main(argv=None):
         os.makedirs(target_dir)
 
     for submission in project.latest_submissions:
-        fetch_submission(submission, target_dir, config)
+        fetch_submission(submission, target_dir, svnclient, config)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
