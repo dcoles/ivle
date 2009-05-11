@@ -312,6 +312,7 @@ class InstallList(object):
     list_user_binaries = [
         "bin/ivle-enrol",
         "bin/ivle-enrolallusers",
+        "bin/ivle-fetchsubmissions",
         "bin/ivle-listusers",
         "bin/ivle-makeuser",
         "bin/ivle-marks",
