@@ -28,6 +28,7 @@ import shutil
 import datetime
 import optparse
 import zipfile
+import traceback
 
 import pysvn
 
@@ -237,9 +238,9 @@ def main(argv=None):
         except Exception, e:
             # Catch all exceptions (to ensure if one student has a problem, it
             # is reported, and we can continue)
-            print >>sys.stderr, "%s: %s: %s" % (
-                submission.assessed.principal.display_name,
-                type(e).__name__, e)
+            print >>sys.stderr, "ERROR on submission for %s:" % (
+                submission.assessed.principal.display_name)
+            traceback.print_exc(e)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
