@@ -27,7 +27,6 @@ import os
 import csv
 import datetime
 import optparse
-from xml.dom import minidom
 
 if os.getuid() != 0:
     print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
