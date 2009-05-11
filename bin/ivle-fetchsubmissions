@@ -149,12 +149,6 @@ def main(argv=None):
         help="Semester of the subject's offering (eg. 2009/1). "
              "Defaults to the currently active semester.",
         default=None)
-    # XXX -c has no effect
-    parser.add_option("-c", "--cutoff",
-        action="store", dest="cutoff", metavar="DATE",
-        help="Cutoff date (retrieve the submissions as of this date)."
-             "YYYY-MM-DD H:M:S.",
-        default=None)
     parser.add_option("-d", "--dest",
         action="store", dest="dest", metavar="PATH",
         help="Destination directory (default to '.', creates a subdirectory, "
@@ -182,16 +176,6 @@ def main(argv=None):
                 raise ValueError()
         except ValueError:
             parser.error('Invalid semester (must have form "year/semester")')
-
-    if options.cutoff is not None:
-        try:
-            cutoff = datetime.datetime.strptime(options.cutoff,
-                                                "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            parser.error("Invalid date format: '%s' "
-                         "(must be YYYY-MM-DD H:M:S)." % options.cutoff)
-    else:
-        cutoff = None
 
     svnclient = pysvn.Client()
     config = ivle.config.Config(plugins=False)
