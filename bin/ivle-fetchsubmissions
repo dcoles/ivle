@@ -58,6 +58,8 @@ def fetch_submission(submission, target, config):
 
 def get_repo_url(submission, config):
     """Gets a local (file:) URL to the repository for a given submission.
+    This will consult submission.path to find the path within the repository
+    to check out.
     @param submission: Submission object, detailing the submission.
     @param config: Config object.
     """
@@ -78,8 +80,13 @@ def get_repo_url(submission, config):
         repo_path = os.path.join(config['paths']['svn']['repo_path'],
                                 'users', username)
 
+    path_in_repo = submission.path
+    # Change an absolute path into a relative one (to the top of SVN)
+    if path_in_repo[:1] == os.sep or path_in_repo[:1] == os.altsep:
+        path_in_repo = path_in_repo[1:]
+
     # Attach "file://" to the front of the absolute path, to make it a URL
-    return "file://" + os.path.abspath(repo_path)
+    return "file://" + os.path.join(os.path.abspath(repo_path), path_in_repo)
 
 def main(argv=None):
     global store
