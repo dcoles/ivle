@@ -97,8 +97,11 @@ def main(argv=None):
 
     usage = """usage: %prog [options] subject projname
     (requires root)
-    Retrieves all submissions for a given project.
-    projname is the project's short name."""
+    Retrieves all submissions for a given project. Places each submission in
+    its own directory, in a subdirectory of '.'. Any errors are reported to
+    stderr (otherwise is silent).
+    subject/projname is the subject/project's short name.
+    """
 
     # Parse arguments
     parser = optparse.OptionParser(usage)
