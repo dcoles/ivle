@@ -110,6 +110,7 @@ def main(argv=None):
         help="Semester of the subject's offering (eg. 2009/1). "
              "Defaults to the currently active semester.",
         default=None)
+    # XXX -c has no effect
     parser.add_option("-c", "--cutoff",
         action="store", dest="cutoff", metavar="DATE",
         help="Cutoff date (retrieve the submissions as of this date)."
@@ -120,6 +121,11 @@ def main(argv=None):
         help="Destination directory (default to '.', creates a subdirectory, "
             "so will not pollute PATH).",
         default=".")
+    # XXX -z has no effect
+    parser.add_option("-z", "--zip",
+        action="store_true", dest="zip",
+        help="Store each submission in a Zip file.",
+        default=False)
     (options, args) = parser.parse_args(argv[1:])
 
     if len(args) < 2:
