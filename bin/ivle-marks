@@ -144,7 +144,7 @@ def main(argv=None):
     else:
         cutoff = None
 
-    store = ivle.database.get_store(ivle.config.Config())
+    store = ivle.database.get_store(ivle.config.Config(plugins=False))
 
     # Get the subject from the DB
     subject = store.find(ivle.database.Subject,
