@@ -14,7 +14,8 @@
           <th>Name</th>
           <th>Submitted By</th>
           <th>Time Submitted</th>
-          <th>Repository</th>
+          <th>Repository Path</th>
+          <th>Revision</th>
         </tr>
       <py:for each="submission in project.latest_submissions">
         <tr>
@@ -22,6 +23,7 @@
           <td>${submission.submitter.display_name}</td>
           <td>${submission.date_submitted}</td>
           <td>${submission.path}</td>
+          <td>${submission.revision}</td>
         </tr>
       </py:for>
       </table>
