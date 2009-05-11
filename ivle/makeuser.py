@@ -136,6 +136,7 @@ def rebuild_svn_group_config(store, config):
 
 """ % {'time': time.asctime()})
 
+    group_members_cache = {}
     for group in store.find(ProjectGroup):
         offering = group.project_set.offering
         reponame = "_".join([offering.subject.short_name,
@@ -144,7 +145,10 @@ def rebuild_svn_group_config(store, config):
                              group.name])
 
         f.write("[%s:/]\n" % reponame)
+        if group.id not in group_members_cache:
+            group_members_cache[group.id] = set()
         for user in group.members:
+            group_members_cache[group.id].add(user.login)
             f.write("%s = rw\n" % user.login)
         f.write("\n")
 
@@ -154,10 +158,10 @@ def rebuild_svn_group_config(store, config):
     # fast. We can grab all of the paths needing authorisation directives with
     # a single query, and we cache the list of viewers for each offering.
     offering_viewers_cache = {}
-    for (ssn, year, sem, name, psid, pspath, offeringid) in store.find(
+    for (ssn, year, sem, name, psid, pspath, gid, offeringid) in store.find(
         (Subject.short_name, Semester.year, Semester.semester,
          ProjectGroup.name, ProjectSubmission.id, ProjectSubmission.path,
-         Offering.id),
+         ProjectGroup.id, Offering.id),
             Assessed.id == ProjectSubmission.assessed_id,
             ProjectGroup.id == Assessed.project_group_id,
             Project.id == Assessed.project_id,
@@ -191,8 +195,9 @@ def rebuild_svn_group_config(store, config):
 """ % {'repo': reponame, 'id': psid, 'path': pspath})
 
         for viewer_login in offering_viewers_cache[offeringid]:
-            # TODO: Skip existing group members.
-            f.write("%s = r\n" % viewer_login)
+            # Skip existing group members, or they can't write to it any more.
+            if viewer_login not in group_members_cache[gid]:
+                f.write("%s = r\n" % viewer_login)
 
     f.close()
     os.rename(temp_name, conf_name)
