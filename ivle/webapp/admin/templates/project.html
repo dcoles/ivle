@@ -21,7 +21,7 @@
         <tr>
           <td>${submission.assessed.principal.display_name}</td>
           <td>${submission.submitter.display_name}</td>
-          <td>${submission.date_submitted}</td>
+          <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
           <td>${submission.path}</td>
           <td>${submission.revision}</td>
         </tr>
