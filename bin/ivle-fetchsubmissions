@@ -52,12 +52,7 @@ def fetch_submission(submission, target, svnclient, config):
     target_final = os.path.join(target, submission.assessed.principal.name)
     if not os.path.exists(target_final):
         os.makedirs(target_final)
-    # TODO: Actually get the repo and extract the files
-    print "Submission by %s, path %s, revision %d" % (
-        submission.assessed.principal.name, submission.path,
-        submission.revision)
     url = get_repo_url(submission, config)
-    print "    from %s" % url
     revision = pysvn.Revision(pysvn.opt_revision_kind.number,
                               submission.revision)
     svnclient.export(url, target_final, force=True,
