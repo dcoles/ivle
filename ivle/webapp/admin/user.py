@@ -55,7 +55,7 @@ class UserRESTView(JSONRESTView):
         return user
 
 class UserSettingsView(XHTMLView):
-    template = 'user-settings.html'
+    template = 'templates/user-settings.html'
     tab = 'settings'
     permission = 'edit'
 
