@@ -200,7 +200,14 @@ def main(argv=None):
         os.makedirs(target_dir)
 
     for submission in project.latest_submissions:
-        fetch_submission(submission, target_dir, svnclient, config)
+        try:
+            fetch_submission(submission, target_dir, svnclient, config)
+        except Exception, e:
+            # Catch all exceptions (to ensure if one student has a problem, it
+            # is reported, and we can continue)
+            print >>sys.stderr, "%s: %s: %s" % (
+                submission.assessed.principal.display_name,
+                type(e).__name__, e)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
