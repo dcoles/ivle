@@ -146,7 +146,7 @@ def make_zip(source, dest):
             raise OSError("Could not access a file (zipping)")
         for (dirpath, dirnames, filenames) in \
             os.walk(source, onerror=error):
-            arc_dirpath = os.path.relpath(dirpath, relativeto)
+            arc_dirpath = ivle.util.relpath(dirpath, relativeto)
             # Python < 2.6 errors if you add a directory
             # (This means you can't add an empty directory)
             if PYTHON26:
