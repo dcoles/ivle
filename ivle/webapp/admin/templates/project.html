@@ -8,24 +8,28 @@
     <div id="ivle_padding">
       <p>${project.synopsis}</p>
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
-      <table border="1" summary="Latest Submissions"
+      <table id="project_submissions" summary="Latest Submissions"
              py:if="project.latest_submissions.count() > 0">
-        <tr>
-          <th>Who</th>
-          <th>By</th>
-          <th>Date</th>
-          <th>Download</th>
-        </tr>
-      <py:for each="submission in project.latest_submissions">
-        <tr>
-          <td>${submission.assessed.principal.display_name}</td>
-          <td>${submission.submitter.display_name}</td>
-          <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
-          <td>svn co --username ${user.login} -r${submission.revision} ${build_subversion_url(svn_addr, submission)}</td>
-        </tr>
-      </py:for>
+        <thead>
+          <tr>
+            <th>Who</th>
+            <th>By</th>
+            <th>Date</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+        <py:for each="submission in project.latest_submissions">
+          <tr>
+            <td>${submission.assessed.principal.display_name}</td>
+            <td>${submission.submitter.display_name}</td>
+            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
+            <td>svn co --username ${user.login} -r${submission.revision} ${build_subversion_url(svn_addr, submission)}</td>
+          </tr>
+        </py:for>
+        </tbody>
       </table>
-      <table>
+      <table id="project_assigneds">
         <tr><th>Assigned</th></tr>
         <py:for each="assignee in project.project_set.assigned">
           <tr>
