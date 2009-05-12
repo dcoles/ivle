@@ -41,6 +41,7 @@ if os.getuid() != 0:
 
 import ivle.config
 import ivle.database
+import ivle.util
 
 from ivle.database import Project, ProjectSet, Offering, Subject
 
@@ -79,7 +80,7 @@ def fetch_submission(submission, target, svnclient, config, zip=False,
     if zip:
         make_zip(target_final, target_final + ".zip")
         # Remove the target tree
-        shutil.rmtree(target_final)
+        ivle.util.safe_rmtree(target_final)
 
 def get_repo_url(submission, config):
     """Gets a local (file:) URL to the repository for a given submission.

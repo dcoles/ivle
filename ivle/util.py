@@ -22,6 +22,8 @@
 # Contains common utility functions.
 
 import os
+import sys
+import stat
 
 class IVLEError(Exception):
     """Legacy general IVLE exception.
@@ -184,3 +186,55 @@ def object_to_dict(attrnames, obj):
     """
     return dict((k, getattr(obj, k))
         for k in attrnames if not k.startswith('_'))
+
+def safe_rmtree(path, ignore_errors=False, onerror=None):
+    """Recursively delete a directory tree.
+
+    Copied from shutil.rmtree from Python 2.6, which does not follow symbolic
+    links (it is otherwise unsafe to call as root on untrusted directories; do
+    not use shutil.rmtree in this case, as you may be running Python 2.5).
+
+    If ignore_errors is set, errors are ignored; otherwise, if onerror
+    is set, it is called to handle the error with arguments (func,
+    path, exc_info) where func is os.listdir, os.remove, or os.rmdir;
+    path is the argument to that function that caused it to fail; and
+    exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+    is false and onerror is None, an exception is raised.
+
+    """
+    if ignore_errors:
+        def onerror(*args):
+            pass
+    elif onerror is None:
+        def onerror(*args):
+            raise
+    try:
+        if os.path.islink(path):
+            # symlinks to directories are forbidden, see bug #1669
+            raise OSError("Cannot call safe_rmtree on a symbolic link")
+    except OSError:
+        onerror(os.path.islink, path, sys.exc_info())
+        # can't continue even if onerror hook returns
+        return
+    names = []
+    try:
+        names = os.listdir(path)
+    except os.error, err:
+        onerror(os.listdir, path, sys.exc_info())
+    for name in names:
+        fullname = os.path.join(path, name)
+        try:
+            mode = os.lstat(fullname).st_mode
+        except os.error:
+            mode = 0
+        if stat.S_ISDIR(mode):
+            safe_rmtree(fullname, ignore_errors, onerror)
+        else:
+            try:
+                os.remove(fullname)
+            except os.error, err:
+                onerror(os.remove, fullname, sys.exc_info())
+    try:
+        os.rmdir(path)
+    except os.error:
+        onerror(os.rmdir, path, sys.exc_info())
