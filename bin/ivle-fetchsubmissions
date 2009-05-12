@@ -58,9 +58,10 @@ def fetch_submission(submission, target, svnclient, config, zip=False,
         submission.
     """
     # submission_name is the name of the user or group who owns the repo
-    submission_name = submission.assessed.principal.name
+    submission_name = submission.assessed.principal.short_name
     # target_final is the directory to place the files in
-    target_final = os.path.join(target, submission.assessed.principal.name)
+    target_final = os.path.join(target,
+                                submission.assessed.principal.short_name)
     if not os.path.exists(target_final):
         os.makedirs(target_final)
     url = get_repo_url(submission, config)
@@ -91,7 +92,7 @@ def get_repo_url(submission, config):
     if submission.assessed.is_group:
         # The offering this group is in
         offering = submission.assessed.project.project_set.offering
-        groupname = submission.assessed.principal.name
+        groupname = submission.assessed.principal.short_name
         # The name of the repository directory within 'groups' is
         # SUBJECT_YEAR_SEMESTER_GROUP
         namespace = "_".join([offering.subject.short_name,
@@ -100,7 +101,7 @@ def get_repo_url(submission, config):
                                 'groups', namespace)
     else:
         # The name of the repository directory within 'users' is the username
-        username = submission.assessed.principal.name
+        username = submission.assessed.principal.short_name
         repo_path = os.path.join(config['paths']['svn']['repo_path'],
                                 'users', username)
 
