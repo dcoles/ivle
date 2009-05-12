@@ -8,7 +8,7 @@
     <div id="ivle_padding">
       <p>${project.synopsis}</p>
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
-      <table id="project_submissions" summary="Latest Submissions"
+      <table id="project_submissions" class="project_list" summary="Latest Submissions"
              py:if="project.latest_submissions.count() > 0">
         <thead>
           <tr>
@@ -32,14 +32,17 @@
         </py:for>
         </tbody>
       </table>
-      <table id="project_assigneds">
-        <tr><th>Assigned</th></tr>
+      <br />
+      <table id="project_assigneds" class="project_list">
+        <thead><tr><th>Assigned</th></tr></thead>
+        <tbody>
         <py:for each="assignee in project.project_set.assigned">
           <tr>
             <td><span title="${assignee.display_name}">${assignee.short_name}</span></td>
             <!-- <td><a>Grant an extension</a></td> -->
           </tr>
         </py:for>
+        </tbody>
       </table>
     </div>
   </body>
