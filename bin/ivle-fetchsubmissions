@@ -44,7 +44,8 @@ import ivle.database
 
 from ivle.database import Project, ProjectSet, Offering, Subject
 
-def fetch_submission(submission, target, svnclient, config, zip=False):
+def fetch_submission(submission, target, svnclient, config, zip=False,
+    txt=False):
     """Fetch a submission from a user's repository, and dump it in a given
     directory.
     @param submission: Submission object, detailing the submission.
@@ -53,6 +54,8 @@ def fetch_submission(submission, target, svnclient, config, zip=False):
     @param svnclient: pysvn.Client object.
     @param config: Config object.
     @param zip: If True, zips up the submission.
+    @param txt: If True, writes an extra text file with metadata about the
+        submission.
     """
     # submission_name is the name of the user or group who owns the repo
     submission_name = submission.assessed.principal.name
@@ -66,9 +69,10 @@ def fetch_submission(submission, target, svnclient, config, zip=False):
     svnclient.export(url, target_final, force=True,
         revision=revision, recurse=True)
 
-    # info_final is the directory to place the metadata info files in
-    info_final = target_final + ".txt"
-    write_submission_info(info_final, submission)
+    if txt:
+        # info_final is the directory to place the metadata info files in
+        info_final = target_final + ".txt"
+        write_submission_info(info_final, submission)
 
     # If required, zip up the directory
     if zip:
@@ -193,6 +197,10 @@ def main(argv=None):
         action="store_true", dest="zip",
         help="Store each submission in a Zip file.",
         default=False)
+    parser.add_option("--no-txt",
+        action="store_false", dest="txt",
+        help="Disable writing a text file with data about each submission.",
+        default=True)
     (options, args) = parser.parse_args(argv[1:])
 
     if len(args) < 2:
@@ -268,7 +276,7 @@ def main(argv=None):
     for submission in project.latest_submissions:
         try:
             fetch_submission(submission, target_dir, svnclient, config,
-                             zip=options.zip)
+                             zip=options.zip, txt=options.txt)
         except Exception, e:
             # Catch all exceptions (to ensure if one student has a problem, it
             # is reported, and we can continue)
