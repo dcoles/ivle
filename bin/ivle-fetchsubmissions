@@ -159,13 +159,13 @@ def write_submission_info(filename, submission):
             # A solo project
             # Only show the two fields if they are different (only in rare
             # circumstances)
-            print >>f, "Author: %s (%s)" % (
-                submission.assessed.principal.short_name,
-                submission.assessed.principal.display_name)
-        if submission.assessed.principal != submission.submitter:
-            print >>f, "Submitter: %s (%s)" % (
-                submission.submitter.short_name,
-                submission.submitter.display_name)
+            if submission.assessed.principal != submission.submitter:
+                print >>f, "Author: %s (%s)" % (
+                    submission.assessed.principal.short_name,
+                    submission.assessed.principal.display_name)
+        print >>f, "Submitter: %s (%s)" % (
+            submission.submitter.short_name,
+            submission.submitter.display_name)
         print >>f, "Date: %s" % (
             submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S"))
         print >>f, "SVN Revision: %s" % submission.revision
