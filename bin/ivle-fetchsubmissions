@@ -22,10 +22,13 @@
 # Script to retrieve all submissions for a particular project.
 # Requires root to run.
 
+from __future__ import with_statement
+
 import sys
 import os
 import shutil
 import datetime
+import codecs
 import optparse
 import zipfile
 import traceback
@@ -62,6 +65,10 @@ def fetch_submission(submission, target, svnclient, config, zip=False):
                               submission.revision)
     svnclient.export(url, target_final, force=True,
         revision=revision, recurse=True)
+
+    # info_final is the directory to place the metadata info files in
+    info_final = target_final + ".txt"
+    write_submission_info(info_final, submission)
 
     # If required, zip up the directory
     if zip:
@@ -129,6 +136,33 @@ def make_zip(source, dest):
                             os.path.join(arc_dirpath, filename))
 
     zip.close()
+
+def write_submission_info(filename, submission):
+    """Write human-readable meta-data about a submission to a file.
+    @param filename: Filename to write to.
+    @param submission: Submission object.
+    """
+    with codecs.open(filename, 'w', 'utf-8') as f:
+        if submission.assessed.is_group:
+            # A group project
+            print >>f, "Group: %s (%s)" % (
+                submission.assessed.principal.short_name,
+                submission.assessed.principal.display_name)
+        else:
+            # A solo project
+            # Only show the two fields if they are different (only in rare
+            # circumstances)
+            print >>f, "Author: %s (%s)" % (
+                submission.assessed.principal.short_name,
+                submission.assessed.principal.display_name)
+        if submission.assessed.principal != submission.submitter:
+            print >>f, "Submitter: %s (%s)" % (
+                submission.submitter.short_name,
+                submission.submitter.display_name)
+        print >>f, "Date: %s" % (
+            submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S"))
+        print >>f, "SVN Revision: %s" % submission.revision
+        print >>f, "SVN Path: %s" % submission.path
 
 def main(argv=None):
     global store
