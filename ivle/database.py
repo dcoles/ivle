@@ -559,7 +559,7 @@ class ProjectGroup(Storm):
 
     @property
     def display_name(self):
-        return '%s (%s)' % (self.nick, self.name)
+        return self.name
 
     def get_projects(self, offering=None, active_only=True):
         '''Find projects that the group can submit.
