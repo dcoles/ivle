@@ -45,6 +45,9 @@ import ivle.util
 
 from ivle.database import Project, ProjectSet, Offering, Subject
 
+# Is Python version 2.6 or higher?
+PYTHON26 = map(int, sys.version[:3].split('.')) >= [2, 6]
+
 def fetch_submission(submission, target, svnclient, config, zip=False,
     txt=False):
     """Fetch a submission from a user's repository, and dump it in a given
@@ -119,6 +122,8 @@ def get_repo_url(submission, config):
 def make_zip(source, dest):
     """Zip up a directory tree or file. The ZIP file will always contain just
     a single directory or file at the top level (it will not be a ZIP bomb).
+    XXX In Python 2.5 and earlier, this does NOT create empty directories
+    (it's not possible with the Python2.5 version of zipfile).
     @param source: Path to a directory or file to zip up.
     @param dest: Path to a zip file to create.
     """
@@ -127,7 +132,10 @@ def make_zip(source, dest):
 
     # Write the source file/directory itself
     # (If this is a directory it will NOT recurse)
-    zip.write(source, os.path.basename(source))
+    if PYTHON26 or not os.path.isdir(source):
+        # Python < 2.6 errors if you add a directory
+        # (This means you can't add an empty directory)
+        zip.write(source, os.path.basename(source))
 
     if os.path.isdir(source):
         # All paths within the zip file are relative to relativeto
@@ -139,10 +147,21 @@ def make_zip(source, dest):
         for (dirpath, dirnames, filenames) in \
             os.walk(source, onerror=error):
             arc_dirpath = os.path.relpath(dirpath, relativeto)
-            for filename in dirnames + filenames:
+            # Python < 2.6 errors if you add a directory
+            # (This means you can't add an empty directory)
+            if PYTHON26:
+                filenames = dirnames + filenames
+            for filename in filenames:
                 zip.write(os.path.join(dirpath, filename),
                             os.path.join(arc_dirpath, filename))
 
+    if not PYTHON26:
+        # XXX Write this _didModify attribute of zip, to trick it into writing
+        # footer bytes even if there are no files in the archive (otherwise it
+        # writes a 0-byte archive which is invalid).
+        # Note that in Python2.6 we avoid this by always writing the top-level
+        # file or directory, at least.
+        zip._didModify = True
     zip.close()
 
 def write_submission_info(filename, submission):
