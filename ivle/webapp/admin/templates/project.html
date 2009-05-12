@@ -12,8 +12,8 @@
              py:if="project.latest_submissions.count() > 0">
         <thead>
           <tr>
-            <th>Who</th>
-            <th>By</th>
+            <th>Group</th>
+            <th>Submitter</th>
             <th>Date</th>
             <th>Download</th>
           </tr>
@@ -21,7 +21,10 @@
         <tbody>
         <py:for each="submission in project.latest_submissions">
           <tr>
-            <td>${submission.assessed.principal.display_name}</td>
+          <py:choose test="submission.assessed.principal is submission.submitter">
+            <td py:when="True">-</td>
+            <td py:otherwise="">${submission.assessed.principal.display_name}</td>
+          </py:choose>
             <td>${submission.submitter.display_name}</td>
             <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
             <td>svn co --username ${user.login} -r${submission.revision} ${build_subversion_url(svn_addr, submission)}</td>
