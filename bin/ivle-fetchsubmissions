@@ -63,6 +63,7 @@ def fetch_submission(submission, target, svnclient, config, zip=False,
     # target_final is the directory to place the files in
     target_final = os.path.join(target,
                                 submission.assessed.principal.short_name)
+    target_final = target_final.encode('utf-8')
     if os.path.exists(target_final):
         # Remove the existing directory before re-checking out
         ivle.util.safe_rmtree(target_final)
