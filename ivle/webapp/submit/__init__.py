@@ -31,6 +31,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
 
 import ivle.date
+import ivle.chat
 
 
 class SubmitView(XHTMLView):
@@ -91,6 +92,33 @@ class SubmitView(XHTMLView):
                 raise BadRequest('Specified project does not exist')
 
             project.submit(self.context, self.path, revision, req.user)
+
+            # The Subversion configuration needs to be updated, to grant
+            # tutors and lecturers access to this submission. We have to 
+            # commit early so usrmgt-server can see the new submission.
+            req.store.commit()
+
+            # Instruct usrmgt-server to rebuild the SVN group authz file.
+            msg = {'rebuild_svn_group_config': {}}
+            usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
+                                    req.config['usrmgt']['port'],
+                                    msg,
+                                    req.config['usrmgt']['magic'],
+                                    )
+
+            if usrmgt.get('response') in (None, 'failure'):
+                raise Exception("Failure creating repository: " + str(usrmgt))
+
+            # Instruct usrmgt-server to rebuild the SVN user authz file.
+            msg = {'rebuild_svn_config': {}}
+            usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
+                                    req.config['usrmgt']['port'],
+                                    msg,
+                                    req.config['usrmgt']['magic'],
+                                    )
+
+            if usrmgt.get('response') in (None, 'failure'):
+                raise Exception("Failure creating repository: " + str(usrmgt))
 
             self.template = 'submitted.html'
             ctx['project'] = project
