@@ -1,7 +1,7 @@
 $(document).ready(function(){
     $("#new_projectset_form").submit(add_projectset);
     $(".new_project").submit(add_project);
-    //$('li').show();
+    $('li').show();
     $('.add-project-link').click(show_add);
 });
 
