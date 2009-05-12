@@ -282,7 +282,7 @@ def main(argv=None):
             # is reported, and we can continue)
             print >>sys.stderr, "ERROR on submission for %s:" % (
                 submission.assessed.principal.display_name)
-            traceback.print_exc(e)
+            traceback.print_exc()
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
