@@ -11,19 +11,17 @@
       <table border="1" summary="Latest Submissions"
              py:if="project.latest_submissions.count() > 0">
         <tr>
-          <th>Name</th>
-          <th>Submitted By</th>
-          <th>Time Submitted</th>
-          <th>Repository Path</th>
-          <th>Revision</th>
+          <th>Who</th>
+          <th>By</th>
+          <th>Date</th>
+          <th>Download</th>
         </tr>
       <py:for each="submission in project.latest_submissions">
         <tr>
           <td>${submission.assessed.principal.display_name}</td>
           <td>${submission.submitter.display_name}</td>
           <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
-          <td>${submission.path}</td>
-          <td>${submission.revision}</td>
+          <td>svn co --username ${user.login} -r${submission.revision} ${build_subversion_url(svn_addr, submission)}</td>
         </tr>
       </py:for>
       </table>

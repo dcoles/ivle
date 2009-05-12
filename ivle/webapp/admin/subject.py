@@ -23,7 +23,9 @@
 # A sample / testing application for IVLE.
 
 import os
+import os.path
 import urllib
+import urlparse
 import cgi
 
 from storm.locals import Desc
@@ -218,9 +220,30 @@ class ProjectView(XHTMLView):
         if self.context is None:
             raise NotFound()
 
+    def build_subversion_url(self, svnroot, submission):
+        princ = submission.assessed.principal
+
+        if isinstance(princ, User):
+            path = 'users/%s' % princ.login
+        else:
+            path = 'groups/%s_%s_%s_%s' % (
+                    princ.project_set.offering.subject.short_name,
+                    princ.project_set.offering.semester.year,
+                    princ.project_set.offering.semester.semester,
+                    princ.name
+                    )
+        return urlparse.urljoin(
+                    svnroot,
+                    os.path.join(path, submission.path[1:] if
+                                       submission.path.startswith(os.sep) else
+                                       submission.path))
+
     def populate(self, req, ctx):
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['build_subversion_url'] = self.build_subversion_url
+        ctx['svn_addr'] = req.config['urls']['svn_addr']
         ctx['project'] = self.context
+        ctx['user'] = req.user
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
