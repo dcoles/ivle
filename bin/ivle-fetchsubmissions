@@ -63,8 +63,9 @@ def fetch_submission(submission, target, svnclient, config, zip=False,
     # target_final is the directory to place the files in
     target_final = os.path.join(target,
                                 submission.assessed.principal.short_name)
-    if not os.path.exists(target_final):
-        os.makedirs(target_final)
+    if os.path.exists(target_final):
+        # Remove the existing directory before re-checking out
+        ivle.util.safe_rmtree(target_final)
     url = get_repo_url(submission, config)
     revision = pysvn.Revision(pysvn.opt_revision_kind.number,
                               submission.revision)
