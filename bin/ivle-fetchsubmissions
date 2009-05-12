@@ -1,0 +1,246 @@
+#!/usr/bin/env python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+# Program: Fetch Submissions
+# Author:  Matt Giuca
+
+# Script to retrieve all submissions for a particular project.
+# Requires root to run.
+
+import sys
+import os
+import shutil
+import datetime
+import optparse
+import zipfile
+import traceback
+
+import pysvn
+
+if os.getuid() != 0:
+    print >>sys.stderr, "Must run %s as root." % os.path.basename(sys.argv[0])
+    sys.exit()
+
+import ivle.config
+import ivle.database
+
+from ivle.database import Project, ProjectSet, Offering, Subject
+
+def fetch_submission(submission, target, svnclient, config, zip=False):
+    """Fetch a submission from a user's repository, and dump it in a given
+    directory.
+    @param submission: Submission object, detailing the submission.
+    @param target: Target directory for the project (will create a
+        subdirectory for each submission).
+    @param svnclient: pysvn.Client object.
+    @param config: Config object.
+    @param zip: If True, zips up the submission.
+    """
+    # submission_name is the name of the user or group who owns the repo
+    submission_name = submission.assessed.principal.name
+    # target_final is the directory to place the files in
+    target_final = os.path.join(target, submission.assessed.principal.name)
+    if not os.path.exists(target_final):
+        os.makedirs(target_final)
+    url = get_repo_url(submission, config)
+    revision = pysvn.Revision(pysvn.opt_revision_kind.number,
+                              submission.revision)
+    svnclient.export(url, target_final, force=True,
+        revision=revision, recurse=True)
+
+    # If required, zip up the directory
+    if zip:
+        make_zip(target_final, target_final + ".zip")
+        # Remove the target tree
+        shutil.rmtree(target_final)
+
+def get_repo_url(submission, config):
+    """Gets a local (file:) URL to the repository for a given submission.
+    This will consult submission.path to find the path within the repository
+    to check out.
+    @param submission: Submission object, detailing the submission.
+    @param config: Config object.
+    """
+    # NOTE: This code is mostly copied from services/usrmgt-server
+    if submission.assessed.is_group:
+        # The offering this group is in
+        offering = submission.assessed.project.project_set.offering
+        groupname = submission.assessed.principal.name
+        # The name of the repository directory within 'groups' is
+        # SUBJECT_YEAR_SEMESTER_GROUP
+        namespace = "_".join([offering.subject.short_name,
+            offering.semester.year, offering.semester.semester, groupname])
+        repo_path = os.path.join(config['paths']['svn']['repo_path'],
+                                'groups', namespace)
+    else:
+        # The name of the repository directory within 'users' is the username
+        username = submission.assessed.principal.name
+        repo_path = os.path.join(config['paths']['svn']['repo_path'],
+                                'users', username)
+
+    path_in_repo = submission.path
+    # Change an absolute path into a relative one (to the top of SVN)
+    if path_in_repo[:1] == os.sep or path_in_repo[:1] == os.altsep:
+        path_in_repo = path_in_repo[1:]
+
+    # Attach "file://" to the front of the absolute path, to make it a URL
+    return "file://" + os.path.join(os.path.abspath(repo_path), path_in_repo)
+
+def make_zip(source, dest):
+    """Zip up a directory tree or file. The ZIP file will always contain just
+    a single directory or file at the top level (it will not be a ZIP bomb).
+    @param source: Path to a directory or file to zip up.
+    @param dest: Path to a zip file to create.
+    """
+    # NOTE: This code is mostly copied from ivle.zip (but very different)
+    zip = zipfile.ZipFile(dest, 'w')
+
+    # Write the source file/directory itself
+    # (If this is a directory it will NOT recurse)
+    zip.write(source, os.path.basename(source))
+
+    if os.path.isdir(source):
+        # All paths within the zip file are relative to relativeto
+        relativeto = os.path.dirname(source)
+        # Write the top-level directory
+        # Walk the directory tree
+        def error(err):
+            raise OSError("Could not access a file (zipping)")
+        for (dirpath, dirnames, filenames) in \
+            os.walk(source, onerror=error):
+            arc_dirpath = os.path.relpath(dirpath, relativeto)
+            for filename in dirnames + filenames:
+                zip.write(os.path.join(dirpath, filename),
+                            os.path.join(arc_dirpath, filename))
+
+    zip.close()
+
+def main(argv=None):
+    global store
+    if argv is None:
+        argv = sys.argv
+
+    usage = """usage: %prog [options] subject projname
+    (requires root)
+    Retrieves all submissions for a given project. Places each submission in
+    its own directory, in a subdirectory of '.'. Any errors are reported to
+    stderr (otherwise is silent).
+    subject/projname is the subject/project's short name.
+    """
+
+    # Parse arguments
+    parser = optparse.OptionParser(usage)
+    parser.add_option("-s", "--semester",
+        action="store", dest="semester", metavar="YEAR/SEMESTER",
+        help="Semester of the subject's offering (eg. 2009/1). "
+             "Defaults to the currently active semester.",
+        default=None)
+    parser.add_option("-d", "--dest",
+        action="store", dest="dest", metavar="PATH",
+        help="Destination directory (default to '.', creates a subdirectory, "
+            "so will not pollute PATH).",
+        default=".")
+    parser.add_option("-z", "--zip",
+        action="store_true", dest="zip",
+        help="Store each submission in a Zip file.",
+        default=False)
+    (options, args) = parser.parse_args(argv[1:])
+
+    if len(args) < 2:
+        parser.print_help()
+        parser.exit()
+
+    subject_name = unicode(args[0])
+    project_name = unicode(args[1])
+
+    if options.semester is None:
+        year, semester = None, None
+    else:
+        try:
+            year, semester = options.semester.split('/')
+            if len(year) == 0 or len(semester) == 0:
+                raise ValueError()
+        except ValueError:
+            parser.error('Invalid semester (must have form "year/semester")')
+
+    svnclient = pysvn.Client()
+    config = ivle.config.Config(plugins=False)
+    store = ivle.database.get_store(config)
+
+    # Get the subject from the DB
+    subject = store.find(Subject,
+                     Subject.short_name == subject_name).one()
+    if subject is None:
+        print >>sys.stderr, "No subject with short name '%s'" % subject_name
+        return 1
+
+    # Get the offering from the DB
+    if semester is None:
+        # None specified - get the current offering from the DB
+        offerings = list(subject.active_offerings())
+        if len(offerings) == 0:
+            print >>sys.stderr, ("No active offering for subject '%s'"
+                                 % subject_name)
+            return 1
+        elif len(offerings) > 1:
+            print >>sys.stderr, ("Multiple active offerings for subject '%s':"
+                                 % subject_name)
+            print >>sys.stderr, "Please use one of:"
+            for offering in offerings:
+                print >>sys.stderr, ("    --semester=%s/%s"
+                    % (offering.semester.year, offering.semester.semester))
+            return 1
+        else:
+            offering = offerings[0]
+    else:
+        # Get the offering for the specified semester
+        offering = subject.offering_for_semester(year, semester)
+        if offering is None:
+            print >>sys.stderr, (
+                "No offering for subject '%s' in semester %s/%s"
+                % (subject_name, year, semester))
+            return 1
+
+    # Get the project from the DB
+    project = store.find(Project,
+                         Project.project_set_id == ProjectSet.id,
+                         ProjectSet.offering == offering,
+                         Project.short_name == project_name).one()
+    if project is None:
+        print >>sys.stderr, "No project with short name '%s'" % project_name
+        return 1
+
+    # Target directory is DEST/subject/year/semester/project
+    target_dir = os.path.join(options.dest, subject_name,
+        offering.semester.year, offering.semester.semester, project_name)
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    for submission in project.latest_submissions:
+        try:
+            fetch_submission(submission, target_dir, svnclient, config,
+                             zip=options.zip)
+        except Exception, e:
+            # Catch all exceptions (to ensure if one student has a problem, it
+            # is reported, and we can continue)
+            print >>sys.stderr, "ERROR on submission for %s:" % (
+                submission.assessed.principal.display_name)
+            traceback.print_exc(e)
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

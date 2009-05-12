@@ -28,6 +28,7 @@ import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
+from storm.expr import Select, Max
 from storm.exceptions import NotOneError, IntegrityError
 
 from ivle.worksheet.rst import rst
@@ -379,9 +380,16 @@ class Offering(Storm):
 
         return enrolment
 
-    def get_students(self):
-        enrolments = self.enrolments.find(role=u'student')
-        return [enrolment.user for enrolment in enrolments]
+    def get_members_by_role(self, role):
+        return Store.of(self).find(User,
+                Enrolment.user_id == User.id,
+                Enrolment.offering_id == self.id,
+                Enrolment.role == role
+                )
+
+    @property
+    def students(self):
+        return self.get_members_by_role(u'student')
 
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
@@ -442,11 +450,15 @@ class ProjectSet(Storm):
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
 
-    # Get the individuals (groups or users) Assigned to this project
-    def get_assigned(self):
-        #If its a Solo project, return everyone in offering
+    @property
+    def assigned(self):
+        """Get the entities (groups or users) assigned to submit this project.
+
+        This will be a Storm ResultSet.
+        """
+        #If its a solo project, return everyone in offering
         if self.max_students_per_group is None:
-            return self.offering.get_students()
+            return self.offering.students
         else:
             return self.project_groups
 
@@ -505,6 +517,19 @@ class Project(Storm):
 
     def get_permissions(self, user):
         return self.project_set.offering.get_permissions(user)
+
+    @property
+    def latest_submissions(self):
+        """Return the latest submission for each Assessed."""
+        return Store.of(self).find(ProjectSubmission,
+            Assessed.project_id == self.id,
+            ProjectSubmission.assessed_id == Assessed.id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        )
 
 
 class ProjectGroup(Storm):
@@ -603,6 +628,11 @@ class Assessed(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__,
             self.user or self.project_group, self.project)
+
+    @property
+    def is_group(self):
+        """True if the Assessed is a group, False if it is a user."""
+        return self.project_group is not None
 
     @property
     def principal(self):
