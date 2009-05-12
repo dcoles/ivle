@@ -117,7 +117,13 @@ class User(Storm):
 
     @property
     def display_name(self):
+        """Returns the "nice name" of the user or group."""
         return self.fullname
+
+    @property
+    def short_name(self):
+        """Returns the database "identifier" name of the user or group."""
+        return self.login
 
     @property
     def password_expired(self):
@@ -559,6 +565,12 @@ class ProjectGroup(Storm):
 
     @property
     def display_name(self):
+        """Returns the "nice name" of the user or group."""
+        return self.nick
+
+    @property
+    def short_name(self):
+        """Returns the database "identifier" name of the user or group."""
         return self.name
 
     def get_projects(self, offering=None, active_only=True):
