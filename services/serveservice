@@ -29,11 +29,12 @@ import cjson
 
 from ivle import zip as zipmod
 import ivle.conf.app.server
+import ivle.mimetypes
 
 def determine_file_type(filename):
     filetype = mimetypes.guess_type(filename)[0]
     if filetype is None:
-         filetype = ivle.conf.mimetypes.default_mimetype
+         filetype = ivle.mimetypes.DEFAULT_MIMETYPE
     return filetype
 
 def throw_error(message, extra={}):

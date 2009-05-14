@@ -100,7 +100,7 @@ class ServeView(BaseView):
             args.append(path)
 
         (out, err) = interpret.execute_raw(owner, jail, '/home',
-                    os.path.join('/usr/local/share/ivle',
+                    os.path.join(req.config['paths']['share'],
                                  'services/serveservice'),
                     args)
         assert not err
