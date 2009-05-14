@@ -1,0 +1,86 @@
+#projectset_list {
+  padding: 0;
+}
+
+#projectset_list > li > ul {
+  padding: 0.5em;
+}
+
+#projectset_list > li {
+  margin: 0.5em 0;
+  border: 2px solid #bbb;
+}
+
+#projectset_list > li > h3 {
+  padding: 0.2em;
+  margin: 0;
+  background: #eee;
+}
+
+#add_projectset {
+    padding: 10px;
+}
+
+.add-project > div{
+    width: 600px;
+    padding-left: 40px;
+}
+
+.add-project label {
+    position: absolute;
+    text-align: right;
+}
+
+.add-project input, textarea {
+    margin-left: 100px;
+    width: 400px;
+}
+
+.project-synopsis {
+    width: 400px;
+    white-space: pre-wrap;
+}
+
+.add-project > form {
+    display: none;
+}
+
+li {
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+}
+
+.project-title img {
+  vertical-align: top;
+}
+
+.project_list {
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.project_list td, .project_list th {
+  padding: 0.2em 0.7em;
+  border-bottom: 1px solid #ccc;
+}
+
+.project_list th {
+  border-bottom: 2px solid gray;
+}
+
+.project_list tbody td {
+  color: #444;
+}
+
+.project_list tbody tr:hover {
+  background-color: #efefef;
+}
+
+.project_list td:first-child, .project_list th:first-child {
+  padding-left: 0;
+}
+
+.project_list tbody tr:hover td {
+  color: #111;
+}

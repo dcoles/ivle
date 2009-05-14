@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Projects for ${offering.subject.name}</title>
+  </head>
+  <body>
+    <h1>Projects for ${offering.subject.name}</h1>
+    <div id="ivle_padding">
+      <ul id="projectset_list">
+        <py:for each="projectset in projectsets">
+          ${projectset}
+        </py:for>
+      </ul>
+      <div id="add_projectset">
+        <a>Add a new project set</a>
+        <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
+          <div id="new_projectset_div">
+            <label for="group_size">Group Size:</label>
+            <input type="text" name="group_size" id="group_size"></input>
+            <input type="submit" id="submit_new_projectset" name="Bob"
+                value="Create Project Set"/>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

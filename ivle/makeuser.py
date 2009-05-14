@@ -27,8 +27,11 @@ import warnings
 import logging
 import subprocess
 
+from storm.expr import Select, Max
+
 import ivle.config
-from ivle.database import ProjectGroup, User
+from ivle.database import (User, ProjectGroup, Assessed, ProjectSubmission,
+        Project, ProjectSet, Offering, Enrolment, Subject, Semester)
 
 def chown_to_webserver(filename):
     """chown a directory and its contents to the web server.
@@ -71,6 +74,49 @@ def rebuild_svn_config(store, config):
 %(login)s = rw
 """ % {'login': u.login})
 
+    # Now we need to grant offering tutors and lecturers access to the latest
+    # submissions in their offerings. There are much prettier ways to do this,
+    # but a lot of browser requests call this function, so it needs to be
+    # fast. We can grab all of the paths needing authorisation directives with
+    # a single query, and we cache the list of viewers for each offering.
+    offering_viewers_cache = {}
+    for (login, psid, pspath, offeringid) in store.find(
+        (User.login, ProjectSubmission.id, ProjectSubmission.path,
+         Offering.id),
+            Assessed.id == ProjectSubmission.assessed_id,
+            User.id == Assessed.user_id,
+            Project.id == Assessed.project_id,
+            ProjectSet.id == Project.project_set_id,
+            Offering.id == ProjectSet.id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        ):
+
+        # Do we already have the list of logins authorised for this offering
+        # cached? If not, get it.
+        if offeringid not in offering_viewers_cache:
+            offering_viewers_cache[offeringid] = list(store.find(
+                    User.login,
+                    User.id == Enrolment.user_id,
+                    Enrolment.offering_id == offeringid,
+                    Enrolment.role.is_in((u'tutor', u'lecturer'))
+                )
+            )
+
+        f.write("""
+# Submission %(id)d
+[%(login)s:%(path)s]
+""" % {'login': login, 'id': psid, 'path': pspath})
+
+        for viewer_login in offering_viewers_cache[offeringid]:
+            # We don't want to override the owner's write privilege,
+            # so we don't add them to the read-only ACL.
+            if login != viewer_login:
+                f.write("%s = r\n" % viewer_login)
+
     f.close()
     os.rename(temp_name, conf_name)
     chown_to_webserver(conf_name)
@@ -90,6 +136,7 @@ def rebuild_svn_group_config(store, config):
 
 """ % {'time': time.asctime()})
 
+    group_members_cache = {}
     for group in store.find(ProjectGroup):
         offering = group.project_set.offering
         reponame = "_".join([offering.subject.short_name,
@@ -98,9 +145,59 @@ def rebuild_svn_group_config(store, config):
                              group.name])
 
         f.write("[%s:/]\n" % reponame)
+        if group.id not in group_members_cache:
+            group_members_cache[group.id] = set()
         for user in group.members:
+            group_members_cache[group.id].add(user.login)
             f.write("%s = rw\n" % user.login)
         f.write("\n")
+
+    # Now we need to grant offering tutors and lecturers access to the latest
+    # submissions in their offerings. There are much prettier ways to do this,
+    # but a lot of browser requests call this function, so it needs to be
+    # fast. We can grab all of the paths needing authorisation directives with
+    # a single query, and we cache the list of viewers for each offering.
+    offering_viewers_cache = {}
+    for (ssn, year, sem, name, psid, pspath, gid, offeringid) in store.find(
+        (Subject.short_name, Semester.year, Semester.semester,
+         ProjectGroup.name, ProjectSubmission.id, ProjectSubmission.path,
+         ProjectGroup.id, Offering.id),
+            Assessed.id == ProjectSubmission.assessed_id,
+            ProjectGroup.id == Assessed.project_group_id,
+            Project.id == Assessed.project_id,
+            ProjectSet.id == Project.project_set_id,
+            Offering.id == ProjectSet.offering_id,
+            Subject.id == Offering.subject_id,
+            Semester.id == Offering.semester_id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        ):
+
+        reponame = "_".join([ssn, year, sem, name])
+
+        # Do we already have the list of logins authorised for this offering
+        # cached? If not, get it.
+        if offeringid not in offering_viewers_cache:
+            offering_viewers_cache[offeringid] = list(store.find(
+                    User.login,
+                    User.id == Enrolment.user_id,
+                    Enrolment.offering_id == offeringid,
+                    Enrolment.role.is_in((u'tutor', u'lecturer'))
+                )
+            )
+
+        f.write("""
+# Submission %(id)d
+[%(repo)s:%(path)s]
+""" % {'repo': reponame, 'id': psid, 'path': pspath})
+
+        for viewer_login in offering_viewers_cache[offeringid]:
+            # Skip existing group members, or they can't write to it any more.
+            if viewer_login not in group_members_cache[gid]:
+                f.write("%s = r\n" % viewer_login)
 
     f.close()
     os.rename(temp_name, conf_name)

@@ -15,13 +15,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca, Will Grant
+# Author: Matt Giuca, Will Grant, Nick Chadwick
 
+import os
 import cgi
 import urlparse
 import inspect
 
 import cjson
+import genshi.template
 
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.errors import BadRequest, MethodNotAllowed, Unauthorized
@@ -141,9 +143,44 @@ class JSONRESTView(RESTView):
             outjson = op(req, **opargs)
 
         req.content_type = self.content_type
+        self.write_json(req, outjson)
+
+    #This is a separate function to allow additional data to be passed through
+    def write_json(self, req, outjson):
         if outjson is not None:
             req.write(cjson.encode(outjson))
             req.write("\n")
+
+
+class XHTMLRESTView(JSONRESTView):
+    """A special type of RESTView which takes enhances the standard JSON
+    with genshi XHTML functions.
+    
+    XHTMLRESTViews should have a template, which is rendered using their
+    context. This is returned in the JSON as 'html'"""
+    template = None
+    ctx = genshi.template.Context()
+
+    def __init__(self, req, *args, **kwargs):
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
+    
+    def render_fragment(self):
+        if self.template is None:
+            raise NotImplementedError()
+
+        rest_template = os.path.join(os.path.dirname(
+                inspect.getmodule(self).__file__), self.template)
+        loader = genshi.template.TemplateLoader(".", auto_reload=True)
+        tmpl = loader.load(rest_template)
+
+        return tmpl.generate(self.ctx).render('xhtml', doctype='xhtml')
+    
+    # This renders the template and adds it to the json
+    def write_json(self, req, outjson):
+        outjson["html"] = self.render_fragment()
+        req.write(cjson.encode(outjson))
+        req.write("\n")
 
 class named_operation(object):
     '''Declare a function to be accessible to HTTP users via the REST API.
@@ -165,4 +202,3 @@ class require_permission(object):
     def __call__(self, func):
         func._rest_api_permission = self.permission
         return func
-

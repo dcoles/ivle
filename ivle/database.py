@@ -28,6 +28,7 @@ import datetime
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
+from storm.expr import Select, Max
 from storm.exceptions import NotOneError, IntegrityError
 
 from ivle.worksheet.rst import rst
@@ -116,7 +117,13 @@ class User(Storm):
 
     @property
     def display_name(self):
+        """Returns the "nice name" of the user or group."""
         return self.fullname
+
+    @property
+    def short_name(self):
+        """Returns the database "identifier" name of the user or group."""
+        return self.login
 
     @property
     def password_expired(self):
@@ -379,6 +386,17 @@ class Offering(Storm):
 
         return enrolment
 
+    def get_members_by_role(self, role):
+        return Store.of(self).find(User,
+                Enrolment.user_id == User.id,
+                Enrolment.offering_id == self.id,
+                Enrolment.role == role
+                )
+
+    @property
+    def students(self):
+        return self.get_members_by_role(u'student')
+
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
 
@@ -435,6 +453,21 @@ class ProjectSet(Storm):
         return "<%s %d in %r>" % (type(self).__name__, self.id,
                                   self.offering)
 
+    def get_permissions(self, user):
+        return self.offering.get_permissions(user)
+
+    @property
+    def assigned(self):
+        """Get the entities (groups or users) assigned to submit this project.
+
+        This will be a Storm ResultSet.
+        """
+        #If its a solo project, return everyone in offering
+        if self.max_students_per_group is None:
+            return self.offering.students
+        else:
+            return self.project_groups
+
 class Project(Storm):
     """A student project for which submissions can be made."""
 
@@ -488,6 +521,22 @@ class Project(Storm):
 
         return ps
 
+    def get_permissions(self, user):
+        return self.project_set.offering.get_permissions(user)
+
+    @property
+    def latest_submissions(self):
+        """Return the latest submission for each Assessed."""
+        return Store.of(self).find(ProjectSubmission,
+            Assessed.project_id == self.id,
+            ProjectSubmission.assessed_id == Assessed.id,
+            ProjectSubmission.date_submitted == Select(
+                    Max(ProjectSubmission.date_submitted),
+                    ProjectSubmission.assessed_id == Assessed.id,
+                    tables=ProjectSubmission
+            )
+        )
+
 
 class ProjectGroup(Storm):
     """A group of students working together on a project."""
@@ -516,7 +565,13 @@ class ProjectGroup(Storm):
 
     @property
     def display_name(self):
-        return '%s (%s)' % (self.nick, self.name)
+        """Returns the "nice name" of the user or group."""
+        return self.nick
+
+    @property
+    def short_name(self):
+        """Returns the database "identifier" name of the user or group."""
+        return self.name
 
     def get_projects(self, offering=None, active_only=True):
         '''Find projects that the group can submit.
@@ -585,6 +640,15 @@ class Assessed(Storm):
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__,
             self.user or self.project_group, self.project)
+
+    @property
+    def is_group(self):
+        """True if the Assessed is a group, False if it is a user."""
+        return self.project_group is not None
+
+    @property
+    def principal(self):
+        return self.project_group or self.user
 
     @classmethod
     def get(cls, store, principal, project):
@@ -694,7 +758,10 @@ class Exercise(Storm):
             if user.admin:
                 perms.add('edit')
                 perms.add('view')
-            elif 'lecturer' in set((e.role for e in user.active_enrolments)):
+            elif u'lecturer' in set((e.role for e in user.active_enrolments)):
+                perms.add('edit')
+                perms.add('view')
+            elif u'tutor' in set((e.role for e in user.active_enrolments)):
                 perms.add('edit')
                 perms.add('view')
 

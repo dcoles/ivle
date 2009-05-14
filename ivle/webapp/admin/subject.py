@@ -23,22 +23,34 @@
 # A sample / testing application for IVLE.
 
 import os
+import os.path
 import urllib
+import urlparse
 import cgi
 
 from storm.locals import Desc
+import genshi
 from genshi.filters import HTMLFormFiller
+from genshi.template import Context, TemplateLoader
 import formencode
 
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
-from ivle.database import Subject, Semester, Offering, Enrolment, User
+
+from ivle.database import Subject, Semester, Offering, Enrolment, User,\
+                          ProjectSet, Project, ProjectSubmission
+from ivle import util
+import ivle.date
+
+from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
+                                             ProjectRESTView
+from ivle.webapp.admin.offeringservice import OfferingRESTView
 
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
-    template = 'subjects.html'
+    template = 'templates/subjects.html'
     tab = 'subjects'
 
     def authorize(self, req):
@@ -84,7 +96,7 @@ class EnrolSchema(formencode.Schema):
 
 class EnrolView(XHTMLView):
     """A form to enrol a user in an offering."""
-    template = 'enrol.html'
+    template = 'templates/enrol.html'
     tab = 'subjects'
     permission = 'edit'
 
@@ -123,11 +135,132 @@ class EnrolView(XHTMLView):
         ctx['offering'] = self.context
         ctx['errors'] = errors
 
+class OfferingProjectsView(XHTMLView):
+    """View the projects for an offering."""
+    template = 'templates/offering_projects.html'
+    permission = 'edit'
+    tab = 'subjects'
+    
+    def __init__(self, req, subject, year, semester):
+        self.context = req.store.find(Offering,
+            Offering.subject_id == Subject.id,
+            Subject.short_name == subject,
+            Offering.semester_id == Semester.id,
+            Semester.year == year,
+            Semester.semester == semester).one()
+
+        if not self.context:
+            raise NotFound()
+
+    def project_url(self, projectset, project):
+        return "/subjects/%s/%s/%s/+projects/%s" % (
+                    self.context.subject.short_name,
+                    self.context.semester.year,
+                    self.context.semester.semester,
+                    project.short_name
+                    )
+
+    def new_project_url(self, projectset):
+        return "/api/subjects/" + self.context.subject.short_name + "/" +\
+                self.context.semester.year + "/" + \
+                self.context.semester.semester + "/+projectsets/" +\
+                str(projectset.id) + "/+projects/+new"
+    
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ["project.css"]
+        self.plugin_scripts[Plugin] = ["project.js"]
+        ctx['offering'] = self.context
+        ctx['projectsets'] = []
+
+        #Open the projectset Fragment, and render it for inclusion
+        #into the ProjectSets page
+        #XXX: This could be a lot cleaner
+        loader = genshi.template.TemplateLoader(".", auto_reload=True)
+
+        set_fragment = os.path.join(os.path.dirname(__file__),
+                "templates/projectset_fragment.html")
+        project_fragment = os.path.join(os.path.dirname(__file__),
+                "templates/project_fragment.html")
+
+        for projectset in self.context.project_sets:
+            settmpl = loader.load(set_fragment)
+            setCtx = Context()
+            setCtx['projectset'] = projectset
+            setCtx['new_project_url'] = self.new_project_url(projectset)
+            setCtx['projects'] = []
+
+            for project in projectset.projects:
+                projecttmpl = loader.load(project_fragment)
+                projectCtx = Context()
+                projectCtx['project'] = project
+                projectCtx['project_url'] = self.project_url(projectset, project)
+
+                setCtx['projects'].append(
+                        projecttmpl.generate(projectCtx))
+
+            ctx['projectsets'].append(settmpl.generate(setCtx))
+
+
+class ProjectView(XHTMLView):
+    """View the submissions for a ProjectSet"""
+    template = "templates/project.html"
+    permission = "edit"
+    tab = 'subjects'
+
+    def __init__(self, req, subject, year, semester, project):
+        self.context = req.store.find(Project,
+                Project.short_name == project,
+                Project.project_set_id == ProjectSet.id,
+                ProjectSet.offering_id == Offering.id,
+                Offering.semester_id == Semester.id,
+                Semester.year == year,
+                Semester.semester == semester,
+                Offering.subject_id == Subject.id,
+                Subject.short_name == subject).one()
+        if self.context is None:
+            raise NotFound()
+
+    def build_subversion_url(self, svnroot, submission):
+        princ = submission.assessed.principal
+
+        if isinstance(princ, User):
+            path = 'users/%s' % princ.login
+        else:
+            path = 'groups/%s_%s_%s_%s' % (
+                    princ.project_set.offering.subject.short_name,
+                    princ.project_set.offering.semester.year,
+                    princ.project_set.offering.semester.semester,
+                    princ.name
+                    )
+        return urlparse.urljoin(
+                    svnroot,
+                    os.path.join(path, submission.path[1:] if
+                                       submission.path.startswith(os.sep) else
+                                       submission.path))
+
+    def populate(self, req, ctx):
+        self.plugin_styles[Plugin] = ["project.css"]
+
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['build_subversion_url'] = self.build_subversion_url
+        ctx['svn_addr'] = req.config['urls']['svn_addr']
+        ctx['project'] = self.context
+        ctx['user'] = req.user
 
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('subjects/', SubjectsView),
         ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
+        ('subjects/:subject/:year/:semester/+projects', OfferingProjectsView),
+        ('subjects/:subject/:year/:semester/+projects/:project', ProjectView),
+        #API Views
+        ('api/subjects/:subject/:year/:semester/+projectsets/+new',
+            OfferingRESTView),
+        ('api/subjects/:subject/:year/:semester/+projectsets/:projectset/+projects/+new',
+            ProjectSetRESTView),
+        ('api/subjects/:subject/:year/:semester/+projects/:project', 
+            ProjectRESTView),
+
     ]
 
     tabs = [
