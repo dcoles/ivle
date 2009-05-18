@@ -17,7 +17,7 @@
           <span py:when="log['revno']">[selected]</span>
           <a py:otherwise="" href="${url}?r=${log['revno']}">[select]</a>
         </py:choose>
-        <a py:if="revno" href="${url}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
+        <a py:if="revno" href="${diffurl}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
       </div>
       <pre py:content="log['message']" />
       <hr size="1" />
