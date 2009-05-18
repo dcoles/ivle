@@ -30,6 +30,7 @@ import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
+from ivle.webapp.filesystem import make_path_segments
 
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
@@ -76,6 +77,7 @@ class DiffView(XHTMLView):
         )
 
         ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
