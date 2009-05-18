@@ -34,6 +34,7 @@ from ivle.webapp.errors import NotFound, BadRequest
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
+    tab = 'files'
 
     def __init__(self, req, path):
         self.path = path

@@ -30,6 +30,7 @@ from ivle.webapp.errors import NotFound, BadRequest
 
 class SubversionLogView(XHTMLView):
     template = 'template.html'
+    tab = 'files'
 
     def authorize(self, req):
         return req.user is not None
