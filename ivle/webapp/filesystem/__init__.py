@@ -18,7 +18,11 @@
 """Utility functions for filesystem views."""
 
 def make_path_segments(path, revno=None):
-    """Split a path into a linkified HTML representation of its segments."""
+    """Return a dict representation of information about a paths segments.
+
+    Splits a path into its segments, and returns useful paths and URLs
+    for each segment.
+    """
 
     href_path = '/files'
     nav_path = ""
