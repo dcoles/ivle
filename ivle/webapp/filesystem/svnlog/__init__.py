@@ -27,6 +27,7 @@ import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
+from ivle.webapp.filesystem import make_path_segments
 
 class SubversionLogView(XHTMLView):
     template = 'template.html'
@@ -58,6 +59,8 @@ class SubversionLogView(XHTMLView):
         # No error. We must be safe.
         ctx['path'] = self.path
         ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.path)
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
