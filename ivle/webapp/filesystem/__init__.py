@@ -34,7 +34,7 @@ def make_path_segments(path, revno=None):
             continue
         new_seg = {}
 
-        nav_path = nav_path + path_seg
+        nav_path = nav_path + '/' + path_seg
         href_path = href_path + '/' + path_seg
 
         new_seg['path'] = path_seg
