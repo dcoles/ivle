@@ -29,6 +29,7 @@ take place in the FileService app (for handling Ajax requests).
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
+from ivle.webapp.filesystem import make_path_segments
 
 import os.path
 import cgi
@@ -81,8 +82,18 @@ class BrowserView(XHTMLView):
         except OSError:
             isdir = False
 
+        revision = ivle.svn.revision_from_string(
+                         req.get_fieldstorage().getfirst('r'))
+        try:
+            revno = revision.number
+        except:
+            revno = None
+
         ctx['isdir'] = isdir
-        self.gen_path(req, ctx)
+        ctx['revno'] = revno
+
+        ctx['paths'] = make_path_segments(req.path, revno)
+
         self.gen_actions(req, ctx)
 
         # The page title should contain the name of the file being browsed
@@ -93,38 +104,6 @@ class BrowserView(XHTMLView):
         ctx['filename'] = cgi.escape(self.path)
 
     #TODO: Move all this logic into the template
-    def gen_path(self, req, ctx):
-
-        href_path = req.make_path('files')
-        nav_path = ""
-        revision = ivle.svn.revision_from_string(
-                         req.get_fieldstorage().getfirst('r'))
-        try:
-            revno = revision.number
-        except:
-            revno = None
-
-        ctx['revno'] = revno
-
-        # Create all of the paths
-        pathlist = self.path.split("/")
-        ctx['paths'] = []
-        for path_seg in pathlist:
-            if path_seg == "":
-                continue
-            new_seg = {}
-
-            nav_path = nav_path + path_seg
-            href_path = href_path + '/' + path_seg
-
-            new_seg['path'] = path_seg
-            new_seg['nav_path'] = nav_path
-            new_seg['href_path'] = href_path
-            if revno is not None:
-                new_seg['href_path'] += '?r=%d' % revno
-
-            ctx['paths'].append(new_seg)
-
     def gen_actions(self, req, ctx):
         """
         Presents a set of links/buttons for the "actions1" row of the top bar.
