@@ -57,6 +57,9 @@ class SubversionLogView(XHTMLView):
                                      response['error'])
 
         # No error. We must be safe.
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+
         ctx['path'] = self.path
         ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
         ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
@@ -72,7 +75,6 @@ class SubversionLogView(XHTMLView):
         # Create URLs for each of the versioned files.
         # XXX: This scheme only works for stuff/!
         for log in ctx['logs']:
-            log['date'] = ivle.date.make_date_nice(log['date'])
             for pathaction in log['paths']:
                 pathaction.append(req.make_path(os.path.join('files',
                                   ivle.util.split_path(req.path)[0],

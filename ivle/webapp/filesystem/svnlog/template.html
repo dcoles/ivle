@@ -13,8 +13,8 @@
           <h2>
             Revision <a href="/svnlog/${path}?r=${log['revno']}"
                         style="font-weight: bold">${log['revno']}</a>
-            by <strong>${log['author']}</strong>
-            on <strong>${log['date']}</strong> 
+            by <strong>${log['author']}</strong>,
+            <span title="${format_datetime(log['date'])}">${format_datetime_short(log['date'])}</span>
             <py:choose test="revno">
               <span py:when="log['revno']">[selected]</span>
               <a py:otherwise="" href="${url}?r=${log['revno']}">[select]</a>
