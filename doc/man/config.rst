@@ -27,3 +27,5 @@ file :file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`.
 Configuration options
 =====================
 
+Apache configuration
+====================

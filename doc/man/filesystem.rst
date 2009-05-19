@@ -33,3 +33,15 @@ components will be installed, and what their purpose is:
     * The subversion configuration files
 
 .. XXX Copy the contents of Planning/Directory_hierarchy from our dev wiki.
+
+The IVLE codebase
+=================
+
+Configuration files
+===================
+
+User jails
+==========
+
+Subversion repositories and configuration
+=========================================

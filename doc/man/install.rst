@@ -19,10 +19,13 @@
 Installation
 ************
 
-System Requirements
+System requirements
 ===================
 
 * Ubuntu
+
+Master versus slave servers
+===========================
 
 Installing from a Debian package
 ================================
