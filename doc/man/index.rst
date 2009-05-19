@@ -15,8 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+***************
 The IVLE Manual
-===============
+***************
 
 This manual describes all of the features of IVLE in detail. It is designed
 for system administrators and other users who are more interested than regular

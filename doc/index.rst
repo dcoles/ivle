@@ -15,8 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+****************************************
 Informatics Virtual Learning Environment
-========================================
+****************************************
 
 The **Informatics Virtual Learning Environment** (IVLE) is an open-source web
 application for teaching programming and algorithmic problem solving in
@@ -41,8 +42,9 @@ there for the Informatics course.
    man/index.rst
    dev/index.rst
 
+******************
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`
