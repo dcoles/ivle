@@ -15,9 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-************************
-IVLE and your filesystem
-************************
+**************************
+System directory hierarchy
+**************************
 
 IVLE is a complicated piece of software, and installs several components into
 various places in your filesystem. This page details exactly where the

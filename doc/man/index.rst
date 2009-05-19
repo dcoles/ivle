@@ -30,4 +30,4 @@ within the system itself (accessible from the Help tab).
 
    install.rst
    config.rst
-   filesystem.rst
+   directory.rst
