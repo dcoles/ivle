@@ -577,7 +577,7 @@ class TestSuite:
         """
         
         # if empty, make sure it can still be executed
-        if include_code == "":
+        if include_code == "" or include_code is None:
             include_code = "pass"
         self._include_code = include_code
         

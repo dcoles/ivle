@@ -43,7 +43,6 @@ CONFIG_OPTIONS = {
     'prefix': 'paths/prefix',
     'data_path': 'paths/data',
     'log_path': 'paths/logs',
-    'python_site_packages_override': 'paths/site_packages',
     'public_host': 'urls/public_host',
     'db_host': 'database/host',
     'db_port': 'database/port',
@@ -58,6 +57,10 @@ CONFIG_OPTIONS = {
     'usrmgt_host': 'usrmgt/host',
     'usrmgt_port': 'usrmgt/port',
     'usrmgt_magic': 'usrmgt/magic',
+
+    # These two are only relevant inside the jail.
+    'login': 'user_info/login',
+    'svn_pass': 'user_info/svn_pass',
 }
 
 for legacyopt, newopt_path in CONFIG_OPTIONS.iteritems():
@@ -88,18 +91,14 @@ share_path = os.path.join(prefix, 'share/ivle')
 # Path where user-executable binaries are installed.
 bin_path = os.path.join(prefix, 'bin')
 
-# 'site-packages' directory in Python, where Python libraries are to be
-# installed.
-if python_site_packages_override is None:
-    PYTHON_VERSION = sys.version[0:3]   # eg. "2.5"
-    python_site_packages = os.path.join(prefix,
-                               'lib/python%s/site-packages' % PYTHON_VERSION)
-else:
-    python_site_packages = python_site_packages_override
-
 # In the local file system, where the student/user jails will be mounted.
 # Only a single copy of the jail's system components will be stored here -
 # all user jails will be virtually mounted here.
+# XXX: Some jail code calls ivle.studpath.url_to_{local,jailpaths}, both
+#      of which use jail_base. Note that they don't use the bits of the
+#      return value that depend on jail_base, so it can be any string inside
+#      the jail. The value computed here may be meaningless inside the jail,
+#      but that's OK for now.
 jail_base = os.path.join(data_path, 'jailmounts')
 
 # In the local file system, where are the student/user file spaces located.
@@ -117,15 +116,6 @@ jail_system_build = os.path.join(jail_src_base, '__base_build__')
 # In the local file system, where the subject content files are located.
 # (The 'subjects' and 'exercises' directories).
 content_path = os.path.join(data_path, 'content')
-
-# In the local file system, where are the per-subject file spaces located.
-# The individual subject directories are expected to be located immediately
-# in subdirectories of this location.
-subjects_base = os.path.join(content_path, 'subjects')
-
-# In the local file system, where are the subject-independent exercise sheet
-# file spaces located.
-exercises_base = os.path.join(content_path, 'exercises')
 
 # In the local file system, where the system notices are stored (such as terms
 # of service and MOTD).

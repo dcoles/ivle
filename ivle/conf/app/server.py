@@ -43,6 +43,7 @@ served_filetypes_whitelist = set([
     "application/pdf",
     "application/postscript",
     "application/javascript",
+    "application/x-javascript", # Old versions of Python produce this.
     "application/json",
     "application/xhtml+xml",
     "application/xml",

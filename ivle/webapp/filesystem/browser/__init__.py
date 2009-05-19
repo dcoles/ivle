@@ -28,11 +28,13 @@ take place in the FileService app (for handling Ajax requests).
 
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.errors import NotFound
+from ivle.webapp.filesystem import make_path_segments
 
 import os.path
 import cgi
 
-from ivle import (util, studpath)
+from ivle import studpath
 import ivle.svn
 
 class BrowserView(XHTMLView):
@@ -49,8 +51,8 @@ class BrowserView(XHTMLView):
     def populate(self, req, ctx):
         if not hasattr(self, 'path'):
             # If no path specified, default to the user's home directory
-            redirectPath = util.make_path(os.path.join('files', req.user.login))
-            req.throw_redirect(util.make_path(redirectPath))
+            redirectPath = req.make_path(os.path.join('files', req.user.login))
+            req.throw_redirect(redirectPath)
 
         # Set request attributes
         self.plugin_styles[Plugin] = ['browser.css',
@@ -80,22 +82,6 @@ class BrowserView(XHTMLView):
         except OSError:
             isdir = False
 
-        ctx['isdir'] = isdir
-        self.gen_path(req, ctx)
-        self.gen_actions(req, ctx)
-
-        # The page title should contain the name of the file being browsed
-        ctx['title'] = self.path.rsplit('/', 1)[-1]
-
-        ctx['fileservice_action'] = util.make_path(os.path.join("fileservice",
-                                                                self.path))
-        ctx['filename'] = cgi.escape(self.path)
-
-    #TODO: Move all this logic into the template
-    def gen_path(self, req, ctx):
-
-        href_path = util.make_path('files')
-        nav_path = ""
         revision = ivle.svn.revision_from_string(
                          req.get_fieldstorage().getfirst('r'))
         try:
@@ -103,27 +89,21 @@ class BrowserView(XHTMLView):
         except:
             revno = None
 
+        ctx['isdir'] = isdir
         ctx['revno'] = revno
 
-        # Create all of the paths
-        pathlist = self.path.split("/")
-        ctx['paths'] = []
-        for path_seg in pathlist:
-            if path_seg == "":
-                continue
-            new_seg = {}
+        ctx['paths'] = make_path_segments(req.path, revno)
 
-            nav_path = nav_path + path_seg
-            href_path = href_path + '/' + path_seg
+        self.gen_actions(req, ctx)
 
-            new_seg['path'] = path_seg
-            new_seg['nav_path'] = nav_path
-            new_seg['href_path'] = href_path
-            if revno is not None:
-                new_seg['href_path'] += '?r=%d' % revno
+        # The page title should contain the name of the file being browsed
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
 
-            ctx['paths'].append(new_seg)
+        ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
+                                                                self.path))
+        ctx['filename'] = cgi.escape(self.path)
 
+    #TODO: Move all this logic into the template
     def gen_actions(self, req, ctx):
         """
         Presents a set of links/buttons for the "actions1" row of the top bar.
@@ -135,7 +115,7 @@ class BrowserView(XHTMLView):
           ('Publishing', True, [
             ('publish', ['Publish',          'Make it so this directory can be seen by anyone on the web']),
             ('share',   ['Share this file',  'Get a link to this published file, to give to friends']),
-            ('submit',  ['Submit', 'Submit the selected files for an assignment'])
+            ('submit',  ['Submit', 'Submit the selected files for a project'])
           ]),
           ('File actions', True, [
             ('rename',  ['Rename',           'Change the name of this file']),

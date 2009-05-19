@@ -73,8 +73,29 @@ function list_projectgroup_contents(offeringid, groupid, elemnm)
         var ul = document.createElement("ul");
         for (var i=0; i<groupmembers.length; i++)
         {
-            var li = dom_make_text_elem("li", groupmembers[i].fullname + " (" +
-                                              groupmembers[i].login + ")");
+            var member = groupmembers[i];
+
+            var li = dom_make_text_elem("li", member.fullname + " (" +
+                                              member.login + ")");
+            var rmbutton = document.createElement("input");
+            rmbutton.value = "Remove";
+            rmbutton.type = "image";
+            /* XXX: There must be a better way to do this! */
+            rmbutton.src = "/+media/ivle.webapp.groups/cross.png";
+
+            $(rmbutton).click(function(offeringid, login, groupid, elemnm)
+            {
+                return function() {
+                    if (!confirm("Are you sure want to revoke this user's membership?"))
+                        return;
+                    this.disabled = true;
+                    var args = {'login': login, 'groupid': groupid};
+                    ajax_call(null, serviceapp, 'unassign_group', args, 'POST');
+                    list_projectgroup_contents(offeringid, groupid, elemnm);
+                };
+            }(offeringid, member.login, groupid, elemnm));
+
+            li.appendChild(rmbutton);
             ul.appendChild(li);
         }
 
@@ -90,13 +111,13 @@ function list_projectgroup_contents(offeringid, groupid, elemnm)
         var button = document.createElement("input");
         button.value = "Add";
         button.type = 'button';
-        button.addEventListener("click", function()
+        $(button).click(function()
         {
             this.disabled = true;
             args = {'login': select.value, 'groupid': groupid};
             ajax_call(null, serviceapp, 'assign_group', args, 'POST');
             list_projectgroup_contents(offeringid, groupid, elemnm);
-        }, false);
+        });
         add_li.appendChild(select);
         add_li.appendChild(button);
         ul.appendChild(add_li);

@@ -51,12 +51,13 @@ except pysvn.ClientError, e:
         code = e[1][0][1]
         # See subversion/include/svn_error_codes.h.
         # 155007: WC_NOT_DIRECTORY.
+        # 160006: FS_NO_SUCH_REVISION
         # 160013: FS_NOT_FOUND
         # 200005: UNVERSIONED_RESOURCE
-        if code in (155007, 160013, 200005):
+        if code in (155007, 160006, 160013, 200005):
             error = 'notfound'
         else:
-            error = '%s (code %d)' % (error, code) 
+            error = '%s (code %d)' % (error, code)
     except IndexError:
         pass
 

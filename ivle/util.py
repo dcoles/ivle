@@ -20,26 +20,16 @@
 # Date: 12/12/2007
 
 # Contains common utility functions.
-# Also initialises mime types library. You must import util before using
-# Python's builtin mimetypes module to make sure local settings are applied.
 
 import os
-import mimetypes
-import datetime
-
-import ivle.conf
-import ivle.conf.mimetypes
+import sys
+import stat
 
 class IVLEError(Exception):
-    """
-    This is the "standard" exception class for IVLE errors.
-    It is the ONLY exception which should propagate to the top - it will then
-    be displayed to the user as an HTTP error with the given code.
+    """Legacy general IVLE exception.
 
-    All other exceptions are considered IVLE bugs and should not occur
-    (they will display a traceback).
-
-    This error should not be raised directly. Call req.throw_error.
+    This is the old "standard" exception class for IVLE errors. It is only
+    used in fileservice, and should not be used in any new code.
     """
     def __init__(self, httpcode, message=None):
         self.httpcode = httpcode
@@ -47,7 +37,8 @@ class IVLEError(Exception):
         self.args = (httpcode, message)
 
 class IVLEJailError(Exception):
-    """
+    """Exception proxying an in-jail error.
+
     This exception indicates an error that occurred inside an IVLE CGI script
     inside the jail. It should never be raised directly - only by the 
     interpreter.
@@ -69,35 +60,6 @@ class FakeObject(object):
 
     def __repr__(self):
         return "<Fake %s %s>"%(self.type, self.name)
-
-
-def make_path(path):
-    """Given a path relative to the IVLE root, makes the path relative to the
-    site root using ivle.conf.root_dir. This path can be used in URLs sent to
-    the client."""
-    return os.path.join(ivle.conf.root_dir, path)
-
-def make_local_path(path):
-    """Given a path relative to the IVLE root, on the local file system, makes
-    the path relative to the root using ivle.conf.share_path. This path can
-    be used in reading files from the local file system."""
-    return os.path.join(ivle.conf.share_path, 'www', path)
-
-def unmake_path(path):
-    """Given a path relative to the site root, makes the path relative to the
-    IVLE root by removing ivle.conf.root_dir if it appears at the beginning. If
-    it does not appear at the beginning, returns path unchanged. Also
-    normalises the path."""
-    path = os.path.normpath(path)
-    root = os.path.normpath(ivle.conf.root_dir)
-
-    if path.startswith(root):
-        path = path[len(root):]
-        # Take out the slash as well
-        if len(path) > 0 and path[0] == os.sep:
-            path = path[1:]
-
-    return path
 
 def split_path(path):
     """Given a path, returns a tuple consisting of the top-level directory in
@@ -134,88 +96,28 @@ def split_path(path):
     else:
         return tuple(splitpath)
 
-def open_exercise_file(exercisename):
-    """Given an exercise name, opens the corresponding XML file for reading.
-    Returns None if the exercise file was not found.
-    (For tutorials / worksheets).
+def relpath(path, start=os.path.curdir):
+    """Return a relative version of a path.
+    XXX Backported from Python 2.6 posixpath.py.
     """
-    # First normalise the path
-    exercisename = os.path.normpath(exercisename)
-    # Now if it begins with ".." or separator, then it's illegal
-    if exercisename.startswith("..") or exercisename.startswith(os.sep):
-        exercisefile = None
-    else:
-        exercisefile = os.path.join(ivle.conf.exercises_base, exercisename)
 
-    try:
-        return open(exercisefile)
-    except (TypeError, IOError):    # TypeError if exercisefile == None
-        return None
+    if not path:
+        raise ValueError("no path specified")
 
-# Initialise mime types library
-mimetypes.init()
-for (ext, mimetype) in ivle.conf.mimetypes.additional_mime_types.items():
-    mimetypes.add_type(mimetype, ext)
+    start_list = os.path.abspath(start).split(os.path.sep)
+    path_list = os.path.abspath(path).split(os.path.sep)
 
-def nice_filetype(filename):
-    """Given a filename or basename, returns a "friendly" name for that
-    file's type.
-    eg. nice_mimetype("file.py") == "Python source code".
-        nice_filetype("file.bzg") == "BZG file".
-        nice_filetype("directory/") == "Directory".
-    """
-    if filename[-1] == os.sep:
-        return "Directory"
-    else:
-        try:
-            return ivle.conf.mimetypes.nice_mimetypes[
-                mimetypes.guess_type(filename)[0]]
-        except KeyError:
-            filename = os.path.basename(filename)
-            try:
-                return filename[filename.rindex('.')+1:].upper() + " file"
-            except ValueError:
-                return "File"
+    # Work out how much of the filepath is shared by start and path.
+    i = len(os.path.commonprefix([start_list, path_list]))
 
-def get_terms_of_service():
-    """
-    Sends the Terms of Service document to the req object.
-    This consults conf to find out where the TOS is located on disk, and sends
-    that. If it isn't found, it sends a generic message explaining to admins
-    how to create a real one.
-    """
-    try:
-        return open(ivle.conf.tos_path).read()
-    except IOError:
-        return """\
-<p><b>*** SAMPLE ONLY ***</b></p>
-<p>This is the text of the IVLE Terms of Service.</p>
-<p>The administrator should create a license file with an appropriate
-"Terms of Service" license for your organisation.</p>
-<h2>Instructions for Administrators</h2>
-<p>You are seeing this message because you have not configured a Terms of
-Service document.</p>
-<p>When you configured IVLE, you specified a path to the Terms of Service
-document (this is found in <b><tt>ivle/conf/conf.py</tt></b> under
-"<tt>tos_path</tt>").</p>
-<p>Create a file at this location; an HTML file with the appropriately-worded
-license.</p>
-<p>This should be a normal XHTML file, except it should not contain
-<tt>html</tt>, <tt>head</tt> or <tt>body</tt> elements - it should
-just be the contents of a body element (IVLE will wrap it accordingly).</p>
-<p>This will automatically be used as the license text instead of this
-placeholder text.</p>
-"""
-
-def parse_iso8601(str):
-    """Parses ISO8601 string into a datetime object."""
-    # FIXME: Terrific hack that means we only accept the format that is 
-    # produced by json.js module when it encodes date objects.
-    return datetime.datetime.strptime(str, "%Y-%m-%dT%H:%M:%SZ")
+    rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
+    if not rel_list:
+        return os.path.curdir
+    return os.path.join(*rel_list)
 
 def incomplete_utf8_sequence(byteseq):
-    """
-    str -> int
+    """Calculate the completeness of a UTF-8 encoded string.
+
     Given a UTF-8-encoded byte sequence (str), returns the number of bytes at
     the end of the string which comprise an incomplete UTF-8 character
     sequence.
@@ -293,12 +195,65 @@ def incomplete_utf8_sequence(byteseq):
         return count
 
 def object_to_dict(attrnames, obj):
-    """
-    Convert an object into a dictionary. This takes a shallow copy of the
-    object.
-    attrnames: Set (or iterable) of names of attributes to be copied into the
-        dictionary. (We don't auto-lookup, because this function needs to be
-        used on magical objects).
+    """Convert an object into a dictionary.
+
+    This takes a shallow copy of the object.
+
+    @param attrnames: Set (or iterable) of names of attributes to be copied
+                      into the dictionary. (We don't auto-lookup, because this
+                      function needs to be used on magical objects).
     """
     return dict((k, getattr(obj, k))
         for k in attrnames if not k.startswith('_'))
+
+def safe_rmtree(path, ignore_errors=False, onerror=None):
+    """Recursively delete a directory tree.
+
+    Copied from shutil.rmtree from Python 2.6, which does not follow symbolic
+    links (it is otherwise unsafe to call as root on untrusted directories; do
+    not use shutil.rmtree in this case, as you may be running Python 2.5).
+
+    If ignore_errors is set, errors are ignored; otherwise, if onerror
+    is set, it is called to handle the error with arguments (func,
+    path, exc_info) where func is os.listdir, os.remove, or os.rmdir;
+    path is the argument to that function that caused it to fail; and
+    exc_info is a tuple returned by sys.exc_info().  If ignore_errors
+    is false and onerror is None, an exception is raised.
+
+    """
+    if ignore_errors:
+        def onerror(*args):
+            pass
+    elif onerror is None:
+        def onerror(*args):
+            raise
+    try:
+        if os.path.islink(path):
+            # symlinks to directories are forbidden, see bug #1669
+            raise OSError("Cannot call safe_rmtree on a symbolic link")
+    except OSError:
+        onerror(os.path.islink, path, sys.exc_info())
+        # can't continue even if onerror hook returns
+        return
+    names = []
+    try:
+        names = os.listdir(path)
+    except os.error, err:
+        onerror(os.listdir, path, sys.exc_info())
+    for name in names:
+        fullname = os.path.join(path, name)
+        try:
+            mode = os.lstat(fullname).st_mode
+        except os.error:
+            mode = 0
+        if stat.S_ISDIR(mode):
+            safe_rmtree(fullname, ignore_errors, onerror)
+        else:
+            try:
+                os.remove(fullname)
+            except os.error, err:
+                onerror(os.remove, fullname, sys.exc_info())
+    try:
+        os.rmdir(path)
+    except os.error:
+        onerror(os.rmdir, path, sys.exc_info())

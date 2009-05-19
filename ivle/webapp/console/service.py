@@ -31,7 +31,6 @@ import errno
 
 import ivle.console
 import ivle.chat
-import ivle.conf
 from ivle.webapp.base.rest import JSONRESTView, named_operation
 from ivle.webapp.errors import BadRequest
 
@@ -51,7 +50,8 @@ class ConsoleServiceRESTView(JSONRESTView):
         uid = req.user.unixid
 
         # Start the server
-        jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
+        jail_path = os.path.join(req.config['paths']['jails']['mounts'],
+                                 req.user.login)
         cons = ivle.console.Console(uid, jail_path, working_dir)
 
         # Assemble the key and return it. Yes, it is double-encoded.
@@ -76,9 +76,13 @@ class ConsoleServiceRESTView(JSONRESTView):
         except KeyError:
             raise BadRequest("Invalid console key.")
 
-        jail_path = os.path.join(ivle.conf.jail_base, req.user.login)
+        jail_path = os.path.join(req.config['paths']['jails']['mounts'],
+                                 req.user.login)
         working_dir = os.path.join("/home", req.user.login)   # Within jail
         uid = req.user.unixid
+
+        # XXX: JSONRESTView should do this for us.
+        text = text.decode('utf-8')
 
         msg = {'cmd':kind, 'text':text}
         try:

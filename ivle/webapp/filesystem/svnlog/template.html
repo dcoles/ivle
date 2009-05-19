@@ -1,10 +1,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Subversion Log</title>
+    <title>${title} (log)</title>
   </head>
   <body>
-    <h1>Subversion Log</h1>
+    <h1 id="path">
+      <py:for each="segment in paths">/<a href="${segment['href_path']}" title="Navigate to ${segment['nav_path']}">${segment['path']}</a></py:for> (Subversion log)
+    </h1>
     <div class="svnlogentry" py:for="log in logs">
       <div class="svnloginfo">
         Revision <a href="/svnlog/${path}?r=${log['revno']}"
@@ -15,7 +17,7 @@
           <span py:when="log['revno']">[selected]</span>
           <a py:otherwise="" href="${url}?r=${log['revno']}">[select]</a>
         </py:choose>
-        <a py:if="revno" href="${url}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
+        <a py:if="revno" href="${diffurl}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
       </div>
       <pre py:content="log['message']" />
       <hr size="1" />

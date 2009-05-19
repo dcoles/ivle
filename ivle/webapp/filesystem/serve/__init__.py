@@ -29,7 +29,6 @@ import os
 import cjson
 
 from ivle import (studpath, interpret)
-import ivle.conf
 from ivle.database import User
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLErrorView
@@ -100,8 +99,9 @@ class ServeView(BaseView):
         else:
             args.append(path)
 
-        (out, err) = ivle.interpret.execute_raw(owner, jail, '/home',
-                    os.path.join(ivle.conf.share_path, 'services/serveservice'),
+        (out, err) = interpret.execute_raw(owner, jail, '/home',
+                    os.path.join(req.config['paths']['share'],
+                                 'services/serveservice'),
                     args)
         assert not err
 

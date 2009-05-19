@@ -144,7 +144,7 @@ function do_action(action, path, args, content_type, ignore_response)
             /* Check for action errors reported by the server, and report them
              * to the user */
             var error = response.getResponseHeader("X-IVLE-Action-Error");
-            if (error != null)
+            if (error != null && error != "")
                 /* Note: This header (in particular) comes URI-encoded, to
                  * allow multi-line error messages. Decode */
                 alert("Error: " + decodeURIComponent(error.toString()) + ".");
@@ -728,12 +728,12 @@ function update_actions()
             publish.setAttribute("value", "unpublish");
             publish.setAttribute("title" ,"Make it so this directory "
                 + "can not be seen by anyone on the web");
-            publish.textContent = "Unpublish";
+            publish.firstChild.nodeValue = "Unpublish";
         } else {
             publish.setAttribute("value", "publish");
             publish.setAttribute("title","Make it so this directory "
                 + "can be seen by anyone on the web");
-            publish.textContent = "Publish";
+            publish.firstChild.nodeValue = "Publish";
         }
     }
     set_action_state(["publish", "submit"], pubcond);
@@ -760,7 +760,7 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
-    set_action_state(["svnadd",], numsel >= 1 && current_file.svnstatus);
+    set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
     /* And these are only usefull is ALL the selected files are versioned */
     set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
             "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);
@@ -780,6 +780,15 @@ function update_actions()
 
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
+
+    single_ivle_versioned_path = (
+         (
+          (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
+          (numsel == 0 && (stat = current_file))
+         ) && stat.svnstatus != "unversioned"
+           && stat.svnurl
+           && stat.svnurl.substr(0, svn_base.length) == svn_base);
+    set_action_state(["submit"], single_ivle_versioned_path);
 
     /* There is currently nothing on the More Actions menu of use
      * when the current file is not a directory. Hence, just remove
@@ -838,8 +847,25 @@ function handle_moreactions()
         window.open(public_app_path("~" + current_path, filename), 'share')
         break;
     case "submit":
-        // TODO
-        alert("Not yet implemented: Submit");
+        if (selected_files.length == 1)
+            stat = file_listing[selected_files[0]];
+        else
+            stat = current_file;
+        path = stat.svnurl.substr(svn_base.length);
+
+        /* The working copy might not have an up-to-date version of the
+         * directory. While submitting like this could yield unexpected
+         * results, we should really submit the latest revision to minimise
+         * terrible mistakes - so we run off and ask fileservice for the
+         * latest revision.*/
+        $.post(app_path(service_app, current_path),
+            {"action": "svnrepostat", "path": path},
+            function(result)
+            {
+                window.location = path_join(app_path('+submit'), path) + '?revision=' + result.svnrevision;
+            },
+            "json");
+
         break;
     case "rename":
         action_rename(filename);

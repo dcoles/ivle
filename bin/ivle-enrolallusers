@@ -34,6 +34,7 @@ import pwd
 import optparse
 import logging
 
+import ivle.config
 import ivle.database
 import ivle.pulldown_subj
 
@@ -54,7 +55,7 @@ if os.getuid() != 0:
     print >> sys.stderr, "%s must be run as root" % sys.argv[0]
     sys.exit(1)
 
-store = ivle.database.get_store()
+store = ivle.database.get_store(ivle.config.Config())
 if options.user is None:
     users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 else:

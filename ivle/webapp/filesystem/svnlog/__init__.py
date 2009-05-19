@@ -22,15 +22,16 @@ import os
 import cjson
 import pysvn
 
-import ivle.conf
 import ivle.date
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
+from ivle.webapp.filesystem import make_path_segments
 
 class SubversionLogView(XHTMLView):
     template = 'template.html'
+    tab = 'files'
 
     def authorize(self, req):
         return req.user is not None
@@ -38,10 +39,11 @@ class SubversionLogView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['log.css']
 
-        svnlogservice_path = os.path.join(ivle.conf.share_path,
+        svnlogservice_path = os.path.join(req.config['paths']['share'],
                                           'services/svnlogservice')
 
-        user_jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                     req.user.login)
         (out, err) = ivle.interpret.execute_raw(req.user, user_jail_dir,
                              '/home', svnlogservice_path, [self.path])
         assert not err
@@ -56,7 +58,10 @@ class SubversionLogView(XHTMLView):
 
         # No error. We must be safe.
         ctx['path'] = self.path
-        ctx['url'] = ivle.util.make_path(os.path.join('svnlog', self.path))
+        ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
+        ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.path)
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
@@ -69,7 +74,7 @@ class SubversionLogView(XHTMLView):
         for log in ctx['logs']:
             log['date'] = ivle.date.make_date_nice(log['date'])
             for pathaction in log['paths']:
-                pathaction.append(ivle.util.make_path(os.path.join('files',
+                pathaction.append(req.make_path(os.path.join('files',
                                   ivle.util.split_path(req.path)[0],
                                   pathaction[0][1:])) + '?r=%d' % log['revno'])
 

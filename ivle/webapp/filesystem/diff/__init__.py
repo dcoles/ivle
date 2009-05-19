@@ -26,15 +26,16 @@ import cgi
 import cjson
 import genshi
 
-import ivle.conf
 import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
+from ivle.webapp.filesystem import make_path_segments
 
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
+    tab = 'files'
 
     def __init__(self, req, path):
         self.path = path
@@ -51,10 +52,12 @@ class DiffView(XHTMLView):
 
         revs = [revfield.value for revfield in revfields]
 
-        jail_dir = os.path.join(ivle.conf.jail_base, req.user.login)
+        jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                req.user.login)
         (out, err) = ivle.interpret.execute_raw(req.user, jail_dir, '/home',
-                    os.path.join(ivle.conf.share_path, 'services/diffservice'),
-                    [self.path] + revs)
+                                    os.path.join(req.config['paths']['share'],
+                                                 'services/diffservice'),
+                                    [self.path] + revs)
         assert not err
 
         response = cjson.decode(out)
@@ -72,6 +75,9 @@ class DiffView(XHTMLView):
         diff_matcher = re.compile(
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
+
+        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))

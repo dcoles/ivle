@@ -110,8 +110,8 @@ import pysvn
 
 import ivle.svn
 import ivle.date
-from ivle import (util, studpath)
-import ivle.conf.mimetypes
+import ivle.mimetypes
+from ivle import studpath
 
 # Make a Subversion client object
 svnclient = pysvn.Client()
@@ -151,42 +151,60 @@ def handle_return(req, return_contents):
         req.status = req.HTTP_FORBIDDEN
         req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
         req.write("Forbidden")
-    elif not os.access(path, os.R_OK):
-        req.status = req.HTTP_NOT_FOUND
-        req.headers_out['X-IVLE-Return-Error'] = 'File not found'
-        req.write("File not found")
-    elif os.path.isdir(path):
+        return
+
+    # If this is a repository-revision request, it needs to be treated
+    # differently than if it were a regular file request.
+    # Note: If there IS a revision requested but the file doesn't exist in
+    # that revision, this will terminate.
+    revision = _get_revision_or_die(req, svnclient, path)
+
+    if revision is None:
+        if not os.access(path, os.R_OK):
+            req.status = req.HTTP_NOT_FOUND
+            req.headers_out['X-IVLE-Return-Error'] = 'File not found'
+            req.write("File not found")
+            return
+        is_dir = os.path.isdir(path)
+    else:
+        is_dir = ivle.svn.revision_is_dir(svnclient, path, revision)
+
+    if is_dir:
         # It's a directory. Return the directory listing.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'Dir'
         # TODO: Fix this dirty, dirty hack
-        newjson = get_dirlisting(req, svnclient, path)
+        newjson = get_dirlisting(req, svnclient, path, revision)
         if ("X-IVLE-Action-Error" in req.headers_out):
             newjson["Error"] = req.headers_out["X-IVLE-Action-Error"]
         req.write(cjson.encode(newjson))
     elif return_contents:
         # It's a file. Return the file contents.
         # First get the mime type of this file
-        # (Note that importing ivle.util has already initialised mime types)
         (type, _) = mimetypes.guess_type(path)
         if type is None:
-            type = ivle.conf.mimetypes.default_mimetype
+            type = ivle.mimetypes.DEFAULT_MIMETYPE
         req.content_type = type
         req.headers_out['X-IVLE-Return'] = 'File'
 
-        send_file(req, svnclient, path)
+        send_file(req, svnclient, path, revision)
     else:
         # It's a file. Return a "fake directory listing" with just this file.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'File'
-        req.write(cjson.encode(get_dirlisting(req, svnclient, path)))
+        req.write(cjson.encode(get_dirlisting(req, svnclient, path,
+                                              revision)))
 
 def _get_revision_or_die(req, svnclient, path):
-    '''Looks for a revision specification in req's URL, returning the revision
-       specified. Returns None if there was no revision specified. Errors and
-       terminates the request if the specification was bad, or it doesn't exist
-       for the given path.
-    '''
+    """Looks for a revision specification in req's URL.
+    Errors and terminates the request if the specification was bad, or it
+    doesn't exist for the given path.
+    @param req: Request object.
+    @param svnclient: pysvn Client object.
+    @param path: Path to the file whose revision is to be retrieved.
+    @returns: pysvn Revision object, for the file+revision specified, or None
+        if there was no revision specified.
+    """
     # Work out the revisions from query
     r_str = req.get_fieldstorage().getfirst("r")
     revision = ivle.svn.revision_from_string(r_str)
@@ -195,31 +213,40 @@ def _get_revision_or_die(req, svnclient, path):
     if r_str and not (revision and
                       ivle.svn.revision_exists(svnclient, path, revision)):
         req.status = req.HTTP_NOT_FOUND
-        req.headers_out['X-IVLE-Return-Error'] = 'Revision not found'
+        message = ('Revision not found or file not found in revision %d' %
+                   revision.number)
+        req.headers_out['X-IVLE-Return-Error'] = message
         req.ensure_headers_written()
-        req.write('Revision not found')
+        req.write(message)
         req.flush()
         sys.exit()
     return revision
 
-def send_file(req, svnclient, path):
-    revision = _get_revision_or_die(req, svnclient, path)
+def send_file(req, svnclient, path, revision):
+    """Given a local absolute path to a file, sends the contents of the file
+    to the client.
+
+    @param req: Request object. Will not be mutated; just reads the session.
+    @param svnclient: Svn client object.
+    @param path: String. Absolute path on the local file system. Not checked,
+        must already be guaranteed safe. May be a file or a directory.
+    @param revision: pysvn Revision object for the given path, or None.
+    """
     if revision:
         req.write(svnclient.cat(path, revision=revision))
     else:
         req.sendfile(path)
 
-def get_dirlisting(req, svnclient, path):
+def get_dirlisting(req, svnclient, path, revision):
     """Given a local absolute path, creates a directory listing object
     ready to be JSONized and sent to the client.
 
-    req: Request object. Will not be mutated; just reads the session.
-    svnclient: Svn client object.
-    path: String. Absolute path on the local file system. Not checked,
+    @param req: Request object. Will not be mutated; just reads the session.
+    @param svnclient: Svn client object.
+    @param path: String. Absolute path on the local file system. Not checked,
         must already be guaranteed safe. May be a file or a directory.
+    @param revision: pysvn Revision object for the given path, or None.
     """
-
-    revision = _get_revision_or_die(req, svnclient, path)
 
     # Start by trying to do an SVN status, so we can report file version
     # status
@@ -284,7 +311,7 @@ def _stat_fileinfo(fullpath, file_stat):
     d = {}
     if stat.S_ISDIR(file_stat.st_mode):
         d["isdir"] = True
-        d["type_nice"] = util.nice_filetype("/")
+        d["type_nice"] = ivle.mimetypes.nice_filetype("/")
         # Only directories can be published
         d["published"] = studpath.published(fullpath)
     else:
@@ -292,9 +319,9 @@ def _stat_fileinfo(fullpath, file_stat):
         d["size"] = file_stat.st_size
         (type, _) = mimetypes.guess_type(fullpath)
         if type is None:
-            type = ivle.conf.mimetypes.default_mimetype
+            type = ivle.mimetypes.DEFAULT_MIMETYPE
         d["type"] = type
-        d["type_nice"] = util.nice_filetype(fullpath)
+        d["type_nice"] = ivle.mimetypes.nice_filetype(fullpath)
     d["mtime"] = file_stat.st_mtime
     d["mtime_nice"] = ivle.date.make_date_nice(file_stat.st_mtime)
     d["mtime_short"] = ivle.date.make_date_nice_short(file_stat.st_mtime)
@@ -327,6 +354,15 @@ def PysvnStatus_to_fileinfo(path, status):
         filename = os.path.basename(fullpath)
     text_status = status.text_status
     d = {'svnstatus': str(text_status)}
+
+    if status.entry is not None:
+        d.update({
+           'svnurl': status.entry.url,
+           'svnrevision': status.entry.revision.number
+             if status.entry.revision.kind == pysvn.opt_revision_kind.number
+             else None,
+        })
+
     try:
         d.update(_fullpath_stat_fileinfo(fullpath))
     except OSError:

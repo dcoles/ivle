@@ -21,6 +21,7 @@
 import os
 import sys
 
+import ivle.config
 from ivle.database import get_store, Subject, Semester, Offering, Worksheet
 import ivle.worksheet.utils
 
@@ -34,7 +35,7 @@ if len(sys.argv) != 7:
                          % os.path.basename(sys.argv[0])
     sys.exit()
 
-store = get_store()
+store = get_store(ivle.config.Config())
 
 src = store.find(Offering,
                  Subject.code == unicode(sys.argv[1]),

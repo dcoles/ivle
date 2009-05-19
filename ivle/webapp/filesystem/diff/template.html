@@ -1,10 +1,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Diff</title>
+    <title>${title} (diff)</title>
   </head>
   <body>
-    <h1>Diff</h1>
+    <h1>
+      <py:for each="segment in paths">/<a href="${segment['href_path']}" title="Navigate to ${segment['nav_path']}">${segment['path']}</a></py:for> (Subversion diff)
+    </h1>
     <div id="ivle_padding">
       <py:for each="file in files">
         <p><b>File:</b> ${file}</p>

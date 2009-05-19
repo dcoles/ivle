@@ -138,6 +138,7 @@ function handle_text(path, text, handler_type)
 function language_from_mime(mime)
 {
     return {'text/x-python': 'python',
+            'application/x-javascript': 'javascript',
             'application/javascript': 'javascript',
             'text/css': 'css',
             'text/plain': 'text',

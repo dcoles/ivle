@@ -33,8 +33,9 @@ except ImportError:
     # This needs to be importable from outside Apache.
     pass
 
+import os.path
+
 import ivle.util
-import ivle.conf
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
 
@@ -154,21 +155,21 @@ class Request:
     HTTP_INSUFFICIENT_STORAGE         = 507
     HTTP_NOT_EXTENDED                 = 510
 
-    def __init__(self, req):
-        """Builds an IVLE request object from a mod_python request object.
-        This results in an object with all of the necessary methods and
-        additional fields.
+    def __init__(self, req, config):
+        """Create an IVLE request from a mod_python one.
 
-        req: A mod_python request object.
+        @param req: A mod_python request.
+        @param config: An IVLE configuration.
         """
 
         # Methods are mostly wrappers around the Apache request object
         self.apache_req = req
+        self.config = config
         self.headers_written = False
 
         # Determine if the browser used the public host name to make the
         # request (in which case we are in "public mode")
-        if req.hostname == ivle.conf.public_host:
+        if req.hostname == config['urls']['public_host']:
             self.publicmode = True
         else:
             self.publicmode = False
@@ -178,7 +179,7 @@ class Request:
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        path = ivle.util.unmake_path(req.uri)
+        path = self.unmake_path(req.uri)
         (self.app, self.path) = (ivle.util.split_path(path))
         self.user = None
         self.hostname = req.hostname
@@ -187,7 +188,7 @@ class Request:
 
         # Open a database connection and transaction, keep it around for users
         # of the Request object to use
-        self.store = ivle.database.get_store()
+        self.store = ivle.database.get_store(config)
 
         # Default values for the output members
         self.status = Request.HTTP_OK
@@ -252,7 +253,7 @@ class Request:
                 for cookie in plugin.cookies:
                     self.add_cookie(mod_python.Cookie.Cookie(cookie, '',
                                                     expires=1, path='/'))
-        self.throw_redirect(ivle.util.make_path('')) 
+        self.throw_redirect(self.make_path(''))
 
 
     def flush(self):
@@ -291,6 +292,33 @@ class Request:
             mod_python.Cookie.add_cookie(self.apache_req, cookie)
         else:
             mod_python.Cookie.add_cookie(self.apache_req, cookie, value, **attributes)
+
+    def make_path(self, path):
+        """Prepend the IVLE URL prefix to the given path.
+
+        This is used when generating URLs to send to the client.
+
+        This method is DEPRECATED. We no longer support use of a prefix.
+        """
+        return os.path.join(self.config['urls']['root'], path)
+
+    def unmake_path(self, path):
+        """Strip the IVLE URL prefix from the given path, if present.
+
+        Also normalises the path.
+
+        This method is DEPRECATED. We no longer support use of a prefix.
+        """
+        path = os.path.normpath(path)
+        root = os.path.normpath(self.config['urls']['root'])
+
+        if path.startswith(root):
+            path = path[len(root):]
+            # Take out the slash as well
+            if len(path) > 0 and path[0] == os.sep:
+                path = path[1:]
+
+        return path
 
     def get_session(self):
         """Returns a mod_python Session object for this request.

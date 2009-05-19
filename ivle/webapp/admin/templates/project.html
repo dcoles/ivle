@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>${project.name} for ${project.project_set.offering.subject.name}</title>
+  </head>
+  <body>
+    <h1>${project.name} for ${project.project_set.offering.subject.name}</h1>
+    <div id="ivle_padding">
+      <p>${project.synopsis}</p>
+      <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
+
+      <h2>Latest submissions</h2>
+      <table id="project_submissions" class="project_list" summary="Latest Submissions"
+             py:if="project.latest_submissions.count() > 0">
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Submitter</th>
+            <th>Date</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+        <py:for each="submission in project.latest_submissions">
+          <tr>
+          <py:choose test="submission.assessed.principal is submission.submitter">
+            <td py:when="True">-</td>
+            <td py:otherwise=""><span title="${submission.assessed.principal.display_name}">${submission.assessed.principal.short_name}</span></td>
+          </py:choose>
+            <td><span title="${submission.submitter.display_name}">${submission.submitter.short_name}</span></td>
+            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
+            <td>svn co --username ${user.login} -r${submission.revision} ${build_subversion_url(svn_addr, submission)}</td>
+          </tr>
+        </py:for>
+        </tbody>
+      </table>
+
+      <h2>Assigned submitters</h2>
+      <table id="project_assigneds" class="project_list">
+        <thead><tr><th>Assigned</th></tr></thead>
+        <tbody>
+        <py:for each="assignee in project.project_set.assigned">
+          <tr>
+            <td><span title="${assignee.display_name}">${assignee.short_name}</span></td>
+            <!-- <td><a>Grant an extension</a></td> -->
+          </tr>
+        </py:for>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
