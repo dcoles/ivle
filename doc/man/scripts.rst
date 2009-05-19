@@ -15,21 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-***************
-The IVLE Manual
-***************
+*************
+Admin scripts
+*************
 
-This manual is for system administrators and other users who wish to install
-and configure their own IVLE instance.
 
-The primary *users* of IVLE, the students, are given a separate help page from
-within the system itself (accessible from the Help tab).
-
-.. toctree::
-   :maxdepth: 2
-
-   install.rst
-   config.rst
-   directory.rst
-   architecture.rst
-   scripts.rst
