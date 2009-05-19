@@ -15,19 +15,21 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-***************
-The IVLE Manual
-***************
+************************
+IVLE and your filesystem
+************************
 
-This manual is for system administrators and other users who wish to install
-and configure their own IVLE instance.
+IVLE is a complicated piece of software, and installs several components into
+various places in your filesystem. This page details exactly where the
+components will be installed, and what their purpose is:
 
-The primary *users* of IVLE, the students, are given a separate help page from
-within the system itself (accessible from the Help tab).
+* The IVLE code itself
+    * The main web application, as a Python package
+    * Numerous Python scripts (:file:`ivle-*`), in your :envvar:`PATH`
+    * Several services (binary files and Python code)
+* The configuration files
+* The jails
+* The subversion repositories
+    * The subversion configuration files
 
-.. toctree::
-   :maxdepth: 2
-
-   install.rst
-   config.rst
-   filesystem.rst
+.. XXX Copy the contents of Planning/Directory_hierarchy from our dev wiki.
