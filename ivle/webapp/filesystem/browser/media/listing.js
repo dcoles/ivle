@@ -614,30 +614,25 @@ function setup_dir_listing()
     var filetabletable = document.createElement("table");
     filetablediv.appendChild(filetabletable);
     filetabletable.setAttribute("width", "100%");
-    var filetablethead = document.createElement("thead");
-    filetabletable.appendChild(filetablethead);
-    var filetablethead_tr = document.createElement("tr");
-    filetablethead.appendChild(filetablethead_tr);
-    filetablethead_tr.setAttribute("class", "rowhead");
-    /* Row headers */
-    var filetablethead_th = document.createElement("th");
-    $('<input type="checkbox" title="Select All" onchange="action_selectall(this.checked)" />').appendTo(filetablethead_th);
-    filetablethead_tr.appendChild(filetablethead_th);
-    filetablethead_th.setAttribute("class", "col-check");
-    filetablethead_th = dom_make_link_elem("th", "Filename",
-        "Sort by filename", null,
-	"return sort_listing(\"filename\", !sort_ascending)");
-    filetablethead_tr.appendChild(filetablethead_th);
-    filetablethead_th.setAttribute("class", "col-filename");
-    filetablethead_th.setAttribute("colspan", 3);
-    filetablethead_th = dom_make_link_elem("th", "Size",
-        "Sort by file size", null, "return sort_listing(\"size\",!sort_ascending)");
-    filetablethead_tr.appendChild(filetablethead_th);
-    filetablethead_th.setAttribute("class", "col-size");
-    filetablethead_th = dom_make_link_elem("th", "Modified",
-        "Sort by date modified", null, "return sort_listing(\"mtime\",!sort_ascending)");
-    filetablethead_tr.appendChild(filetablethead_th);
-    filetablethead_th.setAttribute("class", "col-date");
+
+    $('\
+<thead> \
+  <tr class="rowhead"> \
+    <th class="col-check"> \
+      <input title="Select All" onchange="action_selectall(this.checked)" type="checkbox"> \
+    </th> \
+    <th colspan="3" class="col-filename"> \
+      <a onclick="return sort_listing(\'filename\', !sort_ascending)" title="Sort by filename" href="">Filename</a> \
+    </th> \
+    <th class="col-size"> \
+      <a onclick="return sort_listing(\'size\', !sort_ascending)" title="Sort by file size" href="">Size</a> \
+    </th> \
+    <th class="col-date"> \
+      <a onclick="return sort_listing(\'mtime\', !sort_ascending)" title="Sort by date modified" href="">Modified</a> \
+    </th> \
+  </tr> \
+</thead>').appendTo(filetabletable);
+
     /* Empty body */
     var filetabletbody = document.createElement("tbody");
     filetabletable.appendChild(filetabletbody);
