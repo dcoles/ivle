@@ -621,6 +621,7 @@ function setup_dir_listing()
     filetablethead_tr.setAttribute("class", "rowhead");
     /* Row headers */
     var filetablethead_th = document.createElement("th");
+    $('<input type="checkbox" title="Select All" onchange="action_selectall(this.checked)" />').appendTo(filetablethead_th);
     filetablethead_tr.appendChild(filetablethead_th);
     filetablethead_th.setAttribute("class", "col-check");
     filetablethead_th = dom_make_link_elem("th", "Filename",
