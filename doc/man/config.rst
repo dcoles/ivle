@@ -15,18 +15,15 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-***************
-The IVLE Manual
-***************
+.. _ref-configuring-ivle:
 
-This manual is for system administrators and other users who wish to install
-and configure their own IVLE instance.
+****************
+Configuring IVLE
+****************
 
-The primary *users* of IVLE, the students, are given a separate help page from
-within the system itself (accessible from the Help tab).
+This page describes the configuration of IVLE, which is done by editing the
+file :file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`.
 
-.. toctree::
-   :maxdepth: 2
+Configuration options
+=====================
 
-   install.rst
-   config.rst

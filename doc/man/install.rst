@@ -15,18 +15,27 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-***************
-The IVLE Manual
-***************
+************
+Installation
+************
 
-This manual is for system administrators and other users who wish to install
-and configure their own IVLE instance.
+System Requirements
+===================
 
-The primary *users* of IVLE, the students, are given a separate help page from
-within the system itself (accessible from the Help tab).
+* Ubuntu
 
-.. toctree::
-   :maxdepth: 2
+Installing from a Debian package
+================================
 
-   install.rst
-   config.rst
+Installing from source
+======================
+
+Basic configuration
+===================
+
+.. Note: Place here only the configuration required to get the system
+   installed and running. Any further configuration should go in config.rst.
+
+.. note::
+   For more advanced configuration, see :ref:`Configuring IVLE
+   <ref-configuring-ivle>`.
