@@ -34,7 +34,7 @@ def make_date_nice(datetime_or_seconds):
     "ddd mmm dd, yyyy h:m a"
     """
     dt = get_datetime(datetime_or_seconds)
-    return dt.strftime("%a %b %d %Y, %I:%M %p")
+    return dt.strftime("%a %b %d %Y, %l:%M%P")
 
 def make_date_nice_short(datetime_or_seconds):
     """Generate a very compact human-readable representation of a date.
@@ -112,16 +112,16 @@ def format_datetime_for_paragraph(datetime_or_seconds):
     if dt < now:
         if dt.date() == now.date():
             # Today.
-            return dt.strftime('today at %I:%M %p')
+            return dt.strftime('today at %l:%M%P')
         elif dt.date() == now.date() - datetime.timedelta(days=1):
             # Yesterday.
-            return dt.strftime('yesterday at %I:%M %p')
+            return dt.strftime('yesterday at %l:%M%P')
     elif dt > now:
         if dt.date() == now.date():
             # Today.
-            return dt.strftime('today at %I:%M %p')
+            return dt.strftime('today at %l:%M%P')
         elif dt.date() == now.date() + datetime.timedelta(days=1):
             # Tomorrow
-            return dt.strftime('tomorrow at %I:%M %p')
+            return dt.strftime('tomorrow at %l:%M%P')
 
-    return dt.strftime('on %Y-%m-%d at %I:%M %p')
+    return dt.strftime('on %Y-%m-%d at %l:%M%P')
