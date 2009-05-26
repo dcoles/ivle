@@ -21,7 +21,18 @@ import time
 import datetime
 
 def get_datetime(datetime_or_seconds):
-    '''Return the given datetime, or convert the given seconds since epoch.'''
+    '''Return the given datetime, or convert the given seconds since epoch.
+
+    >>> get_datetime(1000000000)
+    datetime.datetime(2001, 9, 9, 11, 46, 40)
+    >>> get_datetime(2000000000)
+    datetime.datetime(2033, 5, 18, 13, 33, 20)
+
+    >>> get_datetime(datetime.datetime(2009, 5, 26, 11, 38, 53))
+    datetime.datetime(2009, 5, 26, 11, 38, 53)
+    >>> get_datetime(datetime.datetime(2001, 9, 9, 11, 46, 40))
+    datetime.datetime(2001, 9, 9, 11, 46, 40)
+    '''
     if type(datetime_or_seconds) is datetime.datetime:
         return datetime_or_seconds
     return datetime.datetime.fromtimestamp(datetime_or_seconds)
@@ -32,6 +43,9 @@ def make_date_nice(datetime_or_seconds):
     Given a datetime or number of seconds elapsed since the epoch,
     generates a string representing the date/time in human-readable form.
     "ddd mmm dd, yyyy h:m a"
+
+    >>> make_date_nice(datetime.datetime(2009, 5, 26, 11, 38, 53))
+    'Tue May 26 2009, 11:38am'
     """
     dt = get_datetime(datetime_or_seconds)
     return dt.strftime("%a %b %d %Y, %l:%M%P")
@@ -42,6 +56,18 @@ def make_date_nice_short(datetime_or_seconds):
     Given a datetime or number of seconds elapsed since the epoch,
     generates a string representing the date in human-readable form.
     Does not include the time.
+
+    >>> now = datetime.datetime.now()
+    >>> make_date_nice_short(now)
+    'Today'
+    >>> make_date_nice_short(now - datetime.timedelta(1))
+    'Yesterday'
+    >>> make_date_nice_short(now - datetime.timedelta(2))
+    '2 days ago'
+    >>> make_date_nice_short(now - datetime.timedelta(5))
+    '5 days ago'
+    >>> make_date_nice_short(1242783748)
+    'May 20'
     """
 
     dt = get_datetime(datetime_or_seconds)
@@ -77,6 +103,35 @@ def format_datetime_for_paragraph(datetime_or_seconds):
 
     Also unlike make_date_nice_short, it is suitable for use in the middle of
     a block of prose and properly handles timestamps in the future nicely.
+
+    >>> now = datetime.datetime.now()
+    >>> today = now.date()
+    >>> time = datetime.time(10, 35, 40)
+    >>> earlier = datetime.datetime.combine(today, time)
+    >>> date = datetime.datetime(2009, 5, 20, 21, 19, 53)
+
+    >>> format_datetime_for_paragraph(now)
+    'now'
+
+    # We can go backwards and forwards a little while and be pretty.
+    >>> format_datetime_for_paragraph(now - datetime.timedelta(0, 40))
+    '40 seconds ago'
+    >>> format_datetime_for_paragraph(now + datetime.timedelta(0, 30))
+    'in 29 seconds'
+
+    >>> format_datetime_for_paragraph(now - datetime.timedelta(0, 245))
+    '4 minutes ago'
+    >>> format_datetime_for_paragraph(now + datetime.timedelta(0, 3500))
+    'in 58 minutes'
+
+    # If we go back further, it gets a bit ugly.
+    >>> format_datetime_for_paragraph(earlier - datetime.timedelta(1))
+    'yesterday at 10:35am'
+    >>> format_datetime_for_paragraph(date)
+    'on 2009-05-20 at  9:19pm'
+
+    >>> format_datetime_for_paragraph(earlier + datetime.timedelta(1))
+    'tomorrow at 10:35am'
     """
 
     dt = get_datetime(datetime_or_seconds)
