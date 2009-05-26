@@ -28,6 +28,10 @@ import types
 
 from ivle import testfilespace
 
+# Don't let nose into here, as it has lots of stuff named Test* without being
+# tests.
+__test__ = False
+
 # student error or author error
 # errors in student code get handled internally
 # errors in solution code get passed up
