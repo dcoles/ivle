@@ -27,7 +27,15 @@ The IVLE web application
 User management server
 ======================
 
-The user management server (:file:`usrmgt-server`) ...
+The "user management" server (:file:`usrmgt-server`) is an
+inappropriately-named program which must be run as root in the background of
+an IVLE instance. It is responsible for performing tasks at the request of the
+IVLE web application, which require root privileges:
+
+* Activating users when they first log into the system (including the creation
+  of jails and user Subversion repositories).
+* Creating group Subversion repositories.
+* Rebuilding Subversion configuration files.
 
 Subversion server
 =================
