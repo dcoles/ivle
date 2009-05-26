@@ -140,7 +140,7 @@ def handle_return(req, return_contents):
     If the path is a directory, return_contents is ignored.
     """
 
-    (user, jail, path) = studpath.url_to_jailpaths(req.path)
+    path = studpath.to_home_path(req.path)
 
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.

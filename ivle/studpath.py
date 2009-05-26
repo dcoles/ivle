@@ -28,13 +28,12 @@ import os
 import stat
 import pysvn
 
-import ivle.conf
 from ivle import util
 
 # Make a Subversion client object (for published)
 svnclient = pysvn.Client()
 
-def url_to_local(urlpath):
+def url_to_local(config, urlpath):
     """Given a URL path (part of a URL query string, see below), returns a
     tuple of
         * the username of the student whose directory is being browsed
@@ -51,8 +50,13 @@ def url_to_local(urlpath):
 
     Returns (None, None) if the path is empty.
 
-    See also: ivle.conf.jail_base
+    >>> stubconfig = {'paths': {'jails': {'mounts': '/jails'}}}
+    >>> url_to_local(stubconfig, '')
+    (None, None)
+    >>> url_to_local(stubconfig, 'joe/foo/bar/baz')
+    ('joe', '/jails/joe/home/joe/foo/bar/baz')
     """
+
     # First normalise the path
     urlpath = os.path.normpath(urlpath)
     # Now if it begins with ".." or separator, then it's illegal
@@ -68,11 +72,12 @@ def url_to_local(urlpath):
     # accordance with our directory scheme.
     # (The first time is the name of the jail, the second is the user's home
     # directory within the jail).
-    path = os.path.join(ivle.conf.jail_base, user, 'home', urlpath)
+    path = os.path.join(config['paths']['jails']['mounts'],
+                        user, 'home', urlpath)
 
     return (user, path)
 
-def url_to_jailpaths(urlpath):
+def url_to_jailpaths(config, urlpath):
     """Given a URL path (part of a URL query string), returns a tuple of
         * the username of the student whose directory is being browsed
         * the absolute path where the jail will be located.
@@ -96,10 +101,18 @@ def url_to_jailpaths(urlpath):
     (user, subpath) = util.split_path(urlpath)
     if user is None: return (None, None, None)
 
-    jail = os.path.join(ivle.conf.jail_base, user)
-    path = os.path.join('/home', urlpath)
+    jail = os.path.join(config['paths']['jails']['mounts'], user)
+    path = to_home_path(urlpath)
 
     return (user, jail, path)
+
+def to_home_path(urlpath):
+    """Given a URL path (eg. joe/foo/bar/baz), returns a path within the home.
+
+    >>> to_home_path('joe/foo/bar/baz')
+    '/home/joe/foo/bar/baz'
+    """
+    return os.path.join('/home', urlpath)
 
 def svnpublished(path):
     """Given a path on the LOCAL file system, determines whether the path has
@@ -162,7 +175,7 @@ def authorize_public(req):
     Same interface as "authorize" - None on success, HTTP_FORBIDDEN exception
     raised on failure.
     """
-    _, path = url_to_local(req.path)
+    _, path = url_to_local(req.config, req.path)
 
     # Walk up the tree, and find the deepest directory.
     while not os.path.isdir(path):

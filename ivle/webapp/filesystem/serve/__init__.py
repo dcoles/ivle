@@ -46,7 +46,7 @@ class ServeView(BaseView):
         """Handler for the Server application which serves pages."""
         # Get the username of the student whose work we are browsing, and the
         # path on the local machine where the file is stored.
-        (login, jail, path) = studpath.url_to_jailpaths(self.path)
+        (login, jail, path) = studpath.url_to_jailpaths(req.config, self.path)
 
         owner = User.get_by_login(req.store, login)
         if not owner:

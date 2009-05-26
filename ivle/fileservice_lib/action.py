@@ -229,7 +229,7 @@ def actionpath_to_local(req, path):
 
     Does not mutate req.
     """
-    (_, _, r) = studpath.url_to_jailpaths(actionpath_to_urlpath(req, path))
+    r = studpath.to_home_path(actionpath_to_urlpath(req, path))
     if r is None:
         raise ActionError("Invalid path")
     return r
@@ -421,7 +421,7 @@ def action_putfiles(req, fields):
     for datum in data:
         # Each of the uploaded files
         filepath = os.path.join(path, datum.filename)
-        (_, _, filepath_local) = studpath.url_to_jailpaths(filepath)
+        filepath_local = studpath.to_home_path(filepath)
         if os.path.isdir(filepath_local):
             raise ActionError("A directory already exists "
                     + "with that name")
@@ -437,7 +437,7 @@ def action_putfiles(req, fields):
             # filename)
             try:
                 # First get the entire path (within jail)
-                _, _, abspath = studpath.url_to_jailpaths(path)
+                abspath = studpath.to_home_path(path)
                 abspath = os.path.join(os.sep, abspath)
                 zip.unzip(abspath, filedata)
             except (OSError, IOError):
@@ -446,7 +446,7 @@ def action_putfiles(req, fields):
                 raise ActionError("File '" + e.filename + "' already exists.")
         else:
             # Not a zip file
-            (_, _, filepath_local) = studpath.url_to_jailpaths(filepath)
+            filepath_local = studpath.to_home_path(filepath)
             if filepath_local is None:
                 raise ActionError("Invalid path")
 
@@ -533,12 +533,12 @@ def action_publish(req,fields):
     Reads fields: 'path'
     """
     paths = fields.getlist('path')
-    user = studpath.url_to_local(req.path)[0]
+    user = util.split_path(req.path)[0]
     homedir = "/home/%s" % user
     if len(paths):
         paths = map(lambda path: actionpath_to_local(req, path), paths)
     else:
-        paths = [studpath.url_to_jailpaths(req.path)[2]]
+        paths = [studpath.to_home_path(req.path)]
 
     # Set all the dirs in home dir world browsable (o+r,o+x)
     #FIXME: Should really only do those in the direct path not all of the 
@@ -568,7 +568,7 @@ def action_unpublish(req,fields):
     if len(paths):
         paths = map(lambda path: actionpath_to_local(req, path), paths)
     else:
-        paths = [studpath.url_to_jailpaths(req.path)[2]]
+        paths = [studpath.to_home_path(req.path)]
 
     try:
         for path in paths:
@@ -665,7 +665,7 @@ def action_svnpublish(req, fields):
     if len(paths):
         paths = map(lambda path: actionpath_to_local(req, path), paths)
     else:
-        paths = [studpath.url_to_jailpaths(req.path)[2]]
+        paths = [studpath.to_home_path(req.path)]
 
     try:
         for path in paths:

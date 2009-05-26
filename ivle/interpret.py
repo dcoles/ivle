@@ -22,7 +22,7 @@
 # Runs a student script in a safe execution environment.
 
 from ivle import studpath
-from ivle.util import IVLEError, IVLEJailError
+from ivle.util import IVLEError, IVLEJailError, split_path
 import ivle.conf
 
 import functools
@@ -404,7 +404,7 @@ def fixup_environ(req, script_path):
     if script_path and script_path.startswith('/home'):
         normscript = os.path.normpath(script_path)
 
-        uri_into_jail = studpath.url_to_jailpaths(os.path.normpath(req.path))[2]
+        uri_into_jail = studpath.to_home_path(os.path.normpath(req.path))
 
         # PATH_INFO is wrong because the script doesn't physically exist.
         env['PATH_INFO'] = uri_into_jail[len(normscript):]
@@ -416,7 +416,7 @@ def fixup_environ(req, script_path):
     env['SERVER_SOFTWARE'] = "IVLE/" + str(ivle.conf.ivle_version)
 
     # Additional environment variables
-    username = studpath.url_to_jailpaths(req.path)[0]
+    username = split_path(req.path)[0]
     env['HOME'] = os.path.join('/home', username)
 
 class ExecutionError(Exception):

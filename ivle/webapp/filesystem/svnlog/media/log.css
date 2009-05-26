@@ -1,13 +1,31 @@
-.svnlogentry {
-	margin: 1em;
-	padding: 5px;
-	border: 1px solid black;
+#svnlog {
+	padding: 0;
 }
 
-.svnloginfo {
+#svnlog > li {
+	margin: 0.5em 0;
+	border: 2px solid #bbb;
+
+	list-style-type: none;
+}
+
+#svnlog > li > h2 {
+	padding: 0.2em;
+	margin: 0;
 	background: #eee;
+	font-size: medium;
+	font-weight: normal;
 }
 
-.svnlogentry h2 {
+#svnlog > li > div.svnlogcontent {
+	padding: 0.2em;
+}
+
+#svnlog > li > div > div.svnlogpathlist {
+	border-top: 1px solid black;
 	font-size: smaller;
+}
+
+#svnlog > li div.svnlogpathlist h3 {
+	margin: 0.5em;
 }
