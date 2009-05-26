@@ -34,7 +34,7 @@ from ivle import util
 # Make a Subversion client object (for published)
 svnclient = pysvn.Client()
 
-def url_to_local(urlpath):
+def url_to_local(config, urlpath):
     """Given a URL path (part of a URL query string, see below), returns a
     tuple of
         * the username of the student whose directory is being browsed
@@ -51,8 +51,13 @@ def url_to_local(urlpath):
 
     Returns (None, None) if the path is empty.
 
-    See also: ivle.conf.jail_base
+    >>> stubconfig = {'paths': {'jails': {'mounts': '/jails'}}}
+    >>> url_to_local(stubconfig, '')
+    (None, None)
+    >>> url_to_local(stubconfig, 'joe/foo/bar/baz')
+    ('joe', '/jails/joe/home/joe/foo/bar/baz')
     """
+
     # First normalise the path
     urlpath = os.path.normpath(urlpath)
     # Now if it begins with ".." or separator, then it's illegal
@@ -68,7 +73,8 @@ def url_to_local(urlpath):
     # accordance with our directory scheme.
     # (The first time is the name of the jail, the second is the user's home
     # directory within the jail).
-    path = os.path.join(ivle.conf.jail_base, user, 'home', urlpath)
+    path = os.path.join(config['paths']['jails']['mounts'],
+                        user, 'home', urlpath)
 
     return (user, path)
 
@@ -162,7 +168,7 @@ def authorize_public(req):
     Same interface as "authorize" - None on success, HTTP_FORBIDDEN exception
     raised on failure.
     """
-    _, path = url_to_local(req.path)
+    _, path = url_to_local(req.config, req.path)
 
     # Walk up the tree, and find the deepest directory.
     while not os.path.isdir(path):
