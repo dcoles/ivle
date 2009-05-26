@@ -103,14 +103,14 @@ def url_to_jailpaths(urlpath):
     if user is None: return (None, None, None)
 
     jail = os.path.join(ivle.conf.jail_base, user)
-    path = url_path_to_jail_path(urlpath)
+    path = to_home_path(urlpath)
 
     return (user, jail, path)
 
-def url_path_to_jail_path(urlpath):
-    """Given a URL path (eg. joe/foo/bar/baz), returns a path within the jail.
+def to_home_path(urlpath):
+    """Given a URL path (eg. joe/foo/bar/baz), returns a path within the home.
 
-    >>> url_path_to_jail_path('joe/foo/bar/baz')
+    >>> to_home_path('joe/foo/bar/baz')
     '/home/joe/foo/bar/baz'
     """
     return os.path.join('/home', urlpath)
