@@ -413,7 +413,7 @@ def fixup_environ(req, script_path):
 
     # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
     # custom-making the CGI request.
-    env['SERVER_SOFTWARE'] = "IVLE/" + str(ivle.conf.ivle_version)
+    env['SERVER_SOFTWARE'] = "IVLE/" + ivle.__version__
 
     # Additional environment variables
     username = split_path(req.path)[0]
