@@ -34,7 +34,6 @@ from ivle.webapp.filesystem import make_path_segments
 import os.path
 import cgi
 
-from ivle import studpath
 import ivle.svn
 
 class BrowserView(XHTMLView):
@@ -65,22 +64,11 @@ class BrowserView(XHTMLView):
                                        'codepress/codepress.js']
         req.scripts_init = ["browser_init"]
 
-        _, localpath = studpath.url_to_local(self.path)
-        if localpath is None:
-            raise NotFound()
-
-        if isinstance(localpath, unicode):
-            localpath = localpath.encode('utf-8')
-
         # Start writing data
 
-        # FIXME: This isn't completely reliable! We're not inside the jail, so we
-        # can't know the type for sure. This is now only used for adding a / to the
-        # end of displayed paths, so I'm leaving this although it will often break.
-        try:
-            isdir = os.path.isdir(localpath)
-        except OSError:
-            isdir = False
+        # TODO: Set this properly. We can't get into the jail from server-side
+        # code at the moment, so we can't determine this.
+        isdir = False
 
         revision = ivle.svn.revision_from_string(
                          req.get_fieldstorage().getfirst('r'))
