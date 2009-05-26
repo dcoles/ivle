@@ -28,7 +28,6 @@ import os
 import stat
 import pysvn
 
-import ivle.conf
 from ivle import util
 
 # Make a Subversion client object (for published)
@@ -78,7 +77,7 @@ def url_to_local(config, urlpath):
 
     return (user, path)
 
-def url_to_jailpaths(urlpath):
+def url_to_jailpaths(config, urlpath):
     """Given a URL path (part of a URL query string), returns a tuple of
         * the username of the student whose directory is being browsed
         * the absolute path where the jail will be located.
@@ -102,7 +101,7 @@ def url_to_jailpaths(urlpath):
     (user, subpath) = util.split_path(urlpath)
     if user is None: return (None, None, None)
 
-    jail = os.path.join(ivle.conf.jail_base, user)
+    jail = os.path.join(config['paths']['jails']['mounts'], user)
     path = to_home_path(urlpath)
 
     return (user, jail, path)
