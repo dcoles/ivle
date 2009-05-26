@@ -533,7 +533,7 @@ def action_publish(req,fields):
     Reads fields: 'path'
     """
     paths = fields.getlist('path')
-    user = studpath.url_to_local(req.path)[0]
+    user = util.split_path(req.path)[0]
     homedir = "/home/%s" % user
     if len(paths):
         paths = map(lambda path: actionpath_to_local(req, path), paths)
