@@ -44,10 +44,9 @@ import sys
 import os
 
 from ivle.auth import AuthError
-import ivle.conf
 import ivle.database
 
-def authenticate(store, login, password):
+def authenticate(config, store, login, password):
     """Determines whether a particular login/password combination is
     valid for the given database. The password is in cleartext.
 
@@ -73,7 +72,9 @@ def authenticate(store, login, password):
 
     user = ivle.database.User.get_by_login(store, login)
 
-    for modname, m in auth_modules:
+    raise Exception(str(get_auth_modules(config)))
+
+    for modname, m in get_auth_modules(config):
         # May raise an AuthError - allow to propagate
         auth_result = m(store, login, password, user)
         if auth_result is None:
@@ -129,29 +130,37 @@ def simple_db_auth(store, login, password, user):
     else:
         raise AuthError()
 
-# Allow imports to get files from this directory.
-# Get the directory that this module (authenticate) is in
-authpath = os.path.split(sys.modules[__name__].__file__)[0]
-# Add it to sys.path
-sys.path.append(authpath)
+def get_auth_modules(config):
+    """Get the auth modules defined in the configuration.
 
-# Create a global variable "auth_modules", a list of (name, function object)s.
-# This list consists of simple_db_auth, plus the "auth" functions of all the
-# plugin auth modules.
+    Returns a list of (name, function object)s. This list consists of
+    simple_db_auth, plus the "auth" functions of all the plugin auth modules.
+    """
 
-auth_modules = [("simple_db_auth", simple_db_auth)]
-for modname in ivle.conf.auth_modules.split(','):
-    try:
-        mod = __import__(modname)
-    except ImportError:
-        raise AuthError("Internal error: Can't import auth module %s"
-            % repr(modname))
-    except ValueError:
-        # If auth_modules is "", we may get an empty string - ignore
-        continue
-    try:
-        authfunc = mod.auth
-    except AttributeError:
-        raise AuthError("Internal error: Auth module %s has no 'auth' "
-            "function" % repr(modname))
-    auth_modules.append((modname, authfunc))
+    oldpath = sys.path
+    # Allow imports to get files from this directory.
+    # Get the directory that this module (authenticate) is in
+    authpath = os.path.split(sys.modules[__name__].__file__)[0]
+    # Add it to sys.path
+    sys.path.append(authpath)
+
+    auth_modules = [("simple_db_auth", simple_db_auth)]
+    for modname in config['auth']['modules']:
+        try:
+            mod = __import__(modname)
+        except ImportError:
+            raise AuthError("Internal error: Can't import auth module %s"
+                % repr(modname))
+        except ValueError:
+            # If auth_modules is "", we may get an empty string - ignore
+            continue
+        try:
+            authfunc = mod.auth
+        except AttributeError:
+            raise AuthError("Internal error: Auth module %s has no 'auth' "
+                "function" % repr(modname))
+        auth_modules.append((modname, authfunc))
+
+    # Restore the old path, without this directory in it.
+    sys.path = oldpath
+    return auth_modules

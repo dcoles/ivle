@@ -370,7 +370,8 @@ def handle_update_user(req, fields):
     # entered old password and it authenticates.
     if fields.getfirst('password') is not None:
         try:
-            authenticate.authenticate(req.store, login, oldpassword)
+            authenticate.authenticate(req.config, req.store, login,
+                                      oldpassword)
         except AuthError:
             # XXX: Duplicated!
             req.headers_out['X-IVLE-Action-Error'] = \

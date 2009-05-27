@@ -101,7 +101,7 @@ class LoginView(XHTMLView):
                 else:
                     user = None
                     try:
-                        user = authenticate.authenticate(req.store,
+                        user = authenticate.authenticate(req.config, req.store,
                                     username.value, password.value)
                     except AuthError, msg:
                         badlogin = msg
