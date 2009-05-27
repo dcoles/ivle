@@ -112,6 +112,12 @@ def to_home_path(urlpath):
     >>> to_home_path('joe/foo/bar/baz')
     '/home/joe/foo/bar/baz'
     """
+
+    urlpath = os.path.normpath(urlpath)
+    # If it begins with '..', it's illegal.
+    if urlpath.startswith(".."):
+        return None
+
     return os.path.join('/home', urlpath)
 
 def svnpublished(path):
