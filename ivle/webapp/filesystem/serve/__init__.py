@@ -99,7 +99,7 @@ class ServeView(BaseView):
         else:
             args.append(path)
 
-        (out, err) = interpret.execute_raw(owner, jail, '/home',
+        (out, err) = interpret.execute_raw(req.config, owner, jail, '/home',
                     os.path.join(req.config['paths']['share'],
                                  'services/serveservice'),
                     args)

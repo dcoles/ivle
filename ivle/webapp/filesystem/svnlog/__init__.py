@@ -44,8 +44,13 @@ class SubversionLogView(XHTMLView):
 
         user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
                                      req.user.login)
-        (out, err) = ivle.interpret.execute_raw(req.user, user_jail_dir,
-                             '/home', svnlogservice_path, [self.path])
+        (out, err) = ivle.interpret.execute_raw(req.config,
+                                                req.user,
+                                                user_jail_dir,
+                                                '/home',
+                                                svnlogservice_path,
+                                                [self.path]
+                                                )
         assert not err
 
         response = cjson.decode(out)

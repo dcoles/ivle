@@ -54,10 +54,11 @@ class DiffView(XHTMLView):
 
         jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
                                 req.user.login)
-        (out, err) = ivle.interpret.execute_raw(req.user, jail_dir, '/home',
-                                    os.path.join(req.config['paths']['share'],
-                                                 'services/diffservice'),
-                                    [self.path] + revs)
+        (out, err) = ivle.interpret.execute_raw(req.config, req.user, jail_dir,
+                            '/home', os.path.join(req.config['paths']['share'],
+                                                  'services/diffservice'),
+                            [self.path] + revs
+                            )
         assert not err
 
         response = cjson.decode(out)
