@@ -31,23 +31,22 @@ import sys
 import datetime
 
 from subjecterror import SubjectError
-import ivle.conf
 
 from ivle.database import Subject, Offering, Semester
 
-def get_subjects(login):
+def get_subjects(config, login):
     """
     Looks up the student in whatever modules are available, using login.
     If successful, returns a list of (subject, semester) pairs (both strings).
     Raises a SubjectError if unsuccessful.
     """
-    for modname, m in subj_modules:
+    for modname, m in get_pulldown_modules(config):
         result = m(login)
         if result is not None:
             return result
     return []
 
-def enrol_user(store, user, year=None):
+def enrol_user(config, store, user, year=None):
     """
     Looks up the student in whatever modules are available.
     The pulldown does not tell us what year to enrol the student for, so the
@@ -67,7 +66,7 @@ def enrol_user(store, user, year=None):
         year = unicode(datetime.datetime.now().year)
 
     count = 0
-    for subject, semester in get_subjects(user.login):
+    for subject, semester in get_subjects(config, user.login):
         offering = store.find(Offering,
                               Subject.code == subject,
                               Offering.subject_id == Subject.id,
@@ -83,30 +82,38 @@ def enrol_user(store, user, year=None):
         count += 1
     return count
 
-# Allow imports to get files from this directory.
-# Get the directory that this module (authenticate) is in
-plugpath = os.path.split(sys.modules[__name__].__file__)[0]
-# Add it to sys.path
-sys.path.append(plugpath)
+def get_pulldown_modules(config):
+    """Get the subject pulldown modules defined in the configuration.
 
-# Create a global variable "subj_modules", a list of (name, function object)s.
-# This list consists of null_subj, plus the "get_subject" functions of all the
-# plugin subject pulldown modules.
+    Returns a list of (name, function object)s. The list consists of
+    the "get_subject" functions of all the plugin subject pulldown modules.
+    """
 
-subj_modules = []
-for modname in ivle.conf.subject_pulldown_modules.split(','):
-    try:
-        mod = __import__(modname)
-    except ImportError:
-        raise SubjectError("Internal error: "
-            "Can't import subject pulldown module %s"
-            % repr(modname))
-    except ValueError:
-        # If auth_modules is "", we may get an empty string - ignore
-        continue
-    try:
-        subjfunc = mod.get_subjects
-    except AttributeError:
-        raise SubjectError("Internal error: Subject pulldown module %r has no "
-            "'get_subjects' function" % modname)
-    subj_modules.append((modname, subjfunc))
+    oldpath = sys.path
+    # Allow imports to get files from this directory.
+    # Get the directory that this module (authenticate) is in
+    plugpath = os.path.split(sys.modules[__name__].__file__)[0]
+    # Add it to sys.path
+    sys.path.append(plugpath)
+
+    subj_modules = []
+    for modname in config['auth']['subject_pulldown_modules']:
+        try:
+            mod = __import__(modname)
+        except ImportError:
+            raise SubjectError("Internal error: "
+                "Can't import subject pulldown module %s"
+                % repr(modname))
+        except ValueError:
+            # If auth_modules is "", we may get an empty string - ignore
+            continue
+        try:
+            subjfunc = mod.get_subjects
+        except AttributeError:
+            raise SubjectError("Internal error: Subject pulldown module %r has no "
+                "'get_subjects' function" % modname)
+        subj_modules.append((modname, subjfunc))
+
+    # Restore the old path, without this directory in it.
+    sys.path = oldpath
+    return subj_modules

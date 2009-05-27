@@ -324,7 +324,7 @@ def handle_create_user(req, fields):
 
     user = ivle.database.User(**create)
     req.store.add(user)
-    ivle.pulldown_subj.enrol_user(req.store, user)
+    ivle.pulldown_subj.enrol_user(req.config, req.store, user)
 
     req.content_type = "text/plain"
     req.write(str(user.unixid))

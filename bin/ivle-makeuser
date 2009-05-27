@@ -81,13 +81,14 @@ login = user['login']
 if 'nick' not in user:
     user['nick'] = user['fullname']
 
-store = get_store(Config())
+config = Config()
+store = get_store(config)
 
 try:
     # Make the user's database entry
     userobj = User(**user)
     store.add(userobj)
-    enrol_user(store, userobj)
+    enrol_user(config, store, userobj)
     store.commit()
 except Exception, message:
     print "Error: " + str(message)

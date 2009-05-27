@@ -72,8 +72,6 @@ def authenticate(config, store, login, password):
 
     user = ivle.database.User.get_by_login(store, login)
 
-    raise Exception(str(get_auth_modules(config)))
-
     for modname, m in get_auth_modules(config):
         # May raise an AuthError - allow to propagate
         auth_result = m(store, login, password, user)

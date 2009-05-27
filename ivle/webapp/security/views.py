@@ -127,7 +127,7 @@ class LoginView(XHTMLView):
                                           plugin.cookies[cookie](user), path='/'))
 
                         # Add any new enrolments.
-                        ivle.pulldown_subj.enrol_user(req.store, user)
+                        ivle.pulldown_subj.enrol_user(req.config, req.store, user)
                         req.store.commit()
 
                         req.throw_redirect(nexturl)
