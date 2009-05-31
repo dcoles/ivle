@@ -137,6 +137,22 @@ void *die_if_null(void *ptr)
     return ptr;
 }
 
+int checked_mount(const char *source, const char *target,
+                  const char *filesystemtype, unsigned long mountflags,
+                  const void *data)
+{
+    int result = mount(source, target, filesystemtype, mountflags, data);
+    if (result)
+    {
+        syslog(LOG_ERR, "could not mount %s on %s\n", source, target);
+        perror("could not mount");
+        exit(1);
+    }
+
+    return result;
+}
+
+
 /* Find the path of the user components of a jail, given a mountpoint. */
 char *jail_src(const char *jail_src_base, const char *jail_base,
                const char *jailpath)
@@ -147,7 +163,7 @@ char *jail_src(const char *jail_src_base, const char *jail_base,
 
     srclen = strlen(jail_src_base);
     dstlen = strlen(jail_base);
-    
+
     src = die_if_null(malloc(strlen(jailpath) + (srclen - dstlen) + 1));
     strcpy(src, jail_src_base);
     strcat(src, jailpath+dstlen);
@@ -163,7 +179,8 @@ void mount_if_needed(const char *jail_src_base, const char *jail_base,
 {
     char *jailsrc;
     char *jaillib;
-    char *mountdata;
+    char *source_bits;
+    char *target_bits;
 
     /* Check if there is something useful in the jail. If not, it's probably
      * not mounted. */
@@ -183,21 +200,27 @@ void mount_if_needed(const char *jail_src_base, const char *jail_base,
              }
              syslog(LOG_NOTICE, "created mountpoint %s\n", jailpath);
         }
-       
+
         jailsrc = jail_src(jail_src_base, jail_base, jailpath);
-        mountdata = die_if_null(malloc(3 + strlen(jailsrc) + 4 + strlen(jail_system) + 3 + 1));
-        sprintf(mountdata, "br:%s=rw:%s=ro", jailsrc, jail_system);
-        if (mount("none", jailpath, "aufs", 0, mountdata))
-        {
-            syslog(LOG_ERR, "could not mount %s\n", jailpath);
-            perror("could not mount");
-            exit(1);
-        } 
+        checked_mount(jail_system, jailpath, NULL, MS_BIND | MS_RDONLY, NULL);
+
+        source_bits = die_if_null(malloc(strlen(jailsrc) + 5 + 1));
+        target_bits = die_if_null(malloc(strlen(jailpath) + 5 + 1));
+        sprintf(source_bits, "%s/home", jailsrc);
+        sprintf(target_bits, "%s/home", jailpath);
+
+        checked_mount(source_bits, target_bits, NULL, MS_BIND, NULL);
+
+        sprintf(source_bits, "%s/tmp", jailsrc);
+        sprintf(target_bits, "%s/tmp", jailpath);
+
+        checked_mount(source_bits, target_bits, NULL, MS_BIND, NULL);
 
         syslog(LOG_INFO, "mounted %s\n", jailpath);
 
         free(jailsrc);
-        free(mountdata);
+        free(source_bits);
+        free(target_bits);
     }
 
     free(jaillib);
