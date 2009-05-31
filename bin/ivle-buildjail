@@ -142,3 +142,14 @@ if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
     print >> sys.stderr, "Jail copying failed."
     sys.exit(1)
 
+# Now mangle things a bit, so we can bind-mount the user bits in.
+# /etc/passwd and /etc/ivle/ivle.conf need to be symlinks to somewhere in /home
+
+os.rename(os.path.join(ivle.conf.jail_system, 'etc/passwd'),
+          os.path.join(ivle.conf.jail_system, 'home/.passwd')
+          )
+os.symlink('../home/.passwd', os.path.join(ivle.conf.jail_system, 'etc/passwd'))
+
+os.makedirs(os.path.join(ivle.conf.jail_system, "etc/ivle"))
+os.symlink('../home/.ivle.conf',
+           os.path.join(ivle.conf.jail_system, "etc/ivle/ivle.conf"))
