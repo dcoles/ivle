@@ -275,10 +275,10 @@ def make_jail(user, config, force=True):
         # NOTE that shutil.move changed in Python 2.6, it now moves a
         # directory INTO the target (like `mv`), which it didn't use to do.
         # This code works regardless.
-        shutil.move(homedir, homebackup)
+        shutil.move(userhomedir, homebackup)
         shutil.rmtree(userdir)
-        os.makedirs(userdir)
-        shutil.move(homebackup, homedir)
+        os.makedirs(homedir)
+        shutil.move(homebackup, userhomedir)
         # Change the ownership of all the files to the right unixid
         logging.debug("chown %s's home directory files to uid %d"
             %(user.login, user.unixid))
@@ -310,8 +310,9 @@ def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
     @param svn_pass: User's SVN password.
     @param sys_config: An ivle.config.Config object (the system-wide config).
     """
-    conf_path = os.path.join(user_jail_dir, "etc/ivle/ivle.conf")
-    os.makedirs(os.path.dirname(conf_path))
+    conf_path = os.path.join(user_jail_dir, "home/.ivle.conf")
+    if not os.path.exists(os.path.dirname(conf_path)):
+        os.makedirs(os.path.dirname(conf_path))
 
     # In the "in-jail" version of conf, we don't need MOST of the details
     # (it would be a security risk to have them here).
@@ -336,8 +337,8 @@ def make_etc_passwd(username, user_jail_dir, template_dir, unixid):
     Creates /etc/passwd in the given user's jail. This will be identical to
     that in the template jail, except for the added entry for this user.
     """
-    template_passwd_path = os.path.join(template_dir, "etc/passwd")
-    passwd_path = os.path.join(user_jail_dir, "etc/passwd")
+    template_passwd_path = os.path.join(template_dir, "home/.passwd")
+    passwd_path = os.path.join(user_jail_dir, "home/.passwd")
     passwd_dir = os.path.dirname(passwd_path)
     if not os.path.exists(passwd_dir):
         os.makedirs(passwd_dir)
