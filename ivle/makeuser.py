@@ -258,6 +258,7 @@ def make_jail(user, config, force=True):
         os.mkdir(tempdir)
     userdir = os.path.join(jail_src_base, user.login)
     homedir = os.path.join(userdir, 'home')
+    tmpdir = os.path.join(userdir, 'tmp')
     userhomedir = os.path.join(homedir, user.login)   # Return value
 
     if os.path.exists(userdir):
@@ -296,6 +297,8 @@ def make_jail(user, config, force=True):
     make_ivle_conf(user.login, userdir, user.svn_pass, config)
     make_etc_passwd(user.login, userdir, config['paths']['jails']['template'],
                     user.unixid)
+    os.makedirs(tmpdir)
+    os.chmod(tmpdir, 01777)
 
     return userhomedir
 
