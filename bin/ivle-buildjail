@@ -151,5 +151,5 @@ os.rename(os.path.join(ivle.conf.jail_system, 'etc/passwd'),
 os.symlink('../home/.passwd', os.path.join(ivle.conf.jail_system, 'etc/passwd'))
 
 os.makedirs(os.path.join(ivle.conf.jail_system, "etc/ivle"))
-os.symlink('../home/.ivle.conf',
+os.symlink('../../home/.ivle.conf',
            os.path.join(ivle.conf.jail_system, "etc/ivle/ivle.conf"))
