@@ -62,7 +62,7 @@ class BrowserView(XHTMLView):
                                        'editor.js',
                                        'specialhome.js',
                                        'codepress/codepress.js']
-        req.scripts_init = ["browser_init"]
+        self.scripts_init = ["browser_init"]
 
         # Start writing data
 
