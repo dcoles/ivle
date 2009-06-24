@@ -66,7 +66,7 @@ class UserSettingsView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']
-        req.scripts_init = ['revert_settings']
+        self.scripts_init = ['revert_settings']
 
         ctx['login'] = self.context.login
 
