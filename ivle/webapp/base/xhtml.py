@@ -37,8 +37,11 @@ class XHTMLView(BaseView):
     """
 
     template = 'template.html'
+
     plugin_scripts = {}
     plugin_styles = {}
+    scripts_init = []
+
     allow_overlays = True
     overlay_blacklist = []
 
@@ -64,28 +67,33 @@ class XHTMLView(BaseView):
         tmpl = loader.load(app_template)
         app = self.filter(tmpl.generate(viewctx), viewctx)
 
+        view_scripts = []
         for plugin in self.plugin_scripts:
             for path in self.plugin_scripts[plugin]:
-                req.scripts.append(media_url(req, plugin, path))
+                view_scripts.append(media_url(req, plugin, path))
 
+        view_styles = []
         for plugin in self.plugin_styles:
             for path in self.plugin_styles[plugin]:
-                req.styles.append(media_url(req, plugin, path))
+                view_styles.append(media_url(req, plugin, path))
 
         # Global template
         ctx = genshi.template.Context()
-        # XXX: Leave this here!! (Before req.styles is read)
-        ctx['overlays'] = self.render_overlays(req) if req.user else []
+
+        overlay_bits = self.render_overlays(req) if req.user else [[]]*4
+        ctx['overlays'] = overlay_bits[0]
 
         ctx['styles'] = [media_url(req, CorePlugin, 'ivle.css')]
-        ctx['styles'] += req.styles
+        ctx['styles'] += view_styles
+        ctx['styles'] += overlay_bits[1]
 
         ctx['scripts'] = [media_url(req, CorePlugin, path) for path in
                            ('util.js', 'json2.js', 'md5.js')]
         ctx['scripts'].append(media_url(req, '+external/jquery', 'jquery.js'))
-        ctx['scripts'] += req.scripts
+        ctx['scripts'] += view_scripts
+        ctx['scripts'] += overlay_bits[2]
 
-        ctx['scripts_init'] = req.scripts_init
+        ctx['scripts_init'] = self.scripts_init + overlay_bits[3]
         ctx['app_template'] = app
         ctx['title_img'] = media_url(req, CorePlugin,
                                      "images/chrome/title.png")
@@ -149,8 +157,11 @@ class XHTMLView(BaseView):
         scripts_init.
         """
         overlays = []
+        styles = []
+        scripts = []
+        scripts_init = []
         if not self.allow_overlays:
-            return overlays
+            return (overlays, styles, scripts, scripts_init)
 
         for plugin in req.config.plugin_index[OverlayPlugin]:
             for overclass in plugin.overlays:
@@ -160,16 +171,16 @@ class XHTMLView(BaseView):
                 #TODO: Re-factor this to look nicer
                 for mplugin in overlay.plugin_scripts:
                     for path in overlay.plugin_scripts[mplugin]:
-                        req.scripts.append(media_url(req, mplugin, path))
+                        scripts.append(media_url(req, mplugin, path))
 
                 for mplugin in overlay.plugin_styles:
                     for path in overlay.plugin_styles[mplugin]:
-                        req.styles.append(media_url(req, mplugin, path))
+                        styles.append(media_url(req, mplugin, path))
 
-                req.scripts_init += overlay.plugin_scripts_init
+                scripts_init += overlay.plugin_scripts_init
 
                 overlays.append(overlay.render(req))
-        return overlays
+        return (overlays, styles, scripts, scripts_init)
 
     @classmethod
     def get_error_view(cls, e):

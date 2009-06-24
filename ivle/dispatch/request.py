@@ -79,24 +79,6 @@ class Request:
         location (write)
             String. Response "Location" header value. Used with HTTP redirect
             responses.
-        styles (write)
-            List of strings. Write a list of URLs to CSS files here, and they
-            will be incorporated as <link rel="stylesheet" type="text/css">
-            elements in the head, if write_html_head_foot is True.
-            URLs should be relative to the IVLE root; they will be fixed up
-            to be site-relative.
-        scripts (write)
-            List of strings. Write a list of URLs to JS files here, and they
-            will be incorporated as <script type="text/javascript"> elements
-            in the head, if write_html_head_foot is True.
-            URLs should be relative to the IVLE root; they will be fixed up
-            to be site-relative.
-        scripts_init (write)
-            List of strings. Write a list of JS function names, and they
-            will be added as window.addListener('load', ..., false); calls
-            in the head, if write_html_head_foot is True.
-            This is the propper way to specify functions that need to run at 
-            page load time.
     """
 
     # Special code for an OK response.
@@ -106,54 +88,11 @@ class Request:
 
     # HTTP status codes
 
-    HTTP_CONTINUE                     = 100
-    HTTP_SWITCHING_PROTOCOLS          = 101
-    HTTP_PROCESSING                   = 102
     HTTP_OK                           = 200
-    HTTP_CREATED                      = 201
-    HTTP_ACCEPTED                     = 202
-    HTTP_NON_AUTHORITATIVE            = 203
-    HTTP_NO_CONTENT                   = 204
-    HTTP_RESET_CONTENT                = 205
-    HTTP_PARTIAL_CONTENT              = 206
-    HTTP_MULTI_STATUS                 = 207
-    HTTP_MULTIPLE_CHOICES             = 300
-    HTTP_MOVED_PERMANENTLY            = 301
     HTTP_MOVED_TEMPORARILY            = 302
-    HTTP_SEE_OTHER                    = 303
-    HTTP_NOT_MODIFIED                 = 304
-    HTTP_USE_PROXY                    = 305
-    HTTP_TEMPORARY_REDIRECT           = 307
-    HTTP_BAD_REQUEST                  = 400
-    HTTP_UNAUTHORIZED                 = 401
-    HTTP_PAYMENT_REQUIRED             = 402
     HTTP_FORBIDDEN                    = 403
     HTTP_NOT_FOUND                    = 404
-    HTTP_METHOD_NOT_ALLOWED           = 405
-    HTTP_NOT_ACCEPTABLE               = 406
-    HTTP_PROXY_AUTHENTICATION_REQUIRED= 407
-    HTTP_REQUEST_TIME_OUT             = 408
-    HTTP_CONFLICT                     = 409
-    HTTP_GONE                         = 410
-    HTTP_LENGTH_REQUIRED              = 411
-    HTTP_PRECONDITION_FAILED          = 412
-    HTTP_REQUEST_ENTITY_TOO_LARGE     = 413
-    HTTP_REQUEST_URI_TOO_LARGE        = 414
-    HTTP_UNSUPPORTED_MEDIA_TYPE       = 415
-    HTTP_RANGE_NOT_SATISFIABLE        = 416
-    HTTP_EXPECTATION_FAILED           = 417
-    HTTP_UNPROCESSABLE_ENTITY         = 422
-    HTTP_LOCKED                       = 423
-    HTTP_FAILED_DEPENDENCY            = 424
     HTTP_INTERNAL_SERVER_ERROR        = 500
-    HTTP_NOT_IMPLEMENTED              = 501
-    HTTP_BAD_GATEWAY                  = 502
-    HTTP_SERVICE_UNAVAILABLE          = 503
-    HTTP_GATEWAY_TIME_OUT             = 504
-    HTTP_VERSION_NOT_SUPPORTED        = 505
-    HTTP_VARIANT_ALSO_VARIES          = 506
-    HTTP_INSUFFICIENT_STORAGE         = 507
-    HTTP_NOT_EXTENDED                 = 510
 
     def __init__(self, req, config):
         """Create an IVLE request from a mod_python one.
@@ -179,8 +118,7 @@ class Request:
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        path = self.unmake_path(req.uri)
-        (self.app, self.path) = (ivle.util.split_path(path))
+        (self.app, self.path) = (ivle.util.split_path(req.uri))
         self.user = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in
@@ -194,9 +132,6 @@ class Request:
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.styles = []
-        self.scripts = []
-        self.scripts_init = []
         # In some cases we don't want the template JS (such as the username
         # and public FQDN) in the output HTML. In that case, set this to 0.
         self.write_javascript_settings = True
@@ -302,24 +237,6 @@ class Request:
         """
         return os.path.join(self.config['urls']['root'], path)
 
-    def unmake_path(self, path):
-        """Strip the IVLE URL prefix from the given path, if present.
-
-        Also normalises the path.
-
-        This method is DEPRECATED. We no longer support use of a prefix.
-        """
-        path = os.path.normpath(path)
-        root = os.path.normpath(self.config['urls']['root'])
-
-        if path.startswith(root):
-            path = path[len(root):]
-            # Take out the slash as well
-            if len(path) > 0 and path[0] == os.sep:
-                path = path[1:]
-
-        return path
-
     def get_session(self):
         """Returns a mod_python Session object for this request.
         Note that this is dependent on mod_python and may need to change
@@ -352,47 +269,3 @@ class Request:
             self.got_common_vars = True
         return self.apache_req.subprocess_env
 
-    @staticmethod
-    def get_http_codename(code):
-        """Given a HTTP error code int, returns a (name, description)
-        pair, suitable for displaying to the user.
-        May return (None,None) if code is unknown.
-        Only lists common 4xx and 5xx codes (since this is just used
-        to display throw_error error messages).
-        """
-        try:
-            return http_codenames[code]
-        except KeyError:
-            return None, None
-
-# Human strings for HTTP response codes
-http_codenames = {
-    Request.HTTP_BAD_REQUEST:
-        ("Bad Request",
-        "Your browser sent a request IVLE did not understand."),
-    Request.HTTP_UNAUTHORIZED:
-        ("Unauthorized",
-        "You are not allowed to view this part of IVLE."),
-    Request.HTTP_FORBIDDEN:
-        ("Forbidden",
-        "You are not allowed to view this part of IVLE."),
-    Request.HTTP_NOT_FOUND:
-        ("Not Found",
-        "The application or file you requested does not exist."),
-    Request.HTTP_METHOD_NOT_ALLOWED:
-        ("Method Not Allowed",
-        "Your browser is interacting with IVLE in the wrong way."
-        "This is probably a bug in IVLE. "
-        "Please report it to the administrators."),
-    Request.HTTP_INTERNAL_SERVER_ERROR:
-        ("Internal Server Error",
-        "An unknown error occured in IVLE."),
-    Request.HTTP_NOT_IMPLEMENTED:
-        ("Not Implemented",
-        "The application or file you requested has not been implemented "
-        "in IVLE."),
-    Request.HTTP_SERVICE_UNAVAILABLE:
-        ("Service Unavailable",
-        "IVLE is currently experiencing technical difficulties. "
-        "Please try again later."),
-}

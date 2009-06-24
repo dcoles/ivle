@@ -31,6 +31,9 @@ class IVLEError(Exception):
     This is the old "standard" exception class for IVLE errors. It is only
     used in fileservice, and should not be used in any new code.
     """
+
+    message = None
+
     def __init__(self, httpcode, message=None):
         self.httpcode = httpcode
         self.message = message
