@@ -155,12 +155,8 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     req.content_type = "text/html"
     logfile = os.path.join(config['paths']['logs'], 'ivle_error.log')
     logfail = False
-    try:
-        httpcode = exc_value.httpcode
-        req.status = httpcode
-    except AttributeError:
-        httpcode = None
-        req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
+    req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
+
     try:
         publicmode = req.publicmode
     except AttributeError:
@@ -189,28 +185,17 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     # misbehaves (which is currently very easy, if things aren't set up
     # correctly).
     # Write the traceback.
-    # If this is a non-4xx IVLEError, get the message and httpcode and
-    # make the error message a bit nicer (but still include the
-    # traceback).
-    # We also need to special-case IVLEJailError, as we can get another
+
+    # We need to special-case IVLEJailError, as we can get another
     # almost-exception out of it.
-
-    codename, msg = None, None
-
     if exc_type is util.IVLEJailError:
-        msg = exc_value.type_str + ": " + exc_value.message
         tb = 'Exception information extracted from IVLEJailError:\n'
         tb += urllib.unquote(exc_value.info)
     else:
-        try:
-            codename, msg = req.get_http_codename(httpcode)
-        except AttributeError:
-            pass
-
         tb = ''.join(traceback.format_exception(exc_type, exc_value,
                                                 exc_traceback))
 
-    logging.error('%s\n%s'%(str(msg), tb))
+    logging.error('\n' + tb)
 
     # Error messages are only displayed is the user is NOT a student,
     # or if there has been a problem logging the error message
@@ -220,13 +205,7 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>IVLE Internal Server Error</title></head>
 <body>
-<h1>IVLE Internal Server Error""")
-    if show_errors:
-        if codename is not None and \
-           httpcode != mod_python.apache.HTTP_INTERNAL_SERVER_ERROR:
-            req.write(": %s" % cgi.escape(codename))
-
-    req.write("""</h1>
+<h1>IVLE Internal Server Error</h1>
 <p>An error has occured which is the fault of the IVLE developers or
 administrators. """)
 
@@ -238,11 +217,6 @@ administrators. """)
     req.write("</p>")
 
     if show_errors:
-        if msg is not None:
-            req.write("<p>%s</p>\n" % cgi.escape(msg))
-        if httpcode is not None:
-            req.write("<p>(HTTP error code %d)</p>\n" % httpcode)
         req.write("<h2>Debugging information</h2>")
-
         req.write("<pre>\n%s\n</pre>\n"%cgi.escape(tb))
     req.write("</body></html>")
