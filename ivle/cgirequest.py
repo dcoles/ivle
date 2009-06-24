@@ -138,12 +138,11 @@ class CGIRequest:
         self.uri = os.environ['SCRIPT_NAME'] + os.environ['PATH_INFO']
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        path = self.unmake_path(self.uri)
         if self.publicmode:
             self.app = None
-            (_, self.path) = (ivle.util.split_path(path))
+            (_, self.path) = (ivle.util.split_path(self.uri))
         else:
-            (self.app, self.path) = (ivle.util.split_path(path))
+            (self.app, self.path) = (ivle.util.split_path(self.uri))
         self.user = None
         self.hostname = os.environ['SERVER_NAME']
         self.headers_in = _http_headers_in_from_cgi()
@@ -272,22 +271,6 @@ class CGIRequest:
         self.ensure_headers_written()
         self.flush()
         sys.exit(self.status)
-
-    def unmake_path(self, path):
-        """Strip the IVLE URL prefix from the given path, if present.
-
-        Also normalises the path.
-        """
-        path = os.path.normpath(path)
-        root = os.path.normpath(ivle.conf.root_dir)
-
-        if path.startswith(root):
-            path = path[len(root):]
-            # Take out the slash as well
-            if len(path) > 0 and path[0] == os.sep:
-                path = path[1:]
-
-        return path
 
     def get_session(self):
         """Returns a mod_python Session object for this request.

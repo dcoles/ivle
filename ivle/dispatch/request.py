@@ -118,8 +118,7 @@ class Request:
         self.uri = req.uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
-        path = self.unmake_path(req.uri)
-        (self.app, self.path) = (ivle.util.split_path(path))
+        (self.app, self.path) = (ivle.util.split_path(req.uri))
         self.user = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in
@@ -237,24 +236,6 @@ class Request:
         This method is DEPRECATED. We no longer support use of a prefix.
         """
         return os.path.join(self.config['urls']['root'], path)
-
-    def unmake_path(self, path):
-        """Strip the IVLE URL prefix from the given path, if present.
-
-        Also normalises the path.
-
-        This method is DEPRECATED. We no longer support use of a prefix.
-        """
-        path = os.path.normpath(path)
-        root = os.path.normpath(self.config['urls']['root'])
-
-        if path.startswith(root):
-            path = path[len(root):]
-            # Take out the slash as well
-            if len(path) > 0 and path[0] == os.sep:
-                path = path[1:]
-
-        return path
 
     def get_session(self):
         """Returns a mod_python Session object for this request.
