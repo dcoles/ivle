@@ -288,28 +288,3 @@ class Request:
             self.got_common_vars = True
         return self.apache_req.subprocess_env
 
-    @staticmethod
-    def get_http_codename(code):
-        """Given a HTTP error code int, returns a (name, description)
-        pair, suitable for displaying to the user.
-        May return (None,None) if code is unknown.
-        Only lists common 4xx and 5xx codes (since this is just used
-        to display throw_error error messages).
-        """
-        try:
-            return http_codenames[code]
-        except KeyError:
-            return None, None
-
-# Human strings for HTTP response codes
-http_codenames = {
-    Request.HTTP_FORBIDDEN:
-        ("Forbidden",
-        "You are not allowed to view this part of IVLE."),
-    Request.HTTP_NOT_FOUND:
-        ("Not Found",
-        "The application or file you requested does not exist."),
-    Request.HTTP_INTERNAL_SERVER_ERROR:
-        ("Internal Server Error",
-        "An unknown error occured in IVLE."),
-}
