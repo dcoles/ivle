@@ -344,18 +344,6 @@ class Request:
         except KeyError:
             return None, None
 
-    @property
-    def styles(self):
-        raise NotImplementedError("This property no longer exists.")
-
-    @property
-    def scripts(self):
-        raise NotImplementedError("This property no longer exists.")
-
-    @property
-    def scripts_init(self):
-        raise NotImplementedError("This property no longer exists.")
-
 # Human strings for HTTP response codes
 http_codenames = {
     Request.HTTP_BAD_REQUEST:
