@@ -79,24 +79,6 @@ class Request:
         location (write)
             String. Response "Location" header value. Used with HTTP redirect
             responses.
-        styles (write)
-            List of strings. Write a list of URLs to CSS files here, and they
-            will be incorporated as <link rel="stylesheet" type="text/css">
-            elements in the head, if write_html_head_foot is True.
-            URLs should be relative to the IVLE root; they will be fixed up
-            to be site-relative.
-        scripts (write)
-            List of strings. Write a list of URLs to JS files here, and they
-            will be incorporated as <script type="text/javascript"> elements
-            in the head, if write_html_head_foot is True.
-            URLs should be relative to the IVLE root; they will be fixed up
-            to be site-relative.
-        scripts_init (write)
-            List of strings. Write a list of JS function names, and they
-            will be added as window.addListener('load', ..., false); calls
-            in the head, if write_html_head_foot is True.
-            This is the propper way to specify functions that need to run at 
-            page load time.
     """
 
     # Special code for an OK response.
@@ -194,9 +176,6 @@ class Request:
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
         self.location = None
-        self.styles = []
-        self.scripts = []
-        self.scripts_init = []
         # In some cases we don't want the template JS (such as the username
         # and public FQDN) in the output HTML. In that case, set this to 0.
         self.write_javascript_settings = True
@@ -364,6 +343,18 @@ class Request:
             return http_codenames[code]
         except KeyError:
             return None, None
+
+    @property
+    def styles(self):
+        raise NotImplementedError("This property no longer exists.")
+
+    @property
+    def scripts(self):
+        raise NotImplementedError("This property no longer exists.")
+
+    @property
+    def scripts_init(self):
+        raise NotImplementedError("This property no longer exists.")
 
 # Human strings for HTTP response codes
 http_codenames = {
