@@ -68,7 +68,7 @@ class SubversionLogView(XHTMLView):
         ctx['path'] = self.path
         ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
         ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
-        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
         ctx['paths'] = make_path_segments(self.path)
 
         sr = ivle.svn.revision_from_string(

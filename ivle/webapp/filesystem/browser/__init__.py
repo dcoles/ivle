@@ -85,7 +85,7 @@ class BrowserView(XHTMLView):
         self.gen_actions(req, ctx)
 
         # The page title should contain the name of the file being browsed
-        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
 
         ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
                                                                 self.path))

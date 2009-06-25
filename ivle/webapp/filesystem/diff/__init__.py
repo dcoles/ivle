@@ -77,7 +77,7 @@ class DiffView(XHTMLView):
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
 
-        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
         ctx['paths'] = make_path_segments(self.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
