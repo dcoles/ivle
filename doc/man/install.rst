@@ -22,7 +22,29 @@ Installation
 System requirements
 ===================
 
-* Ubuntu
+Given versions are those on which IVLE is known to work; earlier versions
+might work too. Debian/Ubuntu package names are given after the name of the
+software.
+
+* Ubuntu 8.04 or later (other distros should work with some tweaking, but are untested)
+* Apache 2.x with modules:
+   + mod_python (``libapache2-mod-python``)
+   + mod_dav_svn and mod_authz_svn (``libapache2-svn``)
+* Python 2.5 or 2.6 with modules:
+   + pysvn (``python-svn``)
+   + cjson (``python-cjson``)
+   + Genshi (``python-genshi``)
+   + ConfigObj (``python-configobj``)
+   + Routes (``python-routes``)
+   + docutils (``python-docutils``)
+   + epydoc (``python-epydoc``)
+   + Storm (``python-storm``)
+   + psycopg2 (``python-psycopg2``)
+* jQuery (``libjs-jquery``)
+* PostgreSQL 8.3 or later (``postgresql``)
+* Subversion (``subversion``)
+* debootstrap (``debootstrap``)
+* GCC and related build machinery (``build-essential``)
 
 Master versus slave servers
 ===========================
