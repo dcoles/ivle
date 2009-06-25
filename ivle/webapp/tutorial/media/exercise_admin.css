@@ -1,18 +1,78 @@
+/* Test suites */
+
+.test_suites {
+  padding: 0;
+}
+
+.test_suites > li {
+  margin: 0.5em 0;
+  border: 2px solid #888;
+}
+
+.test_suites > li > h3 {
+  padding: 0.2em;
+  margin: 0;
+  background: #e6e6e6;
+}
+
+.test_suites > li.new {
+  border: 2px solid #bbbbbb;
+}
+
+.test_suites > li.new > h3 {
+  background: #eeeeee;
+}
+
 .testsuite {
   display: none;
-  width: 1000px;
+  width: 80%;
+  margin: 0.5em;
 }
 
-.test_variables {
-  display: none;
+.testsuite > h4 {
+  margin: 1em 0 0.2em 0;
 }
 
-.test_cases {
-  display: none;
+
+/* Test cases */
+
+.test_cases > ul {
+  padding: 0;
 }
+
+.test_cases > ul > li {
+  margin: 0.5em 0;
+  border: 1px solid #aaa;
+}
+
+.test_cases > ul > li > h5 {
+  padding: 0.2em;
+  margin: 0;
+  background: #e8e8e8;
+}
+
+.test_cases > ul > li > h5 img{
+  vertical-align: top;
+}
+
+.test_cases > ul > li.new {
+  border: 1px solid #bbbbbb;
+}
+
+.test_cases > ul > li.new > h5 {
+  background: #eeeeee;
+}
+
 
 .test_case {
   display: none;
+  margin: 0.5em;
+}
+
+
+/* Test case parts */
+.test_case_parts, .test_variables > ul {
+  padding: 0em 0 0 0.5em;
 }
 
 
@@ -26,15 +86,7 @@
   width: 100px;
 }
 
-#add_suite {
-  display: none;
-}
-
 .add_variable {
-  display: none;
-}
-
-.test_case_parts {
   display: none;
 }
 
