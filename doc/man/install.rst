@@ -55,11 +55,65 @@ Installing from a Debian package
 Installing from source
 ======================
 
+While installing from a distribution package is often a better idea for
+users, developers will need to install from a plain source tree.
+
+To get the tree, either grab and extract a release tarball, or get the
+very latest code using bzr: ::
+
+   bzr get lp:ivle
+
+You should then change into the new source directory.
+
+As IVLE needs to compile some binaries, you must first build, then
+install it: ::
+
+   ./setup.py build
+   sudo ./setup.py install
+
+Unlike the package, you will have to manually set up the database and
+configuration.
+
+.. TODO: Separate IVLE PostgreSQL account.
+
+First you must create a PostgreSQL database, and populate it with the
+IVLE schema. You may use any name for the database. ::
+
+   sudo -u postgres createdb ivle
+   sudo -u postgres createlang plpgsql ivle
+   sudo -u postgres psql -d ivle < userdb/users.sql
+
+The configuration wizard - ``ivle-config`` - will ask you a series of
+questions. Apart from database settings, the defaults should be correct
+for a development system. If deploying IVLE properly - particularly on
+multiple nodes - several options will need to be changed. Watching
+carefully, run: ::
+
+   sudo ivle-config
+
+
 Basic configuration
 ===================
 
 .. Note: Place here only the configuration required to get the system
    installed and running. Any further configuration should go in config.rst.
+
+IVLE needs a directory hierarchy in which to store filesystem data, which
+by default lives in ``/var/lib/ivle``. Create it now. ::
+
+   sudo ivle-createdatadirs
+
+.. TODO: Setting jail/devmode, jail/suite, jail/extra_packages...
+         We also need to document setting of the default mirror, once
+         issue #150 is fixed.
+
+You will require a self-contained jail environment in which to safely
+execute student code. The creation process basically downloads a minimal
+Ubuntu system and installs it in ``/var/lib/ivle/jails/__base__``. Note
+that this could download a couple of hundred megabytes. You should
+replace the URL with a good close Ubuntu mirror. ::
+
+   sudo ivle-buildjail -r -m http://url.to.archive/mirror
 
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
