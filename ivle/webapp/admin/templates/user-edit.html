@@ -6,7 +6,11 @@
   <body>
     <h1>Edit profile of ${user.nick}</h1>
     <div id="ivle_padding">
-      <p>${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)</p>
+      <p>
+        ${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)
+        <a py:if="user.passhash" href="/~${user.login}/+changepassword">(change password)</a>
+      </p>
+    
       <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
 
       <form action="" method="post">
