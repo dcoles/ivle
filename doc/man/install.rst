@@ -45,6 +45,7 @@ software.
 * PostgreSQL 8.3 or later (``postgresql``)
 * Subversion (``subversion``)
 * debootstrap (``debootstrap``)
+* rsync (``rsync``)
 * GCC and related build machinery (``build-essential``)
 
 Master versus slave servers
