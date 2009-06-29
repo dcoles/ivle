@@ -1,0 +1,49 @@
+#! /bin/sh
+
+# Works for Ubuntu. Check before using on other distributions
+
+### BEGIN INIT INFO
+# Provides:          usrmgt-server
+# Required-Start:    $syslog $networking $urandom
+# Required-Stop:     $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      1
+# Short-Description: IVLE user management server
+# Description:       Daemon connecting to the IVLE user management database.
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+DESC="IVLE user management server"
+NAME=usrmgt-server
+DAEMON=/usr/local/share/ivle/services/$NAME
+SCRIPTNAME=/etc/init.d/usrmgt-server
+
+test -f $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+case "$1" in
+  start)
+        log_daemon_msg "Starting $DESC" "$NAME"
+        start_daemon $DAEMON
+        log_end_msg $?
+    ;;
+  stop)
+        log_daemon_msg "Stopping $DESC" "$NAME"
+        killproc $DAEMON
+        log_end_msg $?
+    ;;
+  force-reload|restart)
+    $0 stop
+    $0 start
+    ;;
+  status)
+    status_of_proc $DAEMON usrmgt-server && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload|status}"
+    exit 1
+    ;;
+esac
+
+exit 0
