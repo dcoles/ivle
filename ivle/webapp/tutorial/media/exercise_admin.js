@@ -21,7 +21,7 @@
 /* Show and hide the given page element */
 function tog(something)
 {
-  $('#' + something).toggle("slow");
+  $('#' + something).slideToggle("slow");
 }
 
 function add_exercise()
@@ -100,9 +100,9 @@ function edit_exercise()
 /* Modify, add and delete suites */
 function edit_suite(suiteid)
 {
-    var desc = $('#test_suite_description_' + suiteid).val();
-    var func = $('#test_suite_function_' + suiteid).val();
-    var stdin = $('#test_suite_stdin_' + suiteid).val();
+    var desc = $('#test_suite_' + suiteid + '_description').val();
+    var func = $('#test_suite_' + suiteid + '_function').val();
+    var stdin = $('#test_suite_' + suiteid + '_stdin').val();
     
     var callback = function(xhr)
     {
@@ -272,9 +272,9 @@ function delete_var(varid, suiteid)
 
 function add_test_case(suiteid)
 {
-    var passmsg = $("#new_test_case_pass_" + suiteid).val();
-    var failmsg = $("#new_test_case_fail_" + suiteid).val();
-    var case_default = $("#new_test_case_default_" + suiteid).val();
+    var passmsg = $("#new_test_case_" + suiteid + "_pass").val();
+    var failmsg = $("#new_test_case_" + suiteid + "_fail").val();
+    var case_default = $("#new_test_case_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -303,9 +303,9 @@ function add_test_case(suiteid)
 
 function edit_test_case(testid, suiteid)
 {
-    var passmsg = $("#test_case_pass_" + testid + "_" + suiteid).val();
-    var failmsg = $("#test_case_fail_" + testid + "_" + suiteid).val();
-    var case_default = $("#test_case_default_" + testid + "_" + suiteid).val();
+    var passmsg = $("#test_case_" + testid + "_" + suiteid + "_pass").val();
+    var failmsg = $("#test_case_" + testid + "_" + suiteid + "_fail").val();
+    var case_default = $("#test_case_" + testid + "_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -358,10 +358,10 @@ function delete_testcase(testid, suiteid)
 /* Functions to add, edit, and delete test case parts */
 function edit_test_part(partid, testid, suiteid)
 {
-    var part_type = $("#test_part_part_type_" + partid).val();
-    var test_type = $("#test_part_test_type_" + partid).val();
-    var data = $("#test_part_data_" + partid).val();
-    var filename = $("#test_part_file_" + partid).val();
+    var part_type = $("#test_part_" + partid + "_part_type").val();
+    var test_type = $("#test_part_" + partid + "_test_type").val();
+    var data = $("#test_part_" + partid + "_data").val();
+    var filename = $("#test_part_" + partid + "_file").val();
     
     var callback = function(xhr)
     {
@@ -387,10 +387,10 @@ function edit_test_part(partid, testid, suiteid)
 
 function add_test_part(testid, suiteid)
 {
-    var part_type = $("#new_test_part_part_type_" + testid).val();
-    var test_type = $("#new_test_part_test_type_" + testid).val();
-    var data = $("#new_test_part_data_" + testid).val();
-    var filename = $("#new_test_part_file_" + testid).val();
+    var part_type = $("#test_part_new_part_type_" + testid).val();
+    var test_type = $("#test_part_new_test_type_" + testid).val();
+    var data = $("#test_part_new_data_" + testid).val();
+    var filename = $("#test_part_new_file_" + testid).val();
 
     var savebutton = $("#new_test_part_save_" + testid);
     savebutton.attr('value', 'Saving...');

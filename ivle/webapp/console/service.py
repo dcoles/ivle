@@ -52,7 +52,7 @@ class ConsoleServiceRESTView(JSONRESTView):
         # Start the server
         jail_path = os.path.join(req.config['paths']['jails']['mounts'],
                                  req.user.login)
-        cons = ivle.console.Console(uid, jail_path, working_dir)
+        cons = ivle.console.Console(req.config, uid, jail_path, working_dir)
 
         # Assemble the key and return it. Yes, it is double-encoded.
         return {'key': cjson.encode({"host": cons.host,
@@ -96,16 +96,18 @@ class ConsoleServiceRESTView(JSONRESTView):
                 response = {"terminate":
                     "Communication to console process lost"}
             if "terminate" in response:
-                response = restart_console(uid, jail_path, working_dir,
-                    response["terminate"])
+                response = restart_console(req.config, uid, jail_path,
+                    working_dir, response["terminate"])
         except socket.error, (enumber, estring):
             if enumber == errno.ECONNREFUSED:
                 # Timeout: Restart the session
-                response = restart_console(uid, jail_path, working_dir,
+                response = restart_console(req.config, uid, jail_path,
+                    working_dir,
                     "The IVLE console has timed out due to inactivity")
             elif enumber == errno.ECONNRESET:
                 # Communication issue: Restart the session
-                response = restart_console(uid, jail_path, working_dir,
+                response = restart_console(req.config, uid, jail_path,
+                    working_dir,
                     "Connection with the console has been reset")
             else:
                 # Some other error - probably serious
@@ -113,13 +115,13 @@ class ConsoleServiceRESTView(JSONRESTView):
         return response
 
 
-def restart_console(uid, jail_path, working_dir, reason):
+def restart_console(config, uid, jail_path, working_dir, reason):
     """Tells the client that it must be issued a new console since the old 
     console is no longer availible. The client must accept the new key.
     Returns the JSON response to be given to the client.
     """
     # Start a new console server console
-    cons = ivle.console.Console(uid, jail_path, working_dir)
+    cons = ivle.console.Console(config, uid, jail_path, working_dir)
 
     # Make a JSON object to tell the browser to restart its console client
     new_key = cjson.encode(

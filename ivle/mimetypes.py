@@ -38,9 +38,15 @@ NICE_MIMETYPES = {
 def nice_filetype(filename):
     """Given a filename or basename, returns a "friendly" name for that
     file's type.
-    eg. nice_mimetype("file.py") == "Python source code".
-        nice_filetype("file.bzg") == "BZG file".
-        nice_filetype("directory/") == "Directory".
+    
+    >>> nice_filetype("file.py")
+    'Python source code'
+    >>> nice_filetype("file.bzg")
+    'BZG file'
+    >>> nice_filetype("directory/")
+    'Directory'
+    >>> nice_filetype("file")
+    'File'
     """
     if filename[-1] == os.sep:
         return "Directory"

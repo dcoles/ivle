@@ -54,10 +54,11 @@ class DiffView(XHTMLView):
 
         jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
                                 req.user.login)
-        (out, err) = ivle.interpret.execute_raw(req.user, jail_dir, '/home',
-                                    os.path.join(req.config['paths']['share'],
-                                                 'services/diffservice'),
-                                    [self.path] + revs)
+        (out, err) = ivle.interpret.execute_raw(req.config, req.user, jail_dir,
+                            '/home', os.path.join(req.config['paths']['share'],
+                                                  'services/diffservice'),
+                            [self.path] + revs
+                            )
         assert not err
 
         response = cjson.decode(out)
@@ -76,7 +77,7 @@ class DiffView(XHTMLView):
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
 
-        ctx['title'] = self.path.rsplit('/', 1)[-1]
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
         ctx['paths'] = make_path_segments(self.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.

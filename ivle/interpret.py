@@ -21,9 +21,9 @@
 
 # Runs a student script in a safe execution environment.
 
+import ivle
 from ivle import studpath
 from ivle.util import IVLEError, IVLEJailError, split_path
-import ivle.conf
 
 import functools
 
@@ -88,8 +88,8 @@ class CGIFlags:
         self.linebuf = ""
         self.headers = {}       # Header names : values
 
-def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
-                script_path, req, gentle):
+def execute_cgi(interpreter, uid, jail_dir, working_dir, script_path,
+                req, gentle):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
@@ -104,6 +104,8 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
     the HTTP body on stdin. It shall receive the CGI environment variables to
     its environment.
     """
+
+    trampoline = os.path.join(req.config['paths']['lib'], 'trampoline')
 
     # Support no-op trampoline runs.
     if interpreter is None:
@@ -138,9 +140,10 @@ def execute_cgi(interpreter, trampoline, uid, jail_dir, working_dir,
 
     # usage: tramp uid jail_dir working_dir script_path
     pid = subprocess.Popen(
-        [trampoline, str(uid), ivle.conf.jail_base, ivle.conf.jail_src_base,
-         ivle.conf.jail_system, jail_dir, working_dir, interpreter,
-        script_path],
+        [trampoline, str(uid), req.config['paths']['jails']['mounts'],
+         req.config['paths']['jails']['src'],
+         req.config['paths']['jails']['template'],
+         jail_dir, working_dir, interpreter, script_path],
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
 
@@ -342,18 +345,14 @@ def write_html_warning(req, text, warning="Warning"):
     <pre>
 """ % (warning, text))
 
-location_cgi_python = os.path.join(ivle.conf.lib_path, "trampoline")
-
 # Mapping of interpreter names (as given in conf/app/server.py) to
 # interpreter functions.
 
 interpreter_objects = {
     'cgi-python'
-        : functools.partial(execute_cgi, "/usr/bin/python",
-            location_cgi_python),
+        : functools.partial(execute_cgi, "/usr/bin/python"),
     'noop'
-        : functools.partial(execute_cgi, None,
-            location_cgi_python),
+        : functools.partial(execute_cgi, None),
     # Should also have:
     # cgi-generic
     # python-server-page
@@ -413,7 +412,7 @@ def fixup_environ(req, script_path):
 
     # SERVER_SOFTWARE is actually not Apache but IVLE, since we are
     # custom-making the CGI request.
-    env['SERVER_SOFTWARE'] = "IVLE/" + str(ivle.conf.ivle_version)
+    env['SERVER_SOFTWARE'] = "IVLE/" + ivle.__version__
 
     # Additional environment variables
     username = split_path(req.path)[0]
@@ -422,21 +421,22 @@ def fixup_environ(req, script_path):
 class ExecutionError(Exception):
     pass
 
-def execute_raw(user, jail_dir, working_dir, binary, args):
+def execute_raw(config, user, jail_dir, working_dir, binary, args):
     '''Execute a binary in a user's jail, returning the raw output.
 
     The binary is executed in the given working directory with the given
     args. A tuple of (stdout, stderr) is returned.
     '''
 
-    tramp = location_cgi_python
-    tramp_dir = os.path.split(location_cgi_python)[0]
+    tramp = os.path.join(config['paths']['lib'], 'trampoline')
+    tramp_dir = os.path.split(tramp)[0]
 
     # Fire up trampoline. Vroom, vroom.
     proc = subprocess.Popen(
-        [tramp, str(user.unixid), ivle.conf.jail_base,
-         ivle.conf.jail_src_base, ivle.conf.jail_system, jail_dir,
-         working_dir, binary] + args,
+        [tramp, str(user.unixid), config['paths']['jails']['mounts'],
+         config['paths']['jails']['src'],
+         config['paths']['jails']['template'],
+         jail_dir, working_dir, binary] + args,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
 

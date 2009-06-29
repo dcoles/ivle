@@ -51,10 +51,23 @@ def url_to_local(config, urlpath):
     Returns (None, None) if the path is empty.
 
     >>> stubconfig = {'paths': {'jails': {'mounts': '/jails'}}}
-    >>> url_to_local(stubconfig, '')
-    (None, None)
+
     >>> url_to_local(stubconfig, 'joe/foo/bar/baz')
     ('joe', '/jails/joe/home/joe/foo/bar/baz')
+    >>> url_to_local(stubconfig, 'joe')
+    ('joe', '/jails/joe/home/joe')
+    >>> url_to_local(stubconfig, 'joe/')
+    ('joe', '/jails/joe/home/joe')
+
+    We have some protection from various potential attacks. An empty,
+    absolute, or ..-prefixed path yields a special result.
+
+    >>> url_to_local(stubconfig, '')
+    (None, None)
+    >>> url_to_local(stubconfig, '/foo')
+    (None, None)
+    >>> url_to_local(stubconfig, '../bar')
+    (None, None)
     """
 
     # First normalise the path
@@ -85,16 +98,21 @@ def url_to_jailpaths(config, urlpath):
 
     urlpath: See urlpath in url_to_local.
 
-    >>> url_to_jailpaths("joe/mydir/myfile")
-    ('joe', '/var/lib/ivle/jailmounts/joe', '/home/joe/mydir/myfile')
+    >>> stubconfig = {'paths': {'jails': {'mounts': '/jails'}}}
 
-    >>> url_to_jailpaths("")
+    >>> url_to_jailpaths(stubconfig, "joe/mydir//myfile/.././myfile")
+    ('joe', '/jails/joe', '/home/joe/mydir/myfile')
+    >>> url_to_jailpaths(stubconfig, "")
+    (None, None, None)
+    >>> url_to_jailpaths(stubconfig, "../foo")
+    (None, None, None)
+    >>> url_to_jailpaths(stubconfig, "/foo")
     (None, None, None)
     """
     # First normalise the path
     urlpath = os.path.normpath(urlpath)
-    # Now if it begins with ".." then it's illegal
-    if urlpath.startswith(".."):
+    # Now if it begins with "..", or is absolute, then it's illegal
+    if urlpath.startswith("..") or os.path.isabs(urlpath):
         return (None, None, None)
     # Note: User can be a group name. There is absolutely no difference in our
     # current directory scheme.
@@ -111,7 +129,17 @@ def to_home_path(urlpath):
 
     >>> to_home_path('joe/foo/bar/baz')
     '/home/joe/foo/bar/baz'
+    >>> to_home_path('joe/foo//bar/baz/../../')
+    '/home/joe/foo'
+    >>> to_home_path('joe/foo//bar/baz/../../../../../') is None
+    True
     """
+
+    urlpath = os.path.normpath(urlpath)
+    # If it begins with '..', it's illegal.
+    if urlpath.startswith(".."):
+        return None
+
     return os.path.join('/home', urlpath)
 
 def svnpublished(path):

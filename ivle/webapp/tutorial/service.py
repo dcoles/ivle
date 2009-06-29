@@ -87,7 +87,8 @@ class AttemptsRESTView(JSONRESTView):
         jail_path = os.path.join(req.config['paths']['jails']['mounts'],
                                  req.user.login)
         working_dir = os.path.join("/home", req.user.login)
-        cons = ivle.console.Console(req.user.unixid, jail_path, working_dir)
+        cons = ivle.console.Console(req.config, req.user.unixid, jail_path,
+                                    working_dir)
 
         # Parse the file into a exercise object using the test suite
         exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(

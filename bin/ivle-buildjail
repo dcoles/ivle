@@ -43,7 +43,7 @@ parser.add_option("-u", "--upgrade",
     help='''Apply any package updates in the jail.''')
 parser.add_option("-m", "--mirror",
     action="store", dest="apt_mirror",
-    help="Sets the apt mirror.", default="http://archive.ubuntu.com/ubuntu")
+    help="Sets the apt mirror.", default=conf['jail']['mirror'])
 parser.add_option("--python-site-packages",
     action="store", dest="python_site_packages",
     help="Path to Python site packages directory inside the jail.",

@@ -324,7 +324,7 @@ def handle_create_user(req, fields):
 
     user = ivle.database.User(**create)
     req.store.add(user)
-    ivle.pulldown_subj.enrol_user(req.store, user)
+    ivle.pulldown_subj.enrol_user(req.config, req.store, user)
 
     req.content_type = "text/plain"
     req.write(str(user.unixid))
@@ -370,7 +370,8 @@ def handle_update_user(req, fields):
     # entered old password and it authenticates.
     if fields.getfirst('password') is not None:
         try:
-            authenticate.authenticate(req.store, login, oldpassword)
+            authenticate.authenticate(req.config, req.store, login,
+                                      oldpassword)
         except AuthError:
             # XXX: Duplicated!
             req.headers_out['X-IVLE-Action-Error'] = \

@@ -101,7 +101,7 @@ class LoginView(XHTMLView):
                 else:
                     user = None
                     try:
-                        user = authenticate.authenticate(req.store,
+                        user = authenticate.authenticate(req.config, req.store,
                                     username.value, password.value)
                     except AuthError, msg:
                         badlogin = msg
@@ -127,7 +127,7 @@ class LoginView(XHTMLView):
                                           plugin.cookies[cookie](user), path='/'))
 
                         # Add any new enrolments.
-                        ivle.pulldown_subj.enrol_user(req.store, user)
+                        ivle.pulldown_subj.enrol_user(req.config, req.store, user)
                         req.store.commit()
 
                         req.throw_redirect(nexturl)

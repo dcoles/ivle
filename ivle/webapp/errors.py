@@ -15,25 +15,33 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Will Grant
-
 class HTTPError(Exception):
     '''A base class for all HTTP errors.'''
+    message = None
+
+    def __init__(self, message=None):
+        # Only override the builtin one if it's actually specified.
+        if message:
+            self.message = message
 
 class BadRequest(HTTPError):
     codename = 'Bad Request'
+    message = 'Your browser sent a request that IVLE did not understand.'
     code = 400
 
 class Unauthorized(HTTPError):
     codename = 'Unauthorized'
+    message = 'You are not allowed to view this part of IVLE.'
     code = 401
 
 class Forbidden(HTTPError):
     codename = 'Forbidden'
+    message = 'You are not allowed to view this part of IVLE.'
     code = 403
 
 class NotFound(HTTPError):
     codename = 'Not Found'
+    message = 'The requested path does not exist.'
     code = 404
 
 class MethodNotAllowed(HTTPError):
@@ -42,4 +50,6 @@ class MethodNotAllowed(HTTPError):
         super(HTTPError, self).__init__(*args, **kwargs)
 
     codename = 'Method Not Allowed'
+    message = '''Your browser sent a request to IVLE using the wrong method.
+This is probably a bug in IVLE; please report it to the administrators.'''
     code = 405

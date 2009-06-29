@@ -32,15 +32,7 @@ import uuid
 
 import cjson
 
-import ivle.conf
 from ivle import chat
-
-# Outside Jail
-trampoline_path = os.path.join(ivle.conf.lib_path, "trampoline")
-# Inside Jail
-python_path = "/usr/bin/python"
-console_dir = os.path.join(ivle.conf.share_path, 'services')
-console_path = os.path.join(console_dir, 'python-console')
 
 class ConsoleError(Exception):
     """ The console failed in some way. This is bad. """
@@ -122,12 +114,13 @@ class TruncateStringIO(StringIO.StringIO):
 class Console(object):
     """ Provides a nice python interface to the console
     """
-    def __init__(self, uid, jail_path, working_dir):
+    def __init__(self, config, uid, jail_path, working_dir):
         """Starts up a console service for user uid, inside chroot jail 
         jail_path with work directory of working_dir
         """
         super(Console, self).__init__()
 
+        self.config = config
         self.uid = uid
         self.jail_path = jail_path
         self.working_dir = working_dir
@@ -168,19 +161,23 @@ class Console(object):
         while tries < 5:
             self.port = int(random.uniform(3000, 8000))
 
+            trampoline_path = os.path.join(self.config['paths']['lib'],
+                                           "trampoline")
+
             # Start the console server (port, magic)
             # trampoline usage: tramp uid jail_dir working_dir script_path args
             # console usage:    python-console port magic
             res = os.spawnv(os.P_WAIT, trampoline_path, [
                 trampoline_path,
                 str(self.uid),
-                ivle.conf.jail_base,
-                ivle.conf.jail_src_base,
-                ivle.conf.jail_system,
+                self.config['paths']['jails']['mounts'],
+                self.config['paths']['jails']['src'],
+                self.config['paths']['jails']['template'],
                 self.jail_path,
-                console_dir,
-                python_path,
-                console_path,
+                os.path.join(self.config['paths']['share'], 'services'),
+                "/usr/bin/python",
+                os.path.join(self.config['paths']['share'],
+                             'services/python-console'),
                 str(self.port),
                 str(self.magic),
                 self.working_dir
