@@ -120,6 +120,9 @@ Add to it: ::
    mirror = http://url.to.archive/mirror # Replace with a fast Ubuntu mirror.
    extra_packages = python-configobj, python-svn, python-cjson
 
+.. TODO: Move this around a bit, as the config options required differ for
+   the packaged version.
+
 Now we can actually build the jail. The creation process basically downloads
 a minimal Ubuntu system and installs it in ``/var/lib/ivle/jails/__base__``.
 Note that this could download a couple of hundred megabytes. ::
