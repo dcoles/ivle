@@ -150,6 +150,18 @@ Then refresh the active copy of the jail: ::
 
    sudo ivle-buildjail
 
+
+Configuring the user management server
+--------------------------------------
+
+You need to have the IVLE user management server (``usrmgt-server``) running
+for many parts of IVLE to operate properly, so it should be configured to
+start on boot. There is an example init script in
+``examples/config/usrmgt-server.init``. For Debian or Ubuntu, copy it to
+``/etc/init.d/ivle``. Then make it start automatically: ::
+
+   sudo update-rc.d usrmgt-server defaults 99
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
