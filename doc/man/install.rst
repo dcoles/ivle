@@ -132,6 +132,15 @@ On a Debian or Ubuntu system, just copy those two files into
    sudo /etc/init.d/apache2 reload
 
 
+Configuring hostname resolution
+--------------------------------
+
+All of IVLE's hostnames need to be resolvable from the local system. For a
+production environment, this would be done in DNS. For a development system,
+this is usually done in ``/etc/hosts``. Add this line in that file: ::
+
+   127.0.1.1 ivle.localhost public.ivle.localhost svn.ivle.localhost
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
