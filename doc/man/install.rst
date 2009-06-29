@@ -115,6 +115,23 @@ replace the URL with a good close Ubuntu mirror. ::
 
    sudo ivle-buildjail -r -m http://url.to.archive/mirror
 
+Configuring Apache
+------------------
+
+IVLE makes use of two Apache virtual hosts: one for the application itself,
+and one for the Subversion services. There are example configuration files
+in ``examples/config/apache.conf`` and ``examples/config/apache-svn.conf``,
+which will run IVLE at ``http://ivle.localhost/``.
+
+On a Debian or Ubuntu system, just copy those two files into
+``/etc/apache2/sites-available`` under appropriate names (eg. ``ivle`` and
+``ivle-svn``). Then you need to activate them: ::
+
+   sudo a2ensite ivle
+   sudo a2ensite ivle-svn
+   sudo /etc/init.d/apache2 reload
+
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
