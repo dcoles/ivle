@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit profile - ${user.nick}</title>
+  </head>
+  <body>
+    <h1>Edit profile of ${user.nick}</h1>
+    <div id="ivle_padding">
+      <p>${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)</p>
+      <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
+
+      <form action="" method="post">
+        <table>
+          <tr>
+            <th>Display name:</th>
+            <td>
+              <input type="text" name="nick" size="40" />
+              <span py:if="'nick' in errors" class="form_error">${errors.nick}</span>
+            </td>
+          </tr>
+          <tr>
+            <th>Email address:</th>
+            <td>
+              <input type="text" name="email" size="40" />
+              <span py:if="'email' in errors" class="form_error">${errors.email}</span>
+            </td>
+          </tr>
+        </table>
+        <p><input type="submit" value="Save Changes" /></p>
+      </form>
+    </div>
+  </body>
+</html>

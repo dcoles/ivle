@@ -17,6 +17,10 @@
 
 # Author: Matt Giuca, Will Grant
 
+import formencode
+import formencode.validators
+from genshi.filters import HTMLFormFiller
+
 from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
@@ -70,6 +74,49 @@ class UserSettingsView(XHTMLView):
 
         ctx['login'] = self.context.login
 
+class UserEditSchema(formencode.Schema):
+    nick = formencode.validators.UnicodeString(not_empty=True)
+    email = formencode.validators.Email(not_empty=False,
+                                        if_missing=None)
+
+class UserEditView(XHTMLView):
+    """A form to change a user's details."""
+    template = 'templates/user-edit.html'
+    tab = 'settings'
+    permission = 'edit'
+
+    def __init__(self, req, login):
+        self.context = ivle.database.User.get_by_login(req.store, login)
+        if self.context is None:
+            raise NotFound()
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = UserEditSchema()
+                data = validator.to_python(data, state=req)
+                self.context.nick = data['nick']
+                self.context.email = unicode(data['email']) if data['email'] \
+                                     else None
+                req.store.commit()
+                req.throw_redirect(req.uri)
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {'nick': self.context.nick,
+                    'email': self.context.email
+                   }
+            errors = {}
+
+        ctx['user'] = self.context
+        ctx['data'] = data
+        ctx['offering'] = self.context
+        ctx['errors'] = errors
+
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the user plugin.
@@ -80,6 +127,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
         ('~:login/+settings', UserSettingsView),
+        ('~:login/+edit', UserEditView),
         ('api/~:login', UserRESTView),
     ]
 
