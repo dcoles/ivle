@@ -181,11 +181,10 @@ start on boot. There is an example init script in
 Creating the initial user
 -------------------------
 
-.. TODO: Cover making the user an admin, one issue #151 is resolved.
+The final step in getting a usable IVLE set up is creating a user. You'll
+probably want admin privileges - if not, drop the ``--admin``. ::
 
-The final step in getting a usable IVLE set up is creating a user. ::
-
-   sudo ivle-makeuser username 'Full Name' -p password
+   sudo ivle-makeuser --admin -p password username 'Full Name'
 
 You should then be able to browse to ``http://ivle.localhost/``, and
 log in with that username and password.
