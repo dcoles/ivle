@@ -9,6 +9,7 @@
       <p>
         ${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)
         <a py:if="user.passhash" href="/~${user.login}/+changepassword">(change password)</a>
+        <a py:if="req.user.admin" href="/~${user.login}/+resetpassword">(reset password)</a>
       </p>
     
       <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>

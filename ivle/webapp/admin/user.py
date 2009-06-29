@@ -112,12 +112,13 @@ class UserEditView(XHTMLView):
                    }
             errors = {}
 
+        ctx['req'] = req
         ctx['user'] = self.context
         ctx['data'] = data
         ctx['errors'] = errors
 
 class PasswordChangeView(XHTMLView):
-    """A form to change a user's details."""
+    """A form to change a user's password, with knowledge of the old one."""
     template = 'templates/user-password-change.html'
     tab = 'settings'
     permission = 'edit'
@@ -151,6 +152,37 @@ class PasswordChangeView(XHTMLView):
                 req.store.commit()
                 req.throw_redirect(req.uri)
 
+        ctx['req'] = req
+        ctx['user'] = self.context
+        ctx['error'] = error
+
+class PasswordResetView(XHTMLView):
+    """A form to reset a user's password, without knowledge of the old one."""
+    template = 'templates/user-password-reset.html'
+    tab = 'settings'
+
+    def __init__(self, req, login):
+        self.context = ivle.database.User.get_by_login(req.store, login)
+        if self.context is None:
+            raise NotFound()
+
+    def authorize(self, req):
+        """Only allow access if the requesting user is an admin."""
+        return req.user.admin
+
+    def populate(self, req, ctx):
+        error = None
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            if data.get('new_password') != data.get('new_password_again'):
+                error = 'New passwords do not match.'
+            elif not data.get('new_password'):
+                error = 'New password cannot be empty.'
+            else:
+                self.context.password = data['new_password']
+                req.store.commit()
+                req.throw_redirect(req.uri)
+
         ctx['user'] = self.context
         ctx['error'] = error
 
@@ -166,6 +198,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         ('~:login/+settings', UserSettingsView),
         ('~:login/+edit', UserEditView),
         ('~:login/+changepassword', PasswordChangeView),
+        ('~:login/+resetpassword', PasswordResetView),
         ('api/~:login', UserRESTView),
     ]
 
