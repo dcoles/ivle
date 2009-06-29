@@ -103,17 +103,26 @@ by default lives in ``/var/lib/ivle``. Create it now. ::
 
    sudo ivle-createdatadirs
 
-.. TODO: Setting jail/devmode, jail/suite, jail/extra_packages...
-         We also need to document setting of the default mirror, once
-         issue #150 is fixed.
+
+Configuring the jail environment
+--------------------------------
 
 You will require a self-contained jail environment in which to safely
-execute student code. The creation process basically downloads a minimal
-Ubuntu system and installs it in ``/var/lib/ivle/jails/__base__``. Note
-that this could download a couple of hundred megabytes. You should
-replace the URL with a good close Ubuntu mirror. ::
+execute student code. 
+Before you can actually build the jail, a few configuration options are
+needed. Open up ``/etc/ivle/ivle.conf``, and find the ``[jail]`` section.
+Add to it: ::
 
-   sudo ivle-buildjail -r -m http://url.to.archive/mirror
+   devmode = True
+   suite = jaunty # Replace this with the codename of your Ubuntu release.
+   mirror = http://url.to.archive/mirror # Replace with a fast Ubuntu mirror.
+   extra_packages = python-configobj, python-svn, python-cjson
+
+Now we can actually build the jail. The creation process basically downloads
+a minimal Ubuntu system and installs it in ``/var/lib/ivle/jails/__base__``.
+Note that this could download a couple of hundred megabytes. ::
+
+   sudo ivle-buildjail -r
 
 Configuring Apache
 ------------------
@@ -137,7 +146,7 @@ Configuring hostname resolution
 
 All of IVLE's hostnames need to be resolvable from the local system. For a
 production environment, this would be done in DNS. For a development system,
-this is usually done in ``/etc/hosts``. Add this line in that file: ::
+this is usually done in ``/etc/hosts``. Add this line to that file: ::
 
    127.0.1.1 ivle.localhost public.ivle.localhost svn.ivle.localhost
 
