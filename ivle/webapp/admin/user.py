@@ -127,6 +127,14 @@ class PasswordChangeView(XHTMLView):
         if self.context is None:
             raise NotFound()
 
+    def authorize(self, req):
+        """Only allow access if the requesting user holds the permission,
+           and the target user has a password set. Otherwise we might be
+           clobbering external authn.
+        """
+        return super(PasswordChangeView, self).authorize(req) and \
+               self.context.passhash is not None
+
     def populate(self, req, ctx):
         error = None
         if req.method == 'POST':
