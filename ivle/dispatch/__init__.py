@@ -155,7 +155,15 @@ def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     req.content_type = "text/html"
     logfile = os.path.join(config['paths']['logs'], 'ivle_error.log')
     logfail = False
-    req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
+
+    # XXX: This remains here for ivle.interpret's IVLEErrors. Once we rewrite
+    #      fileservice, req.status should always be 500 (ISE) here.
+    try:
+        httpcode = exc_value.httpcode
+        req.status = httpcode
+    except AttributeError:
+        httpcode = None
+        req.status = mod_python.apache.HTTP_INTERNAL_SERVER_ERROR
 
     try:
         publicmode = req.publicmode
