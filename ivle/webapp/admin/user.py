@@ -26,6 +26,7 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Unauthorized
 import ivle.database
+import ivle.date
 import ivle.util
 
 # List of fields returned as part of the user JSON dictionary
@@ -111,6 +112,9 @@ class UserEditView(XHTMLView):
                     'email': self.context.email
                    }
             errors = {}
+
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
         ctx['req'] = req
         ctx['user'] = self.context

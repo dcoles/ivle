@@ -33,6 +33,18 @@
         </table>
         <p><input type="submit" value="Save Changes" /></p>
       </form>
+
+      <h3 py:if="user.pass_exp or user.acct_exp">Notices</h3>
+      <p py:if="user.pass_exp">
+        Your password will expire
+        <span title="${format_datetime(user.pass_exp)}">${format_datetime_short(user.pass_exp)}</span>.
+        You should change it before then to avoid having your account
+        disabled.
+      </p>
+      <p py:if="user.acct_exp">
+        Your IVLE account will expire
+        <span title="${format_datetime(user.acct_exp)}">${format_datetime_short(user.acct_exp)}</span>.
+      </p>
     </div>
   </body>
 </html>
