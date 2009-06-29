@@ -59,22 +59,6 @@ class UserRESTView(JSONRESTView):
         user['local_password'] = self.context.passhash is not None
         return user
 
-class UserSettingsView(XHTMLView):
-    template = 'templates/user-settings.html'
-    tab = 'settings'
-    permission = 'edit'
-
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
-
-    def populate(self, req, ctx):
-        self.plugin_scripts[Plugin] = ['settings.js']
-        self.scripts_init = ['revert_settings']
-
-        ctx['login'] = self.context.login
-
 class UserEditSchema(formencode.Schema):
     nick = formencode.validators.UnicodeString(not_empty=True)
     email = formencode.validators.Email(not_empty=False,
@@ -199,7 +183,6 @@ class Plugin(ViewPlugin, MediaPlugin):
     # (regex str, handler class, kwargs dict)
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
-        ('~:login/+settings', UserSettingsView),
         ('~:login/+edit', UserEditView),
         ('~:login/+changepassword', PasswordChangeView),
         ('~:login/+resetpassword', PasswordResetView),
