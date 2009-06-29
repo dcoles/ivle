@@ -174,6 +174,19 @@ start on boot. There is an example init script in
    sudo /etc/init.d/usrmgt-server start
    sudo update-rc.d usrmgt-server defaults 99
 
+
+Creating the initial user
+-------------------------
+
+.. TODO: Cover making the user an admin, one issue #151 is resolved.
+
+The final step in getting a usable IVLE set up is creating a user. ::
+
+   sudo ivle-makeuser username 'Full Name' -p password
+
+You should then be able to browse to ``http://ivle.localhost/``, and
+log in with that username and password.
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
