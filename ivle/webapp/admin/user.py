@@ -114,8 +114,37 @@ class UserEditView(XHTMLView):
 
         ctx['user'] = self.context
         ctx['data'] = data
-        ctx['offering'] = self.context
         ctx['errors'] = errors
+
+class PasswordChangeView(XHTMLView):
+    """A form to change a user's details."""
+    template = 'templates/user-password-change.html'
+    tab = 'settings'
+    permission = 'edit'
+
+    def __init__(self, req, login):
+        self.context = ivle.database.User.get_by_login(req.store, login)
+        if self.context is None:
+            raise NotFound()
+
+    def populate(self, req, ctx):
+        error = None
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            if data.get('old_password') is None or \
+               not self.context.authenticate(data.get('old_password')):
+                error = 'Incorrect password.'
+            elif data.get('new_password') != data.get('new_password_again'):
+                error = 'New passwords do not match.'
+            elif not data.get('new_password'):
+                error = 'New password cannot be empty.'
+            else:
+                self.context.password = data['new_password']
+                req.store.commit()
+                req.throw_redirect(req.uri)
+
+        ctx['user'] = self.context
+        ctx['error'] = error
 
 class Plugin(ViewPlugin, MediaPlugin):
     """
@@ -128,6 +157,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         ('~:login/+settings', UserSettingsView),
         ('~:login/+edit', UserEditView),
+        ('~:login/+changepassword', PasswordChangeView),
         ('api/~:login', UserRESTView),
     ]
 
