@@ -310,19 +310,19 @@ class InstallList(object):
     ]
 
     list_user_binaries = [
+        "bin/ivle-addexercise",
+        "bin/ivle-adduser",
+        "bin/ivle-buildjail",
+        "bin/ivle-cloneworksheets",
+        "bin/ivle-config",
+        "bin/ivle-createdatadirs",
         "bin/ivle-enrol",
         "bin/ivle-enrolallusers",
         "bin/ivle-fetchsubmissions",
         "bin/ivle-listusers",
-        "bin/ivle-makeuser",
         "bin/ivle-marks",
         "bin/ivle-mountallusers",
+        "bin/ivle-refreshfilesystem",
         "bin/ivle-remakeuser",
         "bin/ivle-showenrolment",
-        "bin/ivle-config",
-        "bin/ivle-createdatadirs",
-        "bin/ivle-buildjail",
-        "bin/ivle-addexercise",
-        "bin/ivle-cloneworksheets",
-        "bin/ivle-refreshfilesystem",
     ]
