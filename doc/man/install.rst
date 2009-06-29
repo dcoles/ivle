@@ -141,6 +141,15 @@ this is usually done in ``/etc/hosts``. Add this line in that file: ::
 
    127.0.1.1 ivle.localhost public.ivle.localhost svn.ivle.localhost
 
+Code running inside the jail environment also needs to be able to resolve
+those names. Add, to ``/var/lib/ivle/jails/__base_build__/etc/hosts``: ::
+
+   127.0.1.1 svn.ivle.localhost
+
+Then refresh the active copy of the jail: ::
+
+   sudo ivle-buildjail
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
