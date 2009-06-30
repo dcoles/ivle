@@ -6,37 +6,32 @@
   <body>
     <h1>Administer ${user.nick}</h1>
     <div id="ivle_padding">
-      <form action="" method="post">
+      <form class="verticalform" action="" method="post">
         <table>
-          <tr>
-            <th>Login:</th>
-            <td>${user.login}</td>
-          </tr>
-          <tr>
-            <th>UNIX ID:</th>
-            <td>${user.unixid}</td>
-          </tr>
-          <tr>
-            <th>Administrator:</th>
-            <td>
-              <input type="checkbox" name="admin" />
-              <span py:if="'admin' in errors" class="form_error">${errors.admin}</span>
-            </td>
-          </tr>
-          <tr>
-            <th>Full name:</th>
-            <td>
-              <input type="text" name="fullname" size="40" />
-              <span py:if="'fullname' in errors" class="form_error">${errors.fullname}</span>
-            </td>
-          </tr>
-          <tr>
-            <th>Student ID:</th>
-            <td>
-              <input type="text" name="studentid" size="40" />
-              <span py:if="'studentid' in errors" class="form_error">${errors.studentid}</span>
-            </td>
-          </tr>
+          <div>
+            <label for="field_login">Login:</label>
+            <span id="field_login">${user.login}</span>
+          </div>
+          <div>
+            <label for="field_unixid">UID:</label>
+            <span id="field_unixid">${user.unixid}</span>
+          </div>
+
+          <div>
+            <label for="field_admin">Administrator:</label>
+            <input type="checkbox" name="admin" id="field_admin" />
+            <span py:if="'admin' in errors" class="form_error">${errors.admin}</span>
+          </div>
+          <div>
+            <label for="field_fullname">Full name:</label>
+            <input type="text" name="fullname" id="field_fullname" size="40" />
+            <span py:if="'fullname' in errors" class="form_error">${errors.fullname}</span>
+          </div>
+          <div>
+            <label for="field_studentid">Student ID:</label>
+            <input type="text" name="studentid" id="field_studentid" size="40" />
+            <span py:if="'studentid' in errors" class="form_error">${errors.studentid}</span>
+          </div>
         </table>
         <p><input type="submit" value="Save Changes" /></p>
       </form>

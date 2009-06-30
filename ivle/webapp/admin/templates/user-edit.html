@@ -15,23 +15,17 @@
     
       <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
 
-      <form action="" method="post">
-        <table>
-          <tr>
-            <th>Display name:</th>
-            <td>
-              <input type="text" name="nick" size="40" />
-              <span py:if="'nick' in errors" class="form_error">${errors.nick}</span>
-            </td>
-          </tr>
-          <tr>
-            <th>Email address:</th>
-            <td>
-              <input type="text" name="email" size="40" />
-              <span py:if="'email' in errors" class="form_error">${errors.email}</span>
-            </td>
-          </tr>
-        </table>
+      <form class="verticalform" action="" method="post">
+        <div>
+          <label for="nick">Display name:</label>
+          <input type="text" name="nick" id="nick" size="40" />
+          <span py:if="'nick' in errors" class="form_error">${errors.nick}</span>
+        </div>
+        <div>
+          <label for="email">Email address:</label>
+          <input type="text" name="email" id="email" size="40" />
+          <span py:if="'email' in errors" class="form_error">${errors.email}</span>
+        </div>
         <p><input type="submit" value="Save Changes" /></p>
       </form>
 
