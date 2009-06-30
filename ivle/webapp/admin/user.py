@@ -105,6 +105,58 @@ class UserEditView(XHTMLView):
         ctx['data'] = data
         ctx['errors'] = errors
 
+class UserAdminSchema(formencode.Schema):
+    admin = formencode.validators.StringBoolean(if_missing=False)
+    fullname = formencode.validators.UnicodeString(not_empty=True)
+    studentid = formencode.validators.UnicodeString(not_empty=False,
+                                                    if_missing=None
+                                                    )
+
+class UserAdminView(XHTMLView):
+    """A form for admins to change more of a user's details."""
+    template = 'templates/user-admin.html'
+    tab = 'settings'
+
+    def __init__(self, req, login):
+        self.context = ivle.database.User.get_by_login(req.store, login)
+        if self.context is None:
+            raise NotFound()
+
+    def authorize(self, req):
+        """Only allow access if the requesting user is an admin."""
+        return req.user.admin
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = UserAdminSchema()
+                data = validator.to_python(data, state=req)
+
+                self.context.admin = data['admin']
+                self.context.fullname = data['fullname'] \
+                                        if data['fullname'] else None
+                self.context.studentid = data['studentid'] \
+                                         if data['studentid'] else None
+                req.store.commit()
+                req.throw_redirect(req.uri)
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {'admin': self.context.admin,
+                    'fullname': self.context.fullname,
+                    'studentid': self.context.studentid,
+                   }
+            errors = {}
+
+        ctx['req'] = req
+        ctx['user'] = self.context
+        ctx['data'] = data
+        ctx['errors'] = errors
+
 class PasswordChangeView(XHTMLView):
     """A form to change a user's password, with knowledge of the old one."""
     template = 'templates/user-password-change.html'
@@ -184,6 +236,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     # The kwargs dict is passed to the __init__ of the view object
     urls = [
         ('~:login/+edit', UserEditView),
+        ('~:login/+admin', UserAdminView),
         ('~:login/+changepassword', PasswordChangeView),
         ('~:login/+resetpassword', PasswordResetView),
         ('api/~:login', UserRESTView),
