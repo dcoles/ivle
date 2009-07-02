@@ -69,25 +69,6 @@ def offering_url(offering):
     return (offering.subject, (str(offering.year), str(offering.semester)))
 
 
-def subject_to_edit_view(subject):
-    return SubjectEdit(subject)
-
-def subject_to_index_view(subject):
-    return SubjectIndex(subject)
-
-def offering_to_index_view(offering):
-    return OfferingIndex(offering)
-
-def subject_edit_url(view):
-    return (view.context, '+edit')
-
-def subject_index_url(view):
-    return (view.context, '+index')
-
-def offering_index_url(view):
-    return (view.context, '+index')
-
-
 class BaseTest(object):
     def setUp(self):
         r = Root()
