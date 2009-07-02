@@ -110,10 +110,10 @@ class TestResolution(BaseTest):
         try:
             self.rtr.default='not+index'
             assert_equal(self.rtr.resolve('/info1'),
-                         (self.r.subjects['info1'], None)
+                         (self.r.subjects['info1'], None, ())
                          )
             assert_equal(self.rtr.resolve('/info3'),
-                         (self.r.subjects['info3'], None)
+                         (self.r.subjects['info3'], None, ())
                          )
         finally:
             self.rtr.default='+index'
@@ -123,22 +123,27 @@ class TestResolution(BaseTest):
             self.rtr.default='not+index'
 
             assert_equal(self.rtr.resolve('/info1/2009/1'),
-                         (self.r.subjects['info1'].offerings[(2009, 1)], None)
-                         )
+                     (self.r.subjects['info1'].offerings[(2009, 1)], None, ())
+                     )
             assert_equal(self.rtr.resolve('/info2/2008/2'),
-                         (self.r.subjects['info2'].offerings[(2008, 2)], None)
-                         )
+                     (self.r.subjects['info2'].offerings[(2008, 2)], None, ())
+                     )
         finally:
             self.rtr.default='+index'
 
     def testView(self):
         assert_equal(self.rtr.resolve('/info1/+edit'),
-                     (self.r.subjects['info1'], SubjectEdit)
+                     (self.r.subjects['info1'], SubjectEdit, ())
                      )
 
     def testDefaultView(self):
         assert_equal(self.rtr.resolve('/info1'),
-                     (self.r.subjects['info1'], SubjectIndex)
+                     (self.r.subjects['info1'], SubjectIndex, ())
+                     )
+
+    def testViewWithSubpath(self):
+        assert_equal(self.rtr.resolve('/info1/+edit/foo/bar'),
+                     (self.r.subjects['info1'], SubjectIndex, ('foo', 'bar'))
                      )
 
     @raises(NotFound)
@@ -147,12 +152,12 @@ class TestResolution(BaseTest):
 
     def testAlternateViewSetWithDefault(self):
         assert_equal(self.rtr.resolve('/info1/2009/1'),
-               (self.r.subjects['info1'].offerings[(2009, 1)], OfferingIndex)
-               )
+             (self.r.subjects['info1'].offerings[(2009, 1)], OfferingIndex, ())
+             )
 
         assert_equal(self.rtr.resolve('/api/info1/2009/1'),
-               (self.r.subjects['info1'].offerings[(2009, 1)], OfferingAPIIndex)
-               )
+          (self.r.subjects['info1'].offerings[(2009, 1)], OfferingAPIIndex, ())
+          )
 
 class TestGeneration(BaseTest):
     def setUp(self):
@@ -191,6 +196,18 @@ class TestGeneration(BaseTest):
                               ),
             '/info1/2009/1'
             )
+
+    def testViewWithSubpath(self):
+        assert_equal(self.rtr.generate(self.r.subjects['info1'], SubjectEdit,
+                                       ('foo', 'bar')),
+                     '/info1/+edit/foo/bar'
+                     )
+
+    def testViewWithStringSubpath(self):
+        assert_equal(self.rtr.generate(self.r.subjects['info1'], SubjectEdit,
+                                       'foo/bar'),
+                     '/info1/+edit/foo/bar'
+                     )
 
     def testAlternateViewSetWithDefault(self):
         assert_equal(
