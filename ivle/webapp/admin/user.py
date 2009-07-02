@@ -21,6 +21,8 @@ from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Unauthorized
+from ivle.webapp.urls import RoutingError
+from ivle.webapp import ApplicationRoot
 import ivle.database
 import ivle.util
 
@@ -36,11 +38,9 @@ class UserRESTView(JSONRESTView):
     """
     A REST interface to the user object.
     """
-    def __init__(self, req, login):
-        super(UserRESTView, self).__init__(self, req, login)
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
+    def __init__(self, req, context):
+        super(UserRESTView, self).__init__(self, req, context)
+        self.context = context
 
     @require_permission('view')
     def GET(self, req):
@@ -59,10 +59,8 @@ class UserSettingsView(XHTMLView):
     tab = 'settings'
     permission = 'edit'
 
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
+    def __init__(self, req, context):
+        self.context = context
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']
@@ -70,17 +68,19 @@ class UserSettingsView(XHTMLView):
 
         ctx['login'] = self.context.login
 
+def root_to_user(root, segment):
+    if not segment.startswith('~'):
+        raise RoutingError()
+    return ivle.database.User.get_by_login(root.store, segment[1:])
+
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the user plugin.
     """
-    # Magic attribute: urls
-    # Sequence of pairs/triples of
-    # (regex str, handler class, kwargs dict)
-    # The kwargs dict is passed to the __init__ of the view object
-    urls = [
-        ('~:login/+settings', UserSettingsView),
-        ('api/~:login', UserRESTView),
-    ]
+
+    forward_routes = [(ApplicationRoot, None, root_to_user, 1)]
+    views = [(ivle.database.User, '+settings', UserSettingsView),
+             (ivle.database.User, '+index', UserRESTView, 'api'),
+             ]
 
     media = 'user-media'
