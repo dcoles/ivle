@@ -143,7 +143,7 @@ class TestResolution(BaseTest):
 
     def testViewWithSubpath(self):
         assert_equal(self.rtr.resolve('/info1/+edit/foo/bar'),
-                     (self.r.subjects['info1'], SubjectIndex, ('foo', 'bar'))
+                     (self.r.subjects['info1'], SubjectEdit, ('foo', 'bar'))
                      )
 
     @raises(NotFound)
