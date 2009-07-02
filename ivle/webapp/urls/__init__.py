@@ -72,11 +72,14 @@ class Router(object):
     to objects and views published in the URL space.
     '''
 
-    def __init__(self, root, default='+index'):
+    def __init__(self, root, default='+index', viewset=None):
         self.fmap = {} # Forward map.
         self.rmap = {} # Reverse map.
+        self.smap = {}
+        self.vmap = {}
         self.root = root
         self.default = default
+        self.viewset = viewset
 
     def add_forward(self, src, segment, func, argc):
         """Register a forward (path resolution) route."""
@@ -92,7 +95,6 @@ class Router(object):
 
         self.fmap[src][segment] = (func, argc)
 
-
     def add_reverse(self, src, func):
         """Register a reverse (path generation) route."""
 
@@ -100,20 +102,47 @@ class Router(object):
              raise RouteConflict((src, func), (src, self.rmap[src]))
         self.rmap[src] = func
 
+    def add_view(self, src, name, cls, viewset=None):
+        """Add a named view for a class, in the specified view set."""
+
+        if src not in self.vmap:
+            self.vmap[src] = {}
+
+        if viewset not in self.vmap[src]:
+            self.vmap[src][viewset] = {}
+
+        if name in self.vmap[src][viewset]:
+            raise RouteConflict((src, name, cls, viewset),
+                         (src, name, self.vmap[src][viewset][name], viewset))
+
+        self.vmap[src][viewset][name] = cls
+
+    def add_set_switch(self, segment, viewset):
+        """Register a leading path segment to switch to a view set."""
+
+        if segment in self.smap:
+            raise RouteConflict((segment, viewset),
+                                (segment, self.smap[segment])
+                               )
+        self.smap[segment] = viewset
+
     def resolve(self, path):
         """Resolve a path into an object.
 
         Traverses the tree of routes using the given path.
         """
 
-        (obj, todo) = self._traverse(_segment_path(path), self.root)
+        viewset = self.viewset
+        todo = _segment_path(path)
 
-        # If we have no segments remaining, let's try the default route.
-        # If there is no default route for this object, we don't care.
-        if len(todo) == 0:
-            obj = self._traverse([self.default], obj)[0]
+        # Override the viewset if the first segment matches.
+        if todo[0] in self.smap:
+            viewset = self.smap[todo[0]]
+            del todo[0]
 
-        return obj
+        (obj, view, subpath) = self._traverse(todo, self.root, viewset)
+
+        return obj, view
 
     def generate(self, obj):
         """Resolve an object into a path.
@@ -149,19 +178,38 @@ class Router(object):
 
         return os.path.join('/', *names)
 
-    def _traverse(self, todo, obj):
+    def _traverse(self, todo, obj, viewset):
         """Populate the object stack given a list of path segments.
 
         Traverses the forward route tree, using the given path segments.
 
         Intended to be used by route(), and nobody else.
         """
-        while todo:
+        while True:
+            # Attempt views first, then routes.
+            if type(obj) in self.vmap and \
+               viewset in self.vmap[type(obj)]:
+                # If there are no segments left, attempt the default view.
+                if len(todo) == 0:
+                    view = self.vmap[type(obj)][viewset].get(self.default)
+                    if view is not None:
+                        return (obj, view, todo[1:])
+                    else:
+                        # No segments, no default view. Erk.
+                        break
+                view = self.vmap[type(obj)][viewset].get(todo[0])
+                if view is not None:
+                    return (obj, view, todo[1:])
+
+            if len(todo) == 0:
+                # Nothing left, no views at all. Die.
+                break
+
             # Check if we have any routes for this object at all.
             try:
                 names = self.fmap[type(obj)]
             except KeyError:
-                return (obj, todo)
+                break
 
             routebits = names.get(todo[0])
 
@@ -188,5 +236,5 @@ class Router(object):
                 raise InsufficientPathSegments(obj, lastseg, len(args))
 
             obj = route(obj, *args)
-        return (obj, ())
+        return (obj, None, ())
 
