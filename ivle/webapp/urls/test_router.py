@@ -128,7 +128,7 @@ class TestResolution(BaseTest):
         assert router.resolve('/info2/2008/2') == \
                (self.r.subjects['info2'].offerings[(2008, 2)], None)
 
-    def testDefaultRoute(self):
+    def testDefaultView(self):
         router = Router(root=self.r, viewset='browser')
         router.add_set_switch('api', 'api')
         router.add_forward(Root, None, root_to_subject, 1)
@@ -156,6 +156,20 @@ class TestResolution(BaseTest):
 
         assert router.resolve('/api/info1/2009/1') == \
                (self.r.subjects['info1'].offerings[(2009, 1)], OfferingAPIIndex)
+
+    def testNoDefaultView(self):
+        router = Router(root=self.r)
+        router.add_forward(Root, None, root_to_subject, 1)
+        router.add_view(Subject, '+edit', SubjectEdit)
+
+        assert router.resolve('/info1/+edit') == \
+               (self.r.subjects['info1'], SubjectEdit)
+
+        assert router.resolve('/info1') == (self.r.subjects['info1'], None)
+
+    def testNoRoutesOrViews(self):
+        router = Router(root=self.r)
+        assert router.resolve('/blah') == (self.r, None)
 
 class TestGeneration(BaseTest):
     def testOneLevel(self):
@@ -206,6 +220,28 @@ class TestErrors(BaseTest):
         router.add_reverse(Subject, object())
         try:
             router.add_reverse(Subject, object())
+        except RouteConflict:
+            pass
+        else:
+            raise AssertionError("did not raise RouteConflict")
+
+    def testViewConflict(self):
+        router = Router(root=self.r)
+        router.add_view(Subject, 'foo', object())
+        router.add_view(Subject, 'foo', object(), viewset='bar')
+        try:
+            router.add_view(Subject, 'foo', object())
+        except RouteConflict:
+            pass
+        else:
+            raise AssertionError("did not raise RouteConflict")
+
+    def testSetSwitchConflict(self):
+        router = Router(root=self.r)
+        router.add_set_switch('foo', 'bar')
+
+        try:
+            router.add_set_switch('foo', 'baz')
         except RouteConflict:
             pass
         else:
