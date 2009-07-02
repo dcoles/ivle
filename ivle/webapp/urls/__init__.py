@@ -153,7 +153,7 @@ class Router(object):
 
         (obj, view, subpath) = self._traverse(todo, self.root, viewset)
 
-        return obj, view
+        return obj, view, subpath
 
     def generate(self, obj, view=None):
         """Resolve an object into a path.
@@ -219,13 +219,13 @@ class Router(object):
                 if len(todo) == 0:
                     view = self.vmap[type(obj)][viewset].get(self.default)
                     if view is not None:
-                        return (obj, view, todo[1:])
+                        return (obj, view, tuple(todo[1:]))
                     else:
                         # No segments, no default view. Erk.
                         break
                 view = self.vmap[type(obj)][viewset].get(todo[0])
                 if view is not None:
-                    return (obj, view, todo[1:])
+                    return (obj, view, tuple(todo[1:]))
 
             if len(todo) == 0:
                 # Nothing left, no views at all. Die.
@@ -262,5 +262,5 @@ class Router(object):
                 raise InsufficientPathSegments(obj, lastseg, len(args))
 
             obj = route(obj, *args)
-        return (obj, None, ())
+        return (obj, None, tuple(todo))
 
