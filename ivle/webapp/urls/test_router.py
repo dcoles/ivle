@@ -211,60 +211,55 @@ class TestGeneration(BaseTest):
 
 
 class TestErrors(BaseTest):
+    def setUp(self):
+        super(TestErrors, self).setUp()
+        self.rtr = Router(root=self.r)
+        self.rtr.add_forward(Root, None, root_to_subject, 1)
+        self.rtr.add_forward(Subject, '+foo', lambda s: s.name + 'foo', 0)
+        self.rtr.add_forward(Subject, None, subject_to_offering, 2)
+        self.rtr.add_reverse(Subject, subject_url)
+        self.rtr.add_reverse(Offering, offering_url)
+        self.rtr.add_view(Offering, '+index', OfferingIndex)
+        self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+        self.rtr.add_set_switch('rest', 'rest')
+
     @raises(RouteConflict)
     def testForwardConflict(self):
-        router = Router(root=self.r)
-        router.add_forward(Subject, 'foo', object(), 1)
-        router.add_forward(Subject, 'foo', object(), 2)
+        self.rtr.add_forward(Subject, '+foo', object(), 2)
 
     @raises(RouteConflict)
     def testReverseConflict(self):
-        router = Router(root=self.r)
-        router.add_reverse(Subject, object())
-        router.add_reverse(Subject, object())
+        self.rtr.add_reverse(Subject, object())
 
     @raises(RouteConflict)
     def testViewConflict(self):
-        router = Router(root=self.r)
-        router.add_view(Subject, 'foo', object())
-        router.add_view(Subject, 'foo', object(), viewset='bar')
-        router.add_view(Subject, 'foo', object())
+        self.rtr.add_view(Offering, '+index', object())
 
     @raises(RouteConflict)
-    def testSetSwitchConflict(self):
-        router = Router(root=self.r)
-        router.add_set_switch('foo', 'bar')
-        router.add_set_switch('foo', 'baz')
+    def testSetSwitchForwardConflict(self):
+        self.rtr.add_set_switch('rest', 'foo')
+
+    @raises(RouteConflict)
+    def testSetSwitchReverseConflict(self):
+        self.rtr.add_set_switch('bar', 'rest')
 
     @raises(NoPath)
     def testNoPath(self):
-        Router(root=self.r).generate(object())
+        self.rtr.generate(object())
 
     @raises(NoPath)
     def testNoSetSwitch(self):
-        router = Router(root=self.r)
-        router.add_reverse(Subject, subject_url)
-        router.add_reverse(Offering, offering_url)
-        router.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
-        router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                        OfferingAPIIndex)
+        self.rtr.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                          OfferingAPIIndex)
 
     @raises(NoPath)
     def testUnregisteredView(self):
-        router = Router(root=self.r)
-        router.add_reverse(Subject, subject_url)
-        router.add_reverse(Offering, offering_url)
-        router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                        OfferingAPIIndex)
+        self.rtr.generate(self.r.subjects['info1'], SubjectIndex)
 
     @raises(NotFound)
     def testNotFound(self):
-        router = Router(root=self.r)
-        router.add_forward(Root, 'foo', object(), 0)
-        router.resolve('/bar')
+        self.rtr.resolve('/bar')
 
     @raises(InsufficientPathSegments)
     def testInsufficientPathSegments(self):
-        router = Router(root=self.r)
-        router.add_forward(Root, 'foo', object(), 2)
-        router.resolve('/foo/bar')
+        self.rtr.resolve('/info1/foo')
