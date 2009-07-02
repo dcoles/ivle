@@ -148,7 +148,7 @@ class Router(object):
         todo = _segment_path(path)
 
         # Override the viewset if the first segment matches.
-        if todo[0] in self.smap:
+        if len(todo) > 0 and todo[0] in self.smap:
             viewset = self.smap[todo[0]]
             del todo[0]
 
