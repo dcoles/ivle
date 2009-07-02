@@ -155,7 +155,7 @@ class Router(object):
 
         return obj, view, subpath
 
-    def generate(self, obj, view=None):
+    def generate(self, obj, view=None, subpath=None):
         """Resolve an object into a path.
 
         Traverse up the tree of reverse routes, generating a path which
@@ -202,7 +202,13 @@ class Router(object):
             if viewname != self.default:
                 names += [viewname]
 
+        if subpath is not None:
+            if isinstance(subpath, basestring):
+                return os.path.join(os.path.join('/', *names), subpath)
+            else:
+                names += subpath
         return os.path.join('/', *names)
+
 
     def _traverse(self, todo, obj, viewset):
         """Populate the object stack given a list of path segments.
