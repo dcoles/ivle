@@ -155,40 +155,50 @@ class TestResolution(BaseTest):
         assert router.resolve('/blah') == (self.r, None)
 
 class TestGeneration(BaseTest):
-    def testOneLevel(self):
-        router = Router(root=self.r)
-        router.add_reverse(Subject, subject_url)
+    def setUp(self):
+        super(TestGeneration, self).setUp()
+        self.rtr = Router(root=self.r, viewset='browser')
+        self.rtr.add_set_switch('api', 'api')
+        self.rtr.add_reverse(Subject, subject_url)
+        self.rtr.add_reverse(Offering, offering_url)
+        self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
+        self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
+        self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
+        self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
 
-        assert router.generate(self.r.subjects['info1']) == '/info1'
+    def testOneLevel(self):
+        assert_equal(self.rtr.generate(self.r.subjects['info1']), '/info1')
 
     def testTwoLevel(self):
-        router = Router(root=self.r)
-        router.add_reverse(Subject, subject_url)
-        router.add_reverse(Offering, offering_url)
+        assert_equal(
+            self.rtr.generate(self.r.subjects['info1'].offerings[(2009, 1)]),
+            '/info1/2009/1'
+            )
+        assert_equal(
+            self.rtr.generate(self.r.subjects['info2'].offerings[(2008, 2)]),
+            '/info2/2008/2'
+            )
 
-        assert router.generate(self.r.subjects['info1'].offerings[(2009, 1)]) \
-               == '/info1/2009/1'
-        assert router.generate(self.r.subjects['info2'].offerings[(2008, 2)]) \
-               == '/info2/2008/2'
+    def testView(self):
+        assert_equal(self.rtr.generate(self.r.subjects['info1'], SubjectEdit),
+                     '/info1/+edit'
+                     )
 
     def testDefaultView(self):
-        router = Router(root=self.r, viewset='browser')
-        router.add_reverse(Subject, subject_url)
-        router.add_reverse(Offering, offering_url)
-        router.add_set_switch('api', 'api')
-        router.add_view(Subject, '+index', SubjectIndex, viewset='browser')
-        router.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
-        router.add_view(Offering, '+index', OfferingIndex, viewset='browser')
-        router.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+        assert_equal(
+            self.rtr.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                              OfferingIndex
+                              ),
+            '/info1/2009/1'
+            )
 
-        assert router.generate(self.r.subjects['info1'], SubjectIndex) \
-               == '/info1'
-        assert router.generate(self.r.subjects['info1'], SubjectEdit) \
-               == '/info1/+edit'
-        assert router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                                   OfferingIndex) == '/info1/2009/1'
-        assert router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                                   OfferingAPIIndex) == '/api/info1/2009/1'
+    def testAlternateViewSetWithDefault(self):
+        assert_equal(
+            self.rtr.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                              OfferingAPIIndex
+                              ),
+            '/api/info1/2009/1'
+            )
 
 
 class TestErrors(BaseTest):
