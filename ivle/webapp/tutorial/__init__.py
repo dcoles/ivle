@@ -40,7 +40,7 @@ import ivle.worksheet.utils
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.media import BaseMediaFileView, media_url
+#from ivle.webapp.media import BaseMediaFileView, media_url
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.worksheet.rst import rst as rstfunc
 from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
@@ -181,27 +181,27 @@ class WorksheetView(XHTMLView):
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
-class SubjectMediaView(BaseMediaFileView):
-    '''The view of subject media files.
-
-    URIs pointing here will just be served directly, from the subject's
-    media directory.
-    '''
-    permission = 'view'
-
-    def __init__(self, req, subject, path):
-        self.context = req.store.find(Subject, short_name=subject).one()
-        self.path = os.path.normpath(path)
-
-    def _make_filename(self, req):
-        # If the subject doesn't exist, self.subject will be None. Die.
-        if not self.context:
-            raise NotFound()
-
-        subjectdir = os.path.join(req.config['paths']['data'],
-                                  'content/subjects',
-                                  self.context.short_name, 'media')
-        return os.path.join(subjectdir, self.path)
+#class SubjectMediaView(BaseMediaFileView):
+#    '''The view of subject media files.
+#
+#    URIs pointing here will just be served directly, from the subject's
+#    media directory.
+#    '''
+#    permission = 'view'
+#
+#    def __init__(self, req, subject, path):
+#        self.context = req.store.find(Subject, short_name=subject).one()
+#        self.path = os.path.normpath(path)
+#
+#    def _make_filename(self, req):
+#        # If the subject doesn't exist, self.subject will be None. Die.
+#        if not self.context:
+#            raise NotFound()
+#
+#        subjectdir = os.path.join(req.config['paths']['data'],
+#                                  'content/subjects',
+#                                  self.context.short_name, 'media')
+#        return os.path.join(subjectdir, self.path)
 
 def get_worksheets(subjectfile):
     '''Given a subject stream, get all the worksheets and put them in ctx'''
@@ -590,7 +590,7 @@ class ExercisesView(XHTMLView):
 class Plugin(ViewPlugin, MediaPlugin):
     urls = [
         # Worksheet View Urls
-        ('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
+        #('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
         ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
         ('subjects/:subject/:year/:semester/+worksheets/+new', WorksheetAddView),
         ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
