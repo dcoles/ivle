@@ -188,21 +188,25 @@ class TestGeneration(BaseTest):
         assert router.generate(self.r.subjects['info2'].offerings[(2008, 2)]) \
                == '/info2/2008/2'
 
-    def testDefaultRoute(self):
-        router = Router(root=self.r)
+    def testDefaultView(self):
+        router = Router(root=self.r, viewset='browser')
         router.add_reverse(Subject, subject_url)
         router.add_reverse(Offering, offering_url)
-        router.add_reverse(SubjectIndex, subject_index_url)
-        router.add_reverse(SubjectEdit, subject_edit_url)
-        router.add_reverse(OfferingIndex, offering_index_url)
+        router.add_set_switch('api', 'api')
+        router.add_view(Subject, '+index', SubjectIndex, viewset='browser')
+        router.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
+        router.add_view(Offering, '+index', OfferingIndex, viewset='browser')
+        router.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
 
-        assert router.generate(SubjectIndex(self.r.subjects['info1'])) \
+        assert router.generate(self.r.subjects['info1'], SubjectIndex) \
                == '/info1'
-        assert router.generate(SubjectEdit(self.r.subjects['info1'])) \
+        assert router.generate(self.r.subjects['info1'], SubjectEdit) \
                == '/info1/+edit'
-        assert router.generate(OfferingIndex(
-                 self.r.subjects['info1'].offerings[(2009, 1)])) \
-                 == '/info1/2009/1'
+        assert router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                                   OfferingIndex) == '/info1/2009/1'
+        assert router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                                   OfferingAPIIndex) == '/api/info1/2009/1'
+
 
 class TestErrors(BaseTest):
     def testForwardConflict(self):
@@ -250,6 +254,33 @@ class TestErrors(BaseTest):
     def testNoPath(self):
         try:
             Router(root=self.r).generate(object())
+        except NoPath:
+            pass
+        else:
+            raise AssertionError("did not raise NoPath")
+
+    def testNoSetSwitch(self):
+        router = Router(root=self.r)
+        router.add_reverse(Subject, subject_url)
+        router.add_reverse(Offering, offering_url)
+        router.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+
+        try:
+            router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                            OfferingAPIIndex)
+        except NoPath:
+            pass
+        else:
+            raise AssertionError("did not raise NoPath")
+
+    def testUnregisteredView(self):
+        router = Router(root=self.r)
+        router.add_reverse(Subject, subject_url)
+        router.add_reverse(Offering, offering_url)
+
+        try:
+            router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                            OfferingAPIIndex)
         except NoPath:
             pass
         else:

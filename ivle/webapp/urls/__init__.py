@@ -76,7 +76,9 @@ class Router(object):
         self.fmap = {} # Forward map.
         self.rmap = {} # Reverse map.
         self.smap = {}
+        self.srmap = {}
         self.vmap = {}
+        self.vrmap = {}
         self.root = root
         self.default = default
         self.viewset = viewset
@@ -111,20 +113,26 @@ class Router(object):
         if viewset not in self.vmap[src]:
             self.vmap[src][viewset] = {}
 
-        if name in self.vmap[src][viewset]:
+        if src not in self.vrmap:
+            self.vrmap[src] = {}
+
+        if name in self.vmap[src][viewset] or cls in self.vrmap[src]:
             raise RouteConflict((src, name, cls, viewset),
                          (src, name, self.vmap[src][viewset][name], viewset))
 
         self.vmap[src][viewset][name] = cls
+        self.vrmap[src][cls] = (name, viewset)
 
     def add_set_switch(self, segment, viewset):
         """Register a leading path segment to switch to a view set."""
 
-        if segment in self.smap:
+        if segment in self.smap or viewset in self.srmap:
             raise RouteConflict((segment, viewset),
                                 (segment, self.smap[segment])
                                )
+
         self.smap[segment] = viewset
+        self.srmap[viewset] = segment
 
     def resolve(self, path):
         """Resolve a path into an object.
@@ -144,7 +152,7 @@ class Router(object):
 
         return obj, view
 
-    def generate(self, obj):
+    def generate(self, obj, view=None):
         """Resolve an object into a path.
 
         Traverse up the tree of reverse routes, generating a path which
@@ -170,11 +178,26 @@ class Router(object):
             else:
                 names = list(newnames) + list(names)
 
-        # Generate nice URLs for the default route, if it is the last. We need
-        # to have an empty path rather than none at all in order to preserve
-        # the trailing /.
-        if names[-1] == self.default:
-            del names[-1]
+        if view is not None:
+            # If we don't have the view registered for this type, we can do
+            # nothing.
+            if type(obj) not in self.vrmap or \
+               view not in self.vrmap[type(obj)]:
+                raise NoPath(obj, view)
+
+            (viewname, viewset) = self.vrmap[type(obj)][view]
+
+            # If the view's set isn't the default one, we need to have it in
+            # the map.
+            if viewset != self.viewset:
+                if viewset not in self.srmap:
+                    raise NoPath(obj, view)
+                else:
+                    names = [self.srmap[viewset]] + names
+
+            # Generate nice URLs for the default route, if it is the last.
+            if viewname != self.default:
+                names += [viewname]
 
         return os.path.join('/', *names)
 
