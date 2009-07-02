@@ -21,6 +21,7 @@ import os.path
 import sys
 
 ROOT = object() # Marker object for the root.
+INF = object()
 
 class RoutingError(Exception):
     pass
@@ -250,20 +251,28 @@ class Router(object):
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
                 lastseg = todo[0]
-                args = todo[1:argc + 1]
-                todo = todo[argc + 1:]
+                if argc is INF:
+                    args = todo[1:]
+                    todo = []
+                else:
+                    args = todo[1:argc + 1]
+                    todo = todo[argc + 1:]
             else:
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
                 if None in names:
                     route, argc = names[None]
                     lastseg = None
-                    args = todo[:argc]
-                    todo = todo[argc:]
+                    if argc is INF:
+                        args = todo
+                        todo = []
+                    else:
+                        args = todo[:argc]
+                        todo = todo[argc:]
                 else:
                     raise NotFound(obj, todo[0])
 
-            if len(args) != argc:
+            if argc is not INF and len(args) != argc:
                 # There were too few path segments left. Die.
                 raise InsufficientPathSegments(obj, lastseg, len(args))
 
