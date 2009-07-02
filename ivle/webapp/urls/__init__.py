@@ -126,10 +126,13 @@ class Router(object):
     def add_set_switch(self, segment, viewset):
         """Register a leading path segment to switch to a view set."""
 
-        if segment in self.smap or viewset in self.srmap:
+        if segment in self.smap:
             raise RouteConflict((segment, viewset),
-                                (segment, self.smap[segment])
-                               )
+                                (segment, self.smap[segment]))
+
+        if viewset in self.srmap:
+            raise RouteConflict((segment, viewset),
+                                (self.srmap[viewset], viewset))
 
         self.smap[segment] = viewset
         self.srmap[viewset] = segment
