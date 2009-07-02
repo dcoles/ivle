@@ -37,7 +37,6 @@ import socket
 import time
 
 import mod_python
-import routes
 
 from ivle import util
 import ivle.config
@@ -46,24 +45,30 @@ import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
 from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
+from ivle.webapp.urls import Router, RoutingError
+from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()
 
-def generate_router(view_plugins, attr):
+def generate_router(view_plugins, root):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
     """
-    m = routes.Mapper(explicit=True)
+    r = Router(root=root)
+
+    r.add_set_switch('api', 'api')
+
     for plugin in view_plugins:
-        # Establish a URL pattern for each element of plugin.urls
-        assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
-        for url in getattr(plugin, attr):
-            routex = url[0]
-            view_class = url[1]
-            kwargs_dict = url[2] if len(url) >= 3 else {}
-            m.connect(routex, view=view_class, **kwargs_dict)
-    return m
+        if hasattr(plugin, 'forward_routes'):
+            for fr in plugin.forward_routes:
+                r.add_forward(*fr)
+
+        if hasattr(plugin, 'views'):
+            for v in plugin.views:
+                r.add_view(*v)
+
+    return r
 
 def handler(apachereq):
     """Handles an HTTP request.
@@ -85,21 +90,20 @@ def handler(apachereq):
             req.user = user
 
     if req.publicmode:
-        req.mapper = generate_router(config.plugin_index[PublicViewPlugin],
-                                    'public_urls')
-    else:
-        req.mapper = generate_router(config.plugin_index[ViewPlugin], 'urls')
+        raise NotImplementedError("no public mode with obtrav yet!")
 
-    matchdict = req.mapper.match(req.uri)
-    if matchdict is not None:
-        viewcls = matchdict['view']
-        # Get the remaining arguments, less 'view', 'action' and 'controller'
-        # (The latter two seem to be built-in, and we don't want them).
-        kwargs = matchdict.copy()
-        del kwargs['view']
+    req.router = generate_router(config.plugin_index[ViewPlugin],
+                                 ApplicationRoot(req.config, req.store))
+
+    try:
+        obj, viewcls, subpath = req.router.resolve(req.uri)
+    except RoutingError:
+        obj, viewcls, subpath = None, None, ()
+
+    if viewcls is not None:
         try:
             # Instantiate the view, which should be a BaseView class
-            view = viewcls(req, **kwargs)
+            view = viewcls(req, obj)
 
             # Check that the request (mainly the user) is permitted to access
             # the view.
