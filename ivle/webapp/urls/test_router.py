@@ -1,3 +1,5 @@
+from nose.tools import assert_equal, raises
+
 from ivle.webapp.urls import (InsufficientPathSegments, NoPath, NotFound,
                               RouteConflict, Router, ROOT)
 
@@ -209,99 +211,60 @@ class TestGeneration(BaseTest):
 
 
 class TestErrors(BaseTest):
+    @raises(RouteConflict)
     def testForwardConflict(self):
         router = Router(root=self.r)
         router.add_forward(Subject, 'foo', object(), 1)
-        try:
-            router.add_forward(Subject, 'foo', object(), 2)
-        except RouteConflict:
-            pass
-        else:
-            raise AssertionError("did not raise RouteConflict")
+        router.add_forward(Subject, 'foo', object(), 2)
 
+    @raises(RouteConflict)
     def testReverseConflict(self):
         router = Router(root=self.r)
         router.add_reverse(Subject, object())
-        try:
-            router.add_reverse(Subject, object())
-        except RouteConflict:
-            pass
-        else:
-            raise AssertionError("did not raise RouteConflict")
+        router.add_reverse(Subject, object())
 
+    @raises(RouteConflict)
     def testViewConflict(self):
         router = Router(root=self.r)
         router.add_view(Subject, 'foo', object())
         router.add_view(Subject, 'foo', object(), viewset='bar')
-        try:
-            router.add_view(Subject, 'foo', object())
-        except RouteConflict:
-            pass
-        else:
-            raise AssertionError("did not raise RouteConflict")
+        router.add_view(Subject, 'foo', object())
 
+    @raises(RouteConflict)
     def testSetSwitchConflict(self):
         router = Router(root=self.r)
         router.add_set_switch('foo', 'bar')
+        router.add_set_switch('foo', 'baz')
 
-        try:
-            router.add_set_switch('foo', 'baz')
-        except RouteConflict:
-            pass
-        else:
-            raise AssertionError("did not raise RouteConflict")
-
+    @raises(NoPath)
     def testNoPath(self):
-        try:
-            Router(root=self.r).generate(object())
-        except NoPath:
-            pass
-        else:
-            raise AssertionError("did not raise NoPath")
+        Router(root=self.r).generate(object())
 
+    @raises(NoPath)
     def testNoSetSwitch(self):
         router = Router(root=self.r)
         router.add_reverse(Subject, subject_url)
         router.add_reverse(Offering, offering_url)
         router.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+        router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                        OfferingAPIIndex)
 
-        try:
-            router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                            OfferingAPIIndex)
-        except NoPath:
-            pass
-        else:
-            raise AssertionError("did not raise NoPath")
-
+    @raises(NoPath)
     def testUnregisteredView(self):
         router = Router(root=self.r)
         router.add_reverse(Subject, subject_url)
         router.add_reverse(Offering, offering_url)
+        router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
+                        OfferingAPIIndex)
 
-        try:
-            router.generate(self.r.subjects['info1'].offerings[(2009, 1)],
-                            OfferingAPIIndex)
-        except NoPath:
-            pass
-        else:
-            raise AssertionError("did not raise NoPath")
-
+    @raises(NotFound)
     def testNotFound(self):
         router = Router(root=self.r)
         router.add_forward(Root, 'foo', object(), 0)
-        try:
-            router.resolve('/bar')
-        except NotFound:
-            pass
-        else:
-            raise AssertionError("did not raise NotFound")
+        router.resolve('/bar')
 
+    @raises(InsufficientPathSegments)
     def testInsufficientPathSegments(self):
         router = Router(root=self.r)
         router.add_forward(Root, 'foo', object(), 2)
-        try:
-            router.resolve('/foo/bar')
-        except InsufficientPathSegments:
-            pass
-        else:
-            raise AssertionError("did not raise InsufficientPathSegments")
+        router.resolve('/foo/bar')
