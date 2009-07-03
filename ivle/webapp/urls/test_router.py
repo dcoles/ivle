@@ -26,6 +26,10 @@ class Offering(object):
         self.year = year
         self.semester = semester
 
+class OfferingProjects(object):
+    def __init__(self, offering):
+        self.offering = offering
+
 class View(object):
     def __init__(self, context):
         self.context = context
@@ -61,12 +65,17 @@ def subject_to_offering(subject, year, semester):
     except (KeyError, ValueError):
         raise NotFound(subject, (year, semester))
 
+def offering_to_projects(offering):
+    return OfferingProjects(offering)
 
 def subject_url(subject):
     return (ROOT, subject.name)
 
 def offering_url(offering):
     return (offering.subject, (str(offering.year), str(offering.semester)))
+
+def offering_projects_url(offeringprojects):
+    return (offeringprojects.offering, '+projects')
 
 
 class BaseTest(object):
@@ -100,6 +109,7 @@ class TestResolution(BaseTest):
         self.rtr.add_set_switch('api', 'api')
         self.rtr.add_forward(Root, None, root_to_subject, 1)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
+        self.rtr.add_forward(Offering, '+projects', offering_to_projects, 0)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
@@ -130,6 +140,14 @@ class TestResolution(BaseTest):
                      )
         finally:
             self.rtr.default='+index'
+
+    def testNamedRoute(self):
+        assert_equal(type(self.rtr.resolve('/info1/2009/1/+projects')[0]),
+                     OfferingProjects
+                    )
+        assert_equal(self.rtr.resolve('/info1/2009/1/+projects')[0].offering,
+                     self.r.subjects['info1'].offerings[(2009, 1)]
+                    )
 
     def testView(self):
         assert_equal(self.rtr.resolve('/info1/+edit'),
