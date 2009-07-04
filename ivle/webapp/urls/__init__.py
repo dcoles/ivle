@@ -29,10 +29,6 @@ class NotFound(RoutingError):
     """The path did not resolve to an object."""
     pass
 
-class RoutelessObject(NotFound):
-    """The path led to an object with no routes."""
-    pass
-
 class InsufficientPathSegments(NotFound):
     """The path led to a route that expected more arguments."""
     pass
