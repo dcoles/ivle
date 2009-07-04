@@ -238,17 +238,19 @@ class Router(object):
             routenames = self.fmap[type(obj)]
 
             if todo[0] in routenames:
-                route, argc = routenames[todo[0]]
+                routename = todo[0]
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
                 argoffset = 1
             elif None in routenames:
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
-                route, argc = routenames[None]
+                routename = None
                 argoffset = 0
             else:
                 raise NotFound(obj, todo[0], todo[1:])
+
+            route, argc = routenames[routename]
 
             if argc is INF:
                 args = todo[argoffset:]
