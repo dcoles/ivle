@@ -239,8 +239,11 @@ class Router(object):
 
             # If there are no segments left to use, or there are no routes, we
             # get out.
-            if len(todo) == 0 or type(obj) not in self.fmap:
+            if len(todo) == 0:
                 raise NotFound(obj, '+index', ())
+
+            if type(obj) not in self.fmap:
+                raise NotFound(obj, todo[0], todo[1:])
 
             routenames = self.fmap[type(obj)]
 
