@@ -299,10 +299,14 @@ class TestGeneration(BaseTest):
         self.rtr.add_reverse(Subject, subject_url)
         self.rtr.add_reverse(Offering, offering_url)
         self.rtr.add_reverse(OfferingFiles, offering_files_url)
+        self.rtr.add_reverse(Project, project_url)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+        self.rtr.add_view(Project, '+index', ProjectIndex, viewset='browser')
+        self.rtr.add_view(Offering, ('+projects', '+new'), OfferingAddProject,
+                          viewset='browser')
 
     def testOneLevel(self):
         assert_equal(self.rtr.generate(self.r.subjects['info1']), '/info1')
@@ -355,6 +359,25 @@ class TestGeneration(BaseTest):
                               ),
             '/api/info1/2009/1'
             )
+
+    def testDeepView(self):
+        assert_equal(
+            self.rtr.generate(
+                self.r.subjects['info1'].offerings[(2009, 1)],
+                OfferingAddProject
+                ),
+        '/info1/2009/1/+projects/+new'
+        )
+
+    def testNamedRouteWithDeepView(self):
+        assert_equal(
+            self.rtr.generate(
+                self.r.subjects['info1'].offerings[(2009, 1)].projects['p1'],
+                ProjectIndex
+                ),
+        '/info1/2009/1/+projects/p1'
+        )
+
 
 
 class TestErrors(BaseTest):
