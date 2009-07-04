@@ -199,6 +199,10 @@ class Router(object):
                 # Deep views may have multiple segments in their name.
                 if isinstance(viewname, basestring):
                     names += [viewname]
+                elif viewname[-1] == '+index' and not subpath:
+                    # If the last segment of the path is the default view, we
+                    # can omit it.
+                    names += viewname[:-1]
                 else:
                     names += viewname
 
@@ -229,11 +233,18 @@ class Router(object):
 
                 if view is not None:
                     return (obj, view, tuple(todo[1:]))
+                # Now we must check for deep views.
+                # A deep view is one that has a name consisting of
+                # multiple segments. It's messier than it could be, because
+                # we also allow omission of the final segment if it is the
+                # default view name.
                 elif len(todo) >= 2:
-                    # Check for a deep view.
-                    # A deep view is one that has a name consisting of
-                    # multiple segments.
                     view = vnames.get(tuple(todo[:2]))
+                    if view is not None:
+                        return (obj, view, tuple(todo[2:]))
+                elif len(todo) == 1:
+                    # Augment it with the default view name, and look it up.
+                    view = vnames.get((todo[0], self.default))
                     if view is not None:
                         return (obj, view, tuple(todo[2:]))
 
