@@ -96,9 +96,6 @@ class MediaFile(object):
 class MediaFileView(BaseView):
     permission = None
 
-    def __init__(self, req, context):
-        self.context = context
-
     def render(self, req):
         # If it begins with ".." or separator, it's illegal. Die.
         if self.context.path.startswith("..") or \

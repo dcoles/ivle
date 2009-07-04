@@ -22,8 +22,12 @@ class BaseView(object):
     Abstract base class for all view objects.
     """
 
-    def __init__(self, req, context):
+    subpath_allowed = False
+
+    def __init__(self, req, context, subpath=None):
         self.context = context
+        if self.subpath_allowed:
+            self.subpath = subpath
 
     def render(self, req):
         raise NotImplementedError()

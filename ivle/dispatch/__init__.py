@@ -98,8 +98,12 @@ def handler(apachereq):
     try:
         obj, viewcls, subpath = req.router.resolve(req.uri.decode('utf-8'))
         try:
+            # We 404 if we have a subpath but the view forbids it.
+            if not viewcls.subpath_allowed and subpath:
+                raise NotFound()
+
             # Instantiate the view, which should be a BaseView class
-            view = viewcls(req, obj)
+            view = viewcls(req, obj, subpath)
 
             # Check that the request (mainly the user) is permitted to access
             # the view.
