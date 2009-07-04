@@ -38,9 +38,6 @@ class UserRESTView(JSONRESTView):
     """
     A REST interface to the user object.
     """
-    def __init__(self, req, context):
-        super(UserRESTView, self).__init__(self, req, context)
-        self.context = context
 
     @require_permission('view')
     def GET(self, req):
@@ -59,9 +56,6 @@ class UserSettingsView(XHTMLView):
     tab = 'settings'
     permission = 'edit'
 
-    def __init__(self, req, context):
-        self.context = context
-
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['settings.js']
         self.scripts_init = ['revert_settings']
@@ -70,7 +64,7 @@ class UserSettingsView(XHTMLView):
 
 def root_to_user(root, segment):
     if not segment.startswith('~'):
-        raise RoutingError()
+        return None
     return ivle.database.User.get_by_login(root.store, segment[1:])
 
 class Plugin(ViewPlugin, MediaPlugin):
