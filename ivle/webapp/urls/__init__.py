@@ -250,20 +250,19 @@ class Router(object):
                 else:
                     args = todo[1:argc + 1]
                     todo = todo[argc + 1:]
-            else:
+            elif None in names:
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
-                if None in names:
-                    route, argc = names[None]
-                    lastseg = None
-                    if argc is INF:
-                        args = todo
-                        todo = []
-                    else:
-                        args = todo[:argc]
-                        todo = todo[argc:]
+                route, argc = names[None]
+                lastseg = None
+                if argc is INF:
+                    args = todo
+                    todo = []
                 else:
-                    raise NotFound(obj, todo[0], todo[1:])
+                    args = todo[:argc]
+                    todo = todo[argc:]
+            else:
+                raise NotFound(obj, todo[0], todo[1:])
 
             if argc is not INF and len(args) != argc:
                 # There were too few path segments left. Die.
