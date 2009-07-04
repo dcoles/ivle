@@ -28,6 +28,13 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.urls import INF
+from ivle.webapp import ApplicationRoot
+
+class SubversionLogFile(object):
+    def __init__(self, root, path):
+        self.root = root
+        self.path = path
 
 class SubversionLogView(XHTMLView):
     template = 'template.html'
@@ -49,7 +56,7 @@ class SubversionLogView(XHTMLView):
                                                 user_jail_dir,
                                                 '/home',
                                                 svnlogservice_path,
-                                                [self.path]
+                                                [self.context.path]
                                                 )
         assert not err
 
@@ -65,11 +72,11 @@ class SubversionLogView(XHTMLView):
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
-        ctx['path'] = self.path
-        ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
-        ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
-        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        ctx['paths'] = make_path_segments(self.path)
+        ctx['path'] = self.context.path
+        ctx['url'] = req.make_path(os.path.join('svnlog', self.context.path))
+        ctx['diffurl'] = req.make_path(os.path.join('diff', self.context.path))
+        ctx['title'] = os.path.normpath(self.context.path).rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.context.path)
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
@@ -85,10 +92,11 @@ class SubversionLogView(XHTMLView):
                                   ivle.util.split_path(req.path)[0],
                                   pathaction[0][1:])) + '?r=%d' % log['revno'])
 
+def root_to_svnlogfile(root, *path):
+    return SubversionLogFile(root, os.path.join(*path) if path else '')
+
 class Plugin(ViewPlugin, MediaPlugin):
-    urls = [
-        ('/svnlog', SubversionLogView, {'path': ''}),
-        ('/svnlog/*path', SubversionLogView),
-    ]
+    forward_routes = [(ApplicationRoot, 'svnlog', root_to_svnlogfile, INF)]
+    views = [(SubversionLogFile, '+index', SubversionLogView)]
 
     media = 'media'
