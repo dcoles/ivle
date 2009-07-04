@@ -235,19 +235,19 @@ class Router(object):
             if len(todo) == 0 or type(obj) not in self.fmap:
                 raise NotFound(obj, '+index', ())
 
-            names = self.fmap[type(obj)]
+            routenames = self.fmap[type(obj)]
 
-            routebits = names.get(todo[0])
+            routebits = routenames.get(todo[0])
 
             if routebits is not None:
                 route, argc = routebits
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
                 argoffset = 1
-            elif None in names:
+            elif None in routenames:
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
-                route, argc = names[None]
+                route, argc = routenames[None]
                 argoffset = 0
             else:
                 raise NotFound(obj, todo[0], todo[1:])
