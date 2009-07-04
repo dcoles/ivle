@@ -52,18 +52,15 @@ class OfferingEdit(View):
 class OfferingAPIIndex(View):
     pass
 
+class OfferingProjectsIndex(View):
+    pass
+
 
 def root_to_subject(root, name):
-    try:
-        return root.subjects[name]
-    except KeyError:
-        raise NotFound(root, name)
+    return root.subjects.get(name)
 
 def subject_to_offering(subject, year, semester):
-    try:
-        return subject.offerings[(int(year), int(semester))]
-    except (KeyError, ValueError):
-        raise NotFound(subject, (year, semester))
+    return subject.offerings.get((int(year), int(semester)))
 
 def offering_to_projects(offering):
     return OfferingProjects(offering)
@@ -114,6 +111,8 @@ class TestResolution(BaseTest):
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
+        self.rtr.add_view(OfferingProjects, '+index', OfferingProjectsIndex,
+                          viewset='browser')
 
     def testOneRoute(self):
         assert_equal(self.rtr.resolve('/info1'),
@@ -154,9 +153,48 @@ class TestResolution(BaseTest):
                      (self.r.subjects['info1'], SubjectEdit, ('foo', 'bar'))
                      )
 
-    @raises(NotFound)
+    def testNoDefaultView(self):
+        try:
+            self.rtr.default = 'not+index'
+            self.rtr.resolve('/info1')
+        except NotFound, e:
+            assert_equal(e.args, (self.r.subjects['info1'], '+index', ()))
+        except:
+            raise
+        else:
+            raise AssertionError('did not raise NotFound')
+        finally:
+            self.rtr.default = '+index'
+
+    def testMissingView(self):
+        try:
+            self.rtr.resolve('/info1/+foo')
+        except NotFound, e:
+            assert_equal(e.args, (self.r.subjects['info1'], '+foo', ()))
+        except:
+            raise
+        else:
+            raise AssertionError('did not raise NotFound')
+
     def testViewSetSeparation(self):
-        self.rtr.resolve('/api/info1/+edit')
+        try:
+            self.rtr.resolve('/api/info1/+edit')
+        except NotFound, e:
+            assert_equal(e.args, (self.r.subjects['info1'], '+edit', ()))
+        except:
+            raise
+        else:
+            raise AssertionError('did not raise NotFound')
+
+    def testRouteReturningNone(self):
+        try:
+            self.rtr.resolve('/info9/+index')
+        except NotFound, e:
+            assert_equal(e.args, (self.r, 'info9', ('+index',)))
+        except:
+            raise
+        else:
+            raise AssertionError('did not raise NotFound')
 
     def testAlternateViewSetWithDefault(self):
         assert_equal(self.rtr.resolve('/info1/2009/1'),
