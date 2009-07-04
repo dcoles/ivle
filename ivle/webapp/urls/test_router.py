@@ -115,31 +115,21 @@ class TestResolution(BaseTest):
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
 
-    def testOneLevel(self):
-        # Don't test view stuff just yet.
-        try:
-            self.rtr.default='not+index'
-            assert_equal(self.rtr.resolve('/info1'),
-                         (self.r.subjects['info1'], None, ())
-                         )
-            assert_equal(self.rtr.resolve('/info3'),
-                         (self.r.subjects['info3'], None, ())
-                         )
-        finally:
-            self.rtr.default='+index'
-
-    def testTwoLevels(self):
-        try:
-            self.rtr.default='not+index'
-
-            assert_equal(self.rtr.resolve('/info1/2009/1'),
-                     (self.r.subjects['info1'].offerings[(2009, 1)], None, ())
+    def testOneRoute(self):
+        assert_equal(self.rtr.resolve('/info1'),
+                     (self.r.subjects['info1'], SubjectIndex, ())
                      )
-            assert_equal(self.rtr.resolve('/info2/2008/2'),
-                     (self.r.subjects['info2'].offerings[(2008, 2)], None, ())
+        assert_equal(self.rtr.resolve('/info3'),
+                     (self.r.subjects['info3'], SubjectIndex, ())
                      )
-        finally:
-            self.rtr.default='+index'
+
+    def testTwoRoutes(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1'),
+             (self.r.subjects['info1'].offerings[(2009, 1)], OfferingIndex, ())
+             )
+        assert_equal(self.rtr.resolve('/info2/2008/2'),
+             (self.r.subjects['info2'].offerings[(2008, 2)], OfferingIndex, ())
+             )
 
     def testNamedRoute(self):
         assert_equal(type(self.rtr.resolve('/info1/2009/1/+projects')[0]),
@@ -149,7 +139,7 @@ class TestResolution(BaseTest):
                      self.r.subjects['info1'].offerings[(2009, 1)]
                     )
 
-    def testView(self):
+    def testNonDefaultView(self):
         assert_equal(self.rtr.resolve('/info1/+edit'),
                      (self.r.subjects['info1'], SubjectEdit, ())
                      )
