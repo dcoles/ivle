@@ -220,6 +220,20 @@ class TestResolution(BaseTest):
         assert_equal(v, OfferingFileIndex)
         assert_equal(sp, ())
 
+    def testMissingRoute(self):
+        try:
+            self.rtr.resolve('/info1/2009/1/+foo')
+        except NotFound, e:
+            assert_equal(e.args, (
+                self.r.subjects['info1'].offerings[(2009, 1)],
+                '+foo',
+                ()
+                ))
+        except:
+            raise
+        else:
+            raise AssertionError('did not raise NotFound')
+
     def testAlternateViewSetWithDefault(self):
         assert_equal(self.rtr.resolve('/info1/2009/1'),
              (self.r.subjects['info1'].offerings[(2009, 1)], OfferingIndex, ())
