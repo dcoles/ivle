@@ -1,6 +1,6 @@
 from nose.tools import assert_equal, raises
 
-from ivle.webapp.urls import (InsufficientPathSegments, NoPath, NotFound,
+from ivle.webapp.urls import (INF, InsufficientPathSegments, NoPath, NotFound,
                               RouteConflict, Router, ROOT)
 
 class Root(object):
@@ -30,6 +30,12 @@ class OfferingFiles(object):
     def __init__(self, offering):
         self.offering = offering
 
+class OfferingFile(object):
+    def __init__(self, offeringfiles, path):
+        self.offering = offeringfiles.offering
+        self.path = path
+
+
 class View(object):
     def __init__(self, context):
         self.context = context
@@ -55,6 +61,9 @@ class OfferingAPIIndex(View):
 class OfferingFilesIndex(View):
     pass
 
+class OfferingFileIndex(View):
+    pass
+
 
 def root_to_subject(root, name):
     return root.subjects.get(name)
@@ -64,6 +73,9 @@ def subject_to_offering(subject, year, semester):
 
 def offering_to_files(offering):
     return OfferingFiles(offering)
+
+def offering_files_to_file(offeringfiles, *path):
+    return OfferingFile(offeringfiles, path)
 
 def subject_url(subject):
     return (ROOT, subject.name)
@@ -107,11 +119,14 @@ class TestResolution(BaseTest):
         self.rtr.add_forward(Root, None, root_to_subject, 1)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
         self.rtr.add_forward(Offering, '+files', offering_to_files, 0)
+        self.rtr.add_forward(OfferingFiles, None, offering_files_to_file, INF)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
         self.rtr.add_view(OfferingFiles, '+index', OfferingFilesIndex,
+                          viewset='browser')
+        self.rtr.add_view(OfferingFile, '+index', OfferingFileIndex,
                           viewset='browser')
 
     def testOneRoute(self):
@@ -195,6 +210,15 @@ class TestResolution(BaseTest):
             raise
         else:
             raise AssertionError('did not raise NotFound')
+
+    def testRouteWithInfinitelyManyArguments(self):
+        o, v, sp = self.rtr.resolve('/info1/2009/1/+files/foo/bar/baz')
+
+        assert_equal(type(o), OfferingFile)
+        assert_equal(o.path, ('foo', 'bar', 'baz'))
+        assert_equal(o.offering, self.r.subjects['info1'].offerings[(2009, 1)])
+        assert_equal(v, OfferingFileIndex)
+        assert_equal(sp, ())
 
     def testAlternateViewSetWithDefault(self):
         assert_equal(self.rtr.resolve('/info1/2009/1'),
