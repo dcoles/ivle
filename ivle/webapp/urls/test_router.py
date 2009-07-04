@@ -77,9 +77,11 @@ class OfferingFileIndex(View):
 class ProjectIndex(View):
     pass
 
-class OfferingAddProject(View):
+class OfferingProjects(View):
     pass
 
+class OfferingAddProject(View):
+    pass
 
 def root_to_subject(root, name):
     return root.subjects.get(name)
@@ -162,6 +164,8 @@ class TestResolution(BaseTest):
                           viewset='browser')
         self.rtr.add_view(Project, '+index', ProjectIndex, viewset='browser')
         self.rtr.add_view(Offering, ('+projects', '+new'), OfferingAddProject,
+                          viewset='browser')
+        self.rtr.add_view(Offering, ('+projects', '+index'), OfferingProjects,
                           viewset='browser')
 
     def testOneRoute(self):
@@ -284,6 +288,12 @@ class TestResolution(BaseTest):
               OfferingAddProject, ())
              )
 
+    def testDefaultDeepView(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1/+projects'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingProjects, ())
+             )
+
     def testNamedRouteWithDeepView(self):
         assert_equal(self.rtr.resolve('/info1/2009/1/+projects/p1'),
              (self.r.subjects['info1'].offerings[(2009, 1)].projects['p1'],
@@ -306,6 +316,8 @@ class TestGeneration(BaseTest):
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
         self.rtr.add_view(Project, '+index', ProjectIndex, viewset='browser')
         self.rtr.add_view(Offering, ('+projects', '+new'), OfferingAddProject,
+                          viewset='browser')
+        self.rtr.add_view(Offering, ('+projects', '+index'), OfferingProjects,
                           viewset='browser')
 
     def testOneLevel(self):
@@ -367,6 +379,24 @@ class TestGeneration(BaseTest):
                 OfferingAddProject
                 ),
         '/info1/2009/1/+projects/+new'
+        )
+
+    def testDefaultDeepView(self):
+        assert_equal(
+            self.rtr.generate(
+                self.r.subjects['info1'].offerings[(2009, 1)],
+                OfferingProjects
+                ),
+        '/info1/2009/1/+projects'
+        )
+
+    def testDefaultDeepViewWithSubpath(self):
+        assert_equal(
+            self.rtr.generate(
+                self.r.subjects['info1'].offerings[(2009, 1)],
+                OfferingProjects, ('foo', 'bar')
+                ),
+        '/info1/2009/1/+projects/+index/foo/bar'
         )
 
     def testNamedRouteWithDeepView(self):
