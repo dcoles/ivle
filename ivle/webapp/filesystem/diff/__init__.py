@@ -31,14 +31,18 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.urls import INF
+from ivle.webapp import ApplicationRoot
+
+class DiffFile(object):
+    def __init__(self, root, path):
+        self.root = root
+        self.path = path
 
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
     tab = 'files'
-
-    def __init__(self, req, path):
-        self.path = path
 
     def authorize(self, req):
         return req.user is not None
@@ -57,7 +61,7 @@ class DiffView(XHTMLView):
         (out, err) = ivle.interpret.execute_raw(req.config, req.user, jail_dir,
                             '/home', os.path.join(req.config['paths']['share'],
                                                   'services/diffservice'),
-                            [self.path] + revs
+                            [self.context.path] + revs
                             )
         assert not err
 
@@ -77,8 +81,8 @@ class DiffView(XHTMLView):
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
 
-        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        ctx['paths'] = make_path_segments(self.path)
+        ctx['title'] = os.path.normpath(self.context.path).rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.context.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
@@ -107,11 +111,11 @@ def htmlfy_diff(difftext):
 
     return '<pre class="diff">%s</pre>' % output
 
+def root_to_difffile(root, *path):
+    return DiffFile(root, os.path.join(*path) if path else '')
+
 class Plugin(ViewPlugin, MediaPlugin):
-    '''Registration class for diff components.'''
-    urls = [
-        ('diff/', DiffView, {'path': ''}),
-        ('diff/*(path)', DiffView),
-    ]
+    forward_routes = [(ApplicationRoot, 'diff', root_to_difffile, INF)]
+    views = [(DiffFile, '+index', DiffView)]
 
     media = 'media'
