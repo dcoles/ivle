@@ -83,8 +83,8 @@ def subject_url(subject):
 def offering_url(offering):
     return (offering.subject, (str(offering.year), str(offering.semester)))
 
-def offering_projects_url(offeringprojects):
-    return (offeringprojects.offering, '+projects')
+def offering_files_url(offeringfiles):
+    return (offeringfiles.offering, '+files')
 
 
 class BaseTest(object):
@@ -250,6 +250,7 @@ class TestGeneration(BaseTest):
         self.rtr.add_set_switch('api', 'api')
         self.rtr.add_reverse(Subject, subject_url)
         self.rtr.add_reverse(Offering, offering_url)
+        self.rtr.add_reverse(OfferingFiles, offering_files_url)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
@@ -266,6 +267,12 @@ class TestGeneration(BaseTest):
         assert_equal(
             self.rtr.generate(self.r.subjects['info2'].offerings[(2008, 2)]),
             '/info2/2008/2'
+            )
+
+    def testNamedRoute(self):
+        assert_equal(self.rtr.generate(
+                OfferingFiles(self.r.subjects['info1'].offerings[(2009, 1)])),
+                '/info1/2009/1/+files'
             )
 
     def testView(self):
