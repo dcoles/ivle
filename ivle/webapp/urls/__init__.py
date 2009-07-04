@@ -226,23 +226,25 @@ class Router(object):
                 if len(todo) == 0:
                     view = self.vmap[type(obj)][viewset].get(self.default)
                     if view is not None:
-                        return (obj, view, tuple(todo[1:]))
+                        return (obj, view, ())
                     else:
                         # No segments, no default view. Erk.
-                        break
+                        raise NotFound(obj, '+index', ())
                 view = self.vmap[type(obj)][viewset].get(todo[0])
                 if view is not None:
                     return (obj, view, tuple(todo[1:]))
 
             if len(todo) == 0:
                 # Nothing left, no views at all. Die.
-                break
+                # XXX: This must be able to be merged into the one up there.
+                raise NotFound(obj, '+index', ())
 
             # Check if we have any routes for this object at all.
             try:
                 names = self.fmap[type(obj)]
             except KeyError:
-                break
+                # XXX: This one should be merged too.
+                raise NotFound(obj, '+index', ())
 
             routebits = names.get(todo[0])
 
@@ -270,12 +272,11 @@ class Router(object):
                         args = todo[:argc]
                         todo = todo[argc:]
                 else:
-                    raise NotFound(obj, todo[0])
+                    raise NotFound(obj, todo[0], todo[1:])
 
             if argc is not INF and len(args) != argc:
                 # There were too few path segments left. Die.
                 raise InsufficientPathSegments(obj, lastseg, len(args))
 
             obj = route(obj, *args)
-        return (obj, None, tuple(todo))
 
