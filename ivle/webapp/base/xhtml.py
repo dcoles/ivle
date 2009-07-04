@@ -45,10 +45,6 @@ class XHTMLView(BaseView):
     allow_overlays = True
     overlay_blacklist = []
 
-    def __init__(self, req, **kwargs):
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-
     def filter(self, stream, ctx):
         return stream
 
@@ -193,10 +189,8 @@ class XHTMLView(BaseView):
 class XHTMLErrorView(XHTMLView):
     template = 'xhtmlerror.html'
 
-    def __init__(self, req, exception):
-        self.context = exception
-
     def populate(self, req, ctx):
+        ctx['req'] = req
         ctx['exception'] = self.context
 
 class XHTMLUnauthorizedView(XHTMLErrorView):

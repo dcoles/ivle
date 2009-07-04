@@ -21,6 +21,10 @@ class BaseView(object):
     """
     Abstract base class for all view objects.
     """
+
+    def __init__(self, req, context):
+        self.context = context
+
     def render(self, req):
         raise NotImplementedError()
 
