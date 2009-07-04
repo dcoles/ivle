@@ -223,28 +223,19 @@ class Router(object):
             if type(obj) in self.vmap and \
                viewset in self.vmap[type(obj)]:
                 # If there are no segments left, attempt the default view.
-                if len(todo) == 0:
-                    view = self.vmap[type(obj)][viewset].get(self.default)
-                    if view is not None:
-                        return (obj, view, ())
-                    else:
-                        # No segments, no default view. Erk.
-                        raise NotFound(obj, '+index', ())
-                view = self.vmap[type(obj)][viewset].get(todo[0])
+                # Otherwise, look for a view with the name in the first
+                # remaining path segment.
+                view = self.vmap[type(obj)][viewset].get(
+                            self.default if len(todo) == 0 else todo[0])
                 if view is not None:
                     return (obj, view, tuple(todo[1:]))
 
-            if len(todo) == 0:
-                # Nothing left, no views at all. Die.
-                # XXX: This must be able to be merged into the one up there.
+            # If there are no segments left to use, or there are no routes, we
+            # get out.
+            if len(todo) == 0 or type(obj) not in self.fmap:
                 raise NotFound(obj, '+index', ())
 
-            # Check if we have any routes for this object at all.
-            try:
-                names = self.fmap[type(obj)]
-            except KeyError:
-                # XXX: This one should be merged too.
-                raise NotFound(obj, '+index', ())
+            names = self.fmap[type(obj)]
 
             routebits = names.get(todo[0])
 
