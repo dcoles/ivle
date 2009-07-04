@@ -220,10 +220,18 @@ class Router(object):
                 # If there are no segments left, attempt the default view.
                 # Otherwise, look for a view with the name in the first
                 # remaining path segment.
-                view = self.vmap[type(obj)][viewset].get(
-                            self.default if len(todo) == 0 else todo[0])
+                vnames = self.vmap[type(obj)][viewset]
+                view = vnames.get(self.default if len(todo) == 0 else todo[0])
+
                 if view is not None:
                     return (obj, view, tuple(todo[1:]))
+                elif len(todo) >= 2:
+                    # Check for a deep view.
+                    # A deep view is one that has a name consisting of
+                    # multiple segments.
+                    view = vnames.get(tuple(todo[:2]))
+                    if view is not None:
+                        return (obj, view, tuple(todo[2:]))
 
             # If there are no segments left to use, or there are no routes, we
             # get out.
