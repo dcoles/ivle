@@ -18,7 +18,6 @@
 """Object traversal URL utilities."""
 
 import os.path
-import sys
 
 ROOT = object() # Marker object for the root.
 INF = object()
