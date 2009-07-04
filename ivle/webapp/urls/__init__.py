@@ -243,7 +243,6 @@ class Router(object):
                 route, argc = routebits
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
-                lastseg = todo[0]
                 if argc is INF:
                     args = todo[1:]
                     todo = []
@@ -254,7 +253,6 @@ class Router(object):
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
                 route, argc = names[None]
-                lastseg = None
                 if argc is INF:
                     args = todo
                     todo = []
