@@ -26,7 +26,7 @@ class Offering(object):
         self.year = year
         self.semester = semester
 
-class OfferingProjects(object):
+class OfferingFiles(object):
     def __init__(self, offering):
         self.offering = offering
 
@@ -52,7 +52,7 @@ class OfferingEdit(View):
 class OfferingAPIIndex(View):
     pass
 
-class OfferingProjectsIndex(View):
+class OfferingFilesIndex(View):
     pass
 
 
@@ -62,8 +62,8 @@ def root_to_subject(root, name):
 def subject_to_offering(subject, year, semester):
     return subject.offerings.get((int(year), int(semester)))
 
-def offering_to_projects(offering):
-    return OfferingProjects(offering)
+def offering_to_files(offering):
+    return OfferingFiles(offering)
 
 def subject_url(subject):
     return (ROOT, subject.name)
@@ -106,12 +106,12 @@ class TestResolution(BaseTest):
         self.rtr.add_set_switch('api', 'api')
         self.rtr.add_forward(Root, None, root_to_subject, 1)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
-        self.rtr.add_forward(Offering, '+projects', offering_to_projects, 0)
+        self.rtr.add_forward(Offering, '+files', offering_to_files, 0)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingAPIIndex, viewset='api')
-        self.rtr.add_view(OfferingProjects, '+index', OfferingProjectsIndex,
+        self.rtr.add_view(OfferingFiles, '+index', OfferingFilesIndex,
                           viewset='browser')
 
     def testOneRoute(self):
@@ -131,10 +131,10 @@ class TestResolution(BaseTest):
              )
 
     def testNamedRoute(self):
-        assert_equal(type(self.rtr.resolve('/info1/2009/1/+projects')[0]),
-                     OfferingProjects
+        assert_equal(type(self.rtr.resolve('/info1/2009/1/+files')[0]),
+                     OfferingFiles
                     )
-        assert_equal(self.rtr.resolve('/info1/2009/1/+projects')[0].offering,
+        assert_equal(self.rtr.resolve('/info1/2009/1/+files')[0].offering,
                      self.r.subjects['info1'].offerings[(2009, 1)]
                     )
 
