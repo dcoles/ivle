@@ -237,10 +237,8 @@ class Router(object):
 
             routenames = self.fmap[type(obj)]
 
-            routebits = routenames.get(todo[0])
-
-            if routebits is not None:
-                route, argc = routebits
+            if todo[0] in routenames:
+                route, argc = routenames[todo[0]]
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
                 argoffset = 1
