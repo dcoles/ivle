@@ -276,7 +276,17 @@ class Router(object):
 
             if argc is not INF and len(args) != argc:
                 # There were too few path segments left. Die.
-                raise InsufficientPathSegments(obj, lastseg, len(args))
+                raise InsufficientPathSegments(
+                                obj,
+                                tuple(args) if len(args) != 1 else args[0],
+                                tuple(todo)
+                                )
 
-            obj = route(obj, *args)
+            newobj = route(obj, *args)
+
+            if newobj is None:
+                raise NotFound(obj, tuple(args) if len(args) != 1 else args[0],
+                               tuple(todo))
+
+            obj = newobj
 
