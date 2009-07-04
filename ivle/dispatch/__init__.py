@@ -96,11 +96,7 @@ def handler(apachereq):
                                  ApplicationRoot(req.config, req.store))
 
     try:
-        obj, viewcls, subpath = req.router.resolve(req.uri)
-    except RoutingError:
-        obj, viewcls, subpath = None, None, ()
-
-    if viewcls is not None:
+        obj, viewcls, subpath = req.router.resolve(req.uri.decode('utf-8'))
         try:
             # Instantiate the view, which should be a BaseView class
             view = viewcls(req, obj)
@@ -142,8 +138,13 @@ def handler(apachereq):
         else:
             req.store.commit()
             return req.OK
-    else:
-        XHTMLErrorView(req, NotFound()).render(req)
+    except RoutingError, e:
+        if req.user.admin:
+            XHTMLErrorView(req, NotFound('Not found: ' +
+                                         str(e.args))).render(req)
+        else:
+            XHTMLErrorView(req, NotFound()).render(req)
+
         return req.OK
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
