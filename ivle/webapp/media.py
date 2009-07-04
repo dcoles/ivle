@@ -153,7 +153,7 @@ def root_to_media(root, *segments):
         path = segments
 
     if version is not None and version != root.config['media']['version']:
-        raise RoutingError()
+        return None
 
     ns = path[0]
     path = os.path.normpath(os.path.join(*path[1:]))
