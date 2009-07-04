@@ -33,23 +33,19 @@ import os.path
 import ivle.interpret
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
-from ivle.webapp.urls import INF
 from ivle.webapp import ApplicationRoot
-
-class FileserviceFile(object):
-    def __init__(self, root, path):
-        self.root = root
-        self.path = path
 
 # XXX: Writes to req directly. This is a direct port of the legacy version.
 #      This needs to be rewritten soon.
 class FileserviceView(BaseView):
+    subpath_allowed = True
+
     def authorize(self, req):
         return req.user is not None
 
     def render(self, req):
         """Handler for the File Services application."""
-        if len(self.context.path) == 0:
+        if len(self.path) == 0:
             # If no path specified, default to the user's home directory
             req.throw_redirect(req.make_path(os.path.join('fileservice',
                                                           req.user.login)))
@@ -63,11 +59,9 @@ class FileserviceView(BaseView):
                                                'services/fileservice'),
                                   interp_object, gentle=False)
 
-def root_to_fileservicefile(root, *path):
-    return FileserviceFile(root, os.path.join(*path) if path else '')
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
 class Plugin(ViewPlugin):
-    forward_routes = [(ApplicationRoot, 'fileservice',
-                       root_to_fileservicefile, INF),
-                      ]
-    views = [(FileserviceFile, '+index', FileserviceView)]
+    views = [(ApplicationRoot, 'fileservice', FileserviceView)]

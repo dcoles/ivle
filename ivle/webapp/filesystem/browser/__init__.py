@@ -30,18 +30,12 @@ from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
 from ivle.webapp.filesystem import make_path_segments
-from ivle.webapp.urls import INF
 from ivle.webapp import ApplicationRoot
 
 import os.path
 import cgi
 
 import ivle.svn
-
-class BrowserFile(object):
-    def __init__(self, root, path):
-        self.root = root
-        self.path = path
 
 class BrowserView(XHTMLView):
     """
@@ -51,11 +45,13 @@ class BrowserView(XHTMLView):
     tab = 'files'
     help = 'Filesystem/Browser'
 
+    subpath_allowed = True
+
     def authorize(self, req):
         return req.user is not None
 
     def populate(self, req, ctx):
-        if len(self.context.path) == 0:
+        if len(self.path) == 0:
             # If no path specified, default to the user's home directory
             redirectPath = req.make_path(os.path.join('files', req.user.login))
             req.throw_redirect(redirectPath)
@@ -92,11 +88,15 @@ class BrowserView(XHTMLView):
         self.gen_actions(req, ctx)
 
         # The page title should contain the name of the file being browsed
-        ctx['title'] = os.path.normpath(self.context.path).rsplit('/', 1)[-1]
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
 
         ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
-                                                            self.context.path))
-        ctx['filename'] = cgi.escape(self.context.path)
+                                                               self.path))
+        ctx['filename'] = cgi.escape(self.path)
+
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
     #TODO: Move all this logic into the template
     def gen_actions(self, req, ctx):
@@ -138,9 +138,6 @@ class BrowserView(XHTMLView):
           ])
         ]
 
-def root_to_browserfile(root, *path):
-    return BrowserFile(root, os.path.join(*path) if path else '')
-
 class BrowserRedirectView(XHTMLView):
     def authorize(self, req):
         return req.user is not None
@@ -150,8 +147,7 @@ class BrowserRedirectView(XHTMLView):
         req.throw_redirect(redirect_path)
 
 class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
-    forward_routes = [(ApplicationRoot, 'files', root_to_browserfile, INF)]
-    views = [(BrowserFile, '+index', BrowserView),
+    views = [(ApplicationRoot, 'files', BrowserView),
              (ApplicationRoot, '+index', BrowserRedirectView),
              ]
 

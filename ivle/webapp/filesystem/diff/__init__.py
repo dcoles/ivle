@@ -31,18 +31,14 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.filesystem import make_path_segments
-from ivle.webapp.urls import INF
 from ivle.webapp import ApplicationRoot
-
-class DiffFile(object):
-    def __init__(self, root, path):
-        self.root = root
-        self.path = path
 
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
     tab = 'files'
+
+    subpath_allowed = True
 
     def authorize(self, req):
         return req.user is not None
@@ -61,7 +57,7 @@ class DiffView(XHTMLView):
         (out, err) = ivle.interpret.execute_raw(req.config, req.user, jail_dir,
                             '/home', os.path.join(req.config['paths']['share'],
                                                   'services/diffservice'),
-                            [self.context.path] + revs
+                            [self.path] + revs
                             )
         assert not err
 
@@ -81,13 +77,17 @@ class DiffView(XHTMLView):
             r'^Index: (.*)\n\=+\n((?:[^I].*\n)*)',re.MULTILINE
         )
 
-        ctx['title'] = os.path.normpath(self.context.path).rsplit('/', 1)[-1]
-        ctx['paths'] = make_path_segments(self.context.path)
+        ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
+        ctx['paths'] = make_path_segments(self.path)
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
                              for fd in diff_matcher.findall(diff)
                              if fd[1]])
+
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
 
 def htmlfy_diff(difftext):
@@ -111,11 +111,7 @@ def htmlfy_diff(difftext):
 
     return '<pre class="diff">%s</pre>' % output
 
-def root_to_difffile(root, *path):
-    return DiffFile(root, os.path.join(*path) if path else '')
-
 class Plugin(ViewPlugin, MediaPlugin):
-    forward_routes = [(ApplicationRoot, 'diff', root_to_difffile, INF)]
-    views = [(DiffFile, '+index', DiffView)]
+    views = [(ApplicationRoot, 'diff', DiffView)]
 
     media = 'media'

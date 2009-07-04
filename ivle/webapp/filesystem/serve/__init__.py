@@ -34,15 +34,11 @@ from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLErrorView
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.errors import NotFound, Unauthorized, Forbidden
-from ivle.webapp.urls import INF
 from ivle.webapp import ApplicationRoot
 
-class ServeFile(object):
-    def __init__(self, root, path):
-        self.root = root
-        self.path = path
-
 class ServeView(BaseView):
+    subpath_allowed = True
+
     def authorize(self, req):
         return req.user is not None
 
@@ -51,7 +47,7 @@ class ServeView(BaseView):
         # Get the username of the student whose work we are browsing, and the
         # path on the local machine where the file is stored.
         (login, jail, path) = studpath.url_to_jailpaths(req.config,
-                                                        self.context.path)
+                                                        self.path)
 
         owner = User.get_by_login(req.store, login)
         if not owner:
@@ -59,6 +55,10 @@ class ServeView(BaseView):
             raise NotFound()
 
         self.serve(req, owner, jail, path)
+
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
     def serve(self, req, owner, jail, path):
         self.serve_file(req, owner, jail, path)
@@ -136,14 +136,9 @@ class ServeView(BaseView):
         req.content_type = response['type']
         req.write(out)
 
-class DownloadFile(object):
-    def __init__(self, root, path):
-        self.root = root
-        self.path = path
-
 class DownloadView(ServeView):
-    def __init__(self, req, context):
-        super(DownloadView, self).__init__(req, context)
+    def __init__(self, req, context, subpath=None):
+        super(DownloadView, self).__init__(req, context, subpath)
         filelist = req.get_fieldstorage().getlist('path')
         if filelist:
             self.files = [f.value for f in filelist]
@@ -173,19 +168,9 @@ class PublicServeView(ServeView):
     def get_error_view(cls, e):
         return XHTMLErrorView
 
-def root_to_servefile(root, *path):
-    return ServeFile(root, os.path.join(*path) if path else '')
-
-def root_to_downloadfile(root, *path):
-    return DownloadFile(root, os.path.join(*path) if path else '')
-
 class Plugin(ViewPlugin, PublicViewPlugin):
-    forward_routes = [(ApplicationRoot, 'serve', root_to_servefile, INF),
-                      (ApplicationRoot, 'download', root_to_downloadfile, INF),
-                      ]
-
-    views = [(ServeFile, '+index', ServeView),
-             (DownloadFile, '+index', DownloadView)
+    views = [(ApplicationRoot, 'serve', ServeView),
+             (ApplicationRoot, 'download', DownloadView)
              ]
 
     # TODO: Need to restore this.
