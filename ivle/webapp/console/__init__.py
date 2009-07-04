@@ -2,6 +2,7 @@ from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin, MediaPlugin
 from ivle.webapp.console.service import ConsoleServiceRESTView
 from ivle.webapp.console.overlay import ConsoleOverlay
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp import ApplicationRoot
 
 
 class ConsoleView(XHTMLView):
@@ -23,16 +24,18 @@ class ConsoleView(XHTMLView):
         ctx['start_body_attrs'] = {}
 
 class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
-    urls = [
-        ('console/service', ConsoleServiceRESTView),
-        ('console', ConsoleView),
-    ]
+    views = [(ApplicationRoot, ('console', '+index'), ConsoleView),
+             (ApplicationRoot, ('console', 'service'), ConsoleServiceRESTView),
+             ]
+
     tabs = [
         ('console', 'Console', 'Try out your code in a Python console',
          'console.png', 'console', 3)
     ]
+
     overlays = [
         ConsoleOverlay,
     ]
+
     media = 'media'
     help = {'Console': 'help.html'}
