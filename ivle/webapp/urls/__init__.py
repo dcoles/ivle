@@ -243,7 +243,7 @@ class Router(object):
                 routename = None
                 argoffset = 0
             else:
-                raise NotFound(obj, todo[0], todo[1:])
+                raise NotFound(obj, todo[0], tuple(todo[1:]))
 
             route, argc = routenames[routename]
 
