@@ -243,24 +243,21 @@ class Router(object):
                 route, argc = routebits
                 # The first path segment is the route identifier, so we skip
                 # it when identifying arguments.
-                if argc is INF:
-                    args = todo[1:]
-                    todo = []
-                else:
-                    args = todo[1:argc + 1]
-                    todo = todo[argc + 1:]
+                argoffset = 1
             elif None in names:
                 # Attempt traversal directly (with no intermediate segment)
                 # as a last resort.
                 route, argc = names[None]
-                if argc is INF:
-                    args = todo
-                    todo = []
-                else:
-                    args = todo[:argc]
-                    todo = todo[argc:]
+                argoffset = 0
             else:
                 raise NotFound(obj, todo[0], todo[1:])
+
+            if argc is INF:
+                args = todo[argoffset:]
+                todo = []
+            else:
+                args = todo[argoffset:argc + argoffset]
+                todo = todo[argc + argoffset:]
 
             if argc is not INF and len(args) != argc:
                 # There were too few path segments left. Die.
