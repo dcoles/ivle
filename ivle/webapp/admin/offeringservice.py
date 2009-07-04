@@ -15,18 +15,6 @@ class OfferingRESTView(XHTMLRESTView):
 
     template = "subject.html"
 
-    def __init__(self, req, subject, year, semester):
-
-        self.context = req.store.find(Offering,
-                Offering.subject_id == Subject.id,
-                Subject.short_name == unicode(subject),
-                Offering.semester_id == Semester.id,
-                Semester.year == unicode(year),
-                Semester.semester == unicode(semester)).one()
-
-        if self.context is None:
-            raise NotFound()
-
     def new_project_url(self, projectset):
         return "/api/subjects/" + str(self.context.subject.id) + "/" +\
                self.context.semester.year + "/" +\

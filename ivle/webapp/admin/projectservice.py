@@ -29,19 +29,6 @@ class ProjectSetRESTView(XHTMLRESTView):
     
     Add new, delete, edit functionality is given here."""
     template = "templates/projectset_fragment.html"
-    
-    def __init__(self, req, subject, year, semester, projectset):
-        self.context = req.store.find(ProjectSet,
-            ProjectSet.id == int(projectset),
-            ProjectSet.offering_id == Offering.id,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == unicode(subject),
-            Offering.semester_id == Semester.id,
-            Semester.year == unicode(year),
-            Semester.semester == unicode(semester)).one()
-        
-        if self.context is None:
-            raise NotFound()
 
     def _project_url(self, project):
         return "/subjects/%s/%s/%s/+projects/%s" % \

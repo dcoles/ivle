@@ -28,7 +28,7 @@ import urllib
 import urlparse
 import cgi
 
-from storm.locals import Desc
+from storm.locals import Desc, Store
 import genshi
 from genshi.filters import HTMLFormFiller
 from genshi.template import Context, TemplateLoader
@@ -37,6 +37,7 @@ import formencode
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound
+from ivle.webapp import ApplicationRoot
 
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
                           ProjectSet, Project, ProjectSubmission
@@ -46,7 +47,6 @@ import ivle.date
 from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
                                              ProjectRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
-
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -100,18 +100,6 @@ class EnrolView(XHTMLView):
     tab = 'subjects'
     permission = 'edit'
 
-    def __init__(self, req, subject, year, semester):
-        """Find the given offering by subject, year and semester."""
-        self.context = req.store.find(Offering,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-
-        if not self.context:
-            raise NotFound()
-
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
 
@@ -140,17 +128,6 @@ class OfferingProjectsView(XHTMLView):
     template = 'templates/offering_projects.html'
     permission = 'edit'
     tab = 'subjects'
-    
-    def __init__(self, req, subject, year, semester):
-        self.context = req.store.find(Offering,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-
-        if not self.context:
-            raise NotFound()
 
     def project_url(self, projectset, project):
         return "/subjects/%s/%s/%s/+projects/%s" % (
@@ -207,19 +184,6 @@ class ProjectView(XHTMLView):
     permission = "edit"
     tab = 'subjects'
 
-    def __init__(self, req, subject, year, semester, project):
-        self.context = req.store.find(Project,
-                Project.short_name == project,
-                Project.project_set_id == ProjectSet.id,
-                ProjectSet.offering_id == Offering.id,
-                Offering.semester_id == Semester.id,
-                Semester.year == year,
-                Semester.semester == semester,
-                Offering.subject_id == Subject.id,
-                Subject.short_name == subject).one()
-        if self.context is None:
-            raise NotFound()
-
     def build_subversion_url(self, svnroot, submission):
         princ = submission.assessed.principal
 
@@ -247,21 +211,41 @@ class ProjectView(XHTMLView):
         ctx['project'] = self.context
         ctx['user'] = req.user
 
-class Plugin(ViewPlugin, MediaPlugin):
-    urls = [
-        ('subjects/', SubjectsView),
-        ('subjects/:subject/:year/:semester/+enrolments/+new', EnrolView),
-        ('subjects/:subject/:year/:semester/+projects', OfferingProjectsView),
-        ('subjects/:subject/:year/:semester/+projects/:project', ProjectView),
-        #API Views
-        ('api/subjects/:subject/:year/:semester/+projectsets/+new',
-            OfferingRESTView),
-        ('api/subjects/:subject/:year/:semester/+projectsets/:projectset/+projects/+new',
-            ProjectSetRESTView),
-        ('api/subjects/:subject/:year/:semester/+projects/:project', 
-            ProjectRESTView),
+class OfferingEnrolmentSet(object):
+    def __init__(self, offering):
+        self.offering = offering
 
-    ]
+def root_to_subject(root, name):
+    return root.store.find(Subject, short_name=name).one()
+
+def subject_to_offering(subject, year, semester):
+    return subject.offering_for_semester(year, semester)
+
+def offering_to_project(offering, name):
+    return Store.of(offering).find(Project,
+                                   Project.project_set_id == ProjectSet.id,
+                                   ProjectSet.offering == offering).one()
+
+def offering_to_projectset(offering, name):
+    return Store.of(offering).find(ProjectSet,
+                                   ProjectSet.offering == offering).one()
+
+class Plugin(ViewPlugin, MediaPlugin):
+    forward_routes = [(ApplicationRoot, 'subjects', root_to_subject, 1),
+                      (Subject, None, subject_to_offering, 2),
+                      (Offering, '+projects', offering_to_project, 1),
+                      (Offering, '+projectsets', offering_to_projectset, 1),
+                      ]
+
+    views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (Offering, ('+enrolments', '+new'), EnrolView),
+             (Offering, ('+projects', '+index'), OfferingProjectsView),
+             (Project, '+index', ProjectView),
+
+             (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
+             (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
+             (Project, '+index', ProjectRESTView, 'api'),
+             ]
 
     tabs = [
         ('subjects', 'Subjects',
