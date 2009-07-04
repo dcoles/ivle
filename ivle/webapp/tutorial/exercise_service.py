@@ -62,14 +62,6 @@ class ExercisesRESTView(JSONRESTView):
 class ExerciseRESTView(JSONRESTView):
     """View for updating Exercises"""
     
-    def __init__(self, req, exercise):
-        
-        self.context = req.store.find(Exercise,
-            Exercise.id == exercise).one()
-        
-        if self.context is None:
-            raise NotFound()
-
     @named_operation(u'edit')
     def edit_exercise(self, req, name, description, partial, 
                       solution, include, num_rows):

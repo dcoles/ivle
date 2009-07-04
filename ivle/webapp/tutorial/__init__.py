@@ -31,20 +31,25 @@ from datetime import datetime
 from xml.dom import minidom
 
 import genshi
+from storm.locals import Store
 
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
-                          ExerciseSave, WorksheetExercise
+                          ExerciseSave, WorksheetExercise, ExerciseAttempt
 from ivle.database import Worksheet as DBWorksheet
 import ivle.worksheet.utils
+from ivle.webapp import ApplicationRoot
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-#from ivle.webapp.media import BaseMediaFileView, media_url
+from ivle.webapp.media import media_url#, BaseMediaFileView
 from ivle.webapp.errors import NotFound, Forbidden
 from ivle.worksheet.rst import rst as rstfunc
-from ivle.webapp.tutorial.service import AttemptsRESTView, AttemptRESTView, \
-            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView
+from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
+            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView,
+            ExerciseAttempts, worksheet_to_worksheet_exercise,
+            worksheet_exercise_to_user_attempts, exerciseattempts_to_attempt,
+            )
 
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
@@ -72,19 +77,6 @@ class OfferingView(XHTMLView):
     template = 'templates/subjectmenu.html'
     tab = 'subjects' # XXX
     permission = 'view'
-
-    def __init__(self, req, subject, year, semester):
-        """Find the given offering by subject, year and semester."""
-        self.context = req.store.find(Offering,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-        
-        if not self.context:
-            raise NotFound()
-
 
     def populate(self, req, ctx):
         """Create the context for the given offering."""
@@ -146,22 +138,6 @@ class WorksheetView(XHTMLView):
     tab = 'subjects'
     permission = 'view'
 
-    def __init__(self, req, subject, year, semester, worksheet):
-        self.context = req.store.find(DBWorksheet,
-            DBWorksheet.offering_id == Offering.id,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester,
-            DBWorksheet.identifier == worksheet).one()
-        
-        if self.context is None:
-            raise NotFound(str(worksheet) + " was not found.")
-        
-        self.year = year
-        self.semester = semester
-
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
         self.plugin_styles[Plugin] = ['tutorial.css', 'worksheet.css']
@@ -171,8 +147,8 @@ class WorksheetView(XHTMLView):
 
         ctx['subject'] = self.context.offering.subject
         ctx['worksheet'] = self.context
-        ctx['semester'] = self.semester
-        ctx['year'] = self.year
+        ctx['semester'] = self.context.offering.semester.semester
+        ctx['year'] = self.context.offering.semester.year
 
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
         ctx['user'] = req.user
@@ -385,40 +361,15 @@ class WorksheetEditView(XHTMLView):
     template = "templates/worksheet_edit.html"
     tab = "subjects"
 
-    def __init__(self, req, **kwargs):
-    
-        subject = kwargs['subject']
-        year = kwargs['year']
-        semester = kwargs['semester']
-        worksheet = kwargs['worksheet']
-        self.context = req.store.find(DBWorksheet,
-            DBWorksheet.identifier == worksheet,
-            DBWorksheet.offering_id == Offering.id,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject
-        ).one()
-        
-        if self.context is None:
-            raise NotFound()
-        
-        self.subject = subject
-        self.year = year
-        self.semester = semester
-        self.worksheet = worksheet
-        
-            
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["tutorial_admin.css"]
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
-        
+
         ctx['worksheet'] = self.context
-        ctx['worksheetname'] = self.worksheet
+        ctx['worksheetname'] = self.context.identifier
         ctx['subject'] = self.context.offering.subject
-        ctx['year'] = self.year
-        ctx['semester'] = self.semester
+        ctx['year'] = self.context.offering.semester.year
+        ctx['semester'] = self.context.offering.semester.semester
         #XXX: Get the list of formats from somewhere else
         ctx['formats'] = ['xml', 'rst']
 
@@ -428,29 +379,13 @@ class WorksheetAddView(XHTMLView):
     permission = "edit"
     template = "templates/worksheet_add.html"
 
-    def __init__(self, req, subject, year, semester):
-        self.context = req.store.find(Offering,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject
-        ).one()
-        
-        self.subject = subject
-        self.year = year
-        self.semester = semester
-        
-        if self.context is None:
-            raise NotFound()
-            
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["tutorial_admin.css"]
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
         
         ctx['subject'] = self.context.subject
-        ctx['year'] = self.year
-        ctx['semester'] = self.semester
+        ctx['year'] = self.context.semester.year
+        ctx['semester'] = self.context.semester.semester
         
         #XXX: Get the list of formats from somewhere else
         ctx['formats'] = ['xml', 'rst']
@@ -460,30 +395,14 @@ class WorksheetsEditView(XHTMLView):
     
     permission = 'edit'
     template = 'templates/worksheets_edit.html'
-    
-    def __init__(self, req, subject, year, semester):
-        self.context = req.store.find(Offering,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject
-        ).one()
-        
-        self.subject = subject
-        self.year = year
-        self.semester = semester
-        
-        if self.context is None:
-            raise NotFound()
-    
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['tutorial_admin.css']
         self.plugin_scripts[Plugin] = ['tutorial_admin.js']
         
         ctx['subject'] = self.context.subject
-        ctx['year'] = self.year
-        ctx['semester'] = self.semester
+        ctx['year'] = self.context.semester.year
+        ctx['semester'] = self.context.semester.semester
         
         ctx['worksheets'] = self.context.worksheets
         
@@ -495,13 +414,6 @@ class ExerciseEditView(XHTMLView):
     
     permission = 'edit'
     template = 'templates/exercise_edit.html'
-    
-    def __init__(self, req, exercise):
-        self.context = req.store.find(Exercise, 
-            Exercise.id == exercise).one()
-
-        if self.context is None:
-            raise NotFound()
     
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
@@ -524,13 +436,6 @@ class ExerciseDeleteView(XHTMLView):
     permission = 'edit'
     template = 'templates/exercise_delete.html'
     
-    def __init__(self, req, exercise):
-        self.context = req.store.find(Exercise,
-            Exercise.id == exercise).one()
-        
-        if self.context is None:
-            raise NotFound()
-
     def populate(self, req, ctx):
 
         # If post, delete the exercise, or display a message explaining that
@@ -587,35 +492,50 @@ class ExercisesView(XHTMLView):
         ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
-class Plugin(ViewPlugin, MediaPlugin):
-    urls = [
-        # Worksheet View Urls
-        #('subjects/:subject/+worksheets/+media/*(path)', SubjectMediaView),
-        ('subjects/:subject/:year/:semester/+worksheets', OfferingView),
-        ('subjects/:subject/:year/:semester/+worksheets/+new', WorksheetAddView),
-        ('subjects/:subject/:year/:semester/+worksheets/+edit', WorksheetsEditView),
-        ('subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetView),
-        ('subjects/:subject/:year/:semester/+worksheets/:worksheet/+edit', WorksheetEditView),
-        
-        # Worksheet Api Urls
-        ('api/subjects/:subject/:year/:semester/+worksheets', WorksheetsRESTView),
-        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
-            '+attempts/:username', AttemptsRESTView),
-        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise/'
-                '+attempts/:username/:date', AttemptRESTView),
-        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet', WorksheetRESTView),
-        ('api/subjects/:subject/:year/:semester/+worksheets/:worksheet/*exercise', WorksheetExerciseRESTView),
 
-        # Exercise View Urls
-        ('+exercises', ExercisesView),
-        ('+exercises/+add', ExerciseAddView),
-        ('+exercises/:exercise/+edit', ExerciseEditView),
-        ('+exercises/:exercise/+delete', ExerciseDeleteView),
-        
-        # Exercise Api Urls
-        ('api/+exercises', ExercisesRESTView),
-        ('api/+exercises/*exercise', ExerciseRESTView),
-    ]
+def offering_to_worksheet(offering, worksheet_name):
+    return Store.of(offering).find(
+        DBWorksheet,
+        DBWorksheet.offering == offering,
+        DBWorksheet.identifier == worksheet_name
+        ).one()
+
+
+def root_to_exercise(root, exercise_name):
+    return root.store.find(
+        Exercise,
+        Exercise.id == exercise_name
+        ).one()
+
+
+class Plugin(ViewPlugin, MediaPlugin):
+    forward_routes = [(Offering, '+worksheets', offering_to_worksheet, 1),
+                      (DBWorksheet, None, worksheet_to_worksheet_exercise, 1),
+                      (WorksheetExercise, '+attempts',
+                       worksheet_exercise_to_user_attempts, 1),
+                      (ExerciseAttempts, None, exerciseattempts_to_attempt, 1),
+                      (ApplicationRoot, '+exercises', root_to_exercise, 1),
+                      ]
+
+    views = [(Offering, ('+worksheets', '+index'), OfferingView),
+             (Offering, ('+worksheets', '+new'), WorksheetAddView),
+             (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
+             (DBWorksheet, '+index', WorksheetView),
+             (DBWorksheet, '+edit', WorksheetEditView),
+             (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
+             (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
+             (Exercise, '+edit', ExerciseEditView),
+             (Exercise, '+delete', ExerciseDeleteView),
+
+             (Offering, ('+worksheets', '+index'), WorksheetsRESTView, 'api'),
+             (DBWorksheet, '+index', WorksheetRESTView, 'api'),
+             (WorksheetExercise, '+index', WorksheetExerciseRESTView, 'api'),
+             (ExerciseAttempts, '+index', AttemptsRESTView, 'api'),
+             (ExerciseAttempt, '+index', AttemptRESTView, 'api'),
+             (ApplicationRoot, ('+exercises', '+index'), ExercisesRESTView,
+              'api'),
+             (Exercise, '+index', ExerciseRESTView, 'api'),
+             ]
 
     media = 'media'
     help = {'Tutorial': 'help.html'}

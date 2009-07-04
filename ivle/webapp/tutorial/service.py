@@ -21,12 +21,14 @@
 
 import os
 import datetime
+
 import genshi
+from storm.locals import Store
 
 import ivle.console
 import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
-                          Offering, Subject, Semester, WorksheetExercise
+                          Offering, Subject, Semester, User, WorksheetExercise
 import ivle.worksheet.utils
 import ivle.webapp.tutorial.test
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
@@ -39,34 +41,67 @@ HISTORY_ALLOW_INACTIVE = False
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+
+class ExerciseAttempts(object):
+    """The set of exercise attempts for a user and exercise.
+
+    A combination of a User and WorksheetExercise, this provides access to
+    the User's ExerciseAttempts.
+    """
+
+    def __init__(self, worksheet_exercise, user):
+        self.worksheet_exercise = worksheet_exercise
+        self.user = user
+
+    def get_permissions(self, user):
+        return self.user.get_permissions(user)
+
+
+def exerciseattempts_to_attempt(exercise_attempts, date):
+    try:
+        date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
+    except ValueError:
+        return None
+
+    # XXX Hack around Google Code issue #87
+    # Query from the given date +1 secnod.
+    # Date is in seconds (eg. 3:47:12), while the data is in finer time
+    # (eg. 3:47:12.3625). The query "date <= 3:47:12" will fail because
+    # 3:47:12.3625 is greater. Hence we do the query from +1 second,
+    # "date <= 3:47:13", and it finds the correct submission, UNLESS there
+    # are multiple submissions inside the same second.
+    date += datetime.timedelta(seconds=1)
+
+    return ivle.worksheet.utils.get_exercise_attempt(
+                Store.of(exercise_attempts.user),
+                exercise_attempts.user, exercise_attempts.worksheet_exercise,
+                as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
+
+
+def worksheet_exercise_to_user_attempts(worksheet_exercise, login):
+    user = User.get_by_login(Store.of(worksheet_exercise), login)
+    if user is None:
+        return None
+    return ExerciseAttempts(worksheet_exercise, user)
+
+
+def worksheet_to_worksheet_exercise(worksheet, exercise_name):
+    return Store.of(worksheet).find(
+        WorksheetExercise,
+        WorksheetExercise.exercise_id == exercise_name,
+        WorksheetExercise.worksheet == worksheet
+        ).one()
+
+
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
-    
-    def __init__(self, req, subject, year, semester, worksheet, 
-                                                exercise, username):
-        self.user = ivle.database.User.get_by_login(req.store, username)
-        if self.user is None:
-            raise NotFound()
-        
-        self.worksheet_exercise = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == unicode(exercise),
-            WorksheetExercise.worksheet_id == Worksheet.id,
-            Worksheet.offering_id == Offering.id,
-            Worksheet.identifier == unicode(worksheet),
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-        
-        self.context = self.user # XXX: Not quite right.
 
     @require_permission('edit')
     def GET(self, req):
         """Handles a GET Attempts action."""
         attempts = req.store.find(ExerciseAttempt, 
-                ExerciseAttempt.ws_ex_id == self.worksheet_exercise.id,
-                ExerciseAttempt.user_id == self.user.id)
+                ExerciseAttempt.ws_ex_id == self.context.worksheet_exercise.id,
+                ExerciseAttempt.user_id == self.context.user.id)
         # attempts is a list of ExerciseAttempt objects. Convert to dictionaries
         time_fmt = lambda dt: datetime.datetime.strftime(dt, TIMESTAMP_FORMAT)
         attempts = [{'date': time_fmt(a.date), 'complete': a.complete}
@@ -78,11 +113,6 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def PUT(self, req, data):
         """ Tests the given submission """
-        exercise = req.store.find(Exercise, 
-            Exercise.id == self.worksheet_exercise.exercise_id).one()
-        if exercise is None:
-            raise NotFound()
-
         # Start a console to run the tests on
         jail_path = os.path.join(req.config['paths']['jails']['mounts'],
                                  req.user.login)
@@ -92,7 +122,7 @@ class AttemptsRESTView(JSONRESTView):
 
         # Parse the file into a exercise object using the test suite
         exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(
-                                                            exercise, cons)
+                            self.context.worksheet_exercise.exercise, cons)
 
         # Run the test cases. Get the result back as a JSONable object.
         # Return it.
@@ -102,7 +132,7 @@ class AttemptsRESTView(JSONRESTView):
         cons.close()
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
-            worksheet_exercise = self.worksheet_exercise,
+            worksheet_exercise = self.context.worksheet_exercise,
             date = datetime.datetime.now(),
             complete = test_results['passed'],
             text = unicode(data['code'])
@@ -114,7 +144,7 @@ class AttemptsRESTView(JSONRESTView):
         # has EVER been completed (may be different from "passed", if it has
         # been completed before), and the total number of attempts.
         completed, attempts = ivle.worksheet.utils.get_exercise_status(
-                req.store, req.user, self.worksheet_exercise)
+                req.store, req.user, self.context.worksheet_exercise)
         test_results["completed"] = completed
         test_results["attempts"] = attempts
 
@@ -124,47 +154,6 @@ class AttemptsRESTView(JSONRESTView):
 class AttemptRESTView(JSONRESTView):
     '''REST view of an exercise attempt.'''
 
-    def __init__(self, req, subject, year, semester, worksheet, exercise, 
-                 username, date):
-        # TODO: Find exercise within worksheet.
-        user = ivle.database.User.get_by_login(req.store, username)
-        if user is None:
-            raise NotFound()
-
-        try:
-            date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
-        except ValueError:
-            raise NotFound()
-
-        # XXX Hack around Google Code issue #87
-        # Query from the given date +1 secnod.
-        # Date is in seconds (eg. 3:47:12), while the data is in finer time
-        # (eg. 3:47:12.3625). The query "date <= 3:47:12" will fail because
-        # 3:47:12.3625 is greater. Hence we do the query from +1 second,
-        # "date <= 3:47:13", and it finds the correct submission, UNLESS there
-        # are multiple submissions inside the same second.
-        date += datetime.timedelta(seconds=1)
-
-        worksheet_exercise = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == exercise,
-            WorksheetExercise.worksheet_id == Worksheet.id,
-            Worksheet.identifier == worksheet,
-            Worksheet.offering_id == Offering.id,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-            
-        attempt = ivle.worksheet.utils.get_exercise_attempt(req.store, user,
-                        worksheet_exercise, as_of=date,
-                        allow_inactive=HISTORY_ALLOW_INACTIVE) 
-
-        if attempt is None:
-            raise NotFound()
-
-        self.context = attempt
-
     @require_permission('view')
     def GET(self, req):
         return {'code': self.context.text}
@@ -172,20 +161,6 @@ class AttemptRESTView(JSONRESTView):
 
 class WorksheetExerciseRESTView(JSONRESTView):
     '''REST view of a worksheet exercise.'''
-
-    def __init__(self, req, subject, year, semester, worksheet, exercise):
-        self.context = req.store.find(WorksheetExercise,
-            WorksheetExercise.exercise_id == exercise,
-            WorksheetExercise.worksheet_id == Worksheet.id,
-            Worksheet.offering_id == Offering.id,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-        
-        if self.context is None:
-            raise NotFound()
 
     @named_operation('view')
     def save(self, req, text):
@@ -216,25 +191,6 @@ class WorksheetExerciseRESTView(JSONRESTView):
 class WorksheetRESTView(JSONRESTView):
     """View used to update a worksheet."""
 
-    def __init__(self, req, **kwargs):
-    
-        self.worksheet = kwargs['worksheet']
-        self.subject = kwargs['subject']
-        self.year = kwargs['year']
-        self.semester = kwargs['semester']
-    
-        self.context = req.store.find(Worksheet,
-            Worksheet.identifier == self.worksheet,
-            Worksheet.offering_id == Offering.id,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == self.subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == self.year,
-            Semester.semester == self.semester).one()
-        
-        if self.context is None:
-            raise NotFound()
-    
     @named_operation('edit')
     def save(self, req, name, assessable, data, format):
         """Takes worksheet data and saves it."""
@@ -248,22 +204,6 @@ class WorksheetRESTView(JSONRESTView):
 
 class WorksheetsRESTView(JSONRESTView):
     """View used to update and create Worksheets."""
-    
-    def __init__(self, req, **kwargs):
-    
-        self.subject = kwargs['subject']
-        self.year = kwargs['year']
-        self.semester = kwargs['semester']
-    
-        self.context = req.store.find(Offering,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == self.subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == self.year,
-            Semester.semester == self.semester).one()
-        
-        if self.context is None:
-            raise NotFound()
 
     @named_operation('edit')
     def add_worksheet(self, req, identifier, name, assessable, data, format):
