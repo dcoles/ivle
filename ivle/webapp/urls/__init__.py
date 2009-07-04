@@ -196,7 +196,11 @@ class Router(object):
 
             # Generate nice URLs for the default route, if it is the last.
             if viewname != self.default:
-                names += [viewname]
+                # Deep views may have multiple segments in their name.
+                if isinstance(viewname, basestring):
+                    names += [viewname]
+                else:
+                    names += viewname
 
         if subpath is not None:
             if isinstance(subpath, basestring):
