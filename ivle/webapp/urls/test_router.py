@@ -25,6 +25,11 @@ class Offering(object):
         self.subject = subject
         self.year = year
         self.semester = semester
+        self.projects = {}
+
+    def add_project(self, project):
+        assert project.offering is self
+        self.projects[project.name] = project
 
 class OfferingFiles(object):
     def __init__(self, offering):
@@ -34,6 +39,11 @@ class OfferingFile(object):
     def __init__(self, offeringfiles, path):
         self.offering = offeringfiles.offering
         self.path = path
+
+class Project(object):
+    def __init__(self, offering, name):
+        self.offering = offering
+        self.name = name
 
 
 class View(object):
@@ -64,6 +74,12 @@ class OfferingFilesIndex(View):
 class OfferingFileIndex(View):
     pass
 
+class ProjectIndex(View):
+    pass
+
+class OfferingAddProject(View):
+    pass
+
 
 def root_to_subject(root, name):
     return root.subjects.get(name)
@@ -77,6 +93,9 @@ def offering_to_files(offering):
 def offering_files_to_file(offeringfiles, *path):
     return OfferingFile(offeringfiles, path)
 
+def offering_to_project(offering, name):
+    return offering.projects.get(name)
+
 def subject_url(subject):
     return (ROOT, subject.name)
 
@@ -86,6 +105,8 @@ def offering_url(offering):
 def offering_files_url(offeringfiles):
     return (offeringfiles.offering, '+files')
 
+def project_url(project):
+    return (project.offering, ('+projects', project.name))
 
 class BaseTest(object):
     def setUp(self):
@@ -111,6 +132,16 @@ class BaseTest(object):
         r.subjects['info3'].add_offering(Offering(self.r.subjects['info3'],
                                          2009, 1))
 
+        # A normal project...
+        r.subjects['info1'].offerings[(2009, 1)].add_project(
+            Project(r.subjects['info1'].offerings[(2009, 1)], 'p1')
+            )
+
+        # And one conflicting with a deep view, just to be nasty.
+        r.subjects['info1'].offerings[(2009, 1)].add_project(
+            Project(r.subjects['info1'].offerings[(2009, 1)], '+new')
+            )
+
 class TestResolution(BaseTest):
     def setUp(self):
         super(TestResolution, self).setUp()
@@ -120,6 +151,7 @@ class TestResolution(BaseTest):
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
         self.rtr.add_forward(Offering, '+files', offering_to_files, 0)
         self.rtr.add_forward(OfferingFiles, None, offering_files_to_file, INF)
+        self.rtr.add_forward(Offering, '+projects', offering_to_project, 1)
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
@@ -127,6 +159,9 @@ class TestResolution(BaseTest):
         self.rtr.add_view(OfferingFiles, '+index', OfferingFilesIndex,
                           viewset='browser')
         self.rtr.add_view(OfferingFile, '+index', OfferingFileIndex,
+                          viewset='browser')
+        self.rtr.add_view(Project, '+index', ProjectIndex, viewset='browser')
+        self.rtr.add_view(Offering, ('+projects', '+new'), OfferingAddProject,
                           viewset='browser')
 
     def testOneRoute(self):
@@ -242,6 +277,19 @@ class TestResolution(BaseTest):
         assert_equal(self.rtr.resolve('/api/info1/2009/1'),
           (self.r.subjects['info1'].offerings[(2009, 1)], OfferingAPIIndex, ())
           )
+
+    def testDeepView(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1/+projects/+new'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingAddProject, ())
+             )
+
+    def testNamedRouteWithDeepView(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1/+projects/p1'),
+             (self.r.subjects['info1'].offerings[(2009, 1)].projects['p1'],
+              ProjectIndex, ())
+             )
+
 
 class TestGeneration(BaseTest):
     def setUp(self):
