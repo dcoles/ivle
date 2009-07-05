@@ -70,25 +70,53 @@ a img {
 ul#ivle_breadcrumbs {
     margin: 0;
     padding: 0;
-    list-style: none;
+    list-style-type: none;
 }
 
 ul#ivle_breadcrumbs > li {
     background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
     float: left;
     min-height: 29px;
-    padding-right: 8px;
+    margin-right: 6px;
+    position: relative;
 }
 
 ul#ivle_breadcrumbs > li > a {
     display: block;
-    padding: 4px 12px 0 6px;
+    padding: 4px 16px 0 6px;
     text-decoration: none;
     color: black;
 }
 
 ul#ivle_breadcrumbs > li > a:hover {
     text-decoration: underline;
+}
+
+ul#ivle_breadcrumbs > li > ul {
+    display: none;
+    list-style-type: none;
+
+    position: absolute;
+    padding-left: 0;
+    top: 2em;
+    left: -21px; /* Just meets the chevron on the left. */
+    width: 200px;
+
+    background: #abf;
+    border: 1px solid #dee4ff;
+    opacity: 0.95;
+}
+
+ul#ivle_breadcrumbs > li:hover > ul {
+    display: block;
+}
+
+ul#ivle_breadcrumbs > li > ul > li {
+    padding: 0.3em;
+}
+
+ul#ivle_breadcrumbs > li > ul > li:hover {
+    background: #b8c6ff;
 }
 
 #ivleheader_text {
