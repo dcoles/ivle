@@ -55,6 +55,8 @@ from ivle.webapp.tutorial.traversal import (root_to_exercise, exercise_url,
             ExerciseAttempts, worksheetexercise_to_exerciseattempts,
             exerciseattempts_url, exerciseattempts_to_attempt,
             exerciseattempt_url)
+from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
+            WorksheetBreadcrumb)
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -502,6 +504,10 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     reverse_routes = (exercise_url, worksheet_url, worksheetexercise_url,
         exerciseattempts_url, exerciseattempt_url)
+
+    breadcrumbs = {Exercise: ExerciseBreadcrumb,
+                   DBWorksheet: WorksheetBreadcrumb
+                  }
 
     views = [(Offering, ('+worksheets', '+index'), OfferingView),
              (Offering, ('+worksheets', '+new'), WorksheetAddView),
