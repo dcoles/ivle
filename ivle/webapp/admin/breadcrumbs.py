@@ -17,6 +17,19 @@
 
 from ivle.database import Offering
 
+class UserBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def url(self):
+        return self.req.router.generate(self.context)
+
+    @property
+    def text(self):
+        return self.context.nick
+
 class SubjectBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req

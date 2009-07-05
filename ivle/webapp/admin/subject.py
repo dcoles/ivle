@@ -49,7 +49,8 @@ from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.traversal import (root_to_subject,
             subject_to_offering, offering_to_projectset, offering_to_project,
             subject_url, offering_url, projectset_url, project_url)
-from ivle.webapp.admin.breadcrumbs import SubjectBreadcrumb, OfferingBreadcrumb
+from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
+            OfferingBreadcrumb, UserBreadcrumb)
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -235,6 +236,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
                    Offering: OfferingBreadcrumb,
+                   User: UserBreadcrumb,
                    }
 
     tabs = [
