@@ -103,7 +103,7 @@
 }
 #console_inputText {
     font-family: monospace;
-    width: 75%;
+    width: 60%;
 }
 
 /* console filler takes up the same space as console_body.windowpane
