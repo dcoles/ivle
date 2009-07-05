@@ -171,7 +171,7 @@ class Router(object):
         names = []
 
         # None represents the root.
-        while curobj is not ROOT:
+        while curobj not in (ROOT, self.root):
             route = self.rmap.get(type(curobj))
             if route is None:
                 raise NoPath(obj, curobj)
@@ -232,7 +232,7 @@ class Router(object):
         objs = [obj]
 
         # None represents the root.
-        while objs[0] is not ROOT:
+        while objs[0] not in (ROOT, self.root):
             route = self.rmap.get(type(objs[0]))
             if route is None:
                 raise NoPath(obj, objs[0])
