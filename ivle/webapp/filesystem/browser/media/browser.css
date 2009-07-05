@@ -30,7 +30,7 @@
     right: 0;
     top: 0;
     /* Approximate height of the components */
-    height: 5em;
+    height: 2.3em;
     padding: 0;
     background-color: #ddd;
 }
@@ -85,7 +85,7 @@
     left: 0;
     right: 0;
     /* top == #topbar.height */
-    top: 5em;
+    top: 2.3em;
     /* Space for the mimimised console */
     bottom: 2em;
 }
