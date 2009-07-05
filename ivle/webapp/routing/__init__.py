@@ -220,6 +220,25 @@ class Router(object):
                 names += subpath
         return os.path.join('/', *names)
 
+    def get_ancestors(self, obj):
+        """Get a sequence of an object's ancestors.
+
+        Traverse up the tree of reverse routes, taking note of all ancestors.
+        """
+
+        # Attempt to get all the way to the top. Each reverse route should
+        # return a (parent, pathsegments) tuple. We don't care about
+        # pathsegments in this case.
+        objs = [obj]
+
+        # None represents the root.
+        while objs[0] is not ROOT:
+            route = self.rmap.get(type(objs[0]))
+            if route is None:
+                raise NoPath(obj, objs[0])
+            objs.insert(0, route(objs[0])[0])
+
+        return objs[1:]
 
     def _traverse(self, todo, obj, viewset):
         """Populate the object stack given a list of path segments.
