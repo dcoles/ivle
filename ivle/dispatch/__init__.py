@@ -62,7 +62,19 @@ def generate_router(view_plugins, root):
     for plugin in view_plugins:
         if hasattr(plugin, 'forward_routes'):
             for fr in plugin.forward_routes:
-                r.add_forward(*fr)
+                # An annotated function can also be passed in directly.
+                if hasattr(fr, '_forward_route_meta'):
+                    r.add_forward_func(fr)
+                else:
+                    r.add_forward(*fr)
+
+        if hasattr(plugin, 'reverse_routes'):
+            for rr in plugin.reverse_routes:
+                # An annotated function can also be passed in directly.
+                if hasattr(rr, '_reverse_route_src'):
+                    r.add_reverse_func(rr)
+                else:
+                    r.add_reverse(*rr)
 
         if hasattr(plugin, 'views'):
             for v in plugin.views:
