@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+from storm.locals import Store
+
 from ivle.database import Offering, ProjectSet, Project, Subject, User
 
 from ivle.webapp import ApplicationRoot
