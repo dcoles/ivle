@@ -93,6 +93,9 @@ class XHTMLView(BaseView):
         ctx['app_template'] = app
         ctx['title_img'] = media_url(req, CorePlugin,
                                      "images/chrome/root-breadcrumb.png")
+        ctx['ancestry'] = req.router.get_ancestors(self.context)
+        ctx['breadcrumb_text'] = lambda x: x # TODO: Do it properly.
+        ctx['url'] = req.router.generate
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))

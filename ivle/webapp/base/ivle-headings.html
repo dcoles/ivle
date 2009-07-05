@@ -45,6 +45,13 @@
               <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
             </a>
           </span>
+          <py:for each="ancestor in ancestry">
+          <span class="breadcrumb" py:if="breadcrumb_text(ancestor)">
+            <a href="${url(ancestor)}">
+              ${breadcrumb_text(ancestor)}
+            </a>
+          </span>
+          </py:for>
         </div>
         <div id="ivleheader_text">
           <py:choose>
