@@ -35,63 +35,8 @@ from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
 
-# If True, getattempts or getattempt will allow browsing of inactive/disabled
-# attempts. If False, will not allow this.
-HISTORY_ALLOW_INACTIVE = False
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-
-class ExerciseAttempts(object):
-    """The set of exercise attempts for a user and exercise.
-
-    A combination of a User and WorksheetExercise, this provides access to
-    the User's ExerciseAttempts.
-    """
-
-    def __init__(self, worksheet_exercise, user):
-        self.worksheet_exercise = worksheet_exercise
-        self.user = user
-
-    def get_permissions(self, user):
-        return self.user.get_permissions(user)
-
-
-def exerciseattempts_to_attempt(exercise_attempts, date):
-    try:
-        date = datetime.datetime.strptime(date, TIMESTAMP_FORMAT)
-    except ValueError:
-        return None
-
-    # XXX Hack around Google Code issue #87
-    # Query from the given date +1 secnod.
-    # Date is in seconds (eg. 3:47:12), while the data is in finer time
-    # (eg. 3:47:12.3625). The query "date <= 3:47:12" will fail because
-    # 3:47:12.3625 is greater. Hence we do the query from +1 second,
-    # "date <= 3:47:13", and it finds the correct submission, UNLESS there
-    # are multiple submissions inside the same second.
-    date += datetime.timedelta(seconds=1)
-
-    return ivle.worksheet.utils.get_exercise_attempt(
-                Store.of(exercise_attempts.user),
-                exercise_attempts.user, exercise_attempts.worksheet_exercise,
-                as_of=date, allow_inactive=HISTORY_ALLOW_INACTIVE)
-
-
-def worksheet_exercise_to_user_attempts(worksheet_exercise, login):
-    user = User.get_by_login(Store.of(worksheet_exercise), login)
-    if user is None:
-        return None
-    return ExerciseAttempts(worksheet_exercise, user)
-
-
-def worksheet_to_worksheet_exercise(worksheet, exercise_name):
-    return Store.of(worksheet).find(
-        WorksheetExercise,
-        WorksheetExercise.exercise_id == exercise_name,
-        WorksheetExercise.worksheet == worksheet
-        ).one()
-
 
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''

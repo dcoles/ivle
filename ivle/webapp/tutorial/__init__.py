@@ -31,7 +31,6 @@ from datetime import datetime
 from xml.dom import minidom
 
 import genshi
-from storm.locals import Store
 
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
@@ -43,16 +42,19 @@ from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import media_url#, BaseMediaFileView
-from ivle.webapp.errors import NotFound, Forbidden
+from ivle.webapp.errors import NotFound
 from ivle.worksheet.rst import rst as rstfunc
-from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
-            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView,
-            ExerciseAttempts, worksheet_to_worksheet_exercise,
-            worksheet_exercise_to_user_attempts, exerciseattempts_to_attempt,
-            )
 
+from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
+            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView)
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
+from ivle.webapp.tutorial.traversal import (root_to_exercise, exercise_url,
+            offering_to_worksheet, worksheet_url,
+            worksheet_to_worksheetexercise, worksheetexercise_url,
+            ExerciseAttempts, worksheetexercise_to_exerciseattempts,
+            exerciseattempts_url, exerciseattempts_to_attempt,
+            exerciseattempt_url)
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -493,29 +495,13 @@ class ExercisesView(XHTMLView):
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 
-def offering_to_worksheet(offering, worksheet_name):
-    return Store.of(offering).find(
-        DBWorksheet,
-        DBWorksheet.offering == offering,
-        DBWorksheet.identifier == worksheet_name
-        ).one()
-
-
-def root_to_exercise(root, exercise_name):
-    return root.store.find(
-        Exercise,
-        Exercise.id == exercise_name
-        ).one()
-
-
 class Plugin(ViewPlugin, MediaPlugin):
-    forward_routes = [(Offering, '+worksheets', offering_to_worksheet, 1),
-                      (DBWorksheet, None, worksheet_to_worksheet_exercise, 1),
-                      (WorksheetExercise, '+attempts',
-                       worksheet_exercise_to_user_attempts, 1),
-                      (ExerciseAttempts, None, exerciseattempts_to_attempt, 1),
-                      (ApplicationRoot, '+exercises', root_to_exercise, 1),
-                      ]
+    forward_routes = (root_to_exercise, offering_to_worksheet,
+        worksheet_to_worksheetexercise, worksheetexercise_to_exerciseattempts,
+        exerciseattempts_to_attempt)
+
+    reverse_routes = (exercise_url, worksheet_url, worksheetexercise_url,
+        exerciseattempts_url, exerciseattempt_url)
 
     views = [(Offering, ('+worksheets', '+index'), OfferingView),
              (Offering, ('+worksheets', '+new'), WorksheetAddView),
