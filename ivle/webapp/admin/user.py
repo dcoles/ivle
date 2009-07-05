@@ -20,8 +20,7 @@
 from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.errors import NotFound, Unauthorized
-from ivle.webapp import ApplicationRoot
+from ivle.webapp.admin.traversal import root_to_user, user_url
 import ivle.database
 import ivle.util
 
@@ -61,17 +60,13 @@ class UserSettingsView(XHTMLView):
 
         ctx['login'] = self.context.login
 
-def root_to_user(root, segment):
-    if not segment.startswith('~'):
-        return None
-    return ivle.database.User.get_by_login(root.store, segment[1:])
-
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the user plugin.
     """
 
-    forward_routes = [(ApplicationRoot, None, root_to_user, 1)]
+    forward_routes = (root_to_user,)
+    reverse_routes = (user_url,)
     views = [(ivle.database.User, '+settings', UserSettingsView),
              (ivle.database.User, '+index', UserRESTView, 'api'),
              ]

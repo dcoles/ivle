@@ -36,7 +36,6 @@ import formencode
 
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.errors import NotFound
 from ivle.webapp import ApplicationRoot
 
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
@@ -47,6 +46,9 @@ import ivle.date
 from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
                                              ProjectRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
+from ivle.webapp.admin.traversal import (root_to_subject,
+            subject_to_offering, offering_to_projectset, offering_to_project,
+            subject_url, offering_url, projectset_url, project_url)
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -215,27 +217,10 @@ class OfferingEnrolmentSet(object):
     def __init__(self, offering):
         self.offering = offering
 
-def root_to_subject(root, name):
-    return root.store.find(Subject, short_name=name).one()
-
-def subject_to_offering(subject, year, semester):
-    return subject.offering_for_semester(year, semester)
-
-def offering_to_project(offering, name):
-    return Store.of(offering).find(Project,
-                                   Project.project_set_id == ProjectSet.id,
-                                   ProjectSet.offering == offering).one()
-
-def offering_to_projectset(offering, name):
-    return Store.of(offering).find(ProjectSet,
-                                   ProjectSet.offering == offering).one()
-
 class Plugin(ViewPlugin, MediaPlugin):
-    forward_routes = [(ApplicationRoot, 'subjects', root_to_subject, 1),
-                      (Subject, None, subject_to_offering, 2),
-                      (Offering, '+projects', offering_to_project, 1),
-                      (Offering, '+projectsets', offering_to_projectset, 1),
-                      ]
+    forward_routes = (root_to_subject, subject_to_offering,
+                      offering_to_project, offering_to_projectset)
+    reverse_routes = (subject_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
