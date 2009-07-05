@@ -119,6 +119,12 @@ ul#ivle_breadcrumbs > li > ul > li {
     padding: 0.3em;
 }
 
+ul#ivle_breadcrumbs > li:first-child > ul > li > a {
+    min-height: 24px;
+    vertical-align: middle;
+    padding-top: 2px;
+}
+
 ul#ivle_breadcrumbs > li > ul > li > a {
     display: block;
 }
