@@ -39,11 +39,13 @@
   <py:match path="body[@status!='done']" once="true">
     <body>
       <div id="ivleheader">
-        <h1>
-          <a href="/">
-            <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
-          </a>
-        </h1>
+        <div id="ivle_breadcrumbs">
+          <span class="breadcrumb">
+            <a href="/">
+              <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
+            </a>
+          </span>
+        </div>
         <div id="ivleheader_text">
           <py:choose>
             <p py:when="publicmode" class="userhello">Running in public mode.</p>

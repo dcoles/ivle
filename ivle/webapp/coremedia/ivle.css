@@ -59,24 +59,33 @@ a img {
     background-repeat: repeat-x;
     padding: 0;
     border-bottom: 1px solid black;
-    /* IMPORTANT: This 4em is hard-coded elsewhere in this file. Search for
+    /* IMPORTANT: This 2em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
-    height: 4em;
+    height: 2em;
     left: 0;
     right: 0;
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivleheader h1 {
+#ivle_breadcrumbs {
     margin: 0;
-    padding: 8px;
+    padding: 0;
+}
+
+#ivle_breadcrumbs .breadcrumb {
+    background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
+    float: left;
+    min-height: 29px
+}
+
+#ivle_breadcrumbs .breadcrumb a {
+    display: block;
+    padding: 4px 20px 0 6px;
 }
 
 #ivleheader_text {
-    position: absolute;
+    float: right;
     padding: 0.5em;
-    top: 0;
-    right: 0.5em;
 }
 
 /* Note: The body has NO PADDING by default (unlike plain HTML).
@@ -88,7 +97,7 @@ a img {
     /* This is positioned absolutely so that its content can be positioned
      * absolutely as well, and so height: 100% really means it. */
     position: absolute;
-    top: 4em;               /* == #ivleheader.height */
+    top: 2em;               /* == #ivleheader.height */
     bottom: 0;
     width: 100%;
     z-index: 0;     /* Behind header */
