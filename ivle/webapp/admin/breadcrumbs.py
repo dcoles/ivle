@@ -17,6 +17,15 @@
 
 from ivle.database import Offering
 
+class SubjectBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def text(self):
+        return self.context.name
+
 class OfferingBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req
