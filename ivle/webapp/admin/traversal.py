@@ -52,7 +52,7 @@ def user_url(user):
 
 @reverse_route(Subject)
 def subject_url(subject):
-    return (ROOT, ('subjects', subject.name))
+    return (ROOT, ('subjects', subject.short_name))
 
 @reverse_route(Offering)
 def offering_url(offering):
