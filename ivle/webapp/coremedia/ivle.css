@@ -75,12 +75,13 @@ a img {
 #ivle_breadcrumbs .breadcrumb {
     background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
     float: left;
-    min-height: 29px
+    min-height: 29px;
+    padding-right: 8px;
 }
 
 #ivle_breadcrumbs .breadcrumb a {
     display: block;
-    padding: 4px 20px 0 6px;
+    padding: 4px 12px 0 6px;
 }
 
 #ivleheader_text {
