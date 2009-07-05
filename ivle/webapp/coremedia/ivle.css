@@ -115,6 +115,10 @@ ul#ivle_breadcrumbs > li > ul > li {
     padding: 0.3em;
 }
 
+ul#ivle_breadcrumbs > li > ul > li > a {
+    display: block;
+}
+
 ul#ivle_breadcrumbs > li > ul > li:hover {
     background: #b8c6ff;
 }
