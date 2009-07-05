@@ -408,6 +408,8 @@ class TestGeneration(BaseTest):
         '/info1/2009/1/+projects/p1'
         )
 
+    def testRoot(self):
+        assert_equal(self.rtr.generate(self.r), '/')
 
 
 class TestErrors(BaseTest):
