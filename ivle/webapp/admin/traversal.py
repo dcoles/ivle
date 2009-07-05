@@ -48,7 +48,7 @@ def offering_to_projectset(offering, name):
 
 @reverse_route(User)
 def user_url(user):
-    return (ROOT, '~' + user)
+    return (ROOT, '~' + user.login)
 
 @reverse_route(Subject)
 def subject_url(subject):
