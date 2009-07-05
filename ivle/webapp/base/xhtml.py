@@ -28,6 +28,7 @@ from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
+from ivle.webapp.routing import NoPath
 
 class XHTMLView(BaseView):
     """
@@ -93,7 +94,10 @@ class XHTMLView(BaseView):
         ctx['app_template'] = app
         ctx['title_img'] = media_url(req, CorePlugin,
                                      "images/chrome/root-breadcrumb.png")
-        ctx['ancestry'] = req.router.get_ancestors(self.context)
+        try:
+            ctx['ancestry'] = req.router.get_ancestors(self.context)
+        except NoPath:
+            ctx['ancestry'] = []
         ctx['breadcrumb_text'] = lambda x: x # TODO: Do it properly.
         ctx['url'] = req.router.generate
         self.populate_headings(req, ctx)
