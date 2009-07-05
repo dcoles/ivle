@@ -29,6 +29,7 @@ from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
 from ivle.webapp.routing import NoPath
+from ivle.webapp.breadcrumbs import Breadcrumber
 
 class XHTMLView(BaseView):
     """
@@ -98,8 +99,7 @@ class XHTMLView(BaseView):
             ctx['ancestry'] = req.router.get_ancestors(self.context)
         except NoPath:
             ctx['ancestry'] = []
-        ctx['breadcrumb_text'] = lambda x: x # TODO: Do it properly.
-        ctx['url'] = req.router.generate
+        ctx['crumb'] = Breadcrumber(req).crumb
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
