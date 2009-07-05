@@ -45,7 +45,7 @@ import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
 from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
-from ivle.webapp.urls import Router, RoutingError
+from ivle.webapp.routing import Router, RoutingError
 from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()

@@ -21,7 +21,6 @@ from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Unauthorized
-from ivle.webapp.urls import RoutingError
 from ivle.webapp import ApplicationRoot
 import ivle.database
 import ivle.util

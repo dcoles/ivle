@@ -1,7 +1,7 @@
 from nose.tools import assert_equal, raises
 
-from ivle.webapp.urls import (INF, InsufficientPathSegments, NoPath, NotFound,
-                              RouteConflict, Router, ROOT)
+from ivle.webapp.routing import (INF, InsufficientPathSegments, NoPath,
+                                 NotFound, RouteConflict, Router, ROOT)
 
 class Root(object):
     def __init__(self):
