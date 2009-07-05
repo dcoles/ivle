@@ -93,12 +93,19 @@ class Router(object):
 
         self.fmap[src][segment] = (func, argc)
 
+    def add_forward_func(self, func):
+        frm = func._forward_route_meta
+        self.add_forward(frm['src'], frm['segment'], func, frm['argc'])
+
     def add_reverse(self, src, func):
         """Register a reverse (path generation) route."""
 
         if src in self.rmap:
              raise RouteConflict((src, func), (src, self.rmap[src]))
         self.rmap[src] = func
+
+    def add_reverse_func(self, func):
+        self.add_reverse(func._reverse_route_src, func)
 
     def add_view(self, src, name, cls, viewset=None):
         """Add a named view for a class, in the specified view set."""
