@@ -77,20 +77,24 @@ ul#ivle_breadcrumbs > li {
     background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
     float: left;
     min-height: 29px;
-    margin-right: 6px;
+    margin-right: 4px;
     position: relative;
 }
 
 ul#ivle_breadcrumbs > li > a {
     display: block;
-    padding: 4px 16px 0 6px;
+    padding: 5px 16px 0 0;
     text-decoration: none;
     color: black;
 }
 
+ul#ivle_breadcrumbs > li:first-child > a {
+    padding-left: 6px;
+}
+
 ul#ivle_breadcrumbs > li > span {
     display: block;
-    padding: 4px 16px 0 6px;
+    padding: 5px 16px 0 0;
 }
 
 ul#ivle_breadcrumbs > li > a:hover {
