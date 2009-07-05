@@ -44,6 +44,8 @@ class XHTMLView(BaseView):
     plugin_styles = {}
     scripts_init = []
 
+    extra_breadcrumbs = []
+
     allow_overlays = True
     overlay_blacklist = []
 
@@ -99,6 +101,10 @@ class XHTMLView(BaseView):
             ctx['ancestry'] = req.router.get_ancestors(self.context)
         except NoPath:
             ctx['ancestry'] = []
+
+        # Allow the view to add its own fake breadcrumbs.
+        ctx['extra_breadcrumbs'] = self.extra_breadcrumbs
+
         ctx['crumb'] = Breadcrumber(req).crumb
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 

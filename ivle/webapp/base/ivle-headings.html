@@ -67,6 +67,21 @@
             </ul>
           </li>
           </py:for>
+          <li py:for="thiscrumb in extra_breadcrumbs">
+            <py:choose test="getattr(thiscrumb, 'url', None)">
+              <py:when test="None">
+                <span>${thiscrumb.text}</span>
+              </py:when>
+              <py:otherwise>
+                <a href="${thiscrumb.url}">
+                  ${thiscrumb.text}
+                </a>
+              </py:otherwise>
+            </py:choose>
+            <ul py:if="hasattr(thiscrumb, 'menu')">
+              <li py:for="item in thiscrumb.menu"><a href="${thiscrumb.menu[item]}">${item}</a></li>
+            </ul>
+          </li>
         </ul>
         <div id="ivleheader_text">
           <py:choose>
