@@ -29,7 +29,7 @@ take place in the FileService app (for handling Ajax requests).
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
-from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.filesystem import make_path_breadcrumbs
 from ivle.webapp import ApplicationRoot
 
 import os.path
@@ -83,7 +83,7 @@ class BrowserView(XHTMLView):
         ctx['isdir'] = isdir
         ctx['revno'] = revno
 
-        ctx['paths'] = make_path_segments(req.path, revno)
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,revno)
 
         self.gen_actions(req, ctx)
 

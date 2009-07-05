@@ -17,31 +17,38 @@
 
 """Utility functions for filesystem views."""
 
-def make_path_segments(path, revno=None):
-    """Return a dict representation of information about a paths segments.
+from ivle.webapp.routing import ROOT
 
-    Splits a path into its segments, and returns useful paths and URLs
-    for each segment.
-    """
+class FileBreadcrumb(object):
+    def __init__(self, req, pathsegments, revno=None, final=False,suffix=None):
+        self.req = req
+        self.pathsegments = pathsegments
+        self.revno = revno
+        self.final = final
+        self.suffix = suffix
 
-    href_path = '/files'
-    nav_path = ""
+    @property
+    def url(self):
+        url = self.req.router.generate(ROOT, None, ('files',) +
+                                       self.pathsegments)
+        if self.revno is not None:
+            url += '?r=%d' % self.revno
+        return url
 
-    pathlist = path.split("/")
-    paths = []
-    for path_seg in pathlist:
-        if path_seg == "":
-            continue
-        new_seg = {}
+    @property
+    def text(self):
+        text = self.pathsegments[-1]
+        if self.final and self.revno is not None:
+            text += (' (revision %d)' % self.revno)
+        if self.suffix:
+            text += ' ' + self.suffix
+        return text
 
-        nav_path = nav_path + '/' + path_seg
-        href_path = href_path + '/' + path_seg
+def make_path_breadcrumbs(req, pathsegments, revno=None, suffix=None):
+    """Return breadcrumbs for the segments of the given path."""
 
-        new_seg['path'] = path_seg
-        new_seg['nav_path'] = nav_path
-        new_seg['href_path'] = href_path
-        if revno is not None:
-            new_seg['href_path'] += '?r=%d' % revno
-
-        paths.append(new_seg)
-    return paths
+    crumbs = []
+    for i in range(1, len(pathsegments)):
+        crumbs.append(FileBreadcrumb(req, pathsegments[:i], revno))
+    crumbs.append(FileBreadcrumb(req, pathsegments, revno, True, suffix))
+    return crumbs
