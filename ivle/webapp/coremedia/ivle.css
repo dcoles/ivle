@@ -107,6 +107,10 @@ ul#ivle_breadcrumbs > li > ul {
     opacity: 0.95;
 }
 
+ul#ivle_breadcrumbs > li:first-child > ul {
+    left: 0; /* Don't want the IVLE menu to run off the LHS. */
+}
+
 ul#ivle_breadcrumbs > li:hover > ul {
     display: block;
 }
