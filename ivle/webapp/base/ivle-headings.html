@@ -39,20 +39,20 @@
   <py:match path="body[@status!='done']" once="true">
     <body>
       <div id="ivleheader">
-        <div id="ivle_breadcrumbs">
-          <span class="breadcrumb">
+        <ul id="ivle_breadcrumbs">
+          <li class="breadcrumb">
             <a href="/">
               <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
             </a>
-          </span>
+          </li>
           <py:for each="ancestor in ancestry">
-          <span class="breadcrumb" py:if="breadcrumb_text(ancestor)">
+          <li py:if="breadcrumb_text(ancestor)">
             <a href="${url(ancestor)}">
               ${breadcrumb_text(ancestor)}
             </a>
-          </span>
+          </li>
           </py:for>
-        </div>
+        </ul>
         <div id="ivleheader_text">
           <py:choose>
             <p py:when="publicmode" class="userhello">Running in public mode.</p>

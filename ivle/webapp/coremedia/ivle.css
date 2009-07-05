@@ -67,21 +67,28 @@ a img {
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivle_breadcrumbs {
+ul#ivle_breadcrumbs {
     margin: 0;
     padding: 0;
+    list-style: none;
 }
 
-#ivle_breadcrumbs .breadcrumb {
+ul#ivle_breadcrumbs > li {
     background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
     float: left;
     min-height: 29px;
     padding-right: 8px;
 }
 
-#ivle_breadcrumbs .breadcrumb a {
+ul#ivle_breadcrumbs > li > a {
     display: block;
     padding: 4px 12px 0 6px;
+    text-decoration: none;
+    color: black;
+}
+
+#ivle_breadcrumbs .breadcrumb a:hover {
+    text-decoration: underline;
 }
 
 #ivleheader_text {
