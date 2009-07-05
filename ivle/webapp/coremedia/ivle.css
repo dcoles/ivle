@@ -81,11 +81,16 @@ ul#ivle_breadcrumbs > li {
     position: relative;
 }
 
-ul#ivle_breadcrumbs > li > * {
+ul#ivle_breadcrumbs > li > a {
     display: block;
     padding: 4px 16px 0 6px;
     text-decoration: none;
     color: black;
+}
+
+ul#ivle_breadcrumbs > li > span {
+    display: block;
+    padding: 4px 16px 0 6px;
 }
 
 ul#ivle_breadcrumbs > li > a:hover {
