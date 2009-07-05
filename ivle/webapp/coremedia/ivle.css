@@ -81,7 +81,7 @@ ul#ivle_breadcrumbs > li {
     position: relative;
 }
 
-ul#ivle_breadcrumbs > li > a {
+ul#ivle_breadcrumbs > li > * {
     display: block;
     padding: 4px 16px 0 6px;
     text-decoration: none;
