@@ -87,7 +87,7 @@ ul#ivle_breadcrumbs > li > a {
     color: black;
 }
 
-#ivle_breadcrumbs .breadcrumb a:hover {
+ul#ivle_breadcrumbs > li > a:hover {
     text-decoration: underline;
 }
 
