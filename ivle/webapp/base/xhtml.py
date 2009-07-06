@@ -49,6 +49,9 @@ class XHTMLView(BaseView):
     allow_overlays = True
     overlay_blacklist = []
 
+    def get_context_ancestry(self, req):
+        return req.router.get_ancestors(self.context)
+
     def filter(self, stream, ctx):
         return stream
 
@@ -98,7 +101,7 @@ class XHTMLView(BaseView):
         ctx['title_img'] = media_url(req, CorePlugin,
                                      "images/chrome/root-breadcrumb.png")
         try:
-            ctx['ancestry'] = req.router.get_ancestors(self.context)
+            ctx['ancestry'] = self.get_context_ancestry(req)
         except NoPath:
             ctx['ancestry'] = []
 
@@ -201,6 +204,13 @@ class XHTMLView(BaseView):
 
 class XHTMLErrorView(XHTMLView):
     template = 'xhtmlerror.html'
+
+    def __init__(self, req, context, lastobj):
+        super(XHTMLErrorView, self).__init__(req, context)
+        self.lastobj = lastobj
+
+    def get_context_ancestry(self, req):
+        return req.router.get_ancestors(self.lastobj)
 
     def populate(self, req, ctx):
         ctx['req'] = req

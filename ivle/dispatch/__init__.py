@@ -134,7 +134,7 @@ def handler(apachereq):
                 errviewcls = XHTMLView.get_error_view(e)
 
             if errviewcls:
-                errview = errviewcls(req, e)
+                errview = errviewcls(req, e, obj)
                 errview.render(req)
                 return req.OK
             elif e.message:
@@ -159,9 +159,9 @@ def handler(apachereq):
 
         if req.user.admin:
             XHTMLErrorView(req, NotFound('Not found: ' +
-                                         str(e.args))).render(req)
+                                         str(e.args)), e[0]).render(req)
         else:
-            XHTMLErrorView(req, NotFound()).render(req)
+            XHTMLErrorView(req, NotFound(), e[0]).render(req)
 
         return req.OK
 
