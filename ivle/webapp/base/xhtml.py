@@ -219,8 +219,8 @@ class XHTMLErrorView(XHTMLView):
 class XHTMLUnauthorizedView(XHTMLErrorView):
     template = 'xhtmlunauthorized.html'
 
-    def __init__(self, req, exception):
-        super(XHTMLUnauthorizedView, self).__init__(req, exception)
+    def __init__(self, req, exception, lastobj):
+        super(XHTMLUnauthorizedView, self).__init__(req, exception, lastobj)
 
         if req.user is None:
             # Not logged in. Redirect to login page.
