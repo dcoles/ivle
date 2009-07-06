@@ -155,6 +155,8 @@ def handler(apachereq):
             req.store.commit()
             return req.OK
     except RoutingError, e:
+        req.status = 404
+
         if req.user.admin:
             XHTMLErrorView(req, NotFound('Not found: ' +
                                          str(e.args))).render(req)
