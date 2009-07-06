@@ -44,7 +44,7 @@
             <a href="/">
               <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
             </a>
-            <ul>
+            <ul py:if="logged_in">
               <li py:for="app in apps_in_tabs">
                 <a py:attrs="{'style': 'background: url(%s) no-repeat; padding-left: 30px' % app['icon_url']} if app['has_icon'] else {}" href="${app['path']}" title="${app['desc']}">${app['name']}</a>
               </li>
