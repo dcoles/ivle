@@ -33,16 +33,16 @@ a img {
     border: none;
 }
 
-/* h1s are styled specially to a small golden 3D bar */
-#ivlebody h1 {
+h1 {
     margin: 0;
     padding: 0.5em 0 0 0.5em;
     font-size: x-large;
     font-weight: normal;
 }
 
-#ivlebody h2 {
-    font-size: 1.4em;
+h2 {
+    font-size: larger;
+    font-weight: normal;
 }
 
 /** Special styles for header section **/
