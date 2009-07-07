@@ -146,7 +146,9 @@ ul#ivle_breadcrumbs > li > ul > li:hover {
 }
 
 #ivleheader_text {
-    float: right;
+    position: absolute;
+    top: 0;
+    right: 0;
     padding: 0.5em;
 }
 
