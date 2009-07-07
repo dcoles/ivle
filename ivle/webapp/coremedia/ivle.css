@@ -62,6 +62,11 @@ h2 {
     z-index: 1;     /* Background to all, but the body */
 }
 
+/* Now we have lots of breadcrumb styles.
+   The breadcrumbs are <li>s in a <ul>. Each <li> has either an <a> or
+   a <span> inside it, with the label of the breadcrumb. <li>s may also
+   have an <ul> inside them, which is a menu that pops up on hover.
+ */
 ul#ivle_breadcrumbs {
     margin: 0;
     padding: 0;
@@ -83,6 +88,8 @@ ul#ivle_breadcrumbs > li > a {
     color: black;
 }
 
+/* There is no breadcrumb to the left of the first one, so there is no margin.
+   We add a special one. */
 ul#ivle_breadcrumbs > li:first-child > a {
     padding-left: 6px;
 }
@@ -123,6 +130,7 @@ ul#ivle_breadcrumbs > li > ul > li {
     padding: 0.3em;
 }
 
+/* The IVLE crumb's menu items are extra high, with icons. */
 ul#ivle_breadcrumbs > li:first-child > ul > li > a {
     min-height: 24px;
     vertical-align: middle;
