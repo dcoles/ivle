@@ -39,15 +39,19 @@ class XHTMLView(BaseView):
     """
 
     template = 'template.html'
-
-    plugin_scripts = {}
-    plugin_styles = {}
-    scripts_init = []
-
-    extra_breadcrumbs = []
-
     allow_overlays = True
-    overlay_blacklist = []
+
+    def __init__(self, *args, **kwargs):
+        super(XHTMLView, self).__init__(*args, **kwargs)
+
+        self.overlay_blacklist = []
+
+        self.plugin_scripts = {}
+        self.plugin_styles = {}
+        self.scripts_init = []
+
+        self.extra_breadcrumbs = []
+        self.overlay_blacklist = []
 
     def get_context_ancestry(self, req):
         return req.router.get_ancestors(self.context)
