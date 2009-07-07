@@ -179,10 +179,3 @@ p.userhello {
     text-align: center;
 }
 
-/* For system warning messages */
-.system_warning {
-    margin: 1em;
-    padding: 0.5em;
-    border: 1px solid #a22;
-    background: #f88;
-}
