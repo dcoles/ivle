@@ -139,6 +139,7 @@ def handler(apachereq):
             req.store.commit()
             return req.OK
     else:
+        req.status = 404
         XHTMLErrorView(req, NotFound()).render(req)
         return req.OK
 
