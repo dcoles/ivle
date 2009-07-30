@@ -92,21 +92,27 @@
     left: 0.5em;
     right: 0.5em;
     bottom: 0.5em;
-    /* Treat console line as table formated */
-    display: table
+    /* Treat console line as table formatted, so the textbox is dynamic in size. */
+    display: table;
 }
 
-.trow {
+#console_input > div {
     display: table-row;
 }
 
-.tcell {
+#console_input > div > * {
     display: table-cell;
+
+    /* Don't let the buttons wrap onto multiple lines.
+     * This forces the textbox to shrink.
+     */
+    white-space: nowrap;
 }
 
-.tcell .console_button {
+#console_input > div > .console_button {
     /* If the console button is in a cell, don't float */
     position: static !important;
+    padding: 0 0.2em;
 }
 
 #console_inputCell {
@@ -120,7 +126,6 @@
 }
 #console_prompt {
     font-family: monospace;
-    white-space: pre;
 }
 #console_inputText {
     font-family: monospace;
