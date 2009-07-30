@@ -49,7 +49,7 @@ from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
             WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView)
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
-from ivle.webapp.tutorial.traversal import (root_to_exercise, exercise_url,
+from ivle.webapp.tutorial.publishing import (root_to_exercise, exercise_url,
             offering_to_worksheet, worksheet_url,
             worksheet_to_worksheetexercise, worksheetexercise_url,
             ExerciseAttempts, worksheetexercise_to_exerciseattempts,

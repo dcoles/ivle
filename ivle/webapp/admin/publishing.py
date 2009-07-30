@@ -18,8 +18,8 @@
 from ivle.database import Offering, ProjectSet, Project, Subject, User
 
 from ivle.webapp import ApplicationRoot
-from ivle.webapp.routing import ROOT
-from ivle.webapp.routing.decorators import forward_route, reverse_route
+from ivle.webapp.publisher import ROOT
+from ivle.webapp.publisher.decorators import forward_route, reverse_route
 
 @forward_route(ApplicationRoot, argc=1)
 def root_to_user(root, segment):

@@ -15,17 +15,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Object traversal URL utilities."""
+"""Object publishing URL utilities."""
 
 import os.path
 
 ROOT = object() # Marker object for the root.
 INF = object()
 
-class RoutingError(Exception):
+class PublishingError(Exception):
     pass
 
-class NotFound(RoutingError):
+class NotFound(PublishingError):
     """The path did not resolve to an object."""
     pass
 
@@ -33,11 +33,11 @@ class InsufficientPathSegments(NotFound):
     """The path led to a route that expected more arguments."""
     pass
 
-class NoPath(RoutingError):
+class NoPath(PublishingError):
     """There is no path from the given object to the root."""
     pass
 
-class RouteConflict(RoutingError):
+class RouteConflict(PublishingError):
     """A route with the same discriminator is already registered."""
     pass
 
@@ -61,8 +61,8 @@ def _segment_path(path):
         segments.pop()
     return segments
 
-class Router(object):
-    '''Router to resolve and generate paths.
+class Publisher(object):
+    '''Publisher to resolve and generate paths.
 
     Maintains a registry of forward and reverse routes, dealing with paths
     to objects and views published in the URL space.

@@ -20,7 +20,7 @@
 from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.admin.traversal import root_to_user, user_url
+from ivle.webapp.admin.publishing import root_to_user, user_url
 import ivle.database
 import ivle.util
 

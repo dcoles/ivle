@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""Decorators to annotate routing functions."""
+"""Decorators to annotate publishing functions."""
 
 class forward_route(object):
     def __init__(self, src, segment=None, argc=0, viewset=None):
