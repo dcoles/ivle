@@ -1,7 +1,7 @@
 from nose.tools import assert_equal, raises
 
-from ivle.webapp.routing import (INF, InsufficientPathSegments, NoPath,
-                                 NotFound, RouteConflict, Router, ROOT)
+from ivle.webapp.publisher import (INF, InsufficientPathSegments, NoPath,
+                                   NotFound, RouteConflict, Publisher, ROOT)
 
 class Root(object):
     def __init__(self):
@@ -147,7 +147,7 @@ class BaseTest(object):
 class TestResolution(BaseTest):
     def setUp(self):
         super(TestResolution, self).setUp()
-        self.rtr = Router(root=self.r, viewset='browser')
+        self.rtr = Publisher(root=self.r, viewset='browser')
         self.rtr.add_set_switch('api', 'api')
         self.rtr.add_forward(Root, None, root_to_subject, 1)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
@@ -304,7 +304,7 @@ class TestResolution(BaseTest):
 class TestGeneration(BaseTest):
     def setUp(self):
         super(TestGeneration, self).setUp()
-        self.rtr = Router(root=self.r, viewset='browser')
+        self.rtr = Publisher(root=self.r, viewset='browser')
         self.rtr.add_set_switch('api', 'api')
         self.rtr.add_reverse(Subject, subject_url)
         self.rtr.add_reverse(Offering, offering_url)
@@ -415,7 +415,7 @@ class TestGeneration(BaseTest):
 class TestErrors(BaseTest):
     def setUp(self):
         super(TestErrors, self).setUp()
-        self.rtr = Router(root=self.r)
+        self.rtr = Publisher(root=self.r)
         self.rtr.add_forward(Root, None, root_to_subject, 1)
         self.rtr.add_forward(Subject, '+foo', lambda s: s.name + 'foo', 0)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)

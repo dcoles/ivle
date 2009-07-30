@@ -28,7 +28,7 @@ import email.utils
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import PublicViewPlugin, ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
-from ivle.webapp.routing import INF
+from ivle.webapp.publisher import INF
 from ivle.webapp import ApplicationRoot
 
 # This maps a media namespace to an external dependency directory (in this

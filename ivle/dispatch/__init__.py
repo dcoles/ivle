@@ -45,7 +45,7 @@ import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
 from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
-from ivle.webapp.routing import Router, RoutingError
+from ivle.webapp.publisher import Publisher, PublishingError
 from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()
@@ -55,7 +55,7 @@ def generate_router(view_plugins, root):
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
     """
-    r = Router(root=root)
+    r = Publisher(root=root)
 
     r.add_set_switch('api', 'api')
 
@@ -154,7 +154,7 @@ def handler(apachereq):
         else:
             req.store.commit()
             return req.OK
-    except RoutingError, e:
+    except PublishingError, e:
         req.status = 404
 
         if req.user.admin:

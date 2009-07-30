@@ -28,7 +28,7 @@ from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
-from ivle.webapp.routing import NoPath
+from ivle.webapp.publisher import NoPath
 from ivle.webapp.breadcrumbs import Breadcrumber
 
 class XHTMLView(BaseView):

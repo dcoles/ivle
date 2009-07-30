@@ -17,7 +17,7 @@
 
 """Utility functions for filesystem views."""
 
-from ivle.webapp.routing import ROOT
+from ivle.webapp.publisher import ROOT
 
 class FileBreadcrumb(object):
     def __init__(self, req, pathsegments, revno=None, final=False,suffix=None):
