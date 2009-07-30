@@ -92,6 +92,26 @@
     left: 0.5em;
     right: 0.5em;
     bottom: 0.5em;
+    /* Treat console line as table formated */
+    display: table
+}
+
+.trow {
+    display: table-row;
+}
+
+.tcell {
+    display: table-cell;
+}
+
+.tcell .console_button {
+    /* If the console button is in a cell, don't float */
+    position: static !important;
+}
+
+#console_inputCell {
+    width: 100%;
+    padding-right: 0.5em;
 }
 
 #console_body.windowpane #console_input {
@@ -100,10 +120,11 @@
 }
 #console_prompt {
     font-family: monospace;
+    white-space: pre;
 }
 #console_inputText {
     font-family: monospace;
-    width: 60%;
+    width: 100%;
 }
 
 /* console filler takes up the same space as console_body.windowpane

@@ -4,22 +4,26 @@
 
   .. def:: definitions
 
-  .. |version| replace:: 0.9.1
-  .. |copyrightinfo| replace:: 2001-2008 the authors
+  .. |version| replace:: 2.0b4
+  .. |copyrightinfo| replace:: 2001-2009 the authors
   .. |license| replace:: Creative Commons Attribution-Noncommercial-No Derivative Works 3.0 United States License
 
   .. CAP abbreviations (map to small caps in LaTeX)
   
   .. |CFG| replace:: CFG
+  .. |DRT| replace:: DRT
+  .. |DRS| replace:: DRS
   .. |CoNLL| replace:: CoNLL
   .. |CYK| replace:: CYK
-  .. |FOL| replace:: FOL
+  .. |FOL| replace:: first-order logic
   .. |FSRL| replace:: FSRL
   .. |HTML| replace:: HTML
   .. |IDLE| replace:: IDLE
+  .. |LF| replace:: LF
   .. |NE|  replace:: NE
   .. |NLP|  replace:: NLP
   .. |NLTK| replace:: NLTK
+  .. |URL| replace:: URL
   .. |WFST| replace:: WFST
   .. |XML| replace:: XML
   
@@ -29,6 +33,8 @@
   .. |Fol| replace:: First-order logic
   .. PTB removed since it must be indexed
   .. WN removed since it must be indexed
+  .. |TRY| replace:: **Your Turn:**
+  .. |IMPORTANT| replace:: **Important:**
   
   .. misc & punctuation
   .. cdots was unicode U+22EF but not working
@@ -45,7 +51,7 @@
   .. |easy| unicode:: U+263C .. sun
   .. |soso| unicode:: U+25D1 .. "moon"
   .. |hard| unicode:: U+2605 .. black star
-  .. |fun| unicode:: U+263A .. smiley face
+  .. |talk| unicode:: U+263A .. smiley face
 
   .. |blackstar| unicode:: U+2605
   .. |whitestar| unicode:: U+2606
@@ -77,13 +83,16 @@
   .. |length| unicode:: U+02D0 ..  length
   
   .. misc
-  .. |ecircumflex| unicode:: U+00EA .. e circumflex
+  .. |aumlaut| unicode:: U+00E4 .. a umlaut
+  .. |eacute| unicode:: U+00E9 .. e acute
   .. |eogonek| unicode:: U+1119 .. e ogonek
   .. |ncaron| unicode:: U+0148 .. n caron
   .. |ntilde| unicode:: U+00F1 .. n tilde
-  .. |oslash| unicode:: U+00F8 .. o slash
   .. |odacute| unicode:: U+0151 .. o double acute
+  .. |oslash| unicode:: U+00F8 .. o slash
   .. |uumlaut| unicode:: U+00FC .. u umlaut
+  .. |ecircumflex| unicode:: U+00EA .. e circumflex
+  .. |space| unicode:: U+23E1 .. bottom tortoise shell bracket
 
   .. used in Unicode section
   .. |nacute| unicode:: U+0144 
@@ -125,7 +134,6 @@
   .. |geq| unicode:: U+2265 .. greater than or equal
   .. |iff| unicode:: U+2261 .. triple bars
   .. |langle| unicode:: U+02329 .. left angle-bracket
-  .. |neq| unicode:: U+2260 .. not equal
   .. |leq| unicode:: U+2264 .. less than or equals
   .. |l| unicode:: U+00AB .. left chevron
   .. |neg| unicode:: U+00AC .. negation symbol
@@ -134,6 +142,7 @@
   .. |times| unicode:: U+00D7 .. multiplication
   .. |vee| unicode:: U+2228 .. or
   .. |wedge| unicode:: U+2227 .. and
+  .. |prod| replace:: Prod
   
   .. sets
   .. |cup| unicode:: U+0222A .. union 
@@ -155,6 +164,7 @@
   .. |alpha| unicode:: U+03B1
   .. |beta| unicode:: U+03B2
   .. |gamma| unicode:: U+03B3
+  .. |Gamma| unicode:: U+0393
   .. |kappaX| unicode:: U+03BA
   .. |kappa| replace:: K
   .. |lambda| unicode:: U+03BB
@@ -166,6 +176,7 @@
   .. |tau| unicode:: U+03C4
   .. |rho| unicode:: U+03C1
   .. |Sigma| unicode:: U+03A3
+  .. |sum| unicode:: U+03A3
   .. |Omega| unicode:: U+03A9
   
   .. Chinese
@@ -173,13 +184,15 @@
   .. |guo3| unicode:: U+56FD .. zh guo (country)
   .. |ren2| unicode:: U+4EBA .. zh ren (person)
   
-  .. People
+  .. URLs
   .. |StevenBird| replace:: `Steven Bird <http://www.csse.unimelb.edu.au/~sb/>`__
   .. |EwanKlein| replace:: `Ewan Klein <http://www.ltg.ed.ac.uk/~ewan/>`__
   .. |EdwardLoper| replace:: `Edward Loper <http://www.cis.upenn.edu/~edloper/>`__
-  .. |NLTK-URL| replace:: `http://nltk.org/ <http://nltk.org/>`__
-  .. |NLTK-BOOK| replace:: `http://nltk.org/book/ <http://nltk.org/book/>`__
-  .. |NLTK-CODE| replace:: `http://nltk.org/nltk/ <http://nltk.org/nltk/>`__
+  .. |PYTHON-URL| replace:: ``http://python.org/``
+  .. |PYTHON-DOCS| replace:: ``http://docs.python.org/``
+  .. |NLTK-URL| replace:: ``http://www.nltk.org/``
+  .. |NLTK-HOWTO-URL| replace:: ``http://www.nltk.org/howto``
+  .. |OLAC-URL| replace:: ``http://www.language-archives.org/``
   
   .. Python example - a snippet of code in running text
   .. role:: py
@@ -198,8 +211,8 @@
      :class: emphasis
   
   .. Grammatical Category - e.g. NP and verb as technical terms
-  .. role:: gc
-     :class: category
+     .. role:: gc
+        :class: category
     
   .. Math expression - e.g. especially for variables
   .. role:: math

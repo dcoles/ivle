@@ -16,20 +16,35 @@
       <div id="console_body2">
         <pre id="console_output" class='outputMsg'></pre>
         <div id="console_input">
-          <div id="console_inputArea">
+          <div class="trow">
+            <div class="tcell">
+              <label id="console_prompt">&gt;&gt;&gt; </label>
+            </div>
+            <div id="console_inputCell" class="tcell">
+              <input id="console_inputText" type="text" 
+                  onkeypress="return catch_input(event.keyCode)" />
+            </div>
+            <div class="tcell">            
+              <input type='button' value='Interrupt'
+                  onclick='set_interrupt();'/>
+            </div>
+            <div class="tcell">
+              <input type='button' value='Clear Output'
+                  onclick='return clear_output();'/>
+            </div>
+            <div class="tcell">
+              <input type='button' value='Reset'
+                  onclick='console_reset();'/>
+            </div>
+            <div class="tcell">
+            <span py:if="windowpane" class="console_button maximize">
+              <a onclick="console_maximize()"
+                  title="Open up the Python console">
+                <img src="${maximize_path}" alt="Maximize"/>
+              </a>
+            </span>
+            </div>
           </div>
-          <label id="console_prompt">&gt;&gt;&gt; </label>
-          <input id="console_inputText" type="text" size="80" 
-              onkeypress="return catch_input(event.keyCode)" />
-          <input type='button' value='Interrupt' onclick='set_interrupt();'/>
-          <input type='button' value='Clear Output' onclick='return clear_output();'/>
-          <input type='button' value='Reset' onclick='console_reset();'/>
-          <span py:if="windowpane" class="console_button maximize">
-            <a onclick="console_maximize()"
-                title="Open up the Python console">
-              <img src="${maximize_path}" alt="Maximize"/>
-            </a>
-          </span>
         </div>
       </div>
     </div>
