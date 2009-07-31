@@ -18,12 +18,16 @@
 
 import optparse
 import os
+import stat
 import sys
 import shutil
 
 import ivle.conf
 import ivle.config
 import ivle.jailbuilder.debian
+
+class UnsafeJail(Exception):
+    pass
 
 usage = """usage: %prog [options]
 (requires root)
@@ -136,6 +140,35 @@ if conf['jail']['devmode']:
     if os.path.exists(jail_site_packages):
         shutil.rmtree(jail_site_packages)
     shutil.copytree(ivle_site_packages, jail_site_packages)
+
+# Make /tmp and /var/lock un-world-writable. /tmp will be mounted over,
+# and /var/{lock,tmp} should die.
+for path in ('tmp', 'var/lock', 'var/tmp'):
+    path = os.path.join(build_path, path)
+    os.chmod(path, os.stat(path).st_mode & ~stat.S_IWOTH)
+
+# Verify that nothing in the jail is world-writable.
+# We don't want students to write into places that others can see.
+for path, dirs, files in os.walk(build_path):
+    for dname in dirs:
+        d = os.path.join(path, dname)
+        if os.path.islink(d):
+            continue
+        if os.stat(d).st_mode & stat.S_IWOTH:
+            raise UnsafeJail(d)
+
+    for fname in files:
+        f = os.path.join(path, fname)
+        if os.path.islink(f):
+            continue
+        if os.stat(f).st_mode & stat.S_IWOTH:
+            if (os.path.dirname(f) == os.path.join(build_path, 'dev') and
+                os.path.basename(f) in ('ptmx', 'null', 'tty', 'full', 'zero',
+                                        'random', 'urandom')
+                ):
+                continue
+            raise UnsafeJail(f)
+    
 
 if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
               build_path + '/', ivle.conf.jail_system]) != 0:
