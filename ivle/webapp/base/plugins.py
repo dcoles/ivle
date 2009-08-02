@@ -47,7 +47,7 @@ class PublicViewPlugin(BasePlugin):
     """Marker class for plugins that provide public mode views.
 
     Public view plugins can specify the same 'urls' property as normal view
-    plugins, but they are added to the public mode router instead.
+    plugins, but they are added to the public mode publisher instead.
     """
     pass
 

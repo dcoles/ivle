@@ -50,7 +50,7 @@ from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()
 
-def generate_router(view_plugins, root):
+def generate_publisher(view_plugins, root):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
@@ -104,11 +104,11 @@ def handler(apachereq):
     if req.publicmode:
         raise NotImplementedError("no public mode with obtrav yet!")
 
-    req.router = generate_router(config.plugin_index[ViewPlugin],
+    req.publisher = generate_publisher(config.plugin_index[ViewPlugin],
                                  ApplicationRoot(req.config, req.store))
 
     try:
-        obj, viewcls, subpath = req.router.resolve(req.uri.decode('utf-8'))
+        obj, viewcls, subpath = req.publisher.resolve(req.uri.decode('utf-8'))
         try:
             # We 404 if we have a subpath but the view forbids it.
             if not viewcls.subpath_allowed and subpath:
