@@ -361,8 +361,8 @@ int main(int argc, char* const argv[])
     {
         struct rlimit l;
         /* Process adress space in memory */
-        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
-        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        l.rlim_cur = 448 * 1024 * 1024; /* 512MiB - 64MiB */
+        l.rlim_max = 512 * 1024 * 1024; /* 512MiB */
         if (setrlimit(RLIMIT_AS, &l))
         {
             perror("could not setrlimit/RLIMIT_AS");
@@ -373,8 +373,8 @@ int main(int argc, char* const argv[])
          * Note: This requires a kernel patch to work correctly otherwise it is  
          * ineffective (thus you are only limited by RLIMIT_AS)
          */
-        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
-        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        l.rlim_cur = 448 * 1024 * 1024; /* 512MiB - 64MiB */
+        l.rlim_max = 512 * 1024 * 1024; /* 512MiB */
         if (setrlimit(RLIMIT_DATA, &l))
         {
             perror("could not setrlimit/RLIMIT_DATA");
