@@ -54,7 +54,7 @@ class XHTMLView(BaseView):
         self.overlay_blacklist = []
 
     def get_context_ancestry(self, req):
-        return req.router.get_ancestors(self.context)
+        return req.publisher.get_ancestors(self.context)
 
     def filter(self, stream, ctx):
         return stream
@@ -214,7 +214,7 @@ class XHTMLErrorView(XHTMLView):
         self.lastobj = lastobj
 
     def get_context_ancestry(self, req):
-        return req.router.get_ancestors(self.lastobj)
+        return req.publisher.get_ancestors(self.lastobj)
 
     def populate(self, req, ctx):
         ctx['req'] = req

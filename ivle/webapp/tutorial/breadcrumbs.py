@@ -22,7 +22,7 @@ class ExerciseBreadcrumb(object):
 
     @property
     def url(self):
-        return self.req.router.generate(self.context, None, '+edit')
+        return self.req.publisher.generate(self.context, None, '+edit')
 
     @property
     def text(self):
@@ -35,7 +35,7 @@ class WorksheetBreadcrumb(object):
 
     @property
     def url(self):
-        return self.req.router.generate(self.context)
+        return self.req.publisher.generate(self.context)
 
     @property
     def text(self):
