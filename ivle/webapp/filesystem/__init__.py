@@ -29,7 +29,7 @@ class FileBreadcrumb(object):
 
     @property
     def url(self):
-        url = self.req.router.generate(ROOT, None, ('files',) +
+        url = self.req.publisher.generate(ROOT, None, ('files',) +
                                        self.pathsegments)
         if self.revno is not None:
             url += '?r=%d' % self.revno

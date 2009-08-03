@@ -22,7 +22,7 @@ class UserBreadcrumb(object):
 
     @property
     def url(self):
-        return self.req.router.generate(self.context)
+        return self.req.publisher.generate(self.context)
 
     @property
     def text(self):
@@ -44,7 +44,7 @@ class OfferingBreadcrumb(object):
 
     @property
     def url(self):
-        return self.req.router.generate(self.context)
+        return self.req.publisher.generate(self.context)
 
     @property
     def text(self):
@@ -54,7 +54,7 @@ class OfferingBreadcrumb(object):
     @property
     def menu(self):
         return {
-            'Worksheets': self.req.router.generate(self.context, None,
+            'Worksheets': self.req.publisher.generate(self.context, None,
                                                    ('+worksheets')),
             }
 
@@ -65,7 +65,7 @@ class ProjectBreadcrumb(object):
 
     @property
     def url(self):
-        return self.req.router.generate(self.context)
+        return self.req.publisher.generate(self.context)
 
     @property
     def text(self):
