@@ -28,6 +28,7 @@ import sys
 import os
 import optparse
 import logging
+import traceback
 
 import ivle.config
 import ivle.database
@@ -66,7 +67,8 @@ for user in users:
     try:
         ivle.makeuser.make_jail(user, config)
     except Exception, message:
-        logging.warning(str(message))
+        logging.error("Failed to recreate jail for %s.\n%s" % 
+                      (user.login, traceback.format_exc()))
         continue
 
     logging.debug("recreated user %s's jail." % user.login)
