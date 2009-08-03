@@ -145,6 +145,11 @@ ul#ivle_breadcrumbs > li > ul > li:hover {
     background: #b8c6ff;
 }
 
+li.breadcrumb > a {
+    background: url(../ivle.webapp.core/images/chrome/drop-down.png) scroll no-repeat right;
+    margin-right: 10px;
+}
+
 #ivleheader_text {
     position: absolute;
     top: 0;
