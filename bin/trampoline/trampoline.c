@@ -27,7 +27,6 @@
  * Scripts (such as Python programs) should be executed by supplying
  * "/usr/bin/python" as the program, and the script as the first argument.
  *
- * Usage: trampoline uid jail-path working-path program [args...]
  * Must run as root. Will safely setuid to the supplied uid, checking that it
  * is not root. Recommended that the file is set up as follows:
  *  sudo chown root:root trampoline; sudo chroot +s trampoline
@@ -122,6 +121,15 @@ static void usage(const char* nm)
 {
     fprintf(stderr,
         "usage: %s [-d] [-u] <uid> <base> <src> <system> <jail> <cwd> <program> [args...]\n", nm);
+    fprintf(stderr, "  -d       \tDaemonize\n");
+    fprintf(stderr, "  -u       \tPrint usage\n");
+    fprintf(stderr, "  <uid>    \tUID to run program as\n");
+    fprintf(stderr, "  <base>   \tDirectory that jails will be mounted in\n");
+    fprintf(stderr, "  <src>    \tDirectory containing users jail data\n");
+    fprintf(stderr, "  <system> \tDirectory containing main jail file system\n");
+    fprintf(stderr, "  <jail>   \tDirectory of users mounted jail\n");
+    fprintf(stderr, "  <cwd>    \tDirectory inside the jail to change dir to\n");
+    fprintf(stderr, "  <program>\tProgram inside jail to execute\n");
     exit(1);
 }
 
