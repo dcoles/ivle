@@ -402,9 +402,18 @@ int main(int argc, char* const argv[])
         /* File Size */
         l.rlim_cur = 64 * 1024 * 1024; /* 64MiB */
         l.rlim_max = 72 * 1024 * 1024; /* 72MiB */
-if (setrlimit(RLIMIT_FSIZE, &l))
+        if (setrlimit(RLIMIT_FSIZE, &l))
         {
             perror("could not setrlimit/RLIMIT_FSIZE");
+            exit(1);
+        }
+        
+        /* Number of Processes */
+        l.rlim_cur = 50;
+        l.rlim_max = 50;
+        if (setrlimit(RLIMIT_NPROC, &l))
+        {
+            perror("could not setrlimit/RLIMIT_NPROC");
             exit(1);
         }
     }
