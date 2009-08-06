@@ -33,6 +33,7 @@
  */
 
 #define _XOPEN_SOURCE
+#define _BSD_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +45,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <grp.h>
 #include <limits.h>
 #include <signal.h>
 
@@ -258,6 +260,7 @@ int main(int argc, char* const argv[])
     char* prog;
     char* const * args;
     int uid;
+    gid_t groups[1];
     int arg_num = 1;
     int daemon_mode = 0;
     int unlimited = 0;
@@ -355,6 +358,13 @@ int main(int argc, char* const argv[])
     if (setgid(uid))
     {
         perror("could not setgid");
+        exit(1);
+    }
+    
+    groups[0] = uid;
+    if (setgroups(1, groups))
+    {
+        perror("could not setgroups");
         exit(1);
     }
 
