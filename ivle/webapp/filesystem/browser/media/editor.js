@@ -17,7 +17,11 @@ function disable_save_if_safe()
 
 function save_file(filename)
 {
-    data = editbox.getCode();
+    if (using_codepress)
+        data = editbox.getCode();
+    else
+        data = document.getElementById("editbox").value;
+
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
     if (current_file.svnstatus != "revision" ||
