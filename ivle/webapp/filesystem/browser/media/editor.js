@@ -129,7 +129,14 @@ function handle_text(path, text, handler_type)
     language = language ? language : "text";
     document.getElementById("highlighting_select").value = language;
 
-    txt_elem.setAttribute("onchange", "edit_text()");
+    $(txt_elem).change(edit_text);
+
+    /* This isn't ideal, as Opera seems to fire it even for non-textual keys.
+     * But IE and WebKit don't, so this will behave properly in most browsers.
+     * This makes me sad.
+     */
+    $(txt_elem).keypress(edit_text);
+
     txt_elem.style.width = "100%";
     txt_elem.style.height = "100%";
     window.onbeforeunload = confirm_beforeunload;
