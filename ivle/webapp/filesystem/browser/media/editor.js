@@ -1,8 +1,13 @@
 function disable_save_if_safe()
 {
-    /* If this is defined, this engine supports change notification, so is able
-     * to enable the button again. Disable it for them. */
-    if(editbox.editor.addChangeHandler)
+    /* If we are using CodePress, we can only safely disable the save button
+     * (indicating that there are no changes to save) if the engine supports
+     * change notification, so the button can be enabled again.
+     *
+     * Our non-CodePress mode just uses normal textarea events, so is always
+     * fine.
+     */
+    if((!using_codepress) || editbox.editor.addChangeHandler)
     {
         var savebutton = document.getElementById("save_button");
         savebutton.disabled = true;
@@ -132,10 +137,15 @@ function handle_text(path, text, handler_type)
             more browsers than the previous situation.
             This should be killed ASAP when we fix/replace CodePress.
      */
-    if (navigator.userAgent.match('Gecko') &&
-        !navigator.userAgent.match('WebKit') &&
-        !navigator.userAgent.match('Presto'))
-         {
+    using_codepress = (navigator.userAgent.match('Gecko') &&
+                       !navigator.userAgent.match('WebKit') &&
+                       !navigator.userAgent.match('Presto'))
+
+    if (using_codepress)
+    {
+        /* This is probably real Gecko. Try to fire up CodePress.
+         * If it fails we'll have a horrible mess, so we'll hope.
+         */
         txt_elem.className = "codepress autocomplete-off " + language;
         CodePress.run();
 
@@ -144,6 +154,11 @@ function handle_text(path, text, handler_type)
          * We also take this opportunity to disable the save button, if
          * the browser is likely to reenable it as needed. */
         editbox.onload = initialise_codepress;
+    }
+    else
+    {
+        /* Not using CodePress, so we can already disable the Save button. */
+        disable_save_if_safe();
     }
 }
 
