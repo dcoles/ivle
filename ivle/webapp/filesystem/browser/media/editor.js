@@ -120,19 +120,31 @@ function handle_text(path, text, handler_type)
     language = language ? language : "text";
     document.getElementById("highlighting_select").value = language;
 
-    txt_elem.className = "codepress autocomplete-off " + language;
     txt_elem.setAttribute("onchange", "edit_text()");
     /* TODO: Make CSS height: 100% work */
     txt_elem.setAttribute("rows", "35");
-    CodePress.run();
-
     window.onbeforeunload = confirm_beforeunload;
 
-    /* And set a callback so we know that the editor iframe is loaded so we
-     * can set a callback so we know when to enable the save button.
-     * We also take this opportunity to disable the save button, if
-     * the browser is likely to reenable it as needed. */
-    editbox.onload = initialise_codepress
+    /* XXX: Lord, please forgive me for browser sniffing.
+            CodePress only works properly in real Gecko at the moment,
+            so we must go to great and evil lengths to sniff it out.
+            It's by no means a complete check, but it has to support
+            more browsers than the previous situation.
+            This should be killed ASAP when we fix/replace CodePress.
+     */
+    if (navigator.userAgent.match('Gecko') &&
+        !navigator.userAgent.match('WebKit') &&
+        !navigator.userAgent.match('Presto'))
+         {
+        txt_elem.className = "codepress autocomplete-off " + language;
+        CodePress.run();
+
+        /* And set a callback so we know that the editor iframe is loaded so
+         * we can set a callback so we know when to enable the save button.
+         * We also take this opportunity to disable the save button, if
+         * the browser is likely to reenable it as needed. */
+        editbox.onload = initialise_codepress;
+    }
 }
 
 function language_from_mime(mime)
