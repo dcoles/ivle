@@ -121,8 +121,8 @@ function handle_text(path, text, handler_type)
     document.getElementById("highlighting_select").value = language;
 
     txt_elem.setAttribute("onchange", "edit_text()");
-    /* TODO: Make CSS height: 100% work */
-    txt_elem.setAttribute("rows", "35");
+    txt_elem.style.width = "100%";
+    txt_elem.style.height = "100%";
     window.onbeforeunload = confirm_beforeunload;
 
     /* XXX: Lord, please forgive me for browser sniffing.
