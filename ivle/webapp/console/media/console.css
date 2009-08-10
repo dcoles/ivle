@@ -89,9 +89,8 @@
 #console_input {
     position: absolute;
     /* Input bar goes along the bottom. Pad all sides */
-    left: 0.5em;
-    right: 0.5em;
     bottom: 0.5em;
+    padding: 0 0.5em;
     /* Treat console line as table formatted, so the textbox is dynamic in size. */
     display: table;
 }
