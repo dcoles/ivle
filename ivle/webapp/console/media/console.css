@@ -84,6 +84,10 @@
 #console_body.windowpane.maximal, #console_body.windowpane #console_heading {
     -moz-border-radius-topleft: 10px;
     -moz-border-radius-topright: 10px;
+    -webkit-border-top-left-radius: 10px;
+    -webkit-border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 #console_input {
