@@ -440,10 +440,14 @@ function catch_input(key)
     case 38:                /* Up arrow */
         hist.up(inp.value);
         inp.value = hist.curr();
+        /* Inhibit further responses to this event, or WebKit moves the
+         * cursor to the start. */
+        return false;
         break;
     case 40:                /* Down arrow */
         hist.down(inp.value);
         inp.value = hist.curr();
+        return false;
         break;
     }
 }
