@@ -97,6 +97,7 @@
     padding: 0 0.5em;
     /* Treat console line as table formatted, so the textbox is dynamic in size. */
     display: table;
+    font-size: 13px;
 }
 
 #console_input > div {
@@ -129,6 +130,8 @@
 }
 #console_prompt {
     font-family: monospace;
+    font-weight: bold;
+    white-space: pre;
 }
 #console_inputText {
     font-family: monospace;
