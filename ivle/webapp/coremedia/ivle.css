@@ -131,6 +131,7 @@ p.userhello {
 
 ul#apptabs {
     margin: 0;
+    white-space: nowrap;
 }
 
 ul#apptabs li {
