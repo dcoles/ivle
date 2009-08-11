@@ -110,8 +110,8 @@ function handle_text(path, text, handler_type)
     var div = document.createElement("div");
     div.style.height = '100%';
     files.appendChild(div);
-    var txt_elem = dom_make_text_elem("textarea",
-        text.toString())
+    var txt_elem = document.createElement("textarea");
+    txt_elem.value = text.toString();
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
     language = language_from_mime(current_file.type);
