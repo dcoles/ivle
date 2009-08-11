@@ -40,7 +40,7 @@
     <body>
       <div id="ivleheader">
         <ul id="ivle_breadcrumbs">
-          <li class="breadcrumb">
+          <li class="breadcrumb crumbmenu">
             <a href="/">
               <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
             </a>
@@ -51,7 +51,7 @@
             </ul>
           </li>
           <py:for each="ancestor in ancestry" py:with="thiscrumb=crumb(ancestor)">
-          <li py:if="thiscrumb">
+          <li py:if="thiscrumb" py:attrs="{True:{'class':'crumbmenu'}, False: None}[hasattr(thiscrumb, 'menu')]">
             <py:choose test="getattr(thiscrumb, 'url', None)">
               <py:when test="None">
                 <span>${thiscrumb.text}</span>
