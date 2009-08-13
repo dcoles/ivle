@@ -107,6 +107,12 @@ class HelpBreadcrumb(object):
     def text(self):
         return self.context.name
 
+class HelpTreeBreadcrumb(HelpBreadcrumb):
+    @property
+    def menu(self):
+        return dict((item.name, self.req.publisher.generate(item))
+                    for item in self.context.values())
+
 class Plugin(ViewPlugin, MediaPlugin):
     """The plugin for viewing help files."""
     forward_routes = (root_to_helptree, helptree_to_help)
@@ -116,7 +122,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (HelpEntry, '+index', HelpEntryView)]
 
     breadcrumbs = {HelpEntry: HelpBreadcrumb,
-                   HelpTree: HelpBreadcrumb,
+                   HelpTree: HelpTreeBreadcrumb,
                   }
 
     tabs = [
