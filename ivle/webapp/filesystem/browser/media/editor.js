@@ -150,6 +150,7 @@ function handle_text(path, text, handler_type)
      */
     using_codepress = (navigator.userAgent.match('Gecko') &&
                        !navigator.userAgent.match('WebKit') &&
+                       !navigator.userAgent.match('KHTML') &&
                        !navigator.userAgent.match('Presto'))
 
     if (using_codepress)
