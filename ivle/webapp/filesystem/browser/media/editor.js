@@ -1,8 +1,13 @@
 function disable_save_if_safe()
 {
-    /* If this is defined, this engine supports change notification, so is able
-     * to enable the button again. Disable it for them. */
-    if(editbox.editor.addChangeHandler)
+    /* If we are using CodePress, we can only safely disable the save button
+     * (indicating that there are no changes to save) if the engine supports
+     * change notification, so the button can be enabled again.
+     *
+     * Our non-CodePress mode just uses normal textarea events, so is always
+     * fine.
+     */
+    if((!using_codepress) || editbox.editor.addChangeHandler)
     {
         var savebutton = document.getElementById("save_button");
         savebutton.disabled = true;
@@ -12,7 +17,11 @@ function disable_save_if_safe()
 
 function save_file(filename)
 {
-    data = editbox.getCode();
+    if (using_codepress)
+        data = editbox.getCode();
+    else
+        data = document.getElementById("editbox").value;
+
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
     if (current_file.svnstatus != "revision" ||
@@ -110,8 +119,8 @@ function handle_text(path, text, handler_type)
     var div = document.createElement("div");
     div.style.height = '100%';
     files.appendChild(div);
-    var txt_elem = dom_make_text_elem("textarea",
-        text.toString())
+    var txt_elem = document.createElement("textarea");
+    txt_elem.value = text.toString();
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
     language = language_from_mime(current_file.type);
@@ -120,19 +129,48 @@ function handle_text(path, text, handler_type)
     language = language ? language : "text";
     document.getElementById("highlighting_select").value = language;
 
-    txt_elem.className = "codepress autocomplete-off " + language;
-    txt_elem.setAttribute("onchange", "edit_text()");
-    /* TODO: Make CSS height: 100% work */
-    txt_elem.setAttribute("rows", "35");
-    CodePress.run();
+    $(txt_elem).change(edit_text);
 
+    /* This isn't ideal, as Opera seems to fire it even for non-textual keys.
+     * But IE and WebKit don't, so this will behave properly in most browsers.
+     * This makes me sad.
+     */
+    $(txt_elem).keypress(edit_text);
+
+    txt_elem.style.width = "100%";
+    txt_elem.style.height = "100%";
     window.onbeforeunload = confirm_beforeunload;
 
-    /* And set a callback so we know that the editor iframe is loaded so we
-     * can set a callback so we know when to enable the save button.
-     * We also take this opportunity to disable the save button, if
-     * the browser is likely to reenable it as needed. */
-    editbox.onload = initialise_codepress
+    /* XXX: Lord, please forgive me for browser sniffing.
+            CodePress only works properly in real Gecko at the moment,
+            so we must go to great and evil lengths to sniff it out.
+            It's by no means a complete check, but it has to support
+            more browsers than the previous situation.
+            This should be killed ASAP when we fix/replace CodePress.
+     */
+    using_codepress = (navigator.userAgent.match('Gecko') &&
+                       !navigator.userAgent.match('WebKit') &&
+                       !navigator.userAgent.match('Presto'))
+
+    if (using_codepress)
+    {
+        /* This is probably real Gecko. Try to fire up CodePress.
+         * If it fails we'll have a horrible mess, so we'll hope.
+         */
+        txt_elem.className = "codepress autocomplete-off " + language;
+        CodePress.run();
+
+        /* And set a callback so we know that the editor iframe is loaded so
+         * we can set a callback so we know when to enable the save button.
+         * We also take this opportunity to disable the save button, if
+         * the browser is likely to reenable it as needed. */
+        editbox.onload = initialise_codepress;
+    }
+    else
+    {
+        /* Not using CodePress, so we can already disable the Save button. */
+        disable_save_if_safe();
+    }
 }
 
 function language_from_mime(mime)
