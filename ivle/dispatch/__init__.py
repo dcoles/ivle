@@ -157,7 +157,7 @@ def handler(apachereq):
     except PublishingError, e:
         req.status = 404
 
-        if req.user.admin:
+        if req.user and req.user.admin:
             XHTMLErrorView(req, NotFound('Not found: ' +
                                          str(e.args)), e[0]).render(req)
         else:
