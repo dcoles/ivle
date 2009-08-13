@@ -11,7 +11,8 @@ from ivle.webapp.publisher import ROOT
 from ivle.webapp import ApplicationRoot
 
 def generate_toc(plugins):
-    toc = HelpTree(None, None, {})
+    """Create a root HelpTree with content from the plugins."""
+    toc = HelpTree(None, 'Help', {})
     for plugin in plugins:
         if hasattr(plugin, 'help'):
             # Get the dir the plugin resides in
@@ -20,6 +21,7 @@ def generate_toc(plugins):
     return toc
 
 def add_dict(newdict, curdict, plugin):
+    """Deeply merge curdict into newdict."""
     for key in curdict:
         if isinstance(curdict[key], dict):
             if key not in newdict:
