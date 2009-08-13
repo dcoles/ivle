@@ -94,6 +94,19 @@ def helptree_url(helptree):
 def helpentry_url(helpentry):
     return (helpentry.parent, helpentry.name)
 
+class HelpBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def url(self):
+        return self.req.publisher.generate(self.context)
+
+    @property
+    def text(self):
+        return self.context.name
+
 class Plugin(ViewPlugin, MediaPlugin):
     """The plugin for viewing help files."""
     forward_routes = (root_to_helptree, helptree_to_help)
@@ -101,6 +114,10 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(HelpTree, '+index', HelpTreeView),
              (HelpEntry, '+index', HelpEntryView)]
+
+    breadcrumbs = {HelpEntry: HelpBreadcrumb,
+                   HelpTree: HelpBreadcrumb,
+                  }
 
     tabs = [
         ('help', 'Help', 'Get help with IVLE', 'help.png', '+help', 100)
