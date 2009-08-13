@@ -74,7 +74,7 @@ class HelpEntry(object):
 
 @forward_route(ApplicationRoot, '+help')
 def root_to_helptree(root):
-    return HelpTree(None, None, generate_toc(root.config.plugin_index[ViewPlugin]))
+    return generate_toc(root.config.plugin_index[ViewPlugin])
 
 @forward_route(HelpTree, argc=1)
 def helptree_to_help(help, subhelp_name):
