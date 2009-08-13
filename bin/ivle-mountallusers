@@ -20,7 +20,7 @@
 # Author:  William Grant
 # Date:    4/7/2008
 
-# Script to UnionFS-mount jails for all users on the system.
+# Script to bind-mount jails for all users on the system.
 # Requires root to run.
 
 import sys
@@ -31,7 +31,6 @@ import logging
 
 import ivle.config
 import ivle.database
-import ivle.conf
 
 p = optparse.OptionParser()
 p.add_option('--verbose', '-v', action='store_true')
@@ -50,17 +49,18 @@ if os.getuid() != 0:
                           os.path.basename(sys.argv[0])
     sys.exit(1)
 
-store = ivle.database.get_store(ivle.config.Config())
+config = ivle.config.Config()
+store = ivle.database.get_store(config)
 users = store.find(ivle.database.User).order_by(ivle.database.User.login)
 
-logging.info("mass aufs mount started")
+logging.info("mass bind mount started")
 
 for user in users:
     login = user.login
     # This is where we'll mount to...
-    destdir = os.path.join(ivle.conf.jail_base, login)
+    destdir = os.path.join(config['paths']['jails']['mounts'], login)
     # ... and this is where we'll get the user bits.
-    srcdir = os.path.join(ivle.conf.jail_src_base, login)
+    srcdir = os.path.join(config['paths']['jails']['src'], login)
 
     try:
         if not options.unmount:
@@ -70,14 +70,38 @@ for user in users:
             if not os.path.exists(destdir):
                 logging.debug("user %s had no mountpoint - creating" % login)
                 os.mkdir(destdir)
-	
-            if os.system('/bin/mount -t aufs -o dirs=%s:%s=ro none %s'
-                             % (srcdir,ivle.conf.jail_system,destdir)) == 0:
-                logging.info("mounted user %s's jail." % login)
+            if os.path.exists(os.path.join(destdir, 'lib')):
+                logging.info("%s's jail appears mounted. skipping." % login)
+                continue
+            # Mount read only root template
+            if os.system('/bin/mount --bind -o ro %s %s'
+                    % (config['paths']['jails']['template'], destdir)) == 0:
+                logging.debug("mounted user %s's root template" % login)
             else:
-                logging.error("failed to mount user %s's jail!" % login)
+                logging.debug("failed to mount %s's root template!" % login)
+                continue
+            # Mount homedir
+            if os.system('/bin/mount --bind %s %s'
+                    % (os.path.join(srcdir,'home'), os.path.join(destdir,'home'))) == 0:
+                logging.debug("mounted user %s's home." % login)
+            else:
+                logging.error("failed to mount user %s's home!" % login)
+                os.system("/bin/umount %s" % destdir)
+                continue
+            # Mount tmp
+            if os.system('/bin/mount --bind %s %s'
+                    % (os.path.join(srcdir,'tmp'), os.path.join(destdir,'tmp'))) == 0:
+                logging.debug("mounted user %s's tmp." % login)
+            else:
+                logging.error("failed to mount user %s's tmp!" % login)
+                os.system("/bin/umount %s" % os.path.join(destdir,'home'))
+                os.system("/bin/umount %s" % destdir)
+                continue
+            logging.info("mounted user %s's jail" % login)
         else:
-            os.system('/bin/umount ' + destdir)
+            os.system("/bin/umount %s" % os.path.join(destdir,'tmp'))
+            os.system("/bin/umount %s" % os.path.join(destdir,'home'))
+            os.system("/bin/umount %s" % destdir)
             logging.info("unmounted user %s's jail." % login)
     except Exception, message:
         logging.warning(str(message))
