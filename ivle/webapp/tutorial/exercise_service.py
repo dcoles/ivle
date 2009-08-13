@@ -29,12 +29,14 @@ from ivle.webapp.errors import NotFound, BadRequest
 class ExercisesRESTView(JSONRESTView):
     """Rest view for adding an exercise."""
     
-    #Only lecturers and admins can add exercises
+    #Only lecturers, tutors and admins can add exercises
     def get_permissions(self, user):
         if user is not None:
             if user.admin:
                 return set(['save'])
             elif 'lecturer' in set((e.role for e in user.active_enrolments)):
+                return set(['save'])
+            elif 'tutor' in set((e.role for e in user.active_enrolments)):
                 return set(['save'])
             else:
                 return set()

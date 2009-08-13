@@ -95,7 +95,7 @@ def handle(req):
     """Handler for the File Services application."""
 
     # We really, really don't want the responses to be cached.
-    req.headers_out['Cache-Control'] = 'no-store, must-revalidate'
+    req.headers_out['Cache-Control'] = 'no-store, no-cache, must-revalidate'
 
     # Get all the arguments, if POST.
     # Ignore arguments if not POST, since we aren't allowed to cause
