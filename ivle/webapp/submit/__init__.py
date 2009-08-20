@@ -29,6 +29,7 @@ from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp import ApplicationRoot
 
 import ivle.date
 import ivle.chat
@@ -39,15 +40,17 @@ class SubmitView(XHTMLView):
     template = 'submit.html'
     tab = 'files'
     permission = 'submit_project'
+    subpath_allowed = True
 
-    def __init__(self, req, name, path=u"/"):
+    def __init__(self, req, context, subpath):
+        super(SubmitView, self).__init__(req, context, subpath)
+
+        if len(subpath) < 1:
+            raise NotFound()
+        name = subpath[0]
         # We need to work out which entity owns the repository, so we look
         # at the first two path segments. The first tells us the type.
         self.context = self.get_repository_owner(req.store, name)
-
-        # Ensure that the path is absolute (required for SVNAuthzFile).
-        # XXX Re-convert to unicode (os.path.normpath(u"/") returns a str).
-        self.path = os.path.join(u"/", unicode(os.path.normpath(path)))
 
         if self.context is None:
             raise NotFound()
@@ -130,6 +133,10 @@ class SubmitView(XHTMLView):
         ctx['now'] = datetime.datetime.now()
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+    
+    @property
+    def path(self):
+        return os.path.join('/', *self.subpath[1:]) if self.subpath else '/'
 
 
 class UserSubmitView(SubmitView):
@@ -173,9 +180,6 @@ class GroupSubmitView(SubmitView):
 
 
 class Plugin(ViewPlugin):
-    urls = [
-        ('+submit/users/:name', UserSubmitView),
-        ('+submit/groups/:name', GroupSubmitView),
-        ('+submit/users/:name/*path', UserSubmitView),
-        ('+submit/groups/:name/*path', GroupSubmitView),
-    ]
+    views = [(ApplicationRoot, ('+submit', 'users'), UserSubmitView),
+             (ApplicationRoot, ('+submit', 'groups'), GroupSubmitView)]
+

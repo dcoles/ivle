@@ -6,22 +6,22 @@
   <body>
     <h1>Help</h1>
     <div id="ivle_padding">
-      <py:def function="show_toc(toc_part, path)">
-        <py:for each="part in toc_part">
-          <py:if test="isinstance(toc_part[part], dict)">
-            <li><strong>${part}</strong>
+      <py:def function="show_toc(helptree)">
+        <py:for each="item in helptree.values()">
+          <py:if test="isinstance(item, HelpTree)">
+            <li><strong>${item.name}</strong>
               <ul>
-                ${show_toc(toc_part[part], path + '/' + part)}
+                ${show_toc(item)}
               </ul>
             </li>
           </py:if>
-          <py:if test="isinstance(toc_part[part], basestring)">
-            <li><a href="${path + '/' + part}">${part}</a></li>
+          <py:if test="isinstance(item, HelpEntry)">
+            <li><a href="${req.publisher.generate(item)}">${item.name}</a></li>
           </py:if>
         </py:for>
       </py:def>
       <ul>
-        ${show_toc(toc, '/+help')}
+        ${show_toc(context)}
         <li><a href="/+tos">Terms of Service</a></li>
       </ul>
     </div>
