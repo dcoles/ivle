@@ -18,3 +18,8 @@
 ***********************
 Developer Documentation
 ***********************
+
+.. toctree::
+    :maxdepth: 2
+
+    coding.rst
