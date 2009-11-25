@@ -15,12 +15,24 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-***********************
-Developer Documentation
-***********************
+*********
+Packaging
+*********
 
-.. toctree::
-    :maxdepth: 2
+Source package
+==============
 
-    coding.rst
-    packaging.rst
+The latest copy of trunk can be fetched by running :command:`bzr export 
+ivle-latest.tgz lp:ivle`.
+
+Debian Package
+==============
+
+A Debian package is currently under development in the 
+``lp:~ivle-dev/ivle/debian-packaging`` branch.
+
+William Grant currently maintains a :abbr:`PPA (Personal Package Archive)` of 
+IVLE and its dependencies at https://launchpad.net/~wgrant/+archive/ivle.
+
+.. TODO: Are we using this for releases?
+
