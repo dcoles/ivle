@@ -24,3 +24,4 @@ Developer Documentation
 
     coding.rst
     packaging.rst
+    architecture.rst
