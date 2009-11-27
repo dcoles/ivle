@@ -21,6 +21,8 @@ Architecture overview
 
 This page describes the various subsystems of IVLE.
 
+.. image:: /images/ivle-system-diagram.png
+
 The IVLE web application
 ========================
 
