@@ -36,3 +36,22 @@ IVLE and its dependencies at https://launchpad.net/~wgrant/+archive/ivle.
 
 .. TODO: Are we using this for releases?
 
+Package split
+-------------
+
+IVLE will be split into a few packages:
+
+* ``ivle`` will be the all-in-one package, which users can install to get a 
+  working IVLE with all tasks on a single node. It will depend on 
+  ``ivle-app-server``, ``ivle-usrmgt-server``, *PostgreSQL*, and perform extra 
+  automated configuration for the Subversion service.
+* ``ivle-app-server`` will contain the web code, trampoline, timount and co., 
+  depend upon the packages necessary for an appserver, and perform just the 
+  configuration for an appserver (generating config files, scheduling timount 
+  runs, etc.)
+* ``ivle-usrmgt-server`` will contain and configure the usrmgt-server.
+* ``ivle-server-common`` will contain those bits common to the server tasks, 
+  but not in the ivle Python package, and not needed in the jail.
+* ``ivle-jail`` might not be in the archive, instead being built by 
+  ivle-create-jail - it will contain the extra jail scripts.
+* ``python-ivle`` will contain the ivle Python package.
