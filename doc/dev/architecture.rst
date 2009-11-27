@@ -33,6 +33,10 @@ customised environment that prevents access to other users files or underlying
 file system as well as placing basic resource limits to prevent users from 
 accidentally exhausting shared resources such as CPU time and memory.
 
+
+Trampoline
+----------
+
 To each user, it appears that they have their own private Unix filesystem 
 containing software, libraries and a home directory to do with what they 
 please. This is mainly done by the setuid root program ``trampoline`` (See 
@@ -42,11 +46,12 @@ sets up the users environment, jumps into the user's jail using the
 user and group.
 
 To prevent abuse, ``trampoline`` can only be used by root or one of the uids 
-specified when trampoline is built by ``setup.py build`` (defaults to 33, 
-Debian's www-data user which Apache runs as).
+specified when trampoline is built by ``setup.py build`` (defaults to UID 33, 
+www-data on Debian systems). Since it's one of two C programs involved in IVLE 
+and runs setuid root it is rather secuity sensative.
 
-Base Generation
----------------
+Base Image Generation
+---------------------
 
 All user jails share a common base image that contains the files required for 
 both IVLE's operation and for executing user code. This base image is 
@@ -83,14 +88,16 @@ The first solution was to use  `AUFS <http://aufs.sourceforge.net/>`_ to mount
 the user's home directory over a read-only version of the base on demand. This 
 was implemented as part of ``trampoline`` and used a secondary program 
 ``timount`` (see :file:`bin/timount/timount.c`) run at regular intervals to 
-unmount unused jails. This uses the :const:`MNT_EXPIRE` flag from 
-:manpage:`umount(2)` that only unmounts a directory if it hasn't been accessed 
-since the previous call with :const:`MNT_EXPIRE`.
+unmount unused jails. This uses the :const:`MNT_EXPIRE` flag for 
+:manpage:`umount(2)` (available since Linux 2.6.8) that only unmounts a 
+directory if it hasn't been accessed since the previous call with 
+:const:`MNT_EXPIRE`.
 
 While quite effective, AUFS appears to cause NFS caching issues when IVLE is 
-run as a cluster. The current system uses the much older *bind mount* feature 
-which allows directories to be accessible from another location in the file 
-system. By carefully read-only bind mounting the jail image and then bind 
+run as a cluster as well as questionable inclusion status in newer 
+distributions. The current system used in IVLE the much older *bind mount* 
+feature which allows directories to be accessible from another location in the 
+file system. By carefully read-only bind mounting the jail image and then bind 
 mounting the user's :file:`/home` and :file:`/tmp` directory data over the top 
 we can create a jail with only three bind mounts and at virtually no 
 filesystem overhead.
