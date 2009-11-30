@@ -22,8 +22,52 @@ System Architecture
 IVLE is a complex piece of software that integrates closely with the 
 underlying system. It can be considered part web service and part local system 
 daemon. Due to the implementation of these parts it is tied to Apache Web 
-Server (mainly  due to the use of mod_python) and Linux. 
+Server (mainly due to the use of mod_python) and Linux.
 
+
+Dispatch
+========
+
+IVLE uses mod_python_ to allow Python scripts to be called from Apache. We 
+register the :mod:`ivle.dispatch` module as the ``PythonHandler`` in the 
+associated VirtualHost, allowing us to intercept all HTTP requests to the web 
+server.
+
+The :mod:`ivle.dispatch` module is responsible for mapping requests from the 
+client to the correct application plugin. Plugins can be specified by placing  
+a :file:`*.conf` file into the :file:`/etc/ivle/plugins.d/` directory 
+containing lines of the form :samp:`[{plugin_module}#{classname}]`.
+
+.. TODO: Document Plugin Format and Routing Strings
+
+In future, this may be ported to a WSGI (:pep:`333`) based dispatch to allow 
+IVLE to be run on web servers other than Apache.
+
+.. _mod_python: http://www.modpython.org/
+
+
+Templating
+----------
+IVLE has now been refactored to use the Genshi_ XHTML template system. We have 
+an inheritance-based "views" system. :class:`BaseView` is a class from which 
+all views derive.
+
+There are 3 sub-types of :class:`BaseView` (more can be implemented if 
+necessary):
+
+* XHTML-Templated
+    * browser, console, debuginfo, diff, forum, groups, help, home, logout, 
+      settings, subjects, svnlog, tos, tutorial
+* Raw byte streaming
+    * download, server
+* JSON service
+    * consoleservice, fileservice, tutorialservice, userservice 
+
+The apps each derive from one of the above.
+
+All apps which haven't yet been refactored will be "raw byte streaming". 
+
+.. _Genshi: http://genshi.edgewall.org/
 
 Jail System
 ===========
@@ -212,9 +256,6 @@ Worksheets
 ==========
 
 Database
-========
-
-Template
 ========
 
 ..  TODO: Not yet merged
