@@ -141,12 +141,30 @@ class :class:`ivle.console.Console` to start a new console in the user's jail.
 User Management Server
 ======================
 
-.. TODO: Write!
+The **User Management Server** is a daemon responsible for handling privileged 
+actions on IVLE and should be launched along with IVLE. It is primarily 
+responsible for:
+
+* Creating user jails, Subversion repositories, and Subversion authentication 
+  credentials.
+* Creating group Subversion repositories.
+* Rebuilding Subversion authorization files. 
+
+Communication with the Server is done using the `Chat Protocol`_. To prevent 
+unauthorized use, communication with the User Management Server requires that 
+a *shared secret* be used to communicate with the server.  This secret is 
+stored in the `magic` variable in the `[usrmgt]` section of 
+:file:`/etc/ivle/ivle.conf`.
+
+The User Management Server is called almost exclusively from the 
+:mod:`ivle.webapp.userservice` module.
+
+See :file:`services/usrmgt-server` for details.
 
 Chat Protocol
 =============
 
-*Chat* is our JSON_-based client/server communication protocol used in 
+**Chat** is our JSON_-based client/server communication protocol used in 
 communicating to `Python Console`_ processes and `User Management Server`_.  
 Since it is JSON-based it can be called from either Python or JavaScript.
 
