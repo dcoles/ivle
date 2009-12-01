@@ -128,34 +128,33 @@ Mounting Home Directories
 To give the appearance of a private file system we need to merge together a 
 user's local home directory with the base image.
 To achieve this, IVLE uses the *bind mount* feature of Linux, which allows
-directories to be accessible from another location in the 
-file system. By carefully read-only bind mounting the jail image and then bind 
-mounting the user's :file:`/home` and :file:`/tmp` directory data over the top 
-we can create a jail with only three bind mounts and at virtually no 
-filesystem overhead.
+directories to be accessible from another location in the file system. By
+carefully bind-mounting the jail image as read-only and then bind-mounting the
+user's :file:`/home` and :file:`/tmp` directory data over the top, we create a
+jail with only three bind mounts and at virtually no filesystem overhead.
 
 .. note::
    IVLE has historically used numerous solutions to this problem, which are
    chronicled here to avoid the same mistakes being made again.
 
-   In the first release of IVLE this was done off-line by hardlinking all the
-   files into the target directory, but for more than a handful of users this
-   process could take several hours and also ran the risk of exhausting inodes
-   on the underlying file system.
+   In the first release of IVLE this was done offline by hard-linking all the
+   files into the target directory, but for a large number of users, this
+   process can take several hours, and also runs the risk of exhausting
+   the number of inodes on the underlying file system.
 
-   The first solution was to use  `AUFS <http://aufs.sourceforge.net/>`_ to
+   The second solution was to use `AUFS <http://aufs.sourceforge.net/>`_ to
    mount the user's home directory over a read-only version of the base on
    demand. This was implemented as part of ``trampoline`` and used a secondary
-   program ``timount`` (see :file:`bin/timount/timount.c`) run at regular
-   intervals to unmount unused jails. This uses the :const:`MNT_EXPIRE` flag
+   program ``timount`` (see :file:`bin/timount/timount.c`), run at regular
+   intervals, to unmount unused jails. This used the :const:`MNT_EXPIRE` flag
    for :manpage:`umount(2)` (available since Linux 2.6.8) that only unmounts a
    directory if it hasn't been accessed since the previous call with
    :const:`MNT_EXPIRE`.
 
-   While quite effective, AUFS appears to cause NFS caching issues when IVLE
-   is run as a cluster as well as questionable inclusion status in newer
-   distributions. This is why the current system uses the much older bind
-   mount feature to achieve the same ends.
+   While quite effective, AUFS appeared to cause NFS caching issues when IVLE
+   was run as a cluster, and as its inclusion status in future Linux
+   distributions is questionable, the developers elected to use the much older
+   bind mount feature instead.
 
 Entering the Jail
 -----------------
