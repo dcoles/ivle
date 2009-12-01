@@ -185,10 +185,11 @@ You need to have the IVLE user management server (``usrmgt-server``) running
 for many parts of IVLE to operate properly, so it should be configured to
 start on boot. There is an example init script in
 ``examples/config/usrmgt-server.init``. For Debian or Ubuntu, copy it to
-``/etc/init.d/ivle``. Start it now, and set it to start automatically: ::
+``/etc/init.d/ivle-usrmgt-server``. Start it now, and set it to start
+automatically: ::
 
-   sudo /etc/init.d/usrmgt-server start
-   sudo update-rc.d usrmgt-server defaults 99
+   sudo /etc/init.d/ivle-usrmgt-server start
+   sudo update-rc.d ivle-usrmgt-server defaults 99
 
 
 Creating the initial user
