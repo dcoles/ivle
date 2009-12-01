@@ -91,6 +91,8 @@
 # action=svnupdate: Bring a file up to date with the head revision.
 #       path:   The path to the file to be updated. Only one file may be
 #               specified.
+#       revision: The revision number to update to. If not provided this
+#               defaults to HEAD.
 #
 # action=svnpublish: Set the "published" flag on a file to True.
 #       path:   The path to the file to be published. Can be specified
@@ -615,15 +617,24 @@ def action_svnremove(req, fields):
 def action_svnupdate(req, fields):
     """Performs a "svn update" to each file specified.
 
-    Reads fields: 'path'
+    Reads fields: 'path' and 'revision'
     """
     path = fields.getfirst('path')
+    revision = fields.getfirst('revision')
     if path is None:
         raise ActionError("Required field missing")
+    if revision is None:
+        revision = pysvn.Revision( pysvn.opt_revision_kind.head )
+    else:
+        try:
+            revision = pysvn.Revision(pysvn.opt_revision_kind.number,
+                    int(revision))
+        except ValueError, e:
+            raise ActionError("Bad revision number: '%s'"%revision,)
     path = actionpath_to_local(req, path)
 
     try:
-        svnclient.update(path, recurse=True)
+        svnclient.update(path, recurse=True, revision=revision)
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
