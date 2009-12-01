@@ -52,6 +52,13 @@ be developed in a separate branch with the name
 :samp:`lp:~ivle-dev/ivle/{branch-name}` and then merged into the trunk when 
 complete.
 
+Developers who are not members of the ``ivle-dev`` team will not be able to
+commit to ``lp:ivle``. However, contributions are still welcome. External
+developers with a patch or new feature should create a branch named
+:samp:`lp:~{your-name}/ivle/{branch-name}`, and make a merge request to
+``lp:ivle`` when ready. Regular contributors may be invited to ``ivle-dev`` on
+a case-by-case basis.
+
 All associated branches can be found on the `IVLE Launchpad Project Page 
 <https://launchpad.net/ivle/>`_.
 
