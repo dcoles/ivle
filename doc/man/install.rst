@@ -198,7 +198,7 @@ Creating the initial user
 The final step in getting a usable IVLE set up is creating a user. You'll
 probably want admin privileges - if not, drop the ``--admin``. ::
 
-   sudo ivle-makeuser --admin -p password username 'Full Name'
+   sudo ivle-adduser --admin -p password username 'Full Name'
 
 You should then be able to browse to ``http://ivle.localhost/``, and
 log in with that username and password.
