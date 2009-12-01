@@ -48,9 +48,9 @@ IVLE to be run on web servers other than Apache.
 
 Templating
 ----------
-IVLE has now been refactored to use the Genshi_ XHTML template system. We have 
-an inheritance-based "views" system. :class:`BaseView` is a class from which 
-all views derive.
+IVLE uses the Genshi_ XHTML template system to generate all HTML pages. We
+have an inheritance-based "views" system. :class:`BaseView` is a class from
+which all views derive.
 
 There are 3 sub-types of :class:`BaseView` (more can be implemented if 
 necessary):
@@ -65,7 +65,10 @@ necessary):
 
 The apps each derive from one of the above.
 
-All apps which haven't yet been refactored will be "raw byte streaming". 
+.. note::
+   IVLE used to write its HTML output as a raw stream to an output file, until
+   it was refactored to use Genshi. All apps which haven't yet been refactored
+   properly were ported to use the "raw byte streaming" view.
 
 .. _Genshi: http://genshi.edgewall.org/
 
