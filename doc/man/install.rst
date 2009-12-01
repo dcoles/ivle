@@ -124,7 +124,8 @@ Configuring the jail environment
 You will require a self-contained jail environment in which to safely
 execute student code. 
 Before you can actually build the jail, a few configuration options are
-needed. Open up ``/etc/ivle/ivle.conf``, and find the ``[jail]`` section.
+needed. Open up ``/etc/ivle/ivle.conf``, and find the ``[jail]`` section
+(**not** the ``[[jails]]`` section).
 Add to it: ::
 
    devmode = True
