@@ -40,7 +40,7 @@
     <body>
       <div id="ivleheader">
         <ul id="ivle_breadcrumbs">
-          <li class="breadcrumb crumbmenu">
+          <li py:attrs="{'class': 'breadcrumb crumbmenu' if logged_in else 'breadcrumb'}">
             <a href="/">
               <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
             </a>
