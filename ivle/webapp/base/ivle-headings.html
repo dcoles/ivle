@@ -50,24 +50,7 @@
               </li>
             </ul>
           </li>
-          <py:for each="ancestor in ancestry" py:with="thiscrumb=crumb(ancestor)">
-          <li py:if="thiscrumb" py:attrs="{True:{'class':'crumbmenu'}, False: None}[hasattr(thiscrumb, 'menu')]">
-            <py:choose test="getattr(thiscrumb, 'url', None)">
-              <py:when test="None">
-                <span>${thiscrumb.text}</span>
-              </py:when>
-              <py:otherwise>
-                <a href="${thiscrumb.url}">
-                  ${thiscrumb.text}
-                </a>
-              </py:otherwise>
-            </py:choose>
-            <ul py:if="hasattr(thiscrumb, 'menu')">
-              <li py:for="item in thiscrumb.menu"><a href="${thiscrumb.menu[item]}">${item}</a></li>
-            </ul>
-          </li>
-          </py:for>
-          <li py:for="thiscrumb in extra_breadcrumbs">
+          <li py:for="thiscrumb in [crumb(ancestor) for ancestor in ancestry] + extra_breadcrumbs">
             <py:choose test="getattr(thiscrumb, 'url', None)">
               <py:when test="None">
                 <span>${thiscrumb.text}</span>
