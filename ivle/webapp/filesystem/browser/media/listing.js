@@ -237,6 +237,12 @@ function action_commit(files)
     return false;
 }
 
+function action_svncleanup(path)
+{
+    do_action("svncleanup", current_path, {"path": path});
+    alert("Subversion Cleanup Complete");
+}
+
 /** Selects or deselects all files in the listing.
  * selected: true or false (defaults to true).
  * If false, deselects instead of selecting.
