@@ -196,3 +196,16 @@ ul#apptabs a {
     border: 1px solid #a22;
     background: #f88;
 }
+
+form.verticalform div {
+    padding: 0.2em 0;
+}
+
+form.verticalform div label {
+    display: block;
+    float: left;
+    text-align: right;
+    width: 200px;
+    margin-right: 5px;
+    font-weight: bold;
+}
