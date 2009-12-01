@@ -781,6 +781,9 @@ function update_actions()
     /* Log should be available for revisions as well. */
     set_action_state("svnlog", single_versioned_path, true);
 
+    /* Cleanup should be available for revisions as well. */
+    set_action_state("svncleanup", single_versioned_path, true);
+
     single_ivle_versioned_path = (
          (
           (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
@@ -920,6 +923,9 @@ function handle_moreactions()
         break;
     case "svncut":
         action_svncut(selected_files);
+        break;
+    case "svncleanup":
+        action_svncleanup(".");
         break;
     }
 }
