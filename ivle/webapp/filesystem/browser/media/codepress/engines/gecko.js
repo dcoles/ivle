@@ -271,6 +271,10 @@ CodePress = {
 		code = code.replace(/<.*?>/g,'');
 		code = code.replace(/&lt;/g,'<');
 		code = code.replace(/&gt;/g,'>');
+		code = code.replace(/&nbsp;/gi,' ');
+
+		// This bit must be last, as it might turn otherwise escaped sequences
+		// into valid entities that could be accidentally replaced.
 		code = code.replace(/&amp;/gi,'&');
 		return code;
 	},

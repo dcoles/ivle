@@ -80,7 +80,7 @@ class BrowserView(XHTMLView):
         ctx['isdir'] = isdir
         ctx['revno'] = revno
 
-        ctx['paths'] = make_path_segments(req.path, revno)
+        ctx['paths'] = make_path_segments(self.path, revno)
 
         self.gen_actions(req, ctx)
 

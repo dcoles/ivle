@@ -84,14 +84,44 @@
 #console_body.windowpane.maximal, #console_body.windowpane #console_heading {
     -moz-border-radius-topleft: 10px;
     -moz-border-radius-topright: 10px;
+    -webkit-border-top-left-radius: 10px;
+    -webkit-border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 #console_input {
     position: absolute;
     /* Input bar goes along the bottom. Pad all sides */
-    left: 0.5em;
-    right: 0.5em;
     bottom: 0.5em;
+    padding: 0 0.5em;
+    /* Treat console line as table formatted, so the textbox is dynamic in size. */
+    display: table;
+    font-size: 13px;
+}
+
+#console_input > div {
+    display: table-row;
+}
+
+#console_input > div > * {
+    display: table-cell;
+
+    /* Don't let the buttons wrap onto multiple lines.
+     * This forces the textbox to shrink.
+     */
+    white-space: nowrap;
+}
+
+#console_input > div > .console_button {
+    /* If the console button is in a cell, don't float */
+    position: static !important;
+    padding: 0 0.2em;
+}
+
+#console_inputCell {
+    width: 100%;
+    padding-right: 0.5em;
 }
 
 #console_body.windowpane #console_input {
@@ -100,10 +130,12 @@
 }
 #console_prompt {
     font-family: monospace;
+    font-weight: bold;
+    white-space: pre;
 }
 #console_inputText {
     font-family: monospace;
-    width: 75%;
+    width: 100%;
 }
 
 /* console filler takes up the same space as console_body.windowpane

@@ -96,6 +96,14 @@ tr.row2 {
     background-color: #bbb;
     cursor: pointer;
 }
+tr.row1:hover {
+    background-color: #ddd;
+    cursor: pointer;
+}
+tr.row2:hover {
+    background-color: #ddd;
+    cursor: pointer;
+}
 /* And if they are selected (blue shades) */
 tr.row1sel {
     background-color: #88e;
@@ -103,6 +111,14 @@ tr.row1sel {
 }
 tr.row2sel {
     background-color: #77d;
+    cursor: pointer;
+}
+tr.row1sel:hover {
+    background-color: #99f;
+    cursor: pointer;
+}
+tr.row2sel:hover {
+    background-color: #99f;
     cursor: pointer;
 }
 

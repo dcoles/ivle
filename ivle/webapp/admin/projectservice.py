@@ -17,12 +17,13 @@
 
 # Author: Nick Chadwick
 
+import datetime
 import ivle.database
 from ivle.database import ProjectSet, Project, Subject, Semester, Offering
 
 from ivle.webapp.base.rest import (XHTMLRESTView, named_operation,
                                    require_permission)
-from ivle.webapp.errors import NotFound
+from ivle.webapp.errors import NotFound, BadRequest
 
 class ProjectSetRESTView(XHTMLRESTView):
     """Rest view for a projectset.
@@ -51,12 +52,16 @@ class ProjectSetRESTView(XHTMLRESTView):
                  project.short_name)
 
     @named_operation('edit')
-    def add_project(self, req, name, short_name, synopsis):
+    def add_project(self, req, name, short_name, deadline, synopsis):
         """Add a Project to this ProjectSet"""
         new_project = Project()
         new_project.name = unicode(name)
         new_project.short_name = unicode(short_name)
         new_project.synopsis = unicode(synopsis)
+        try:
+            new_project.deadline = datetime.datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            raise BadRequest("deadline must be in YYYY-MM-DD HH:MM:ss")
         new_project.project_set = self.context
 
         req.store.add(new_project)

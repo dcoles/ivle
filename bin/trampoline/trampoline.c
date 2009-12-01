@@ -27,13 +27,13 @@
  * Scripts (such as Python programs) should be executed by supplying
  * "/usr/bin/python" as the program, and the script as the first argument.
  *
- * Usage: trampoline uid jail-path working-path program [args...]
  * Must run as root. Will safely setuid to the supplied uid, checking that it
  * is not root. Recommended that the file is set up as follows:
  *  sudo chown root:root trampoline; sudo chroot +s trampoline
  */
 
 #define _XOPEN_SOURCE
+#define _BSD_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +45,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <grp.h>
 #include <limits.h>
 #include <signal.h>
 
@@ -122,6 +123,15 @@ static void usage(const char* nm)
 {
     fprintf(stderr,
         "usage: %s [-d] [-u] <uid> <base> <src> <system> <jail> <cwd> <program> [args...]\n", nm);
+    fprintf(stderr, "  -d       \tDaemonize\n");
+    fprintf(stderr, "  -u       \tPrint usage\n");
+    fprintf(stderr, "  <uid>    \tUID to run program as\n");
+    fprintf(stderr, "  <base>   \tDirectory that jails will be mounted in\n");
+    fprintf(stderr, "  <src>    \tDirectory containing users jail data\n");
+    fprintf(stderr, "  <system> \tDirectory containing main jail file system\n");
+    fprintf(stderr, "  <jail>   \tDirectory of users mounted jail\n");
+    fprintf(stderr, "  <cwd>    \tDirectory inside the jail to change dir to\n");
+    fprintf(stderr, "  <program>\tProgram inside jail to execute\n");
     exit(1);
 }
 
@@ -137,6 +147,22 @@ void *die_if_null(void *ptr)
     return ptr;
 }
 
+int checked_mount(const char *source, const char *target,
+                  const char *filesystemtype, unsigned long mountflags,
+                  const void *data)
+{
+    int result = mount(source, target, filesystemtype, mountflags, data);
+    if (result)
+    {
+        syslog(LOG_ERR, "could not mount %s on %s\n", source, target);
+        perror("could not mount");
+        exit(1);
+    }
+
+    return result;
+}
+
+
 /* Find the path of the user components of a jail, given a mountpoint. */
 char *jail_src(const char *jail_src_base, const char *jail_base,
                const char *jailpath)
@@ -147,7 +173,7 @@ char *jail_src(const char *jail_src_base, const char *jail_base,
 
     srclen = strlen(jail_src_base);
     dstlen = strlen(jail_base);
-    
+
     src = die_if_null(malloc(strlen(jailpath) + (srclen - dstlen) + 1));
     strcpy(src, jail_src_base);
     strcat(src, jailpath+dstlen);
@@ -163,7 +189,8 @@ void mount_if_needed(const char *jail_src_base, const char *jail_base,
 {
     char *jailsrc;
     char *jaillib;
-    char *mountdata;
+    char *source_bits;
+    char *target_bits;
 
     /* Check if there is something useful in the jail. If not, it's probably
      * not mounted. */
@@ -183,21 +210,27 @@ void mount_if_needed(const char *jail_src_base, const char *jail_base,
              }
              syslog(LOG_NOTICE, "created mountpoint %s\n", jailpath);
         }
-       
+
         jailsrc = jail_src(jail_src_base, jail_base, jailpath);
-        mountdata = die_if_null(malloc(3 + strlen(jailsrc) + 4 + strlen(jail_system) + 3 + 1));
-        sprintf(mountdata, "br:%s=rw:%s=ro", jailsrc, jail_system);
-        if (mount("none", jailpath, "aufs", 0, mountdata))
-        {
-            syslog(LOG_ERR, "could not mount %s\n", jailpath);
-            perror("could not mount");
-            exit(1);
-        } 
+        checked_mount(jail_system, jailpath, NULL, MS_BIND | MS_RDONLY, NULL);
+
+        source_bits = die_if_null(malloc(strlen(jailsrc) + 5 + 1));
+        target_bits = die_if_null(malloc(strlen(jailpath) + 5 + 1));
+        sprintf(source_bits, "%s/home", jailsrc);
+        sprintf(target_bits, "%s/home", jailpath);
+
+        checked_mount(source_bits, target_bits, NULL, MS_BIND, NULL);
+
+        sprintf(source_bits, "%s/tmp", jailsrc);
+        sprintf(target_bits, "%s/tmp", jailpath);
+
+        checked_mount(source_bits, target_bits, NULL, MS_BIND, NULL);
 
         syslog(LOG_INFO, "mounted %s\n", jailpath);
 
         free(jailsrc);
-        free(mountdata);
+        free(source_bits);
+        free(target_bits);
     }
 
     free(jaillib);
@@ -227,6 +260,7 @@ int main(int argc, char* const argv[])
     char* prog;
     char* const * args;
     int uid;
+    gid_t groups[1];
     int arg_num = 1;
     int daemon_mode = 0;
     int unlimited = 0;
@@ -326,6 +360,13 @@ int main(int argc, char* const argv[])
         perror("could not setgid");
         exit(1);
     }
+    
+    groups[0] = uid;
+    if (setgroups(1, groups))
+    {
+        perror("could not setgroups");
+        exit(1);
+    }
 
     if (setuid(uid))
     {
@@ -338,8 +379,8 @@ int main(int argc, char* const argv[])
     {
         struct rlimit l;
         /* Process adress space in memory */
-        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
-        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        l.rlim_cur = 448 * 1024 * 1024; /* 512MiB - 64MiB */
+        l.rlim_max = 512 * 1024 * 1024; /* 512MiB */
         if (setrlimit(RLIMIT_AS, &l))
         {
             perror("could not setrlimit/RLIMIT_AS");
@@ -350,8 +391,8 @@ int main(int argc, char* const argv[])
          * Note: This requires a kernel patch to work correctly otherwise it is  
          * ineffective (thus you are only limited by RLIMIT_AS)
          */
-        l.rlim_cur = 192 * 1024 * 1024; /* 192MiB */
-        l.rlim_max = 256 * 1024 * 1024; /* 256MiB */
+        l.rlim_cur = 448 * 1024 * 1024; /* 512MiB - 64MiB */
+        l.rlim_max = 512 * 1024 * 1024; /* 512MiB */
         if (setrlimit(RLIMIT_DATA, &l))
         {
             perror("could not setrlimit/RLIMIT_DATA");
@@ -379,9 +420,18 @@ int main(int argc, char* const argv[])
         /* File Size */
         l.rlim_cur = 64 * 1024 * 1024; /* 64MiB */
         l.rlim_max = 72 * 1024 * 1024; /* 72MiB */
-if (setrlimit(RLIMIT_FSIZE, &l))
+        if (setrlimit(RLIMIT_FSIZE, &l))
         {
             perror("could not setrlimit/RLIMIT_FSIZE");
+            exit(1);
+        }
+        
+        /* Number of Processes */
+        l.rlim_cur = 50;
+        l.rlim_max = 50;
+        if (setrlimit(RLIMIT_NPROC, &l))
+        {
+            perror("could not setrlimit/RLIMIT_NPROC");
             exit(1);
         }
     }
