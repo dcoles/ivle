@@ -88,17 +88,22 @@ install it: ::
 Unlike the package, you will have to manually set up the database and
 configuration.
 
-.. TODO: Separate IVLE PostgreSQL account.
+First, it is recommended that you create a separate database user for IVLE.
+You may use any name for the user. ::
 
-First you must create a PostgreSQL database, and populate it with the
-IVLE schema. You may use any name for the database. ::
+   sudo -u postgres createuser ivleuser     # Answer 'n' to all questions
+   sudo -u postgres psql -c "ALTER USER ivleuser WITH ENCRYPTED PASSWORD 'ivle-password';"
 
-   sudo -u postgres createdb ivle
+Now, you must create a PostgreSQL database, and populate it with the
+IVLE schema. You may use any name for the database (here we use ``ivle``). ::
+
+   sudo -u postgres createdb -O ivleuser ivle
    sudo -u postgres createlang plpgsql ivle
-   sudo -u postgres psql -d ivle < userdb/users.sql
+   psql -h localhost -W ivle ivleuser < userdb/users.sql
 
 The configuration wizard - ``ivle-config`` - will ask you a series of
-questions. Apart from database settings, the defaults should be correct
+questions. You should give the database username and password as configured
+above. Apart from database settings, the defaults should be correct
 for a development system. If deploying IVLE properly - particularly on
 multiple nodes - several options will need to be changed. Watching
 carefully, run: ::
