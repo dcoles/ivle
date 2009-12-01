@@ -40,6 +40,7 @@ class XHTMLView(BaseView):
 
     template = 'template.html'
     allow_overlays = True
+    breadcrumb_text = None
 
     def __init__(self, *args, **kwargs):
         super(XHTMLView, self).__init__(*args, **kwargs)
@@ -109,8 +110,14 @@ class XHTMLView(BaseView):
         except NoPath:
             ctx['ancestry'] = []
 
+        # If the view has specified text for a breadcrumb, add one.
+        if self.breadcrumb_text:
+            ctx['extra_breadcrumbs'] = [ViewBreadcrumb(req, self)]
+        else:
+            ctx['extra_breadcrumbs'] = []
+
         # Allow the view to add its own fake breadcrumbs.
-        ctx['extra_breadcrumbs'] = self.extra_breadcrumbs
+        ctx['extra_breadcrumbs'] += self.extra_breadcrumbs
 
         ctx['crumb'] = Breadcrumber(req).crumb
         self.populate_headings(req, ctx)
@@ -235,3 +242,12 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
             req.throw_redirect('/+login' + query_string)
 
         req.status = 403
+
+class ViewBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def text(self):
+        return self.context.breadcrumb_text

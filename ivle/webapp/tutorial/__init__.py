@@ -81,6 +81,7 @@ class OfferingView(XHTMLView):
     template = 'templates/subjectmenu.html'
     tab = 'subjects' # XXX
     permission = 'view'
+    breadcrumb_text = 'Worksheets'
 
     def populate(self, req, ctx):
         """Create the context for the given offering."""
