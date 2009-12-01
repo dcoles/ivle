@@ -26,11 +26,13 @@ Given versions are those on which IVLE is known to work; earlier versions
 might work too. Debian/Ubuntu package names are given after the name of the
 software.
 
+.. If this list changes, you also need to change the list below.
+
 * Ubuntu 8.04 or later (other distros should work with some tweaking, but are untested)
-* Apache 2.x with modules:
+* Apache 2.x (``apache2``) with modules:
    + mod_python (``libapache2-mod-python``)
    + mod_dav_svn and mod_authz_svn (``libapache2-svn``)
-* Python 2.5 or 2.6 with modules:
+* Python 2.5 (``python2.5``) or 2.6 (``python2.6``) with modules:
    + cjson (``python-cjson``)
    + ConfigObj (``python-configobj``)
    + docutils (``python-docutils``)
@@ -56,6 +58,16 @@ Installing from a Debian package
 
 Installing from source
 ======================
+
+.. If this list changes, you also need to change the list above.
+
+If you want to grab all of the required packages in one command, use::
+
+    sudo apt-get install apache2 libapache2-mod-python libapache2-svn \
+    python2.6 python-cjson python-configobj python-docutils python-epydoc \
+    python-formencode python-genshi python-psycopg2 python-svn python-routes \
+    python-storm libjs-jquery postgresql subversion debootstrap rsync \
+    build-essential
 
 While installing from a distribution package is often a better idea for
 users, developers will need to install from a plain source tree.
