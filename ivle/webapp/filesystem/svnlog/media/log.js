@@ -29,9 +29,20 @@ function log_init()
     current_path = get_path();
 }
 
-function update_revision(revid) {
+function update_revision(button, revid) {
+    button.disabled = true;
     do_action("svnupdate", current_path, {'path':'.', 'revision': revid},
         null, function(path, response) {
-            window.location.href = make_path(browser_app)+'/'+path;
+            var error = response.getResponseHeader("X-IVLE-Action-Error");
+            if(error == null || error == "")
+            {
+                /** If no error, return to current_path in browser */
+                window.location.href = make_path(browser_app)+'/'+path;
+            }
+            else
+            {
+                /** Otherwise stay here */
+                button.disabled = false;
+            }
         });
 }
