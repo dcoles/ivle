@@ -234,9 +234,9 @@ class User(Storm):
         they may do everything. Otherwise they may do nothing.
         """
         if user and user.admin or user is self:
-            return set(['view', 'edit', 'submit_project'])
+            return set(['view_public', 'view', 'edit', 'submit_project'])
         else:
-            return set()
+            return set(['view_public'])
 
 # SUBJECTS AND ENROLMENTS #
 
