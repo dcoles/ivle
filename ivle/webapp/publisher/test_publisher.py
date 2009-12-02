@@ -6,9 +6,17 @@ from ivle.webapp.publisher import (INF, InsufficientPathSegments, NoPath,
 class Root(object):
     def __init__(self):
         self.subjects = {}
+        self.users = {}
 
     def add_subject(self, subject):
         self.subjects[subject.name] = subject
+
+    def add_user(self, user):
+        self.users[user.login] = user
+
+class User(object):
+    def __init__(self, login):
+        self.login = login
 
 class Subject(object):
     def __init__(self, name, code):
@@ -53,6 +61,9 @@ class View(object):
 class RootIndex(View):
     pass
 
+class UserServeView(View):
+    pass
+
 class SubjectIndex(View):
     pass
 
@@ -83,7 +94,9 @@ class OfferingProjects(View):
 class OfferingAddProject(View):
     pass
 
-def root_to_subject(root, name):
+def root_to_subject_or_user(root, name):
+    if name.startswith('~'):
+        return root.users.get(name[1:])
     return root.subjects.get(name)
 
 def subject_to_offering(subject, year, semester):
@@ -114,6 +127,9 @@ class BaseTest(object):
     def setUp(self):
         r = Root()
         self.r = r
+
+        # A user would be nice.
+        r.add_user(User('jsmith'))
 
         # Give us some subjects...
         r.add_subject(Subject('info1', '600151'))
@@ -149,11 +165,12 @@ class TestResolution(BaseTest):
         super(TestResolution, self).setUp()
         self.rtr = Publisher(root=self.r, viewset='browser')
         self.rtr.add_set_switch('api', 'api')
-        self.rtr.add_forward(Root, None, root_to_subject, 1)
+        self.rtr.add_forward(Root, None, root_to_subject_or_user, 1)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
         self.rtr.add_forward(Offering, '+files', offering_to_files, 0)
         self.rtr.add_forward(OfferingFiles, None, offering_files_to_file, INF)
         self.rtr.add_forward(Offering, '+projects', offering_to_project, 1)
+        self.rtr.add_view(User, None, UserServeView, viewset='browser')
         self.rtr.add_view(Subject, '+index', SubjectIndex, viewset='browser')
         self.rtr.add_view(Subject, '+edit', SubjectEdit, viewset='browser')
         self.rtr.add_view(Offering, '+index', OfferingIndex, viewset='browser')
@@ -300,6 +317,15 @@ class TestResolution(BaseTest):
               ProjectIndex, ())
              )
 
+    def testNullPathView(self):
+        """Verify that views can be placed immediately under an object.
+
+        There are some cases in which it is useful for a view with a
+        subpath to exist immediately under an object, with no name.
+        """
+        assert_equal(self.rtr.resolve('/~jsmith/foo/bar'),
+             (self.r.users['jsmith'], UserServeView, ('foo', 'bar')))
+
 
 class TestGeneration(BaseTest):
     def setUp(self):
@@ -416,7 +442,7 @@ class TestErrors(BaseTest):
     def setUp(self):
         super(TestErrors, self).setUp()
         self.rtr = Publisher(root=self.r)
-        self.rtr.add_forward(Root, None, root_to_subject, 1)
+        self.rtr.add_forward(Root, None, root_to_subject_or_user, 1)
         self.rtr.add_forward(Subject, '+foo', lambda s: s.name + 'foo', 0)
         self.rtr.add_forward(Subject, None, subject_to_offering, 2)
         self.rtr.add_reverse(Subject, subject_url)

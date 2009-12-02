@@ -108,7 +108,13 @@ class Publisher(object):
         self.add_reverse(func._reverse_route_src, func)
 
     def add_view(self, src, name, cls, viewset=None):
-        """Add a named view for a class, in the specified view set."""
+        """Add a named view for a class, in the specified view set.
+
+        If the name is None, the view will live immediately under the source
+        object. This should be used only if you need the view to have a
+        subpath -- otherwise just using a view with the default name is
+        better.
+        """
 
         if src not in self.vmap:
             self.vmap[src] = {}
@@ -264,10 +270,16 @@ class Publisher(object):
                 # Otherwise, look for a view with the name in the first
                 # remaining path segment.
                 vnames = self.vmap[type(obj)][viewset]
-                view = vnames.get(self.default if len(todo) == 0 else todo[0])
+                if None in vnames:
+                    view = vnames[None]
+                    remove = 0
+                else:
+                    view = vnames.get(
+                        self.default if len(todo) == 0 else todo[0])
+                    remove = 1
 
                 if view is not None:
-                    return (obj, view, tuple(todo[1:]))
+                    return (obj, view, tuple(todo[remove:]))
                 # Now we must check for deep views.
                 # A deep view is one that has a name consisting of
                 # multiple segments. It's messier than it could be, because
