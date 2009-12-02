@@ -233,7 +233,7 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
     def __init__(self, req, exception, lastobj):
         super(XHTMLUnauthorizedView, self).__init__(req, exception, lastobj)
 
-        if req.user is None:
+        if not req.publicmode and req.user is None:
             # Not logged in. Redirect to login page.
             if req.uri == '/':
                 query_string = ''

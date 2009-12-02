@@ -84,20 +84,25 @@ def generate_publisher(view_plugins, root, publicmode=False):
 
     if publicmode:
         view_attr = 'public_views'
+        forward_route_attr = 'public_forward_routes'
+        reverse_route_attr = 'public_reverse_routes'
     else:
         view_attr = 'views'
+        forward_route_attr = 'forward_routes'
+        reverse_route_attr = 'reverse_routes'
+
 
     for plugin in view_plugins:
-        if hasattr(plugin, 'forward_routes'):
-            for fr in plugin.forward_routes:
+        if hasattr(plugin, forward_route_attr):
+            for fr in getattr(plugin, forward_route_attr):
                 # An annotated function can also be passed in directly.
                 if hasattr(fr, '_forward_route_meta'):
                     r.add_forward_func(fr)
                 else:
                     r.add_forward(*fr)
 
-        if hasattr(plugin, 'reverse_routes'):
-            for rr in plugin.reverse_routes:
+        if hasattr(plugin, reverse_route_attr):
+            for fr in getattr(plugin, reverse_route_attr):
                 # An annotated function can also be passed in directly.
                 if hasattr(rr, '_reverse_route_src'):
                     r.add_reverse_func(rr)
