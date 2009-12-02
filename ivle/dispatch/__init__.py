@@ -102,7 +102,7 @@ def generate_publisher(view_plugins, root, publicmode=False):
                     r.add_forward(*fr)
 
         if hasattr(plugin, reverse_route_attr):
-            for fr in getattr(plugin, reverse_route_attr):
+            for rr in getattr(plugin, reverse_route_attr):
                 # An annotated function can also be passed in directly.
                 if hasattr(rr, '_reverse_route_src'):
                     r.add_reverse_func(rr)
