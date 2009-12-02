@@ -25,7 +25,7 @@ serviceapp = 'userservice';
 /* Creates a group */
 function create_new_group(projectsetid)
 {
-    groupnm = window.prompt('Please enter a name for the group');
+    groupnm = window.prompt('Please enter a name for the group','');
     args = {'projectsetid': projectsetid, 'groupnm':groupnm, 'nick': groupnm};
     response = ajax_call(null, serviceapp, 'create_group', args, 'POST');
     if (response.status == 200)
