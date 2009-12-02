@@ -734,17 +734,10 @@ function handle_dir_listing(path, listing)
         row.appendChild(td);
 
         /* Column 3: Filename */
-        if (file.isdir)
-        {
-            td = dom_make_link_elem("td", filename,
-                 "Navigate to " + path_join(path, filename),
-                 build_revision_url(path, filename, current_revision),
-                 null, true);
-        }
-        else
-        {
-            td = dom_make_text_elem("td", filename);
-        }
+        td = dom_make_link_elem("td", filename,
+                "Navigate to " + path_join(path, filename),
+                build_revision_url(path, filename, current_revision),
+                null, true);
         $(td).click(select_row);
         row.appendChild(td);
 
