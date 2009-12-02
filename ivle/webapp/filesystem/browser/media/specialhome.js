@@ -198,8 +198,7 @@ function make_subject_item(path, repopath, name, description)
                 if (create_if_needed(repopath))
                 {
                     // Try a checkout
-                    do_action("svncheckout", current_path, {"path":
-                        [repopath, localpath]});
+                    do_act("svncheckout", {"path": [repopath, localpath]});
                 }
                 else
                 {

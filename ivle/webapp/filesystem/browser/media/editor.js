@@ -31,7 +31,7 @@ function save_file(filename)
     {
         do_action("putfile", filename,
                   {"path":".", "data":data, "overwrite":"true"},
-                  "multipart/form-data", true);
+                  "multipart/form-data");
         disable_save_if_safe();
     }
 }

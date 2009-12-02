@@ -20,6 +20,8 @@
               <a py:otherwise="" href="${url}?r=${log['revno']}">[select]</a>
             </py:choose>
             <a py:if="revno" href="${diffurl}?r=${revno}&amp;r=${log['revno']}">[diff]</a>
+            <input type="button" value="Update to Revision ${log['revno']}"
+                onclick="update_revision(this, ${log['revno']})" />
           </h2>
           <div class="svnlogcontent">
             <pre py:content="log['message']" />
