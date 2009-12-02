@@ -140,6 +140,15 @@ class Publisher(object):
         self.smap[segment] = viewset
         self.srmap[viewset] = segment
 
+    def traversed_to_object(self, obj):
+        """Called when the path resolver encounters an object.
+
+        Can be overridden to perform checks on an object before
+        continuing resolution. This is handy for verifying permissions.
+        """
+        # We do nothing by default.
+        pass
+
     def resolve(self, path):
         """Resolve a path into an object.
 
@@ -319,6 +328,8 @@ class Publisher(object):
             if newobj is None:
                 raise NotFound(obj, tuple(args) if len(args) != 1 else args[0],
                                tuple(todo))
+
+            self.traversed_to_object(newobj)
 
             obj = newobj
 

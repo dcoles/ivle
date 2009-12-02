@@ -50,12 +50,31 @@ from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()
 
+class ObjectPermissionCheckingPublisher(Publisher):
+    """A specialised publisher that checks object permissions.
+
+    This publisher verifies that the user holds any permission at all
+    on the model objects through which the resolution path passes. If
+    no permission is held, resolution is aborted with an Unauthorized
+    exception.
+
+    IMPORTANT: This does NOT check view permissions. It only checks
+    the objects in between the root and the view, exclusive!
+    """
+
+    def traversed_to_object(self, obj):
+        """Check that the user has any permission at all over the object."""
+        if (hasattr(obj, 'get_permissions') and
+            len(obj.get_permissions(self.root.user)) == 0):
+            raise Unauthorized()
+
+
 def generate_publisher(view_plugins, root):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
     """
-    r = Publisher(root=root)
+    r = ObjectPermissionCheckingPublisher(root=root)
 
     r.add_set_switch('api', 'api')
 
@@ -104,8 +123,9 @@ def handler(apachereq):
     if req.publicmode:
         raise NotImplementedError("no public mode with obtrav yet!")
 
-    req.publisher = generate_publisher(config.plugin_index[ViewPlugin],
-                                 ApplicationRoot(req.config, req.store))
+    req.publisher = generate_publisher(
+        config.plugin_index[ViewPlugin],
+        ApplicationRoot(req.config, req.store, req.user))
 
     try:
         obj, viewcls, subpath = req.publisher.resolve(req.uri.decode('utf-8'))
@@ -154,6 +174,11 @@ def handler(apachereq):
         else:
             req.store.commit()
             return req.OK
+    except Unauthorized, e:
+        # Resolution failed due to a permission check. Display a pretty
+        # error, or maybe a login page.
+        XHTMLView.get_error_view(e)(req, e, req.publisher.root).render(req)
+        return req.OK
     except PublishingError, e:
         req.status = 404
 
