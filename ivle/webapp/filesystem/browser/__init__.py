@@ -44,6 +44,7 @@ class BrowserView(XHTMLView):
     template = 'template.html'
     tab = 'files'
     help = 'Filesystem/Browser'
+    breadcrumb_text = 'Files'
 
     subpath_allowed = True
 

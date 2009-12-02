@@ -8,6 +8,7 @@ from ivle.webapp import ApplicationRoot
 class ConsoleView(XHTMLView):
     tab = 'console'
     help = 'Console'
+    breadcrumb_text = 'Console'
 
     # Overide the the standard constructor view
     def __init__(self, *args, **kwargs):
