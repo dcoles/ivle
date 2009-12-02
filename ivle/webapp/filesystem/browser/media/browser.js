@@ -134,12 +134,14 @@ upload_callback_count = 0;      /* See upload_callback */
  *      May be "application/x-www-form-urlencoded" or "multipart/form-data".
  *      Defaults to "application/x-www-form-urlencoded".
  *      "multipart/form-data" is recommended for large uploads.
+ * \param callback, optional.
+ *      A callback function for after the action has been handled.
  */
-function do_action(action, path, args, content_type, ignore_response)
+function do_action(action, path, args, content_type, callback)
 {
     args.action = action;
     /* Callback action, when the server returns */
-    var callback = function(response)
+    var callback_inner = function(response)
         {
             /* Check for action errors reported by the server, and report them
              * to the user */
@@ -149,11 +151,11 @@ function do_action(action, path, args, content_type, ignore_response)
                  * allow multi-line error messages. Decode */
                 alert("Error: " + decodeURIComponent(error.toString()) + ".");
             /* Now read the response and set up the page accordingly */
-            if (ignore_response != true)
-                handle_response(path, response, true);
+            if (callback != null)
+                callback(path, response);
         }
     /* Call the server and perform the action. This mutates the server. */
-    ajax_call(callback, service_app, path, args, "POST", content_type);
+    ajax_call(callback_inner, service_app, path, args, "POST", content_type);
 }
 
 /** Calls the server using Ajax, requesting a directory listing. This should
@@ -954,6 +956,12 @@ function browser_init()
      * This causes the page to be populated with whatever is at that address,
      * whether it be a directory or a file.
      */
+    var path = get_path();
+    navigate(path);
+}
+
+/** Gets the current path of the window */
+function get_path() {
     var path = parse_url(window.location.href).path;
     /* Strip out root_dir + "/files" from the front of the path */
     var strip = make_path(this_app);
@@ -976,5 +984,5 @@ function browser_init()
         path = username;
     }
 
-    navigate(path);
+    return path;
 }
