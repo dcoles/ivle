@@ -31,7 +31,7 @@ function save_file(filename)
     {
         do_action("putfile", filename,
                   {"path":".", "data":data, "overwrite":"true"},
-                  "multipart/form-data", true);
+                  "multipart/form-data");
         disable_save_if_safe();
     }
 }
@@ -150,6 +150,7 @@ function handle_text(path, text, handler_type)
      */
     using_codepress = (navigator.userAgent.match('Gecko') &&
                        !navigator.userAgent.match('WebKit') &&
+                       !navigator.userAgent.match('KHTML') &&
                        !navigator.userAgent.match('Presto'))
 
     if (using_codepress)

@@ -91,6 +91,8 @@
 # action=svnupdate: Bring a file up to date with the head revision.
 #       path:   The path to the file to be updated. Only one file may be
 #               specified.
+#       revision: The revision number to update to. If not provided this
+#               defaults to HEAD.
 #
 # action=svnpublish: Set the "published" flag on a file to True.
 #       path:   The path to the file to be published. Can be specified
@@ -118,6 +120,10 @@
 # action=svnrepostat: Check if a path exists in a repository (not WC).
 #       path:   The path to the directory to be checked (under the IVLE
 #               repository base).
+#
+# action=svncleanup: Recursively clean up the working copy, removing locks,
+#   resuming unfinished operations, etc.
+#       path:   The path to the directory to be cleaned
 #
 # TODO: Implement the following actions:
 #   svnupdate (done?)
@@ -611,15 +617,24 @@ def action_svnremove(req, fields):
 def action_svnupdate(req, fields):
     """Performs a "svn update" to each file specified.
 
-    Reads fields: 'path'
+    Reads fields: 'path' and 'revision'
     """
     path = fields.getfirst('path')
+    revision = fields.getfirst('revision')
     if path is None:
         raise ActionError("Required field missing")
+    if revision is None:
+        revision = pysvn.Revision( pysvn.opt_revision_kind.head )
+    else:
+        try:
+            revision = pysvn.Revision(pysvn.opt_revision_kind.number,
+                    int(revision))
+        except ValueError, e:
+            raise ActionError("Bad revision number: '%s'"%revision,)
     path = actionpath_to_local(req, path)
 
     try:
-        svnclient.update(path, recurse=True)
+        svnclient.update(path, recurse=True, revision=revision)
     except pysvn.ClientError, e:
         raise ActionError(str(e))
 
@@ -761,7 +776,23 @@ def action_svnrepostat(req, fields):
             raise util.IVLEError(404, 'The specified repository path does not exist')
         else:
             raise ActionError(str(e[0]))
-            
+
+
+def action_svncleanup(req, fields):
+    """Recursively clean up the working copy, removing locks, resuming 
+    unfinished operations, etc.
+        path:   The path to be cleaned"""
+
+    path = fields.getfirst('path')
+    if path is None:
+        raise ActionError("Required field missing")
+    path = actionpath_to_local(req, path)
+
+    try:
+        svnclient.cleanup(path)
+    except pysvn.ClientError, e:
+        raise ActionError(str(e))
+
 
 # Table of all action functions #
 # Each function has the interface f(req, fields).
@@ -787,4 +818,5 @@ actions_table = {
     "svncheckout" : action_svncheckout,
     "svnrepomkdir" : action_svnrepomkdir,
     "svnrepostat" : action_svnrepostat,
+    "svncleanup" : action_svncleanup,
 }

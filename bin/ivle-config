@@ -92,7 +92,8 @@ process runs as (usually www-data):""",
 # In the local file system, where IVLE error logs should be located.""",
     ask=False))
 
-config_options.append(ConfigOption("urls/public_host", "public.localhost",
+config_options.append(ConfigOption("urls/public_host",
+    "public.ivle.localhost",
     """Hostname which will cause the server to go into "public mode",
 providing login-free access to student's published work:""",
     """
@@ -177,7 +178,8 @@ Add proprietary modules to automatically enrol students in subjects.""",
 # other modules may be plugged in to pulldown against organisation-specific
 # pulldown backends.""", ask=False))
 
-config_options.append(ConfigOption("urls/svn_addr", "http://svn.localhost/",
+config_options.append(ConfigOption("urls/svn_addr",
+    "http://svn.ivle.localhost/",
     """Subversion config
 =================
 The base url for accessing subversion repositories:""",

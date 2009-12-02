@@ -1,0 +1,45 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit profile - ${user.nick}</title>
+  </head>
+  <body>
+    <h1>Edit profile of ${user.nick}</h1>
+    <div id="ivle_padding">
+      <p>
+        ${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)
+        <a py:if="user.passhash" href="/~${user.login}/+changepassword">(change password)</a>
+        <a py:if="req.user.admin" href="/~${user.login}/+resetpassword">(reset password)</a>
+        <a py:if="req.user.admin" href="/~${user.login}/+admin">(administer)</a>
+      </p>
+    
+      <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
+
+      <form class="verticalform" action="" method="post">
+        <div>
+          <label for="nick">Display name:</label>
+          <input type="text" name="nick" id="nick" size="40" />
+          <span py:if="'nick' in errors" class="form_error">${errors.nick}</span>
+        </div>
+        <div>
+          <label for="email">Email address:</label>
+          <input type="text" name="email" id="email" size="40" />
+          <span py:if="'email' in errors" class="form_error">${errors.email}</span>
+        </div>
+        <p><input type="submit" value="Save Changes" /></p>
+      </form>
+
+      <h3 py:if="user.pass_exp or user.acct_exp">Notices</h3>
+      <p py:if="user.pass_exp">
+        Your password will expire
+        <span title="${format_datetime(user.pass_exp)}">${format_datetime_short(user.pass_exp)}</span>.
+        You should change it before then to avoid having your account
+        disabled.
+      </p>
+      <p py:if="user.acct_exp">
+        Your IVLE account will expire
+        <span title="${format_datetime(user.acct_exp)}">${format_datetime_short(user.acct_exp)}</span>.
+      </p>
+    </div>
+  </body>
+</html>

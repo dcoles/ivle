@@ -66,7 +66,7 @@ CREATE TABLE project (
     synopsis    TEXT,
     url         TEXT,
     projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
-    deadline    TIMESTAMP
+    deadline    TIMESTAMP NOT NULL
 );
 
 CREATE OR REPLACE FUNCTION check_project_namespacing_insertupdate()

@@ -136,6 +136,7 @@ class BrowserView(XHTMLView):
             ('svncommit',   ['Commit',         'Commit any changes to the permanent repository']),
             ('svnresolved', ['Mark Resolved',  'Mark a conflicted file as being resolved']),
             ('svnlog',      ['View Log',       'View the log of commits of the selected file']),
+            ('svncleanup',  ['Cleanup',     'Clear stale Subversion locks']),
           ])
         ]
 

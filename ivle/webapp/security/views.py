@@ -101,8 +101,9 @@ class LoginView(XHTMLView):
                 else:
                     user = None
                     try:
+                        # Username is case insensitive
                         user = authenticate.authenticate(req.config, req.store,
-                                    username.value, password.value)
+                                    username.value.lower(), password.value)
                     except AuthError, msg:
                         badlogin = msg
                     if user is None:

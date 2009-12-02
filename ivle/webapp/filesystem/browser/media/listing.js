@@ -41,12 +41,21 @@ icon_size = 16;
 
 /** ACTIONS **/
 
+/** Do a action on the current path and then run the handle_response callback 
+ **/
+function do_act(action, args) {
+    do_action(action, current_path, args, null,
+            function(path, response) {
+                handle_response(path, response, true);
+            });
+}
+
 function action_rename(fromfilename)
 {
     var tofilename = prompt("Rename file \"" + fromfilename + "\" to?",
         fromfilename);
     if (tofilename == null) return;
-    do_action("move", current_path, {"from":fromfilename, "to":tofilename});
+    do_act("move", {"from":fromfilename, "to":tofilename});
     return false;
 }
 
@@ -97,7 +106,7 @@ function action_delete(files)
 
     var confirmed = confirm(conf_msg);
     if (!confirmed) return;
-    do_action("delete", current_path, {"path":files});
+    do_act("delete", {"path":files});
     return false;
 }
 
@@ -105,7 +114,7 @@ function action_mkdir()
 {
     var path = prompt("New directory name?");
     if (path == null) return;
-    do_action("mkdir", current_path, {"path":path});
+    do_act("mkdir", {"path":path});
     return false;
 }
 
@@ -116,7 +125,7 @@ function action_newfile()
     /* "Upload" a blank file */
     /* Note: "overwrite" defaults to false, so will error if it already
      * exists. */
-    do_action("putfile", current_path, {"path":path, "data":""});
+    do_act("putfile", {"path":path, "data":""});
     return false;
 }
 
@@ -168,7 +177,7 @@ function action_paste()
     /* The clip_obj is exactly what we want to pass, plus the current path
      * as destination. */
     clip_obj.dst = ".";
-    do_action("paste", current_path, clip_obj);
+    do_act("paste", clip_obj);
     return false;
 }
 
@@ -186,45 +195,45 @@ function action_svncut(files)
 
 function action_add(files)
 {
-    do_action("svnadd", current_path, {"path":files});
+    do_act("svnadd", {"path":files});
     return false;
 }
 
 function action_remove(files)
 {
-    do_action("svnremove", current_path, {"path":files});
+    do_act("svnremove", {"path":files});
     return false;
 }
 
 function action_revert(files)
 {
-    do_action("svnrevert", current_path, {"path":files});
+    do_act("svnrevert", {"path":files});
     return false;
 }
 
 function action_publish(files)
 {
-    do_action("publish", current_path, {"path":files});
+    do_act("publish", {"path":files});
     return false;
 }
 
 function action_unpublish(files)
 {
-    do_action("unpublish", current_path, {"path":files});
+    do_act("unpublish", {"path":files});
     return false;
 }
 
 function action_update(files)
 {
     if (files.length == 0) files = ".";
-    do_action("svnupdate", current_path, {"path": files});
+    do_act("svnupdate", {"path": files});
     return false;
 }
 
 function action_resolved(files)
 {
     if (files.length == 0) files = ".";
-    do_action("svnresolved", current_path, {"path": files});
+    do_act("svnresolved", {"path": files});
     return false;
 }
 
@@ -233,8 +242,14 @@ function action_commit(files)
     /* Get a commit log from the user */
     var logmsg = prompt("Enter commit log:");
     if (logmsg == null) return;
-    do_action("svncommit", current_path, {"path":files, "logmsg": logmsg});
+    do_act("svncommit", {"path":files, "logmsg": logmsg});
     return false;
+}
+
+function action_svncleanup(path)
+{
+    do_act("svncleanup", {"path": path});
+    alert("Subversion Cleanup Complete");
 }
 
 /** Selects or deselects all files in the listing.
