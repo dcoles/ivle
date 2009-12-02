@@ -73,7 +73,7 @@ class ObjectPermissionCheckingPublisher(Publisher):
                 raise Unauthorized()
 
 
-def generate_publisher(view_plugins, root):
+def generate_publisher(view_plugins, root, publicmode=False):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
@@ -81,6 +81,11 @@ def generate_publisher(view_plugins, root):
     r = ObjectPermissionCheckingPublisher(root=root)
 
     r.add_set_switch('api', 'api')
+
+    if publicmode:
+        view_attr = 'public_views'
+    else:
+        view_attr = 'views'
 
     for plugin in view_plugins:
         if hasattr(plugin, 'forward_routes'):
@@ -99,8 +104,8 @@ def generate_publisher(view_plugins, root):
                 else:
                     r.add_reverse(*rr)
 
-        if hasattr(plugin, 'views'):
-            for v in plugin.views:
+        if hasattr(plugin, view_attr):
+            for v in getattr(plugin, view_attr):
                 r.add_view(*v)
 
     return r
@@ -124,12 +129,10 @@ def handler(apachereq):
         if user and user.valid:
             req.user = user
 
-    if req.publicmode:
-        raise NotImplementedError("no public mode with obtrav yet!")
-
     req.publisher = generate_publisher(
         config.plugin_index[ViewPlugin],
-        ApplicationRoot(req.config, req.store, req.user))
+        ApplicationRoot(req.config, req.store, req.user),
+        publicmode=req.publicmode)
 
     try:
         obj, viewcls, subpath = req.publisher.resolve(req.uri.decode('utf-8'))

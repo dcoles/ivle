@@ -163,3 +163,4 @@ def root_to_media(root, *segments):
 class Plugin(ViewPlugin, PublicViewPlugin):
     forward_routes = [(ApplicationRoot, '+media', root_to_media, INF)]
     views = [(MediaFile, '+index', MediaFileView)]
+    public_views = [(MediaFile, '+index', MediaFileView)]
