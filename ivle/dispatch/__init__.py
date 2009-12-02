@@ -66,7 +66,11 @@ class ObjectPermissionCheckingPublisher(Publisher):
         """Check that the user has any permission at all over the object."""
         if (hasattr(obj, 'get_permissions') and
             len(obj.get_permissions(self.root.user)) == 0):
-            raise Unauthorized()
+            # Indicate the forbidden object if this is an admin.
+            if self.root.user and self.root.user.admin:
+                raise Unauthorized('Unauthorized: %s' % obj)
+            else:
+                raise Unauthorized()
 
 
 def generate_publisher(view_plugins, root):
@@ -140,7 +144,11 @@ def handler(apachereq):
             # Check that the request (mainly the user) is permitted to access
             # the view.
             if not view.authorize(req):
-                raise Unauthorized()
+                # Indicate the forbidden object if this is an admin.
+                if req.user and req.user.admin:
+                    raise Unauthorized('Unauthorized: %s' % view)
+                else:
+                    raise Unauthorized()
             # Render the output
             view.render(req)
         except HTTPError, e:
