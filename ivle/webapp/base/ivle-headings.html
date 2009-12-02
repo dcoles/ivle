@@ -15,6 +15,7 @@
         public_host = "${public_host}";
         svn_base = "${svn_base}";
         username = "${login}";
+        <py:if test="defined('tab')">this_app = "${tab}";</py:if>
       </script>
 
       <link py:if="favicon" rel="shortcut icon" href="${favicon}" />

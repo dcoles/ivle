@@ -712,3 +712,30 @@ function decode_response(response)
     
      return null;
 }
+
+/** Gets the current path of the window. Requires this_app to be defined */
+function get_path() {
+    var path = parse_url(window.location.href).path;
+    /* Strip out root_dir + "/files" from the front of the path */
+    var strip = make_path(this_app);
+    if (path.substr(0, strip.length) == strip)
+        path = path.substr(strip.length+1);
+    else
+    {
+        /* See if this is an edit path */
+        strip = make_path(edit_app);
+        if (path.substr(0, strip.length) == strip)
+        {
+            path = path.substr(strip.length+1);
+        }
+    }
+
+    if (path.length == 0)
+    {
+        /* Navigate to the user's home directory by default */
+        /* TEMP? */
+        path = username;
+    }
+
+    return path;
+}

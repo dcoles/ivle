@@ -60,7 +60,7 @@ class ConsoleServiceRESTView(JSONRESTView):
                                      "magic": cons.magic}).encode('hex')}
 
     @named_operation('use')
-    def chat(self, req, key, text='', kind="chat"):
+    def chat(self, req, key, text='', cwd='', kind="chat"):
         # The request *should* have the following four fields:
         # key: Hex JSON dict of host and port where the console server lives,
         # and the secret to use to digitally sign the communication with the
@@ -78,7 +78,8 @@ class ConsoleServiceRESTView(JSONRESTView):
 
         jail_path = os.path.join(req.config['paths']['jails']['mounts'],
                                  req.user.login)
-        working_dir = os.path.join("/home", req.user.login)   # Within jail
+        # Within Jail
+        working_dir = os.path.join("/home", req.user.login, cwd)
         uid = req.user.unixid
 
         # XXX: JSONRESTView should do this for us.

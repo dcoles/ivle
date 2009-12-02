@@ -121,6 +121,8 @@ class XHTMLView(BaseView):
         ctx['publicmode'] = req.publicmode
         if hasattr(self, 'help'):
             ctx['help_path'] = self.help
+        if hasattr(self, 'tab'):
+            ctx['tab'] = self.tab
 
         ctx['apps_in_tabs'] = []
         for plugin in req.config.plugin_index[ViewPlugin]:
