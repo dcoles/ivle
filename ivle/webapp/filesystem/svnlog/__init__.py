@@ -38,6 +38,11 @@ class SubversionLogView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['log.css']
+        self.plugin_scripts = {
+                'ivle.webapp.filesystem.browser': ['browser.js'],
+                Plugin: ['log.js'],
+                }
+        self.scripts_init = ['log_init']
 
         svnlogservice_path = os.path.join(req.config['paths']['share'],
                                           'services/svnlogservice')
