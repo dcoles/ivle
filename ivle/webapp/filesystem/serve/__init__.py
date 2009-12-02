@@ -149,9 +149,18 @@ class DownloadView(ServeView):
         self.serve_file(req, owner, jail, path, download=True,files=self.files)
 
 class PublicServeView(ServeView):
-    def __init__(self, req, path):
-        req.path = path # XXX: Needed because we don't have an app prefix.
-        super(PublicServeView, self).__init__(req, path)
+    def __init__(self, req, context, subpath=None):
+        # XXX: Prepend the username to the path, since the authorization
+        # code expects that, but req.path drops the first path segment
+        # for historical reasons.
+        req.path = os.path.join(context.login, req.path)
+        super(PublicServeView, self).__init__(req, context, subpath)
+
+    @property
+    def path(self):
+        # XXX: Prepend the username again. See above for explanation.
+        return os.path.join(
+            self.context.login, super(PublicServeView, self).path)
 
     def authorize(self, req):
         # Only accessible in public mode.
@@ -163,17 +172,9 @@ class PublicServeView(ServeView):
         # in its parent directory.
         return studpath.authorize_public(req)
 
-    # We don't want to redirect to a login page on Unauthorized.
-    @classmethod
-    def get_error_view(cls, e):
-        return XHTMLErrorView
-
 class Plugin(ViewPlugin, PublicViewPlugin):
     views = [(ApplicationRoot, 'serve', ServeView),
              (ApplicationRoot, 'download', DownloadView)
              ]
 
-    # TODO: Need to restore this.
-    #public_urls = [
-    #    ('~*path', PublicServeView),
-    #]
+    public_views = [(User, None, PublicServeView)]
