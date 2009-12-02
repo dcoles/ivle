@@ -21,7 +21,6 @@
  */
 
 /* Url names for apps */
-this_app = "files";
 edit_app = "edit";
 service_app = "fileservice";
 serve_app = "serve";
