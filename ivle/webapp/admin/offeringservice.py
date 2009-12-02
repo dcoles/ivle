@@ -28,10 +28,9 @@ class OfferingRESTView(XHTMLRESTView):
             raise NotFound()
 
     def new_project_url(self, projectset):
-        return "/api/subjects/" + str(self.context.subject.id) + "/" +\
-               self.context.semester.year + "/" +\
-               self.context.semester.semester + "/+projectsets/" +\
-               (str(projectset.id)) + "/+projects/+new"
+        return "/api/subjects/%s/%s/%s/+projectsets/%d/+projects/+new" % (
+            self.context.subject.short_name, self.context.semester.year,
+            self.context.semester.semester, projectset.id)
 
     @named_operation('edit')
     def add_projectset(self, req, group_size):
