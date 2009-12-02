@@ -102,7 +102,7 @@ class MediaFileView(BaseView):
            self.context.path.startswith('/'):
             raise Forbidden()
 
-        filename = self.context.filename
+        filename = self.get_filename(req)
         if filename is None:
             raise NotFound()
 
@@ -126,6 +126,9 @@ class MediaFileView(BaseView):
 
         req.content_type = type
         req.sendfile(filename)
+
+    def get_filename(self, req):
+        return self.context.filename
 
     def get_permissions(self, user):
         return set()

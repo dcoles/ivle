@@ -41,7 +41,7 @@ from ivle.webapp import ApplicationRoot
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.media import media_url#, BaseMediaFileView
+from ivle.webapp.media import media_url
 from ivle.webapp.errors import NotFound
 from ivle.worksheet.rst import rst as rstfunc
 
@@ -57,6 +57,8 @@ from ivle.webapp.tutorial.publishing import (root_to_exercise, exercise_url,
             exerciseattempt_url)
 from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
             WorksheetBreadcrumb)
+from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
+    subject_to_media)
 
 class Worksheet:
     """This class represents a worksheet and a particular students progress
@@ -161,28 +163,6 @@ class WorksheetView(XHTMLView):
         generate_worksheet_data(ctx, req, self.context)
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
-
-#class SubjectMediaView(BaseMediaFileView):
-#    '''The view of subject media files.
-#
-#    URIs pointing here will just be served directly, from the subject's
-#    media directory.
-#    '''
-#    permission = 'view'
-#
-#    def __init__(self, req, subject, path):
-#        self.context = req.store.find(Subject, short_name=subject).one()
-#        self.path = os.path.normpath(path)
-#
-#    def _make_filename(self, req):
-#        # If the subject doesn't exist, self.subject will be None. Die.
-#        if not self.context:
-#            raise NotFound()
-#
-#        subjectdir = os.path.join(req.config['paths']['data'],
-#                                  'content/subjects',
-#                                  self.context.short_name, 'media')
-#        return os.path.join(subjectdir, self.path)
 
 def get_worksheets(subjectfile):
     '''Given a subject stream, get all the worksheets and put them in ctx'''
@@ -501,7 +481,7 @@ class ExercisesView(XHTMLView):
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_exercise, offering_to_worksheet,
         worksheet_to_worksheetexercise, worksheetexercise_to_exerciseattempts,
-        exerciseattempts_to_attempt)
+        exerciseattempts_to_attempt, subject_to_media)
 
     reverse_routes = (exercise_url, worksheet_url, worksheetexercise_url,
         exerciseattempts_url, exerciseattempt_url)
@@ -519,6 +499,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
              (Exercise, '+edit', ExerciseEditView),
              (Exercise, '+delete', ExerciseDeleteView),
+             (SubjectMediaFile, '+index', SubjectMediaView),
 
              (Offering, ('+worksheets', '+index'), WorksheetsRESTView, 'api'),
              (DBWorksheet, '+index', WorksheetRESTView, 'api'),
