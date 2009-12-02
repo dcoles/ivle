@@ -71,4 +71,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ivle.database.User, '+index', UserRESTView, 'api'),
              ]
 
+    public_forward_routes = forward_routes
+    public_reverse_routes = reverse_routes
+
     media = 'user-media'
