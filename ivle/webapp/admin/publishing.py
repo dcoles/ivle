@@ -40,12 +40,18 @@ def subject_to_offering(subject, year, semester):
 @forward_route(Offering, '+projects', argc=1)
 def offering_to_project(offering, name):
     return Store.of(offering).find(Project,
+                                   Project.short_name == name,
                                    Project.project_set_id == ProjectSet.id,
                                    ProjectSet.offering == offering).one()
 
 @forward_route(Offering, '+projectsets', argc=1)
 def offering_to_projectset(offering, name):
+    try:
+        ps_id = int(name)
+    except ValueError:
+        return None
     return Store.of(offering).find(ProjectSet,
+                                   ProjectSet.id == ps_id,
                                    ProjectSet.offering == offering).one()
 
 @reverse_route(User)
@@ -63,8 +69,8 @@ def offering_url(offering):
 
 @reverse_route(ProjectSet)
 def projectset_url(project_set):
-    return (project_set.offering, ('+projectsets', project_set.name))
+    return (project_set.offering, ('+projectsets', str(project_set.id)))
 
 @reverse_route(Project)
 def project_url(project):
-    return (project.project_set.offering, ('+projects', project.name))
+    return (project.project_set.offering, ('+projects', project.short_name))
