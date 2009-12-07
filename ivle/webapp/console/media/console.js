@@ -36,6 +36,33 @@ server_started = false;
 
 interrupted = false;
 
+
+function get_console_start_directory()
+{
+    if((typeof(current_path) != 'undefined') && current_file)
+    {
+        // We have a current_path - give a suggestion to the server
+        var path;
+        if (current_file.isdir)
+        {
+            // Browser
+            return path_join("/home", current_path);
+        }
+        else
+        {
+            // Editor - need to chop off filename
+            var tmp_path = current_path.split('/');
+            tmp_path.pop();
+            return path_join("/home", tmp_path.join('/'));
+        }
+    }
+    else
+    {
+        // No current_path - let the server decide
+        return '';
+    }
+}
+
 /* Starts the console server, if it isn't already.
  * This can be called any number of times - it only starts the one server.
  * Note that this is asynchronous. It will return after signalling to start
@@ -64,30 +91,10 @@ function start_server(callback)
                 callback();
         }
 
-    //var current_path;
-    if((typeof(current_path) != 'undefined') && current_file)
-    {
-        // We have a current_path - give a suggestion to the server
-        var path;
-        if (current_file.isdir)
-        {
-            // Browser
-            path = path_join("/home", current_path);
-        }
-        else
-        {
-            // Editor - need to chop off filename
-            var tmp_path = current_path.split('/');
-            tmp_path.pop();
-            path = path_join("/home", tmp_path.join('/'));
-        }
-        ajax_call(callback1, "console", "service", {"ivle.op": "start", "cwd": path}, "POST");
-    }
-    else
-    {
-        // No current_path - let the server decide
-        ajax_call(callback1, "console", "service", {"ivle.op": "start"}, "POST");
-    }
+    ajax_call(
+        callback1, "console", "service",
+        {"ivle.op": "start", "cwd": get_console_start_directory()}, 
+        "POST");
 }
 
 /** Initialises the console. All apps which import console are required to
@@ -279,7 +286,10 @@ function console_enter_line(inputbox, which)
         span.appendChild(document.createTextNode(inputline));
         output.appendChild(span);
     }
-    var args = {"ivle.op": "chat", "kind": which, "key": server_key, "text":inputline};
+    var args = {
+        "ivle.op": "chat", "kind": which, "key": server_key,
+        "text": inputline, "cwd": get_console_start_directory()
+        };
     var callback = function(xhr)
         {
             console_response(inputbox, inputline, xhr.responseText);
@@ -356,7 +366,10 @@ function console_response(inputbox, inputline, responseText)
         {
             var kind = "chat";
         }
-        var args = {"ivle.op": "chat", "kind": kind, "key": server_key, "text":''};
+        var args = {
+            "ivle.op": "chat", "kind": kind, "key": server_key,
+            "text": '', "cwd": get_console_start_directory()
+            };
         ajax_call(callback, "console", "service", args, "POST");
 
         // Open up the console so we can see the output
@@ -467,7 +480,7 @@ function console_reset()
     }
     else
     {
-        xhr = ajax_call(null, "console", "service", {"ivle.op": "chat", "kind": "terminate", "key": server_key}, "POST");
+        xhr = ajax_call(null, "console", "service", {"ivle.op": "chat", "kind": "terminate", "key": server_key, "cwd": get_console_start_directory()}, "POST");
         console_response(null, null, xhr.responseText);
     }
 }
