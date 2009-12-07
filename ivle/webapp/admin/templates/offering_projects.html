@@ -11,14 +11,17 @@
           ${projectset}
         </py:for>
       </ul>
-      <div id="add_projectset">
-        <a>Add a new project set</a>
-        <form id="new_projectset_form" method="PUT" name="new_projectset_form" action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
+      <div class="add-projectset">
+        <a href="#" id="add_new_projectset"
+           class="add-projectset-link">Add a new project set</a>
+        <form id="new_projectset_form" class="new_projectset"
+              method="PUT" name="new_projectset_form"
+              action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
           <div id="new_projectset_div">
             <label for="group_size">Group Size:</label>
             <input type="text" name="group_size" id="group_size"></input>
             <input type="submit" id="submit_new_projectset" name="Bob"
-                value="Create Project Set"/>
+                   value="Create"/>
           </div>
         </form>
       </div>

@@ -17,21 +17,17 @@
   background: #eee;
 }
 
-#add_projectset {
-    padding: 10px;
-}
-
-.add-project > div{
+.add-project > div, .add-projectset > div {
     width: 600px;
     padding-left: 40px;
 }
 
-.add-project label {
+.add-project label, .add-projectset label {
     position: absolute;
     text-align: right;
 }
 
-.add-project input, textarea {
+.add-project input, textarea, .add-projectset input {
     margin-left: 100px;
     width: 400px;
 }
@@ -41,7 +37,7 @@
     white-space: pre-wrap;
 }
 
-.add-project > form {
+.add-project > form, .add-projectset > form {
     display: none;
 }
 
