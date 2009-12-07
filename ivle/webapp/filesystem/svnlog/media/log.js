@@ -20,12 +20,12 @@
  * Date: 2/12/2009
  */
 
-/** Links for apps */
 browser_app = "files";
 
 /** Called when the page loads initially */
 function log_init()
 {
+    this_app = "svnlog";
     current_path = get_path();
 }
 

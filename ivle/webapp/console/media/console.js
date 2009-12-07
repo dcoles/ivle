@@ -64,34 +64,29 @@ function start_server(callback)
                 callback();
         }
 
-    var cwd = get_cwd();
-    ajax_call(callback1, "console", "service", {"ivle.op": "start",
-            "cwd": cwd}, "POST");
-}
-
-/** Try and get the current working directory of this app */
-function get_cwd()
-{
-    /** Can get CWD from filesystem app */
-    if((typeof(this_app) != 'undefined') && this_app == "files")
+    //var current_path;
+    if((typeof(current_path) != 'undefined') && current_file)
     {
+        // We have a current_path - give a suggestion to the server
+        var path;
         if (current_file.isdir)
         {
-            // Browser - already a directory
-            return path_join("/home", current_path);
+            // Browser
+            path = path_join("/home", current_path);
         }
         else
         {
             // Editor - need to chop off filename
             var tmp_path = current_path.split('/');
             tmp_path.pop();
-            return path_join("/home", tmp_path.join('/'));
+            path = path_join("/home", tmp_path.join('/'));
         }
+        ajax_call(callback1, "console", "service", {"ivle.op": "start", "cwd": path}, "POST");
     }
     else
     {
-        // Unable to determine CWD
-        return '';
+        // No current_path - let the server decide
+        ajax_call(callback1, "console", "service", {"ivle.op": "start"}, "POST");
     }
 }
 
@@ -284,9 +279,7 @@ function console_enter_line(inputbox, which)
         span.appendChild(document.createTextNode(inputline));
         output.appendChild(span);
     }
-    var cwd = get_cwd();
-    var args = {"ivle.op": "chat", "kind": which, "key": server_key,
-            "text":inputline, "cwd": cwd};
+    var args = {"ivle.op": "chat", "kind": which, "key": server_key, "text":inputline};
     var callback = function(xhr)
         {
             console_response(inputbox, inputline, xhr.responseText);
@@ -363,9 +356,7 @@ function console_response(inputbox, inputline, responseText)
         {
             var kind = "chat";
         }
-        var cwd = get_cwd();
-        var args = {"ivle.op": "chat", "kind": kind, "key": server_key,
-                "text":'', "cwd": cwd};
+        var args = {"ivle.op": "chat", "kind": kind, "key": server_key, "text":''};
         ajax_call(callback, "console", "service", args, "POST");
 
         // Open up the console so we can see the output
@@ -476,11 +467,7 @@ function console_reset()
     }
     else
     {
-        /* Terminate the old server and start a new one */
-        var cwd = get_cwd();
-        xhr = ajax_call(null, "console", "service", {"ivle.op": "chat",
-                "kind": "terminate", "key": server_key, "cwd": cwd},
-                "POST");
+        xhr = ajax_call(null, "console", "service", {"ivle.op": "chat", "kind": "terminate", "key": server_key}, "POST");
         console_response(null, null, xhr.responseText);
     }
 }
