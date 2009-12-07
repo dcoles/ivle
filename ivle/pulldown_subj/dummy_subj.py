@@ -33,9 +33,9 @@ def get_subjects(login):
     if ord(login[:1]) < ord('m'):
         # Return a list of subject/semester pairs
         return [
-            (u'12345', u'1'),
-            (u'12345', u'2'),
-            (u'98765', u'1'),
+            (u'600151', u'2009', u'1'),
+            (u'12345', u'2009', u'2'),
+            (u'98765', u'2009', u'1'),
         ]
     else:
         # This demonstrates that you can return None, to indicate to the
