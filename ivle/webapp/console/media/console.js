@@ -447,6 +447,12 @@ function catch_input(key)
             hist.submit(inp.value);
             inp.value = hist.curr();
         }
+
+        /* Disable the text box. This will be redone by
+         * console_enter_line, but we do it here too in case start_server
+         * takes a while.
+         */
+        inp.setAttribute("disabled", "disabled");
         /* Start the server if it hasn't already been started */
         start_server(callback);
         break;
