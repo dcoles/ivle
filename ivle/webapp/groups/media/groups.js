@@ -25,19 +25,28 @@ serviceapp = 'userservice';
 /* Creates a group */
 function create_new_group(projectsetid)
 {
-    groupnm = window.prompt('Please enter a name for the group');
-    args = {'projectsetid': projectsetid, 'groupnm':groupnm, 'nick': groupnm};
-    response = ajax_call(null, serviceapp, 'create_group', args, 'POST');
-    if (response.status == 200)
+    groupnm = window.prompt('Please enter a name for the group','');
+
+    /* If the provided name is empty, or the prompt is cancelled, stop. */
+    if (groupnm)
     {
-        /* pass */
+        args = {
+            'projectsetid': projectsetid,
+            'groupnm':groupnm,
+            'nick': groupnm
+        };
+        response = ajax_call(null, serviceapp, 'create_group', args, 'POST');
+        if (response.status == 200)
+        {
+            /* pass */
+        }
+        else
+        {
+            alert("Error: Could not add group. Does it already exist?");
+        }
+        /* Reload the display */
+        window.location.href = window.location.href;
     }
-    else
-    {
-        alert("Error: Could not add group. Does it already exist?");
-    }
-    /* Reload the display */
-    window.location.href = window.location.href;
 }
 
 function manage_group(offeringid, groupid, namespace)

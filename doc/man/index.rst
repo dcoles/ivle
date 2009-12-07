@@ -33,3 +33,4 @@ within the system itself (accessible from the Help tab).
    directory.rst
    architecture.rst
    scripts.rst
+   faq.rst

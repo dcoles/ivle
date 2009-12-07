@@ -112,7 +112,7 @@ function action_delete(files)
 
 function action_mkdir()
 {
-    var path = prompt("New directory name?");
+    var path = prompt("New directory name?","");
     if (path == null) return;
     do_act("mkdir", {"path":path});
     return false;
@@ -120,7 +120,7 @@ function action_mkdir()
 
 function action_newfile()
 {
-    var path = prompt("New file name?");
+    var path = prompt("New file name?","");
     if (path == null) return;
     /* "Upload" a blank file */
     /* Note: "overwrite" defaults to false, so will error if it already
@@ -240,7 +240,7 @@ function action_resolved(files)
 function action_commit(files)
 {
     /* Get a commit log from the user */
-    var logmsg = prompt("Enter commit log:");
+    var logmsg = prompt("Enter commit log:","");
     if (logmsg == null) return;
     do_act("svncommit", {"path":files, "logmsg": logmsg});
     return false;
@@ -734,17 +734,10 @@ function handle_dir_listing(path, listing)
         row.appendChild(td);
 
         /* Column 3: Filename */
-        if (file.isdir)
-        {
-            td = dom_make_link_elem("td", filename,
-                 "Navigate to " + path_join(path, filename),
-                 build_revision_url(path, filename, current_revision),
-                 null, true);
-        }
-        else
-        {
-            td = dom_make_text_elem("td", filename);
-        }
+        td = dom_make_link_elem("td", filename,
+                "Navigate to " + path_join(path, filename),
+                build_revision_url(path, filename, current_revision),
+                null, true);
         $(td).click(select_row);
         row.appendChild(td);
 

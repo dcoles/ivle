@@ -380,7 +380,11 @@ function upload_callback()
     if (upload_callback_count >= 2)
     {
         myFrame = frames['upload_iframe'].document;
-        data = myFrame.firstChild.childNodes[1].firstChild.firstChild.nodeValue;
+        /* Browsers will turn the raw returned JSON into an HTML document. We
+         * need to get the <pre> from inside the <body>, and look at its text.
+         */
+        data = myFrame.firstChild.getElementsByTagName(
+            'body')[0].firstChild.firstChild.nodeValue;
         data = JSON.parse(data);
         if ('Error' in data)
             alert("Error: " + decodeURIComponent(data['Error']));

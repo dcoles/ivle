@@ -43,10 +43,12 @@ function add_projectset(){
     function callback(xhr) {
         var response = JSON.parse(xhr.responseText);
         $('#projectset_list').append(response.html);
-        $('#projectset_' + response.projectset_id).hide();
-        $('#projectset_' + response.projectset_id).slideDown();
+        var projectset_div = $('#projectset_' + response.projectset_id);
+        projectset_div.hide();
+        projectset_div.slideDown();
         $("#add_projectset").removeAttr('disabled');
-        $(".add-project-link").click(show_add);
+        projectset_div.find(".new_project").submit(add_project);
+        projectset_div.find(".add-project-link").click(show_add);
     };
 
     var data = serializeForm($("#new_projectset_form"));

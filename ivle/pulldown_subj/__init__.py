@@ -46,7 +46,7 @@ def get_subjects(config, login):
             return result
     return []
 
-def enrol_user(config, store, user, year=None):
+def enrol_user(config, store, user):
     """
     Looks up the student in whatever modules are available.
     The pulldown does not tell us what year to enrol the student for, so the
@@ -62,11 +62,8 @@ def enrol_user(config, store, user, year=None):
     Returns the number of subjects the user was enrolled in (not including
     subjects outside the system, or subjects already enrolled).
     """
-    if year is None:
-        year = unicode(datetime.datetime.now().year)
-
     count = 0
-    for subject, semester in get_subjects(config, user.login):
+    for subject, year, semester in get_subjects(config, user.login):
         offering = store.find(Offering,
                               Subject.code == subject,
                               Offering.subject_id == Subject.id,
