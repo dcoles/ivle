@@ -18,17 +18,39 @@
 
 """Refresh parts of the filesystem that are generated from the database.
 
-In particular, the Subversion authorisation files are rewritten.
+In particular:
+ - missing user jails are created
+ - missing user and group Subversion repositories are created
+ - the Subversion password file is updated
+ - the Subversion authorisation files are rewritten
 """
 
+import os
 import sys
 
 from ivle.config import Config
-from ivle.database import get_store
+from ivle.database import get_store, User
 import ivle.makeuser
+# Python 2.5's shutil.rmtree follows symlinks!
+from ivle.util import safe_rmtree
 
 config = Config()
 store = get_store(config)
+
+active_users = store.find(User, state=u'enabled').order_by(User.login)
+
+print >>sys.stderr, "Refreshing active user jails..."
+for user in active_users:
+    ivle.makeuser.make_jail(user, config)
+
+print >>sys.stderr, "Purging inactive user jails..."
+present_jails = set(
+    login for login in os.listdir(config['paths']['jails']['src'])
+    if not (login.startswith('__') and login.endswith('__')))
+
+for jail in present_jails - set(user.login for user in active_users):
+    print ' - %s' % jail
+    safe_rmtree(os.path.join(config['paths']['jails']['src'], jail))
 
 print >>sys.stderr, "Rebuilding Subversion user configuration..."
 ivle.makeuser.rebuild_svn_config(store, config)
