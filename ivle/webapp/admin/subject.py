@@ -219,10 +219,6 @@ class ProjectView(XHTMLView):
         ctx['project'] = self.context
         ctx['user'] = req.user
 
-class OfferingEnrolmentSet(object):
-    def __init__(self, offering):
-        self.offering = offering
-
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_subject, subject_to_offering,
                       offering_to_project, offering_to_projectset)
