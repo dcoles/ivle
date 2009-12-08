@@ -211,17 +211,19 @@ def make_svn_auth(store, login, config, throw_on_error=True):
     """
     # filename is, eg, /var/lib/ivle/svn/ivle.auth
     filename = config['paths']['svn']['auth_ivle']
-    passwd = hashlib.md5(uuid.uuid4().bytes).hexdigest()
     if os.path.exists(filename):
         create = ""
     else:
         create = "c"
 
     user = User.get_by_login(store, login)
-    user.svn_pass = unicode(passwd)
+
+    if user.svn_pass is None:
+        passwd = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+        user.svn_pass = unicode(passwd)
 
     res = subprocess.call(['htpasswd', '-%smb' % create,
-                           filename, login, passwd])
+                           filename, login, user.svn_pass])
     if res != 0 and throw_on_error:
         raise Exception("Unable to create ivle-auth for %s" % login)
 
@@ -229,7 +231,7 @@ def make_svn_auth(store, login, config, throw_on_error=True):
     if create == "c":
         chown_to_webserver(filename)
 
-    return passwd
+    return user.svn_pass
 
 def make_jail(user, config, force=True):
     """Create or update a user's jail.
