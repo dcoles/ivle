@@ -66,7 +66,11 @@ class SubjectsView(XHTMLView):
         ctx['semesters'] = []
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
-            offerings = [enrolment.offering for enrolment in
+            if req.user.admin:
+                # For admins, show all subjects in the system
+                offerings = list(semester.offerings.find())
+            else:
+                offerings = [enrolment.offering for enrolment in
                                     semester.enrolments.find(user=req.user)]
             if len(offerings):
                 ctx['semesters'].append((semester, offerings))
