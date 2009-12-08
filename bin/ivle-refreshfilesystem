@@ -77,7 +77,7 @@ def refresh_filesystem(config, store):
     repo_root = config['paths']['svn']['repo_path']
 
     logging.info("Creating missing Subversion user repositories.")
-    present_user_repos= set(
+    present_user_repos = set(
         login for login in os.listdir(os.path.join(repo_root, 'users')))
 
     for repo in set(user.login for user in active_users) - present_user_repos:
