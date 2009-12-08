@@ -22,11 +22,17 @@
 
 import os
 import sys
+import logging
 
 import ivle.conf
 
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s %(message)s',
+    level=logging.INFO)
+
 if os.path.exists(ivle.conf.data_path):
-    sys.exit('%s already exists - not doing anything' % ivle.conf.data_path)
+    logging.info('%s already exists - not doing anything' % ivle.conf.data_path)
+    sys.exit(0)
 
 os.makedirs(ivle.conf.jail_base)
 os.makedirs(ivle.conf.jail_src_base)
