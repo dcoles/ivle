@@ -58,6 +58,8 @@ Master versus slave servers
 Installing from a Debian package
 ================================
 
+.. _database-setup:
+
 Installing from source
 ======================
 

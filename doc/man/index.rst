@@ -34,3 +34,4 @@ within the system itself (accessible from the Help tab).
    architecture.rst
    scripts.rst
    faq.rst
+   sample.rst
