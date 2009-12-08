@@ -134,19 +134,13 @@ class OfferingProjectsView(XHTMLView):
     permission = 'edit'
     tab = 'subjects'
 
-    def project_url(self, projectset, project):
-        return "/subjects/%s/%s/%s/+projects/%s" % (
-                    self.context.subject.short_name,
-                    self.context.semester.year,
-                    self.context.semester.semester,
-                    project.short_name
-                    )
-
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
         self.plugin_scripts[Plugin] = ["project.js"]
+        ctx['req'] = req
         ctx['offering'] = self.context
         ctx['projectsets'] = []
+        ctx['OfferingRESTView'] = OfferingRESTView
 
         #Open the projectset Fragment, and render it for inclusion
         #into the ProjectSets page

@@ -16,7 +16,7 @@
            class="add-projectset-link">Add a new project set</a>
         <form id="new_projectset_form" class="new_projectset"
               method="PUT" name="new_projectset_form"
-              action="/api/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}/+projectsets/+new">
+              action="${req.publisher.generate(offering, OfferingRESTView)}">
           <div id="new_projectset_div">
             <label for="group_size">Group Size:</label>
             <input type="text" name="group_size" id="group_size"></input> Leave blank for individual projects. Enter 0 for unlimited membership.
