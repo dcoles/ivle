@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+"""
+Script to load the sample data into a fresh IVLE instance, for testing or
+experimentation.
+"""
+
+import sys
+import os
+import optparse
+import subprocess
+import logging
+import readline
+
+from ivle.config import Config
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s %(message)s',
+    level=logging.INFO)
+
+def runprog_stderr(*popenargs, **kwargs):
+    """Run a program, using subprocess.Popen.
+    Return None if the program had a 0 return code.
+    Return the string stderr if the program failed.
+    """
+    proc = subprocess.Popen(*popenargs, stderr=subprocess.PIPE, **kwargs)
+    _, stderr = proc.communicate()
+    if proc.returncode == 0:
+        return None
+    else:
+        return stderr
+
+if os.getuid() != 0:
+    print "Must run %s as root." % os.path.basename(sys.argv[0])
+    sys.exit(1)
+
+usage = """usage: %prog [OPTIONS] <SQL-FILE>
+Loads the sample data into the installed IVLE instance."""
+
+parser = optparse.OptionParser(usage)
+parser.add_option("-f", "--force",
+    action="store_true", dest="force",
+    help="destroy all data without prompting",
+    default=False
+    )
+parser.add_option("--pg-user",
+    action="store", dest="pg_user",
+    help="database super-user (for dropping and creating db) "
+        "(default: postgres)",
+    default="postgres"
+    )
+
+(options, args) = parser.parse_args()
+
+if len(args) != 1:
+    parser.error("incorrect number of arguments")
+
+sqlfile = args[0]
+
+dbconfig = Config()['database']
+
+# Try creating the database (if it succeeds, no harm)
+logging.info("Creating database \"%s\"." % dbconfig["name"])
+errmsg = runprog_stderr(["sudo", "-u", options.pg_user, "createdb", "-O",
+                         dbconfig["username"], dbconfig["name"]])
+if errmsg is not None:
+    # Couldn't create the DB
+    if errmsg.strip().endswith("already exists"):
+        logging.info("Database already exists.")
+        # The database already exists (most common error)
+        # Drop and re-create the database, if the user is absolutely sure
+        if not options.force:
+            try:
+                drop = raw_input("Do you want to delete all existing data? "
+                            "THIS WILL DROP YOUR DATABASE!\n[yes/no]> ")
+            except (KeyboardInterrupt, EOFError):
+                print
+                sys.exit(1)
+            if drop.strip().lower() != "yes":
+                sys.exit(1)
+        # OK, here we go
+
+        # Unmount all the jails
+        logging.info("Unmounting all users.")
+        subprocess.check_call(["bin/ivle-mountallusers", "-u"])
+
+        # Drop database
+        logging.info("Dropping database \"%s\"." % dbconfig["name"])
+        errmsg = subprocess.check_call(["sudo", "-u", options.pg_user,
+                                        "dropdb", dbconfig["name"]])
+        # Re-create database
+        logging.info("Creating database \"%s\"." % dbconfig["name"])
+        errmsg = subprocess.check_call(["sudo", "-u", options.pg_user,
+                                        "createdb", "-O",dbconfig["username"],
+                                        dbconfig["name"]])
+    else:
+        logging.error(errmsg.strip())
+        sys.exit(1)
+
+# Create "plpgsql" language
+logging.info("Creating language plpgsql.")
+errmsg = subprocess.check_call(["sudo", "-u", options.pg_user, "createlang",
+                         "plpgsql", dbconfig["name"]])
+
+# Populate with database schema
+logging.info("Populating database with schema.")
+file = open("userdb/users.sql")
+proc = subprocess.Popen(["psql", "-h", "localhost", "-W", dbconfig["name"],
+                           dbconfig["username"]], stdin=file)
+if proc.wait() != 0:
+    file.close()
+    sys.exit(1)
+file.close()
+
+# Populate with sample data
+logging.info("Populating database with sample data.")
+file = open("examples/db/sample.sql")
+proc = subprocess.Popen(["sudo", "-u", "postgres", "psql", dbconfig["name"]],
+                        stdin=file)
+if proc.wait() != 0:
+    file.close()
+    sys.exit(1)
+file.close()
+
+# Build or rebuild all of the users' filesystems and subversion repos
+logging.info("Creating data directories.")
+subprocess.check_call(["bin/ivle-createdatadirs"])
+
+# Build or rebuild all of the users' filesystems and subversion repos
+logging.info("Refreshing file system.")
+subprocess.check_call(["bin/ivle-refreshfilesystem"])

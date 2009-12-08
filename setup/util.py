@@ -320,6 +320,7 @@ class InstallList(object):
         "bin/ivle-enrolallusers",
         "bin/ivle-fetchsubmissions",
         "bin/ivle-listusers",
+        "bin/ivle-loadsampledata",
         "bin/ivle-marks",
         "bin/ivle-mountallusers",
         "bin/ivle-refreshfilesystem",

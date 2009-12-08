@@ -15,6 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+.. _sample-data:
+
 ***********
 Sample data
 ***********
@@ -32,18 +34,31 @@ Installing the sample data
 
 The data is stored in an SQL dump file, in ``examples/db/sample.sql``.
 
-You must import this data into a **fresh** IVLE database. You can
-re-initialise your database by running ``sudo -u postgres dropdb ivle``, and
-then following the database setup instructions, in the section
-:ref:`database-setup`.
+You must import this data into a **fresh** IVLE database. If you already have
+a working IVLE install, it will have to be erased. A script is provided
+which performs the following tasks:
 
-The data may be imported by running the following command::
+* Unmounts all users with accounts in the current database,
+* Drops the IVLE database if it already exists (prompting first),
+* Creates and initialises a new IVLE database, as per :ref:`database-setup`,
+* Populates the database with the sample data,
+* Creates data directories and subversion repositories for all users, backing
+  up directories for any existing users.
 
-    sudo -u postgres psql ivle < examples/db/sample.sql
+The script is executed with the following command::
 
-.. XXX
-.. warning:: Instructions on fixing up the user's repositories and file
-   systems to come.
+    sudo ivle-loadsampledata examples/db/sample.sql
+
+.. warning:: This script essentially destroys all contents in an existing IVLE
+   installation. Be sure you wish to do this.
+
+.. note:: The script may fail at the "dropping database" phase if Apache or
+   another process are using the database. It is best to stop Apache before
+   executing the script.
+
+   If the database exists, but is not properly initialised, then the script
+   may fail. In this case, you should manually run ``ivle-mountallusers -u``,
+   then drop the database, to ensure a clean build.
 
 What is included
 ================

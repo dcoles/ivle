@@ -210,6 +210,9 @@ probably want admin privileges - if not, drop the ``--admin``. ::
 You should then be able to browse to ``http://ivle.localhost/``, and
 log in with that username and password.
 
+*Alternatively*, you may wish to import the IVLE sample data, for a complete
+working IVLE environment (not for production use). See :ref:`sample-data`.
+
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
