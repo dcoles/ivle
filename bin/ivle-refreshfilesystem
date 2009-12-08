@@ -112,6 +112,10 @@ def refresh_filesystem(config, store):
         junk(os.path.join(repo_root, 'groups'), repo)
 
 
+    logging.info("Rebuild Subversion password file.")
+    for user in store.find(User, state=u'enabled'):
+        ivle.makeuser.make_svn_auth(
+            store, user.login, config, throw_on_error=True)
     logging.info("Rebuilding Subversion user configuration.")
     ivle.makeuser.rebuild_svn_config(store, config)
     logging.info("Rebuilding Subversion group configuration.")
