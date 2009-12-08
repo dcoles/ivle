@@ -21,7 +21,7 @@
 Allows students and tutors to manage project groups.
 '''
 
-from ivle.database import Offering
+from ivle.database import ProjectSet
 
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
@@ -39,13 +39,13 @@ class GroupsView(XHTMLView):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
 
-        ctx['offering'] = self.context
+        ctx['projectset'] = self.context
 
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the group admin plugin.
     """
-    views = [(Offering, '+groups', GroupsView)]
+    views = [(ProjectSet, '+groups', GroupsView)]
 
     media = 'media'
     help = {'Groups': 'help.html'}

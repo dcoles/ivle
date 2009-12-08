@@ -1,32 +1,23 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Groups - ${offering.subject.name}</title>
+    <title>Groups for ${projectset.offering.subject.name}</title>
   </head>
   <body>
-    <h1>Groups for ${offering.subject.name}</h1>
+    <h1>Groups for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
-      <div id="offering_groups" >
-        <dl>
-          <py:for each="project_set in offering.project_sets">
-            <dt>Project Set ${project_set.id}</dt>
-            <dd>
-              <ul>
-                <li py:for="group in project_set.project_groups"
-                    id="project_group_${group.id}">
-                  ${group.name}
-                  <a onclick="manage_group(${offering.id}, ${group.id} ,'project_group_${group.id}')"
-                     class="choice"
-                     id="project_group_${group.id}_button">
-                    (manage)
-                  </a>
-                </li>
-                <li><input value="New" type="button" onclick="create_new_group(${project_set.id})" /></li>
-              </ul>
-            </dd>
-          </py:for>
-        </dl>
-      </div>
+      <ul>
+        <li py:for="group in projectset.project_groups"
+            id="project_group_${group.id}">
+          ${group.name}
+          <a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
+             class="choice"
+             id="project_group_${group.id}_button">
+            (manage)
+          </a>
+        </li>
+        <li><input value="New" type="button" onclick="create_new_group(${projectset.id})" /></li>
+      </ul>
     </div>
   </body>
 </html>
