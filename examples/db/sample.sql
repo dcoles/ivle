@@ -22,14 +22,14 @@ SELECT pg_catalog.setval('assessed_assessedid_seq', 1, false);
 -- Name: login_unixid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('login_unixid_seq', 5003, true);
+SELECT pg_catalog.setval('login_unixid_seq', 5004, true);
 
 
 --
 -- Name: login_loginid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('login_loginid_seq', 4, true);
+SELECT pg_catalog.setval('login_loginid_seq', 5, true);
 
 
 --
@@ -140,8 +140,9 @@ ALTER TABLE login DISABLE TRIGGER ALL;
 
 INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (1, 'admin', '5f4dcc3b5aa765d61d8327deb882cf99', 'enabled', true, 5000, 'Anne Admin', NULL, NULL, '2009-12-08 11:44:02.285862', 'password', NULL, 'Anne Admin', NULL, NULL);
 INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (2, 'lecturer', '5f4dcc3b5aa765d61d8327deb882cf99', 'enabled', false, 5001, 'Larry Lecturer', NULL, NULL, '2009-12-08 12:12:16.375628', 'password', NULL, 'Larry Lecturer', NULL, NULL);
-INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (3, 'studenta', '5f4dcc3b5aa765d61d8327deb882cf99', 'enabled', false, 5002, 'Alice Student', NULL, NULL, '2009-12-08 12:11:46.349133', 'password', NULL, 'Alice Student', NULL, NULL);
-INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (4, 'studentb', '5f4dcc3b5aa765d61d8327deb882cf99', 'no_agreement', false, 5003, 'Bob Student', NULL, NULL, NULL, NULL, NULL, 'Bob Student', NULL, NULL);
+INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (3, 'tutor', '5f4dcc3b5aa765d61d8327deb882cf99', 'enabled', false, 5002, 'Terry Tutor', NULL, NULL, '2009-12-08 19:08:59.817505', 'password', NULL, 'Terry Tutor', NULL, NULL);
+INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (4, 'studenta', '5f4dcc3b5aa765d61d8327deb882cf99', 'enabled', false, 5003, 'Alice Student', NULL, NULL, '2009-12-08 12:11:46.349133', 'password', NULL, 'Alice Student', NULL, NULL);
+INSERT INTO login (loginid, login, passhash, state, admin, unixid, nick, pass_exp, acct_exp, last_login, svn_pass, email, fullname, studentid, settings) VALUES (5, 'studentb', '5f4dcc3b5aa765d61d8327deb882cf99', 'no_agreement', false, 5004, 'Bob Student', NULL, NULL, NULL, NULL, NULL, 'Bob Student', NULL, NULL);
 
 
 ALTER TABLE login ENABLE TRIGGER ALL;
@@ -246,9 +247,10 @@ ALTER TABLE enrolment DISABLE TRIGGER ALL;
 
 INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (2, 1, 'lecturer', NULL, NULL, NULL, NULL, NULL, true);
 INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (2, 2, 'lecturer', NULL, NULL, NULL, NULL, NULL, true);
-INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (3, 1, 'student', NULL, NULL, NULL, NULL, NULL, true);
-INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (3, 2, 'student', NULL, NULL, NULL, NULL, NULL, true);
+INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (3, 2, 'tutor', NULL, NULL, NULL, NULL, NULL, true);
+INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (4, 1, 'student', NULL, NULL, NULL, NULL, NULL, true);
 INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (4, 2, 'student', NULL, NULL, NULL, NULL, NULL, true);
+INSERT INTO enrolment (loginid, offeringid, role, result, special_result, supp_result, special_supp_result, notes, active) VALUES (5, 2, 'student', NULL, NULL, NULL, NULL, NULL, true);
 
 
 ALTER TABLE enrolment ENABLE TRIGGER ALL;
@@ -319,8 +321,8 @@ ALTER TABLE group_invitation ENABLE TRIGGER ALL;
 
 ALTER TABLE group_member DISABLE TRIGGER ALL;
 
-INSERT INTO group_member (loginid, groupid) VALUES (3, 1);
 INSERT INTO group_member (loginid, groupid) VALUES (4, 1);
+INSERT INTO group_member (loginid, groupid) VALUES (5, 1);
 
 
 ALTER TABLE group_member ENABLE TRIGGER ALL;

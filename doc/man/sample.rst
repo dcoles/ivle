@@ -108,6 +108,8 @@ is "password".
 * admin/password: This user has administrative rights over the entire system.
 * lecturer/password: This is a normal user, but is enrolled as a lecturer in
   100101 (2009 semester 1) and 100102 (2009 semester 2).
+* tutor/password: This is a normal user, but is enrolled as a tutor in
+  100102 (2009 semester 2).
 * studenta/password: This is a normal user, enrolled in 100101 (2009 semester
   1) and 100102 (2009 semester 2).
 * studentb/password: This is a normal user, enrolled in 100102 (2009 semester
