@@ -116,7 +116,7 @@ class EnrolView(XHTMLView):
     """A form to enrol a user in an offering."""
     template = 'templates/enrol.html'
     tab = 'subjects'
-    permission = 'edit'
+    permission = 'enrol'
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
