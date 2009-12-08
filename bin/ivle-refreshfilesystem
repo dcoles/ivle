@@ -26,22 +26,28 @@ In particular:
 """
 
 import datetime
+import logging
 import os
 import os.path
 import shutil
-import sys
 
 from ivle.config import Config
 from ivle.database import get_store, ProjectGroup, User
 import ivle.makeuser
-# Python 2.5's shutil.rmtree follows symlinks!
-from ivle.util import safe_rmtree
 
-junk_directory_suffix = (
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s %(message)s',
+    level=logging.INFO)
+
+
+JUNK_DIRECTORY_SUFFIX = (
     '-removed-%s' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
+
 def get_junk_dir(path):
-    return os.path.normpath(path) + junk_directory_suffix
+    return os.path.normpath(path) + JUNK_DIRECTORY_SUFFIX
+
 
 def junk(parent, name):
     """Move the named directory into a junk directory alongside the parent."""
@@ -52,65 +58,67 @@ def junk(parent, name):
         os.path.join(get_junk_dir(parent), name))
 
 
-config = Config()
-store = get_store(config)
+def refresh_filesystem(config, store):
+    active_users = store.find(User, state=u'enabled').order_by(User.login)
 
-active_users = store.find(User, state=u'enabled').order_by(User.login)
+    logging.info("Refreshing active user jails.")
+    for user in active_users:
+        ivle.makeuser.make_jail(user, config)
 
-print >>sys.stderr, "Refreshing active user jails..."
-for user in active_users:
-    ivle.makeuser.make_jail(user, config)
+    present_jails = set(
+        login for login in os.listdir(config['paths']['jails']['src'])
+        if not (login.startswith('__') and login.endswith('__')))
 
-present_jails = set(
-    login for login in os.listdir(config['paths']['jails']['src'])
-    if not (login.startswith('__') and login.endswith('__')))
+    logging.info("Junking extra user jails...")
+    for jail in present_jails - set(user.login for user in active_users):
+        logging.info(' - %s' % jail)
+        junk(config['paths']['jails']['src'], jail)
 
-print >>sys.stderr, "Junking extra user jails..."
-for jail in present_jails - set(user.login for user in active_users):
-    print ' - %s' % jail
-    junk(config['paths']['jails']['src'], jail)
+    repo_root = config['paths']['svn']['repo_path']
 
-repo_root = config['paths']['svn']['repo_path']
+    logging.info("Creating missing Subversion user repositories.")
+    present_user_repos = set(
+        login for login in os.listdir(os.path.join(repo_root, 'users')))
 
-print >>sys.stderr, "Creating missing Subversion user repositories..."
-present_user_repos= set(
-    login for login in os.listdir(os.path.join(repo_root, 'users')))
+    for repo in set(user.login for user in active_users) - present_user_repos:
+        logging.info(' - %s' % repo)
+        ivle.makeuser.make_svn_repo(
+            os.path.join(repo_root, 'users', repo), throw_on_error=True)
 
-for repo in set(user.login for user in active_users) - present_user_repos:
-    print ' - %s' % repo
-    ivle.makeuser.make_svn_repo(
-        os.path.join(repo_root, 'users', repo), throw_on_error=True)
-
-print >>sys.stderr, "Junking extra Subversion user repositories..."
-for repo in present_user_repos - set(user.login for user in active_users):
-    print ' - %s' % repo
-    junk(os.path.join(repo_root, 'users'), repo)
+    logging.info("Junking extra Subversion user repositories.")
+    for repo in present_user_repos - set(user.login for user in active_users):
+        logging.info(' - %s' % repo)
+        junk(os.path.join(repo_root, 'users'), repo)
 
 
-print >>sys.stderr, "Creating missing Subversion group repositories..."
-present_group_repos = set(
-    group for group in os.listdir(os.path.join(repo_root, 'groups')))
+    logging.info("Creating missing Subversion group repositories.")
+    present_group_repos = set(
+        group for group in os.listdir(os.path.join(repo_root, 'groups')))
 
-active_group_identifiers = set("_".join(
-    [group.project_set.offering.subject.short_name,
-     group.project_set.offering.semester.year,
-     group.project_set.offering.semester.semester,
-     group.name]) for group in store.find(ProjectGroup))
+    active_group_identifiers = set("_".join(
+        [group.project_set.offering.subject.short_name,
+         group.project_set.offering.semester.year,
+         group.project_set.offering.semester.semester,
+         group.name]) for group in store.find(ProjectGroup))
 
-for repo in active_group_identifiers - present_group_repos:
-    print ' - %s' % repo
-    ivle.makeuser.make_svn_repo(
-        os.path.join(repo_root, 'groups', repo), throw_on_error=True)
+    for repo in active_group_identifiers - present_group_repos:
+        logging.info(' - %s' % repo)
+        ivle.makeuser.make_svn_repo(
+            os.path.join(repo_root, 'groups', repo), throw_on_error=True)
 
-print >>sys.stderr, "Junking extra Subversion user repositories..."
-for repo in present_group_repos - active_group_identifiers:
-    print ' - %s' % repo
-    junk(os.path.join(repo_root, 'groups'), repo)
-
-
-print >>sys.stderr, "Rebuilding Subversion user configuration..."
-ivle.makeuser.rebuild_svn_config(store, config)
-print >>sys.stderr, "Rebuilding Subversion group configuration..."
-ivle.makeuser.rebuild_svn_group_config(store, config)
+    logging.info("Junking extra Subversion user repositories.")
+    for repo in present_group_repos - active_group_identifiers:
+        logging.info(' - %s' % repo)
+        junk(os.path.join(repo_root, 'groups'), repo)
 
 
+    logging.info("Rebuilding Subversion user configuration.")
+    ivle.makeuser.rebuild_svn_config(store, config)
+    logging.info("Rebuilding Subversion group configuration.")
+    ivle.makeuser.rebuild_svn_group_config(store, config)
+
+
+if __name__ == '__main__':
+    config = Config()
+    store = get_store(config)
+    refresh_filesystem(config, store)
