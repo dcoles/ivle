@@ -45,7 +45,8 @@ def get_junk_dir(path):
 
 def junk(parent, name):
     """Move the named directory into a junk directory alongside the parent."""
-    os.makedirs(get_junk_dir(parent))
+    if not os.path.exists(get_junk_dir(parent)):
+        os.makedirs(get_junk_dir(parent))
     shutil.move(
         os.path.join(parent, name),
         os.path.join(get_junk_dir(parent), name))
