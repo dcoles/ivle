@@ -60,6 +60,10 @@ The script is executed with the following command::
    may fail. In this case, you should manually run ``ivle-mountallusers -u``,
    then drop the database, to ensure a clean build.
 
+   If there are any existing users (including sample users from previous runs
+   of the script), their files and subversion repos will be moved out of the
+   way to a backup location, ``/var/lib/ivle/jails-removed-<date>/``.
+
 What is included
 ================
 

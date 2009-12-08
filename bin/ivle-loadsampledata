@@ -128,6 +128,15 @@ if proc.wait() != 0:
     sys.exit(1)
 file.close()
 
+# Build or rebuild all of the users' filesystems and subversion repos
+logging.info("Creating data directories.")
+subprocess.check_call(["bin/ivle-createdatadirs"])
+
+# Move all of the users' filesystems and subversion repos out of the way
+# (This will clean out the user dirs because there are no users in the DB.)
+logging.info("Moving existing user filesystems and repos out of the way.")
+subprocess.check_call(["bin/ivle-refreshfilesystem"])
+
 # Populate with sample data
 logging.info("Populating database with sample data.")
 file = open("examples/db/sample.sql")
@@ -138,10 +147,7 @@ if proc.wait() != 0:
     sys.exit(1)
 file.close()
 
-# Build or rebuild all of the users' filesystems and subversion repos
-logging.info("Creating data directories.")
-subprocess.check_call(["bin/ivle-createdatadirs"])
-
-# Build or rebuild all of the users' filesystems and subversion repos
-logging.info("Refreshing file system.")
+# Build all of the users' filesystems and subversion repos
+# (This will create fresh user dirs and repos because the jails were empty.)
+logging.info("Building sample users' filesystems and repos.")
 subprocess.check_call(["bin/ivle-refreshfilesystem"])
