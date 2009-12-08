@@ -25,6 +25,8 @@ This page describes the configuration of IVLE. This consists of populating the
 :file:`ivle.conf` file and configuring Apache to serve the IVLE webapp and 
 Subversion repositories.
 
+.. _ref-configuration-options:
+
 Configuration options
 =====================
 
