@@ -208,7 +208,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     forward_routes = (root_to_user,)
     reverse_routes = (user_url,)
-    views = [(ivle.database.User, '+edit', UserEditView),
+    views = [(ivle.database.User, '+index', UserEditView),
              (ivle.database.User, '+admin', UserAdminView),
              (ivle.database.User, '+changepassword', PasswordChangeView),
              (ivle.database.User, '+resetpassword', PasswordResetView),
