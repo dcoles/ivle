@@ -37,6 +37,7 @@ class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
     tab = 'files'
+    breadcrumb_text = 'Files'
 
     subpath_allowed = True
 
@@ -78,8 +79,8 @@ class DiffView(XHTMLView):
         )
 
         ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,
-                                                   suffix='(Subversion diff)')
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath)
+        self.extra_breadcrumbs.append(SubversionDiffBreadcrumb())
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
@@ -89,6 +90,10 @@ class DiffView(XHTMLView):
     @property
     def path(self):
         return os.path.join(*self.subpath) if self.subpath else ''
+
+
+class SubversionDiffBreadcrumb(object):
+    text = 'Subversion Diff'
 
 
 def htmlfy_diff(difftext):

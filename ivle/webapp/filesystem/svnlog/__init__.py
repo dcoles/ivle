@@ -33,6 +33,7 @@ from ivle.webapp import ApplicationRoot
 class SubversionLogView(XHTMLView):
     template = 'template.html'
     tab = 'files'
+    breadcrumb_text = 'Files'
 
     subpath_allowed = True
 
@@ -77,8 +78,8 @@ class SubversionLogView(XHTMLView):
         ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
         ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
         ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,
-                                                   suffix='(Subversion log)')
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath)
+        self.extra_breadcrumbs.append(SubversionLogBreadcrumb())
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
@@ -97,6 +98,11 @@ class SubversionLogView(XHTMLView):
     @property
     def path(self):
         return os.path.join(*self.subpath) if self.subpath else ''
+
+
+class SubversionLogBreadcrumb(object):
+    text = 'Subversion Log'
+
 
 class Plugin(ViewPlugin, MediaPlugin):
     views = [(ApplicationRoot, 'svnlog', SubversionLogView)]
