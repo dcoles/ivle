@@ -43,25 +43,6 @@
 # Optional:
 #   password, nick, email, studentid
 
-# userservice/get_user
-# method: May be GET
-# Required cap: None to see yourself.
-#   CAP_GETUSER to see another user.
-# Gets the login details of a user. Returns as a JSON object.
-# login = Optional login name of user to get. If omitted, get yourself.
-
-# userservice/update_user
-# Required cap: None to update yourself.
-#   CAP_UPDATEUSER to update another user (and also more fields).
-#   (This is all-powerful so should be only for admins)
-# login = Optional login name of user to update. If omitted, update yourself.
-# Other fields are optional, and will set the given field of the user.
-# Without CAP_UPDATEUSER, you may change the following fields of yourself:
-#   password, nick, email
-# With CAP_UPDATEUSER, you may also change the following fields of any user:
-#   password, nick, email, login, rolenm, unixid, fullname, studentid
-# (You can't change "state", but see userservice/[en|dis]able_user).
-
 # TODO
 # userservice/enable_user
 # Required cap: CAP_UPDATEUSER
@@ -156,14 +137,6 @@ from ivle.webapp import ApplicationRoot
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
 USER_DECLARATION = "I accept the IVLE Terms of Service"
-
-# List of fields returned as part of the user JSON dictionary
-# (as returned by the get_user action)
-user_fields_list = (
-    "login", "state", "unixid", "email", "nick", "fullname",
-    "admin", "studentid", "acct_exp", "pass_exp", "last_login",
-    "svn_pass", "admin",
-)
 
 class UserServiceView(BaseView):
     subpath_allowed = True
@@ -328,100 +301,6 @@ def handle_create_user(req, fields):
 
     req.content_type = "text/plain"
     req.write(str(user.unixid))
-
-update_user_fields_anyone = [
-    'password', 'nick', 'email'
-]
-update_user_fields_admin = [
-    'password', 'nick', 'email', 'admin', 'unixid', 'fullname',
-    'studentid'
-]
-
-@require_method('POST')
-def handle_update_user(req, fields):
-    """Update a user's account details.
-    This can be done in a limited form by any user, on their own account,
-    or with full powers by an admin user on any account.
-    """
-    # Only give full powers if this user is an admin.
-    fullpowers = req.user.admin
-    # List of fields that may be changed
-    fieldlist = (update_user_fields_admin if fullpowers
-        else update_user_fields_anyone)
-
-    try:
-        login = fields.getfirst('login')
-        if login is None:
-            raise AttributeError()
-        if not fullpowers and login != req.user.login:
-            # Not allowed to edit other users
-            raise Unauthorized()
-    except AttributeError:
-        # If login not specified, update yourself
-        login = req.user.login
-
-    user = ivle.database.User.get_by_login(req.store, login)
-
-    oldpassword = fields.getfirst('oldpass')
-    if oldpassword is not None: # It was specified.
-        oldpassword = oldpassword.value
-
-    # If the user is trying to set a new password, check that they have
-    # entered old password and it authenticates.
-    if fields.getfirst('password') is not None:
-        try:
-            authenticate.authenticate(req.config, req.store, login,
-                                      oldpassword)
-        except AuthError:
-            # XXX: Duplicated!
-            req.headers_out['X-IVLE-Action-Error'] = \
-                urllib.quote("Old password incorrect.")
-            raise BadRequest("Old password incorrect.")
-
-    # Make a dict of fields to update
-    for f in fieldlist:
-        val = fields.getfirst(f)
-        if val is not None:
-            # Note: May be rolled back if auth check below fails
-            setattr(user, f, val.value.decode('utf-8'))
-        else:
-            pass
-
-    req.content_type = "text/plain"
-    req.write('')
-
-def handle_get_user(req, fields):
-    """
-    Retrieve a user's account details. This returns all details which the db
-    module is willing to give up, EXCEPT the following fields:
-        svn_pass
-    """
-    # Only give full powers if this user is an admin
-    fullpowers = req.user.admin
-
-    try:
-        login = fields.getfirst('login')
-        if login is None:
-            raise AttributeError()
-        if not fullpowers and login != req.user.login:
-            raise Unauthorized()
-    except AttributeError:
-        # If login not specified, update yourself
-        login = req.user.login
-
-    # Just talk direct to the DB
-    userobj = ivle.database.User.get_by_login(req.store, login)
-    user = ivle.util.object_to_dict(user_fields_list, userobj)
-    # Convert time stamps to nice strings
-    for k in 'pass_exp', 'acct_exp', 'last_login':
-        if user[k] is not None:
-            user[k] = unicode(user[k])
-
-    user['local_password'] = userobj.passhash is not None
-
-    response = cjson.encode(user)
-    req.content_type = "text/plain"
-    req.write(response)
 
 def handle_get_enrolments(req, fields):
     """
@@ -720,8 +599,6 @@ def handle_unassign_group(req, fields):
 actions_map = {
     "activate_me": handle_activate_me,
     "create_user": handle_create_user,
-    "update_user": handle_update_user,
-    "get_user": handle_get_user,
     "get_enrolments": handle_get_enrolments,
     "get_active_offerings": handle_get_active_offerings,
     "get_project_groups": handle_get_project_groups,
