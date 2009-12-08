@@ -100,8 +100,25 @@ class NoEnrolmentValidator(formencode.FancyValidator):
         return value
 
 
+class RoleEnrolmentValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks permission to enrol users with a
+    particular role.
+
+    The state must have an 'offering' attribute.
+    """
+    def _to_python(self, value, state):
+        if ("enrol_" + value) not in state.offering.get_permissions(state.user):
+            raise formencode.Invalid('Not allowed to assign users that role',
+                                     value, state)
+        return value
+
+
 class EnrolSchema(formencode.Schema):
     user = formencode.All(NoEnrolmentValidator(), UserValidator())
+    role = formencode.All(formencode.validators.OneOf(
+                                ["lecturer", "tutor", "student"]),
+                          RoleEnrolmentValidator(),
+                          formencode.validators.UnicodeString())
 
 
 class EnrolmentsView(XHTMLView):
@@ -128,7 +145,7 @@ class EnrolView(XHTMLView):
                 validator = EnrolSchema()
                 req.offering = self.context # XXX: Getting into state.
                 data = validator.to_python(data, state=req)
-                self.context.enrol(data['user'])
+                self.context.enrol(data['user'], data['role'])
                 req.store.commit()
                 req.throw_redirect(req.uri)
             except formencode.Invalid, e:
