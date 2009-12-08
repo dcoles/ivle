@@ -391,7 +391,7 @@ class Offering(Storm):
                 Enrolment.user_id == User.id,
                 Enrolment.offering_id == self.id,
                 Enrolment.role == role
-                )
+                ).order_by(User.login)
 
     @property
     def students(self):
