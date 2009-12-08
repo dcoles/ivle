@@ -55,8 +55,8 @@ class ProjectSetRESTView(XHTMLRESTView):
         req.store.flush()
     
         self.template = "templates/project_fragment.html"
+        self.ctx['req'] = req
         self.ctx['project'] = new_project
-        self.ctx['project_url'] = self._project_url(new_project)
 
         return {'success': True, 'projectset_id': self.context.id}
 

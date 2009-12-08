@@ -6,13 +6,10 @@
     <h3 py:when="None">
       Solo projects
     </h3>
-    <h3 py:when="0">
-      Group projects
-      <a href="+groups">(administer groups)</a>
-    </h3>
     <h3 py:otherwise="">
-      Group projects - up to ${projectset.max_students_per_group} students per group
-      <a href="+groups">(administer groups)</a>
+      Group projects
+      <span py:if="projectset.max_students_per_group != 0"> - up to ${projectset.max_students_per_group} students per group</span>
+      <a href="${req.publisher.generate(projectset, GroupsView)}">(administer groups)</a>
     </h3>
   </py:choose>
   <ul id="projectslist_${projectset.id}">
@@ -23,7 +20,7 @@
     <li class="add-project">
       <a href="#" id="add_new_project_${projectset.id}"
          class="add-project-link">Add a new project</a>
-      <form id="new_project_${projectset.id}" class="new_project" method="post" action="${new_project_url}">
+      <form id="new_project_${projectset.id}" class="new_project" method="post" action="${req.publisher.generate(projectset, ProjectSetRESTView)}">
         <div>
           <label for="new_project_name_${projectset.id}">Name:</label>
           <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />

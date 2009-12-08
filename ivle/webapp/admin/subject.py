@@ -51,6 +51,7 @@ from ivle.webapp.admin.publishing import (root_to_subject,
             subject_url, offering_url, projectset_url, project_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
+from ivle.webapp.groups import GroupsView
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -141,12 +142,6 @@ class OfferingProjectsView(XHTMLView):
                     project.short_name
                     )
 
-    def new_project_url(self, projectset):
-        return "/api/subjects/" + self.context.subject.short_name + "/" +\
-                self.context.semester.year + "/" + \
-                self.context.semester.semester + "/+projectsets/" +\
-                str(projectset.id) + "/+projects/+new"
-    
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
         self.plugin_scripts[Plugin] = ["project.js"]
@@ -166,15 +161,17 @@ class OfferingProjectsView(XHTMLView):
         for projectset in self.context.project_sets:
             settmpl = loader.load(set_fragment)
             setCtx = Context()
+            setCtx['req'] = req
             setCtx['projectset'] = projectset
-            setCtx['new_project_url'] = self.new_project_url(projectset)
             setCtx['projects'] = []
+            setCtx['GroupsView'] = GroupsView
+            setCtx['ProjectSetRESTView'] = ProjectSetRESTView
 
             for project in projectset.projects:
                 projecttmpl = loader.load(project_fragment)
                 projectCtx = Context()
+                projectCtx['req'] = req
                 projectCtx['project'] = project
-                projectCtx['project_url'] = self.project_url(projectset, project)
 
                 setCtx['projects'].append(
                         projecttmpl.generate(projectCtx))

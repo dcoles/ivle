@@ -3,9 +3,9 @@
 import ivle.database
 from ivle.database import ProjectSet, Subject, Semester, Offering
 
+from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.base.rest import (XHTMLRESTView, named_operation,
                                    require_permission)
-
 from ivle.webapp.errors import NotFound
 
 class OfferingRESTView(XHTMLRESTView):
@@ -14,11 +14,6 @@ class OfferingRESTView(XHTMLRESTView):
     This view allows for added a ProjectSet to an existing subject."""
 
     template = "subject.html"
-
-    def new_project_url(self, projectset):
-        return "/api/subjects/%s/%s/%s/+projectsets/%d/+projects/+new" % (
-            self.context.subject.short_name, self.context.semester.year,
-            self.context.semester.semester, projectset.id)
 
     @named_operation('edit')
     def add_projectset(self, req, group_size):
@@ -33,9 +28,10 @@ class OfferingRESTView(XHTMLRESTView):
         req.store.add(new_projectset)
         req.store.flush()
 
+        self.ctx['req'] = req
         self.ctx['projectset'] = new_projectset
         self.ctx['projects'] = []
-        self.ctx['new_project_url'] = self.new_project_url(new_projectset)
+        self.ctx['ProjectSetRESTView'] = ProjectSetRESTView
 
         self.template = 'templates/projectset_fragment.html'
 
