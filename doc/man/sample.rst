@@ -102,7 +102,7 @@ The subjects have offerings for some of the semesters, as shown in this table:
 Users
 -----
 
-There are four users (username/password). Note that in all cases, the password
+There are five users (username/password). Note that in all cases, the password
 is "password".
 
 * admin/password: This user has administrative rights over the entire system.
