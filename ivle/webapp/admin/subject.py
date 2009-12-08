@@ -66,9 +66,10 @@ class SubjectsView(XHTMLView):
         ctx['semesters'] = []
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
-            enrolments = semester.enrolments.find(user=req.user)
-            if enrolments.count():
-                ctx['semesters'].append((semester, enrolments))
+            offerings = [enrolment.offering for enrolment in
+                                    semester.enrolments.find(user=req.user)]
+            if len(offerings):
+                ctx['semesters'].append((semester, offerings))
 
 
 class UserValidator(formencode.FancyValidator):
