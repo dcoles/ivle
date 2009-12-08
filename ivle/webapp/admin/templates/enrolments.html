@@ -11,7 +11,7 @@
         <h2>${title}</h2>
         <ul>
           <li py:for="user in offering.get_members_by_role(unicode(role))">
-            ${user.login} (${user.fullname})</li>
+            ${user.login} (${user.display_name})</li>
         </ul>
       </div>
       ${userlist("Lecturers", "lecturer")}
