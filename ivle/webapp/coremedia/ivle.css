@@ -215,6 +215,11 @@ form.verticalform div label {
     font-weight: bold;
 }
 
+/* Subjects list */
+.subject_current {
+    font-weight: bold;
+}
+
 .pretty_table {
   text-align: left;
   border-collapse: collapse;
