@@ -125,6 +125,23 @@ is "password".
    When studentb logs in for the first time, his SVN repository is created,
    and given a random password.
 
+Projects
+--------
+
+The subject 100102 has two project sets and three projects. This demonstrates
+the relationship between project sets and projects.
+
+The first project set is a solo project set (every student works by
+themselves on all projects). It has one project in it.
+
+The second project set is a group project set, for groups of 3. That means
+students work in the *same* group of 3 for every project in the set. It has
+two projects in it, demonstrating that the students get to keep their group
+(including all of the group files) across the two projects in this set.
+
+Finally, there is a single group for projects 2 and 3, which has the students
+studenta and studentb enlisted.
+
 Updating the sample data
 ========================
 
