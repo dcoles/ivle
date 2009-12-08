@@ -4,6 +4,7 @@ import ivle.database
 from ivle.database import ProjectSet, Subject, Semester, Offering
 
 from ivle.webapp.admin.projectservice import ProjectSetRESTView
+from ivle.webapp.groups import GroupsView
 from ivle.webapp.base.rest import (XHTMLRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
@@ -31,6 +32,7 @@ class OfferingRESTView(XHTMLRESTView):
         self.ctx['req'] = req
         self.ctx['projectset'] = new_projectset
         self.ctx['projects'] = []
+        self.ctx['GroupsView'] = GroupsView
         self.ctx['ProjectSetRESTView'] = ProjectSetRESTView
 
         self.template = 'templates/projectset_fragment.html'
