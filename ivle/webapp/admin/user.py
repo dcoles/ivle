@@ -21,13 +21,28 @@ import formencode
 import formencode.validators
 from genshi.filters import HTMLFormFiller
 
+from ivle.webapp import ApplicationRoot
 from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.admin.publishing import root_to_user, user_url
+from ivle.database import User
 import ivle.database
 import ivle.date
 import ivle.util
+
+
+class UsersView(XHTMLView):
+    """A list of all IVLE users."""
+    template = 'templates/users.html'
+
+    def authorize(self, req):
+        return req.user.admin
+
+    def populate(self, req, ctx):
+        ctx['req'] = req
+        ctx['users'] = req.store.find(User).order_by(User.login)
+
 
 # List of fields returned as part of the user JSON dictionary
 # (as returned by the get_user action)
@@ -208,7 +223,8 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     forward_routes = (root_to_user,)
     reverse_routes = (user_url,)
-    views = [(ivle.database.User, '+index', UserEditView),
+    views = [(ApplicationRoot, 'users', UsersView),
+             (ivle.database.User, '+index', UserEditView),
              (ivle.database.User, '+admin', UserAdminView),
              (ivle.database.User, '+changepassword', PasswordChangeView),
              (ivle.database.User, '+resetpassword', PasswordResetView),

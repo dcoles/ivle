@@ -1,0 +1,21 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Users</title>
+  </head>
+  <body>
+    <h1>User list</h1>
+    <div id="ivle_padding">
+      <table class="pretty_table">
+        <thead><tr><th>Login</th><th>Name</th><th>Admin</th></tr></thead>
+        <tbody>
+          <tr py:for="user in users">
+            <td><a href="${req.publisher.generate(user)}">${user.login}</a></td>
+            <td>${user.display_name}</td>
+            <td><py:if test="user.admin">yes</py:if></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
