@@ -50,21 +50,21 @@ SELECT pg_catalog.setval('project_extension_extensionid_seq', 1, false);
 -- Name: project_group_groupid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('project_group_groupid_seq', 1, false);
+SELECT pg_catalog.setval('project_group_groupid_seq', 1, true);
 
 
 --
 -- Name: project_projectid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('project_projectid_seq', 1, false);
+SELECT pg_catalog.setval('project_projectid_seq', 3, true);
 
 
 --
 -- Name: project_set_projectsetid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('project_set_projectsetid_seq', 1, false);
+SELECT pg_catalog.setval('project_set_projectsetid_seq', 2, true);
 
 
 --
@@ -196,6 +196,8 @@ ALTER TABLE offering ENABLE TRIGGER ALL;
 
 ALTER TABLE project_set DISABLE TRIGGER ALL;
 
+INSERT INTO project_set (projectsetid, offeringid, max_students_per_group) VALUES (1, 2, NULL);
+INSERT INTO project_set (projectsetid, offeringid, max_students_per_group) VALUES (2, 2, 3);
 
 
 ALTER TABLE project_set ENABLE TRIGGER ALL;
@@ -206,6 +208,11 @@ ALTER TABLE project_set ENABLE TRIGGER ALL;
 
 ALTER TABLE project DISABLE TRIGGER ALL;
 
+INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (1, 'phase1', 'Phase 1', 'This is the first project in Intermediate IVLE.', NULL, 1, '2009-08-21 18:00:00');
+INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (2, 'phase2', 'Phase 2', 'This is the second project in Intermediate IVLE.
+Get into groups of 3.', NULL, 2, '2009-09-11 18:00:00');
+INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (3, 'phase3', 'Phase 3', 'This is the final project in Intermediate IVLE.
+Complete this with the same group as Phase 2.', NULL, 2, '2009-09-25 18:00:00');
 
 
 ALTER TABLE project ENABLE TRIGGER ALL;
@@ -216,6 +223,7 @@ ALTER TABLE project ENABLE TRIGGER ALL;
 
 ALTER TABLE project_group DISABLE TRIGGER ALL;
 
+INSERT INTO project_group (groupnm, groupid, projectsetid, nick, createdby, epoch) VALUES ('group1', 1, 2, 'group1', 2, '2009-12-08 17:04:42.981005');
 
 
 ALTER TABLE project_group ENABLE TRIGGER ALL;
@@ -311,6 +319,8 @@ ALTER TABLE group_invitation ENABLE TRIGGER ALL;
 
 ALTER TABLE group_member DISABLE TRIGGER ALL;
 
+INSERT INTO group_member (loginid, groupid) VALUES (3, 1);
+INSERT INTO group_member (loginid, groupid) VALUES (4, 1);
 
 
 ALTER TABLE group_member ENABLE TRIGGER ALL;
