@@ -99,6 +99,14 @@ class EnrolSchema(formencode.Schema):
     user = formencode.All(NoEnrolmentValidator(), UserValidator())
 
 
+class EnrolmentsView(XHTMLView):
+    """A page which displays all users enrolled in an offering."""
+    template = 'templates/enrolments.html'
+    permission = 'edit'
+
+    def populate(self, req, ctx):
+        ctx['offering'] = self.context
+
 class EnrolView(XHTMLView):
     """A form to enrol a user in an offering."""
     template = 'templates/enrol.html'
@@ -216,6 +224,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     reverse_routes = (subject_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
              (Project, '+index', ProjectView),

@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Staff and students - ${offering.subject.name}</title>
+  </head>
+  <body>
+    <h1>Staff and students in ${offering.subject.name}</h1>
+    <div id="ivle_padding">
+      <div py:def="userlist(title, role)"
+           py:if="offering.get_members_by_role(unicode(role)).count()">
+        <h2>${title}</h2>
+        <ul>
+          <li py:for="user in offering.get_members_by_role(unicode(role))">
+            ${user.login} (${user.fullname})</li>
+        </ul>
+      </div>
+      ${userlist("Lecturers", "lecturer")}
+      ${userlist("Tutors", "tutor")}
+      ${userlist("Students", "student")}
+    </div>
+  </body>
+</html>
