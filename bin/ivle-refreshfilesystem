@@ -25,7 +25,10 @@ In particular:
  - the Subversion authorisation files are rewritten
 """
 
+import datetime
 import os
+import os.path
+import shutil
 import sys
 
 from ivle.config import Config
@@ -33,6 +36,20 @@ from ivle.database import get_store, ProjectGroup, User
 import ivle.makeuser
 # Python 2.5's shutil.rmtree follows symlinks!
 from ivle.util import safe_rmtree
+
+junk_directory_suffix = (
+    '-removed-%s' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
+
+def get_junk_dir(path):
+    return os.path.normpath(path) + junk_directory_suffix
+
+def junk(parent, name):
+    """Move the named directory into a junk directory alongside the parent."""
+    os.makedirs(get_junk_dir(parent))
+    shutil.move(
+        os.path.join(parent, name),
+        os.path.join(get_junk_dir(parent), name))
+
 
 config = Config()
 store = get_store(config)
@@ -43,18 +60,18 @@ print >>sys.stderr, "Refreshing active user jails..."
 for user in active_users:
     ivle.makeuser.make_jail(user, config)
 
-print >>sys.stderr, "Purging extra user jails..."
 present_jails = set(
     login for login in os.listdir(config['paths']['jails']['src'])
     if not (login.startswith('__') and login.endswith('__')))
 
+print >>sys.stderr, "Junking extra user jails..."
 for jail in present_jails - set(user.login for user in active_users):
     print ' - %s' % jail
-    safe_rmtree(os.path.join(config['paths']['jails']['src'], jail))
+    junk(config['paths']['jails']['src'], jail)
 
 repo_root = config['paths']['svn']['repo_path']
 
-print >>sys.stderr, "Creating missing Subversion user respositories..."
+print >>sys.stderr, "Creating missing Subversion user repositories..."
 present_user_repos= set(
     login for login in os.listdir(os.path.join(repo_root, 'users')))
 
@@ -63,13 +80,13 @@ for repo in set(user.login for user in active_users) - present_user_repos:
     ivle.makeuser.make_svn_repo(
         os.path.join(repo_root, 'users', repo), throw_on_error=True)
 
-print >>sys.stderr, "Purging extra Subversion user respositories..."
+print >>sys.stderr, "Junking extra Subversion user repositories..."
 for repo in present_user_repos - set(user.login for user in active_users):
     print ' - %s' % repo
-    safe_rmtree(os.path.join(repo_root, 'users', repo))
+    junk(os.path.join(repo_root, 'users'), repo)
 
 
-print >>sys.stderr, "Creating missing Subversion group respositories..."
+print >>sys.stderr, "Creating missing Subversion group repositories..."
 present_group_repos = set(
     group for group in os.listdir(os.path.join(repo_root, 'groups')))
 
@@ -84,10 +101,10 @@ for repo in active_group_identifiers - present_group_repos:
     ivle.makeuser.make_svn_repo(
         os.path.join(repo_root, 'groups', repo), throw_on_error=True)
 
-print >>sys.stderr, "Purging extra Subversion user respositories..."
+print >>sys.stderr, "Junking extra Subversion user repositories..."
 for repo in present_group_repos - active_group_identifiers:
     print ' - %s' % repo
-    safe_rmtree(os.path.join(repo_root, 'groups', repo))
+    junk(os.path.join(repo_root, 'groups'), repo)
 
 
 print >>sys.stderr, "Rebuilding Subversion user configuration..."
