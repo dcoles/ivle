@@ -50,8 +50,8 @@
     /*height: 20em;*/       /* Might be needed for windowpane mode */
     /*margin-bottom: 0.5em;*/
     position: absolute;
-    /* 2em is to accomodate the header bar, and some padding */
-    top: 3.4em;
+    /* Start immediately under the blue header. */
+    top: 0;
     /* 2.5em is to accomodate the input bar, and padding either side */
     bottom: 2.5em;
     left: 0;

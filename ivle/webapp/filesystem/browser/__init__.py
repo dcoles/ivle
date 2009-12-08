@@ -29,7 +29,8 @@ take place in the FileService app (for handling Ajax requests).
 from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
-from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.filesystem import make_path_breadcrumbs
+from ivle.webapp import ApplicationRoot
 
 import os.path
 import cgi
@@ -43,12 +44,15 @@ class BrowserView(XHTMLView):
     template = 'template.html'
     tab = 'files'
     help = 'Filesystem/Browser'
+    breadcrumb_text = 'Files'
+
+    subpath_allowed = True
 
     def authorize(self, req):
         return req.user is not None
 
     def populate(self, req, ctx):
-        if not hasattr(self, 'path'):
+        if len(self.path) == 0:
             # If no path specified, default to the user's home directory
             redirectPath = req.make_path(os.path.join('files', req.user.login))
             req.throw_redirect(redirectPath)
@@ -80,7 +84,7 @@ class BrowserView(XHTMLView):
         ctx['isdir'] = isdir
         ctx['revno'] = revno
 
-        ctx['paths'] = make_path_segments(self.path, revno)
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,revno)
 
         self.gen_actions(req, ctx)
 
@@ -88,8 +92,12 @@ class BrowserView(XHTMLView):
         ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
 
         ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
-                                                                self.path))
+                                                               self.path))
         ctx['filename'] = cgi.escape(self.path)
+
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
     #TODO: Move all this logic into the template
     def gen_actions(self, req, ctx):
@@ -132,19 +140,18 @@ class BrowserView(XHTMLView):
           ])
         ]
 
+class BrowserRedirectView(XHTMLView):
+    def authorize(self, req):
+        return req.user is not None
+
+    def render(self, req):
+        redirect_path = req.make_path(os.path.join('files', req.user.login))
+        req.throw_redirect(redirect_path)
+
 class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
-    """
-    The Plugin class for the user plugin.
-    """
-    # Magic attribute: urls
-    # Sequence of pairs/triples of
-    # (regex str, handler class, kwargs dict)
-    # The kwargs dict is passed to the __init__ of the view object
-    urls = [
-        ('files/*(path)', BrowserView),
-        ('files/', BrowserView),
-        ('/', BrowserView),
-    ]
+    views = [(ApplicationRoot, 'files', BrowserView),
+             (ApplicationRoot, '+index', BrowserRedirectView),
+             ]
 
     tabs = [
         ('files', 'Files', 'Access and edit your files',

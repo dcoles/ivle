@@ -15,27 +15,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca, Will Grant
+class Breadcrumber(object):
+    def __init__(self, req):
+        self.req = req
+        self.index = {}
 
-class BaseView(object):
-    """
-    Abstract base class for all view objects.
-    """
+        for plugin in req.config.plugins.values():
+            if hasattr(plugin, 'breadcrumbs'):
+                for cls in plugin.breadcrumbs:
+                    assert cls not in self.index
+                    self.index[cls] = plugin.breadcrumbs[cls]
 
-    subpath_allowed = False
-
-    def __init__(self, req, context, subpath=None):
-        self.context = context
-        if self.subpath_allowed:
-            self.subpath = subpath
-
-    def render(self, req):
-        raise NotImplementedError()
-
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
-
-    def authorize(self, req):
-        self.perms = self.get_permissions(req.user)
-
-        return self.permission is None or self.permission in self.perms
+    def crumb(self, obj):
+        if type(obj) not in self.index:
+            return None
+        return self.index[type(obj)](self.req, obj)

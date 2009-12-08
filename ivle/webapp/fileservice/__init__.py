@@ -33,14 +33,12 @@ import os.path
 import ivle.interpret
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
+from ivle.webapp import ApplicationRoot
 
 # XXX: Writes to req directly. This is a direct port of the legacy version.
 #      This needs to be rewritten soon.
-
 class FileserviceView(BaseView):
-    def __init__(self, req, path):
-        # XXX: Still depends on req.path internally.
-        self.path = path
+    subpath_allowed = True
 
     def authorize(self, req):
         return req.user is not None
@@ -61,8 +59,9 @@ class FileserviceView(BaseView):
                                                'services/fileservice'),
                                   interp_object, gentle=False)
 
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
+
 class Plugin(ViewPlugin):
-    urls = [
-        ('fileservice/*path', FileserviceView),
-        ('fileservice', FileserviceView, {'path': ''}),
-    ]
+    views = [(ApplicationRoot, 'fileservice', FileserviceView)]

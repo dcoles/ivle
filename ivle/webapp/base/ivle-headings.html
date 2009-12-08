@@ -39,11 +39,35 @@
   <py:match path="body[@status!='done']" once="true">
     <body>
       <div id="ivleheader">
-        <h1>
-          <a href="/">
-            <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
-          </a>
-        </h1>
+        <ul id="ivle_breadcrumbs">
+          <li py:attrs="{'class': 'breadcrumb crumbmenu' if logged_in else 'breadcrumb'}">
+            <a href="/">
+              <img src="${title_img}" alt="Informatics Virtual Learning Environment" />
+            </a>
+            <ul py:if="logged_in">
+              <li py:for="app in apps_in_tabs">
+                <a py:attrs="{'style': 'background: url(%s) no-repeat; padding-left: 30px' % app['icon_url']} if app['has_icon'] else {}" href="${app['path']}" title="${app['desc']}">${app['name']}</a>
+              </li>
+            </ul>
+          </li>
+          <li py:for="thiscrumb in [crumb(ancestor) for ancestor in ancestry] + extra_breadcrumbs"
+              py:if="thiscrumb"
+              py:attrs="{True:{'class':'crumbmenu'}, False: None}[hasattr(thiscrumb, 'menu')]">
+            <py:choose test="getattr(thiscrumb, 'url', None)">
+              <py:when test="None">
+                <span>${thiscrumb.text}</span>
+              </py:when>
+              <py:otherwise>
+                <a href="${thiscrumb.url}">
+                  ${thiscrumb.text}
+                </a>
+              </py:otherwise>
+            </py:choose>
+            <ul py:if="hasattr(thiscrumb, 'menu')">
+              <li py:for="item in thiscrumb.menu"><a href="${thiscrumb.menu[item]}">${item}</a></li>
+            </ul>
+          </li>
+        </ul>
         <div id="ivleheader_text">
           <py:choose>
             <p py:when="publicmode" class="userhello">Running in public mode.</p>
@@ -59,14 +83,6 @@
             </p>
             <p py:otherwise="" class="userhello">Not logged in.</p>
           </py:choose>
-        </div>
-        <div py:if="logged_in" id="ivleheader_tabs">
-          <ul id="apptabs">
-            <py:for each="app in apps_in_tabs">
-              <li py:if="app['this_app']" class="thisapp"><a href="${app['path']}" title="${app['desc']}"><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if>${app['name']}</span></a></li>
-              <li py:if="not app['this_app']"><a href="${app['path']}" title="${app['desc']}"><span><py:if test="app['has_icon']"><img src="${app['icon_url']}" alt="" /> </py:if>${app['name']}</span></a></li>
-            </py:for>
-          </ul>
         </div>
       </div>
       <div id="ivlebody">

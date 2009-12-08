@@ -35,10 +35,6 @@ class RESTView(BaseView):
     """
     content_type = "application/octet-stream"
 
-    def __init__(self, req, *args, **kwargs):
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-
     def render(self, req):
         raise NotImplementedError()
 
@@ -161,10 +157,6 @@ class XHTMLRESTView(JSONRESTView):
     template = None
     ctx = genshi.template.Context()
 
-    def __init__(self, req, *args, **kwargs):
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-    
     def render_fragment(self):
         if self.template is None:
             raise NotImplementedError()

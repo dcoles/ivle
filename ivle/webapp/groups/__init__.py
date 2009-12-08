@@ -21,7 +21,7 @@
 Allows students and tutors to manage project groups.
 '''
 
-from ivle.database import Subject, Offering, Semester
+from ivle.database import Offering
 
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
@@ -35,18 +35,6 @@ class GroupsView(XHTMLView):
     tab = 'subjects'
     permission = 'edit'
 
-    def __init__(self, req, subject, year, semester):
-        """Find the given offering by subject, year and semester."""
-        self.context = req.store.find(Offering,
-            Offering.subject_id == Subject.id,
-            Subject.short_name == subject,
-            Offering.semester_id == Semester.id,
-            Semester.year == year,
-            Semester.semester == semester).one()
-
-        if not self.context:
-            raise NotFound()
-
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
@@ -57,9 +45,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the group admin plugin.
     """
-    urls = [
-        ('/subjects/:subject/:year/:semester/+groups/', GroupsView),
-    ]
+    views = [(Offering, '+groups', GroupsView)]
 
     media = 'media'
     help = {'Groups': 'help.html'}

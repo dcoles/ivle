@@ -151,6 +151,7 @@ import urllib
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound, BadRequest, Unauthorized
+from ivle.webapp import ApplicationRoot
 
 # The user must send this declaration message to ensure they acknowledge the
 # TOS
@@ -165,11 +166,7 @@ user_fields_list = (
 )
 
 class UserServiceView(BaseView):
-    def __init__(self, req, path):
-        if len(path) > 0 and path[-1] == os.sep:
-            self.path = path[:-1]
-        else:
-            self.path = path
+    subpath_allowed = True
 
     def authorize(self, req):
         # XXX: activate_me isn't called by a valid user, so is special for now.
@@ -186,10 +183,13 @@ class UserServiceView(BaseView):
             raise NotFound()
         func(req, fields)
 
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
+
+
 class Plugin(ViewPlugin):
-    urls = [
-        ('userservice/*path', UserServiceView)
-    ]
+    views = [(ApplicationRoot, 'userservice', UserServiceView)]
 
 @require_method('POST')
 def handle_activate_me(req, fields):

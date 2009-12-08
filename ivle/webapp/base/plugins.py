@@ -26,10 +26,26 @@ class BasePlugin(object):
 class ViewPlugin(BasePlugin):
     """Marker class for plugins that provide views.
 
-    View plugins must have a 'urls' property which contains an iterable of pairs
-    or triples, like (routex string, handler class, kwargs dict). The kwargs
-    dict is optional. If present, the members of the kwargs dict will be passed
-    as keyword arguments to the constructor of the view object.
+    View plugins have three main types of registration:
+     - forward_routes: A list of traversals from objects to their
+       descendants. The discriminator is the source class and a list of zero
+       or more intermediate path segments. An optional argument count may be
+       given -- arguments will be taken from the path after the intermediate
+       segments. The specified callable will be given the source object and
+       any arguments, and should return the target object.
+
+     - reverse_routes: A list of traversals from objects to their parents.
+       The discriminator is just the child class. The provided callable must
+       return a tuple of (parent_object, ('intermediate', path', 'segments')).
+
+     - views: A list of named views for objects. The discriminator is the
+       context object class, view name, and an optional view set. An optional
+       (possibly infinite) argument count may again be given. The arguments
+       values will be taken from the path after the view name. The callable
+       should take the request object, target object and subpath, and return
+       a view object.
+
+    See ivle.dispatch.generate_publisher for the registry code.
 
     View plugins may also have a 'help' property, which should contain a dict
     of dicts and help file names. This dict is then used to generate the
@@ -47,7 +63,7 @@ class PublicViewPlugin(BasePlugin):
     """Marker class for plugins that provide public mode views.
 
     Public view plugins can specify the same 'urls' property as normal view
-    plugins, but they are added to the public mode router instead.
+    plugins, but they are added to the public mode publisher instead.
     """
     pass
 

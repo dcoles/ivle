@@ -24,7 +24,7 @@ from genshi.filters import HTMLFormFiller
 from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
-from ivle.webapp.errors import NotFound, Unauthorized
+from ivle.webapp.admin.publishing import root_to_user, user_url
 import ivle.database
 import ivle.date
 import ivle.util
@@ -41,11 +41,6 @@ class UserRESTView(JSONRESTView):
     """
     A REST interface to the user object.
     """
-    def __init__(self, req, login):
-        super(UserRESTView, self).__init__(self, req, login)
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
 
     @require_permission('view')
     def GET(self, req):
@@ -69,11 +64,6 @@ class UserEditView(XHTMLView):
     template = 'templates/user-edit.html'
     tab = 'settings'
     permission = 'edit'
-
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
@@ -117,11 +107,6 @@ class UserAdminView(XHTMLView):
     template = 'templates/user-admin.html'
     tab = 'settings'
 
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
-
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""
         return req.user.admin
@@ -163,11 +148,6 @@ class PasswordChangeView(XHTMLView):
     tab = 'settings'
     permission = 'edit'
 
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
-
     def authorize(self, req):
         """Only allow access if the requesting user holds the permission,
            and the target user has a password set. Otherwise we might be
@@ -201,11 +181,6 @@ class PasswordResetView(XHTMLView):
     template = 'templates/user-password-reset.html'
     tab = 'settings'
 
-    def __init__(self, req, login):
-        self.context = ivle.database.User.get_by_login(req.store, login)
-        if self.context is None:
-            raise NotFound()
-
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""
         return req.user.admin
@@ -230,16 +205,17 @@ class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the user plugin.
     """
-    # Magic attribute: urls
-    # Sequence of pairs/triples of
-    # (regex str, handler class, kwargs dict)
-    # The kwargs dict is passed to the __init__ of the view object
-    urls = [
-        ('~:login/+edit', UserEditView),
-        ('~:login/+admin', UserAdminView),
-        ('~:login/+changepassword', PasswordChangeView),
-        ('~:login/+resetpassword', PasswordResetView),
-        ('api/~:login', UserRESTView),
-    ]
+
+    forward_routes = (root_to_user,)
+    reverse_routes = (user_url,)
+    views = [(ivle.database.User, '+edit', UserEditView),
+             (ivle.database.User, '+admin', UserAdminView),
+             (ivle.database.User, '+changepassword', PasswordChangeView),
+             (ivle.database.User, '+resetpassword', PasswordResetView),
+             (ivle.database.User, '+index', UserRESTView, 'api'),
+             ]
+
+    public_forward_routes = forward_routes
+    public_reverse_routes = reverse_routes
 
     media = 'user-media'

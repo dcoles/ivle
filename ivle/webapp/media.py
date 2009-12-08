@@ -28,6 +28,13 @@ import email.utils
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import PublicViewPlugin, ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, Forbidden
+from ivle.webapp.publisher import INF
+from ivle.webapp import ApplicationRoot
+
+# This maps a media namespace to an external dependency directory (in this
+# case specified by the configuration option media/externals/jquery) and a
+# list of permitted subpaths.
+EXTERNAL_MEDIA_MAP = {'jquery': ('jquery', ['jquery.js'])}
 
 def media_url(req, plugin, path):
     '''Generates a URL to a media file.
@@ -46,29 +53,58 @@ def media_url(req, plugin, path):
 
     return req.make_path(os.path.join(media_path, plugin, path))
 
-class BaseMediaFileView(BaseView):
-    '''A view for media files.
-
-    This serves static files from directories registered by plugins.
-
-    Plugins wishing to export media should declare a 'media' attribute,
-    pointing to the directory to serve (relative to the module's directory).
-    The contents of that directory will then be available under
-    /+media/python.path.to.module.
-    '''
-    def __init__(self, req, ns, path):
+class MediaFile(object):
+    def __init__(self, root, external, version, ns, path):
+        self.root = root
+        self.external = external
+        self.version = version
         self.ns = ns
         self.path = path
 
-    def _make_filename(self, req):
-        raise NotImplementedError()
+    @property
+    def filename(self):
+        if self.external:
+            try:
+                extern = EXTERNAL_MEDIA_MAP[self.ns]
+            except KeyError:
+                return None
+
+            # Unless it's a whitelisted path, we don't want to hear about it.
+            if self.path not in extern[1]:
+                return None
+
+            # Grab the admin-configured path for this particular external dep.
+            externdir = self.root.config['media']['externals'][extern[0]]
+
+            assert isinstance(externdir, basestring)
+
+            return os.path.join(externdir, self.path)
+        else:
+            try:
+                plugin = self.root.config.plugins[self.ns]
+            except KeyError:
+                return None
+
+            if not issubclass(plugin, MediaPlugin):
+                return None
+
+            mediadir = plugin.media
+            plugindir = os.path.dirname(inspect.getmodule(plugin).__file__)
+
+            return os.path.join(plugindir, mediadir, self.path)
+
+class MediaFileView(BaseView):
+    permission = None
 
     def render(self, req):
         # If it begins with ".." or separator, it's illegal. Die.
-        if self.path.startswith("..") or self.path.startswith('/'):
+        if self.context.path.startswith("..") or \
+           self.context.path.startswith('/'):
             raise Forbidden()
 
-        filename = self._make_filename(req)
+        filename = self.get_filename(req)
+        if filename is None:
+            raise NotFound()
 
         # Find an appropriate MIME type.
         (type, _) = mimetypes.guess_type(filename)
@@ -81,125 +117,51 @@ class BaseMediaFileView(BaseView):
         if not os.access(filename, os.R_OK) or os.path.isdir(filename):
             raise Forbidden()
 
+        if self.context.version is not None:
+            req.headers_out['Expires'] = email.utils.formatdate(
+                                timeval=time.time() + (60*60*24*365),
+                                localtime=False,
+                                usegmt=True)
+
+
         req.content_type = type
         req.sendfile(filename)
 
-
-class MediaFileView(BaseMediaFileView):
-    '''A view for media files.
-
-    This serves static files from directories registered by plugins.
-
-    Plugins wishing to export media should declare a 'media' attribute,
-    pointing to the directory to serve (relative to the module's directory).
-    The contents of that directory will then be available under
-    /+media/python.path.to.module.
-    '''
-    permission = None
-
-    def _make_filename(self, req):
-        try:
-            plugin = req.config.plugins[self.ns]
-        except KeyError:
-            raise NotFound()
-
-        if not issubclass(plugin, MediaPlugin):
-            raise NotFound()
-
-        mediadir = plugin.media
-        plugindir = os.path.dirname(inspect.getmodule(plugin).__file__)
-
-        return os.path.join(plugindir, mediadir, self.path)
+    def get_filename(self, req):
+        return self.context.filename
 
     def get_permissions(self, user):
         return set()
 
-class VersionedMediaFileView(MediaFileView):
-    '''A view for versioned media files, with aggressive caching.
+def root_to_media(root, *segments):
+    if segments[0].startswith('+'):
+        if segments[0] == '+external':
+            external = True
+            version = None
+            path = segments[1:]
+        else:
+            version = segments[0][1:]
+            if segments[1] == '+external':
+                external = True
+                path = segments[2:]
+            else:
+                external = False
+                path = segments[1:]
+    else:
+        external = False
+        version = None
+        path = segments
 
-    This serves static media files with a version string, and requests that
-    browsers cache them for a long time.
-    '''
+    if version is not None and version != root.config['media']['version']:
+        return None
 
-    def __init__(self, req, ns, path, version):
-        super(VersionedMediaFileView, self).__init__(req, ns, path)
-        self.version = version
+    ns = path[0]
+    path = os.path.normpath(os.path.join(*path[1:]))
 
-    def _make_filename(self, req):
-        if self.version != req.config['media']['version']:
-            raise NotFound()
-
-        # Don't expire for a year.
-        req.headers_out['Expires'] = email.utils.formatdate(
-                                    timeval=time.time() + (60*60*24*365),
-                                    localtime=False,
-                                    usegmt=True)
-        return super(VersionedMediaFileView, self)._make_filename(req)
-
-
-# This maps a media namespace to an external dependency directory (in this
-# case specified by the configuration option media/externals/jquery) and a
-# list of permitted subpaths.
-EXTERNAL_MEDIA_MAP = {'jquery': ('jquery', ['jquery.js'])}
-
-class ExternalMediaFileView(BaseMediaFileView):
-    '''A view for media files from external dependencies.
-
-    This serves specific static files from external dependencies as defined in
-    the IVLE configuration.
-    '''
-    permission = None
-
-    def _make_filename(self, req):
-        try:
-            extern = EXTERNAL_MEDIA_MAP[self.ns]
-        except KeyError:
-            raise NotFound()
-
-        # Unless it's a whitelisted path, we don't want to hear about it.
-        if self.path not in extern[1]:
-            raise NotFound()
-
-        # Grab the admin-configured path for this particular external dep.
-        externdir = req.config['media']['externals'][extern[0]]
-
-        assert isinstance(externdir, basestring)
-
-        return os.path.join(externdir, self.path)
-
-    def get_permissions(self, user):
-        return set()
-
-class ExternalVersionedMediaFileView(ExternalMediaFileView):
-    '''A view for versioned media files from external dependencies, with
-    aggressive caching.
-
-    This serves specific static media files from external dependencies with a
-    version string, and requests that browsers cache them for a long time.
-    '''
-
-    def __init__(self, req, ns, path, version):
-        super(ExternalVersionedMediaFileView, self).__init__(req, ns, path)
-        self.version = version
-
-    def _make_filename(self, req):
-        if self.version != req.config['media']['version']:
-            raise NotFound()
-
-        # Don't expire for a year.
-        req.headers_out['Expires'] = email.utils.formatdate(
-                                    timeval=time.time() + (60*60*24*365),
-                                    localtime=False,
-                                    usegmt=True)
-        return super(ExternalVersionedMediaFileView, self)._make_filename(req)
-
+    return MediaFile(root, external, version, ns, path)
 
 class Plugin(ViewPlugin, PublicViewPlugin):
-    urls = [
-        ('+media/+:version/+external/:ns/*path', ExternalVersionedMediaFileView),
-        ('+media/+external/:ns/*path', ExternalMediaFileView),
-        ('+media/+:version/:ns/*path', VersionedMediaFileView),
-        ('+media/:ns/*path', MediaFileView),
-    ]
-
-    public_urls = urls
+    forward_routes = [(ApplicationRoot, '+media', root_to_media, INF)]
+    views = [(MediaFile, '+index', MediaFileView)]
+    public_forward_routes = forward_routes
+    public_views = views

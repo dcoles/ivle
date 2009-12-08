@@ -6,7 +6,7 @@
   <body>
     <h1>Unauthorized</h1>
     <div id="ivle_padding">
-      <p>You are not allowed to view this part of IVLE.</p>
+      <p py:if="exception.message">${exception.message}</p>
     </div>
   </body>
 </html>

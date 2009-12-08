@@ -26,6 +26,7 @@ import os.path
 import ivle.webapp.security
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
+from ivle.webapp import ApplicationRoot
 
 def get_terms_of_service(config):
     """
@@ -67,7 +68,8 @@ class TermsOfServiceView(XHTMLView):
 
     allow_overlays = False
 
-    def __init__(self, req):
+    def __init__(self, req, context, subpath=None):
+        super(TermsOfServiceView, self).__init__(req, context, subpath)
         # We need to be able to handle the case where a user has status
         # 'no_agreement'. In that case, req.user will be None, so we have
         # to get it ourselves.
@@ -94,8 +96,6 @@ class TermsOfServiceView(XHTMLView):
 
 class Plugin(ViewPlugin, MediaPlugin):
     """Registration for the Terms of Service plugin."""
-    urls = [
-        ('+tos', TermsOfServiceView),
-    ]
+    views = [(ApplicationRoot, '+tos', TermsOfServiceView)]
 
     media = 'media'

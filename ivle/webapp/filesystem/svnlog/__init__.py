@@ -27,11 +27,14 @@ import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
-from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.filesystem import make_path_breadcrumbs
+from ivle.webapp import ApplicationRoot
 
 class SubversionLogView(XHTMLView):
     template = 'template.html'
     tab = 'files'
+
+    subpath_allowed = True
 
     def authorize(self, req):
         return req.user is not None
@@ -74,7 +77,8 @@ class SubversionLogView(XHTMLView):
         ctx['url'] = req.make_path(os.path.join('svnlog', self.path))
         ctx['diffurl'] = req.make_path(os.path.join('diff', self.path))
         ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        ctx['paths'] = make_path_segments(self.path)
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,
+                                                   suffix='(Subversion log)')
 
         sr = ivle.svn.revision_from_string(
                    req.get_fieldstorage().getfirst("r"))
@@ -90,10 +94,11 @@ class SubversionLogView(XHTMLView):
                                   ivle.util.split_path(req.path)[0],
                                   pathaction[0][1:])) + '?r=%d' % log['revno'])
 
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
+
 class Plugin(ViewPlugin, MediaPlugin):
-    urls = [
-        ('/svnlog', SubversionLogView, {'path': ''}),
-        ('/svnlog/*path', SubversionLogView),
-    ]
+    views = [(ApplicationRoot, 'svnlog', SubversionLogView)]
 
     media = 'media'

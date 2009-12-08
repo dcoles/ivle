@@ -15,27 +15,29 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca, Will Grant
-
-class BaseView(object):
-    """
-    Abstract base class for all view objects.
-    """
-
-    subpath_allowed = False
-
-    def __init__(self, req, context, subpath=None):
+class ExerciseBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
         self.context = context
-        if self.subpath_allowed:
-            self.subpath = subpath
 
-    def render(self, req):
-        raise NotImplementedError()
+    @property
+    def url(self):
+        return self.req.publisher.generate(self.context, None, '+edit')
 
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
+    @property
+    def text(self):
+        return self.context.name
 
-    def authorize(self, req):
-        self.perms = self.get_permissions(req.user)
+class WorksheetBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
 
-        return self.permission is None or self.permission in self.perms
+    @property
+    def url(self):
+        return self.req.publisher.generate(self.context)
+
+    @property
+    def text(self):
+        return self.context.name
+

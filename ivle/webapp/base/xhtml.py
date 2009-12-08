@@ -28,6 +28,8 @@ from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin, OverlayPlugin
 from ivle.webapp.errors import HTTPError, Unauthorized
+from ivle.webapp.publisher import NoPath
+from ivle.webapp.breadcrumbs import Breadcrumber
 
 class XHTMLView(BaseView):
     """
@@ -37,17 +39,23 @@ class XHTMLView(BaseView):
     """
 
     template = 'template.html'
-
-    plugin_scripts = {}
-    plugin_styles = {}
-    scripts_init = []
-
     allow_overlays = True
-    overlay_blacklist = []
+    breadcrumb_text = None
 
-    def __init__(self, req, **kwargs):
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
+    def __init__(self, *args, **kwargs):
+        super(XHTMLView, self).__init__(*args, **kwargs)
+
+        self.overlay_blacklist = []
+
+        self.plugin_scripts = {}
+        self.plugin_styles = {}
+        self.scripts_init = []
+
+        self.extra_breadcrumbs = []
+        self.overlay_blacklist = []
+
+    def get_context_ancestry(self, req):
+        return req.publisher.get_ancestors(self.context)
 
     def filter(self, stream, ctx):
         return stream
@@ -96,7 +104,22 @@ class XHTMLView(BaseView):
         ctx['scripts_init'] = self.scripts_init + overlay_bits[3]
         ctx['app_template'] = app
         ctx['title_img'] = media_url(req, CorePlugin,
-                                     "images/chrome/title.png")
+                                     "images/chrome/root-breadcrumb.png")
+        try:
+            ctx['ancestry'] = self.get_context_ancestry(req)
+        except NoPath:
+            ctx['ancestry'] = []
+
+        # If the view has specified text for a breadcrumb, add one.
+        if self.breadcrumb_text:
+            ctx['extra_breadcrumbs'] = [ViewBreadcrumb(req, self)]
+        else:
+            ctx['extra_breadcrumbs'] = []
+
+        # Allow the view to add its own fake breadcrumbs.
+        ctx['extra_breadcrumbs'] += self.extra_breadcrumbs
+
+        ctx['crumb'] = Breadcrumber(req).crumb
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
@@ -193,19 +216,24 @@ class XHTMLView(BaseView):
 class XHTMLErrorView(XHTMLView):
     template = 'xhtmlerror.html'
 
-    def __init__(self, req, exception):
-        self.context = exception
+    def __init__(self, req, context, lastobj):
+        super(XHTMLErrorView, self).__init__(req, context)
+        self.lastobj = lastobj
+
+    def get_context_ancestry(self, req):
+        return req.publisher.get_ancestors(self.lastobj)
 
     def populate(self, req, ctx):
+        ctx['req'] = req
         ctx['exception'] = self.context
 
 class XHTMLUnauthorizedView(XHTMLErrorView):
     template = 'xhtmlunauthorized.html'
 
-    def __init__(self, req, exception):
-        super(XHTMLUnauthorizedView, self).__init__(req, exception)
+    def __init__(self, req, exception, lastobj):
+        super(XHTMLUnauthorizedView, self).__init__(req, exception, lastobj)
 
-        if req.user is None:
+        if not req.publicmode and req.user is None:
             # Not logged in. Redirect to login page.
             if req.uri == '/':
                 query_string = ''
@@ -214,3 +242,12 @@ class XHTMLUnauthorizedView(XHTMLErrorView):
             req.throw_redirect('/+login' + query_string)
 
         req.status = 403
+
+class ViewBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def text(self):
+        return self.context.breadcrumb_text

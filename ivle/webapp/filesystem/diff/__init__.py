@@ -30,15 +30,15 @@ import ivle.interpret
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.errors import NotFound, BadRequest
-from ivle.webapp.filesystem import make_path_segments
+from ivle.webapp.filesystem import make_path_breadcrumbs
+from ivle.webapp import ApplicationRoot
 
 class DiffView(XHTMLView):
     '''A view to present a nice XHTML Subversion diff from a user's jail.'''
     template = 'template.html'
     tab = 'files'
 
-    def __init__(self, req, path):
-        self.path = path
+    subpath_allowed = True
 
     def authorize(self, req):
         return req.user is not None
@@ -78,12 +78,17 @@ class DiffView(XHTMLView):
         )
 
         ctx['title'] = os.path.normpath(self.path).rsplit('/', 1)[-1]
-        ctx['paths'] = make_path_segments(self.path)
+        self.extra_breadcrumbs = make_path_breadcrumbs(req, self.subpath,
+                                                   suffix='(Subversion diff)')
 
         # Create a dict with (name, HTMLdiff) pairs for each non-empty diff.
         ctx['files'] = dict([(fd[0], genshi.XML(htmlfy_diff(fd[1])))
                              for fd in diff_matcher.findall(diff)
                              if fd[1]])
+
+    @property
+    def path(self):
+        return os.path.join(*self.subpath) if self.subpath else ''
 
 
 def htmlfy_diff(difftext):
@@ -108,10 +113,6 @@ def htmlfy_diff(difftext):
     return '<pre class="diff">%s</pre>' % output
 
 class Plugin(ViewPlugin, MediaPlugin):
-    '''Registration class for diff components.'''
-    urls = [
-        ('diff/', DiffView, {'path': ''}),
-        ('diff/*(path)', DiffView),
-    ]
+    views = [(ApplicationRoot, 'diff', DiffView)]
 
     media = 'media'

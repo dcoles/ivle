@@ -37,7 +37,6 @@ import socket
 import time
 
 import mod_python
-import routes
 
 from ivle import util
 import ivle.config
@@ -46,24 +45,75 @@ import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
 from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
+from ivle.webapp.publisher import Publisher, PublishingError
+from ivle.webapp import ApplicationRoot
 
 config = ivle.config.Config()
 
-def generate_router(view_plugins, attr):
+class ObjectPermissionCheckingPublisher(Publisher):
+    """A specialised publisher that checks object permissions.
+
+    This publisher verifies that the user holds any permission at all
+    on the model objects through which the resolution path passes. If
+    no permission is held, resolution is aborted with an Unauthorized
+    exception.
+
+    IMPORTANT: This does NOT check view permissions. It only checks
+    the objects in between the root and the view, exclusive!
+    """
+
+    def traversed_to_object(self, obj):
+        """Check that the user has any permission at all over the object."""
+        if (hasattr(obj, 'get_permissions') and
+            len(obj.get_permissions(self.root.user)) == 0):
+            # Indicate the forbidden object if this is an admin.
+            if self.root.user and self.root.user.admin:
+                raise Unauthorized('Unauthorized: %s' % obj)
+            else:
+                raise Unauthorized()
+
+
+def generate_publisher(view_plugins, root, publicmode=False):
     """
     Build a Mapper object for doing URL matching using 'routes', based on the
     given plugin registry.
     """
-    m = routes.Mapper(explicit=True)
+    r = ObjectPermissionCheckingPublisher(root=root)
+
+    r.add_set_switch('api', 'api')
+
+    if publicmode:
+        view_attr = 'public_views'
+        forward_route_attr = 'public_forward_routes'
+        reverse_route_attr = 'public_reverse_routes'
+    else:
+        view_attr = 'views'
+        forward_route_attr = 'forward_routes'
+        reverse_route_attr = 'reverse_routes'
+
+
     for plugin in view_plugins:
-        # Establish a URL pattern for each element of plugin.urls
-        assert hasattr(plugin, 'urls'), "%r does not have any urls" % plugin 
-        for url in getattr(plugin, attr):
-            routex = url[0]
-            view_class = url[1]
-            kwargs_dict = url[2] if len(url) >= 3 else {}
-            m.connect(routex, view=view_class, **kwargs_dict)
-    return m
+        if hasattr(plugin, forward_route_attr):
+            for fr in getattr(plugin, forward_route_attr):
+                # An annotated function can also be passed in directly.
+                if hasattr(fr, '_forward_route_meta'):
+                    r.add_forward_func(fr)
+                else:
+                    r.add_forward(*fr)
+
+        if hasattr(plugin, reverse_route_attr):
+            for rr in getattr(plugin, reverse_route_attr):
+                # An annotated function can also be passed in directly.
+                if hasattr(rr, '_reverse_route_src'):
+                    r.add_reverse_func(rr)
+                else:
+                    r.add_reverse(*rr)
+
+        if hasattr(plugin, view_attr):
+            for v in getattr(plugin, view_attr):
+                r.add_view(*v)
+
+    return r
 
 def handler(apachereq):
     """Handles an HTTP request.
@@ -84,27 +134,29 @@ def handler(apachereq):
         if user and user.valid:
             req.user = user
 
-    if req.publicmode:
-        req.mapper = generate_router(config.plugin_index[PublicViewPlugin],
-                                    'public_urls')
-    else:
-        req.mapper = generate_router(config.plugin_index[ViewPlugin], 'urls')
+    req.publisher = generate_publisher(
+        config.plugin_index[ViewPlugin],
+        ApplicationRoot(req.config, req.store, req.user),
+        publicmode=req.publicmode)
 
-    matchdict = req.mapper.match(req.uri)
-    if matchdict is not None:
-        viewcls = matchdict['view']
-        # Get the remaining arguments, less 'view', 'action' and 'controller'
-        # (The latter two seem to be built-in, and we don't want them).
-        kwargs = matchdict.copy()
-        del kwargs['view']
+    try:
+        obj, viewcls, subpath = req.publisher.resolve(req.uri.decode('utf-8'))
         try:
+            # We 404 if we have a subpath but the view forbids it.
+            if not viewcls.subpath_allowed and subpath:
+                raise NotFound()
+
             # Instantiate the view, which should be a BaseView class
-            view = viewcls(req, **kwargs)
+            view = viewcls(req, obj, subpath)
 
             # Check that the request (mainly the user) is permitted to access
             # the view.
             if not view.authorize(req):
-                raise Unauthorized()
+                # Indicate the forbidden object if this is an admin.
+                if req.user and req.user.admin:
+                    raise Unauthorized('Unauthorized: %s' % view)
+                else:
+                    raise Unauthorized()
             # Render the output
             view.render(req)
         except HTTPError, e:
@@ -118,7 +170,7 @@ def handler(apachereq):
                 errviewcls = XHTMLView.get_error_view(e)
 
             if errviewcls:
-                errview = errviewcls(req, e)
+                errview = errviewcls(req, e, obj)
                 errview.render(req)
                 return req.OK
             elif e.message:
@@ -138,9 +190,20 @@ def handler(apachereq):
         else:
             req.store.commit()
             return req.OK
-    else:
+    except Unauthorized, e:
+        # Resolution failed due to a permission check. Display a pretty
+        # error, or maybe a login page.
+        XHTMLView.get_error_view(e)(req, e, req.publisher.root).render(req)
+        return req.OK
+    except PublishingError, e:
         req.status = 404
-        XHTMLErrorView(req, NotFound()).render(req)
+
+        if req.user and req.user.admin:
+            XHTMLErrorView(req, NotFound('Not found: ' +
+                                         str(e.args)), e[0]).render(req)
+        else:
+            XHTMLErrorView(req, NotFound(), e[0]).render(req)
+
         return req.OK
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):

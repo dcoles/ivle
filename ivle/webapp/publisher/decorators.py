@@ -15,27 +15,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-# Author: Matt Giuca, Will Grant
+"""Decorators to annotate publishing functions."""
 
-class BaseView(object):
-    """
-    Abstract base class for all view objects.
-    """
+class forward_route(object):
+    def __init__(self, src, segment=None, argc=0, viewset=None):
+        self.src = src
+        self.segment = segment
+        self.argc = argc
+        self.viewset = viewset
 
-    subpath_allowed = False
+    def __call__(self, func):
+        func._forward_route_meta = {'src': self.src,
+                                    'segment': self.segment,
+                                    'argc': self.argc,
+                                    'viewset': self.viewset
+                                    }
+        return func
 
-    def __init__(self, req, context, subpath=None):
-        self.context = context
-        if self.subpath_allowed:
-            self.subpath = subpath
+class reverse_route(object):
+    def __init__(self, src):
+        self.src = src
 
-    def render(self, req):
-        raise NotImplementedError()
-
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
-
-    def authorize(self, req):
-        self.perms = self.get_permissions(req.user)
-
-        return self.permission is None or self.permission in self.perms
+    def __call__(self, func):
+        func._reverse_route_src = self.src
+        return func

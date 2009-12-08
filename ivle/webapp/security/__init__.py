@@ -20,6 +20,7 @@
 import ivle.database
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.security.views import LoginView, LogoutView
+from ivle.webapp import ApplicationRoot
 
 def get_user_details(req):
     """Gets the name of the logged in user, without presenting a login box
@@ -43,7 +44,6 @@ class Plugin(ViewPlugin):
     """
     The Plugin class for the security plugin.
     """
-    urls = [
-        ('+login', LoginView),
-        ('+logout', LogoutView),
-    ]
+    views = [(ApplicationRoot, '+login', LoginView),
+             (ApplicationRoot, '+logout', LogoutView),
+             ]

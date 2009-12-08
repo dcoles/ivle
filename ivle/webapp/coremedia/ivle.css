@@ -33,21 +33,16 @@ a img {
     border: none;
 }
 
-/* h1s are styled specially to a small golden 3D bar */
-#ivlebody h1 {
-    background-color: #fea;
-    background-image: url(../ivle.webapp.core/images/chrome/h1-bg.png);
-    background-repeat: repeat-y;
+h1 {
     margin: 0;
-    padding: 0.5em;
-    border-top: white 2px solid;        /* Top edge of 3D effect */
-    border-bottom: #863 1px solid;      /* Bottom edge of 3D effect */
-    font-size: 1em;
-    font-weight: bold;
+    padding: 0.5em 0 0 0.5em;
+    font-size: x-large;
+    font-weight: normal;
 }
 
-#ivlebody h2 {
-    font-size: 1.4em;
+h2 {
+    font-size: larger;
+    font-weight: normal;
 }
 
 /** Special styles for header section **/
@@ -59,24 +54,115 @@ a img {
     background-repeat: repeat-x;
     padding: 0;
     border-bottom: 1px solid black;
-    /* IMPORTANT: This 4em is hard-coded elsewhere in this file. Search for
+    /* IMPORTANT: This 2em is hard-coded elsewhere in this file. Search for
      * #ivleheader.height to update it. */
-    height: 4em;
+    height: 2em;
     left: 0;
     right: 0;
     z-index: 1;     /* Background to all, but the body */
 }
 
-#ivleheader h1 {
+/* Now we have lots of breadcrumb styles.
+   The breadcrumbs are <li>s in a <ul>. Each <li> has either an <a> or
+   a <span> inside it, with the label of the breadcrumb. <li>s may also
+   have an <ul> inside them, which is a menu that pops up on hover.
+ */
+ul#ivle_breadcrumbs {
     margin: 0;
-    padding: 8px;
+    padding: 0;
+    list-style-type: none;
+}
+
+ul#ivle_breadcrumbs > li {
+    background: url(../ivle.webapp.core/images/chrome/breadcrumb-chevron.png) scroll no-repeat right;
+    float: left;
+    min-height: 29px;
+    margin-right: 4px;
+    position: relative;
+}
+
+ul#ivle_breadcrumbs > li > a {
+    display: block;
+    line-height: 2em;
+    padding-right: 16px;
+    vertical-align: middle;
+    text-decoration: none;
+    color: black;
+}
+
+ul#ivle_breadcrumbs > li > a > img {
+    vertical-align: middle;
+}
+
+/* There is no breadcrumb to the left of the first one, so there is no margin.
+   We add a special one. */
+ul#ivle_breadcrumbs > li:first-child > a {
+    padding-left: 6px;
+}
+
+ul#ivle_breadcrumbs > li > span {
+    display: block;
+    line-height: 2em;
+    padding-right: 16px;
+    vertical-align: middle;
+}
+
+ul#ivle_breadcrumbs > li > a:hover {
+    text-decoration: underline;
+}
+
+ul#ivle_breadcrumbs > li > ul {
+    display: none;
+    list-style-type: none;
+
+    position: absolute;
+    padding-left: 0;
+    top: 2em;
+    left: -21px; /* Just meets the chevron on the left. */
+    width: 200px;
+
+    background: #abf;
+    border: 1px solid #dee4ff;
+    opacity: 0.95;
+}
+
+ul#ivle_breadcrumbs > li:first-child > ul {
+    left: 0; /* Don't want the IVLE menu to run off the LHS. */
+}
+
+ul#ivle_breadcrumbs > li:hover > ul {
+    display: block;
+}
+
+ul#ivle_breadcrumbs > li > ul > li {
+    padding: 0.3em;
+}
+
+/* The IVLE crumb's menu items are extra high, with icons. */
+ul#ivle_breadcrumbs > li:first-child > ul > li > a {
+    min-height: 24px;
+    vertical-align: middle;
+    padding-top: 2px;
+}
+
+ul#ivle_breadcrumbs > li > ul > li > a {
+    display: block;
+}
+
+ul#ivle_breadcrumbs > li > ul > li:hover {
+    background: #b8c6ff;
+}
+
+ul#ivle_breadcrumbs > li.crumbmenu > a {
+    background: url(../ivle.webapp.core/images/chrome/drop-down.png) scroll no-repeat right;
+    margin-right: 10px;
 }
 
 #ivleheader_text {
     position: absolute;
-    padding: 0.5em;
     top: 0;
-    right: 0.5em;
+    right: 0;
+    padding: 0.5em;
 }
 
 /* Note: The body has NO PADDING by default (unlike plain HTML).
@@ -88,7 +174,7 @@ a img {
     /* This is positioned absolutely so that its content can be positioned
      * absolutely as well, and so height: 100% really means it. */
     position: absolute;
-    top: 4em;               /* == #ivleheader.height */
+    top: 2em;               /* == #ivleheader.height */
     bottom: 0;
     width: 100%;
     z-index: 0;     /* Behind header */
@@ -111,90 +197,9 @@ p.userhello {
     font-weight: bold;
 }
 
-/* The tabs bar is positioned absolutely, unlike the other header content.
- * This allows it to be aligned exactly with the bottom of the header bar.
- */
-#ivleheader_tabs {
-    position: absolute;
-    right: 1em;
-    bottom: 0;
-}
-
-#ivleheader_tabs p {
-    /* This allows for a single paragraph, currently used to display a warning
-     * about Debuginfo */
-    position: absolute;
-    left: 1em;
-    bottom: 0.5em;
-    margin: 0;
-}
-
-ul#apptabs {
-    margin: 0;
-    white-space: nowrap;
-}
-
-ul#apptabs li {
-    display: inline;
-    /*border: 1px solid black;*/
-    /*background-color: #fc6;*/
-    background-image: url(../ivle.webapp.core/images/chrome/tab-left.png);
-    background-repeat: no-repeat;
-    background-position: top left;
-    padding: 0;
-    padding-left: 4px;
-}
-ul#apptabs li a {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-right.png);
-    background-repeat: no-repeat;
-    background-position: top right;
-    padding: 0;
-    padding-right: 4px;
-}
-ul#apptabs li a span {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-mid.png);
-    background-repeat: repeat-x;
-    padding: 0 3px;
-}
-ul#apptabs li:hover {
-    /*background-color: #fd8;*/
-    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-left.png);
-}
-ul#apptabs li:hover a {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-right.png);
-}
-ul#apptabs li:hover a span {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-hover-mid.png);
-}
-/* Currently active app tab */
-ul#apptabs li.thisapp {
-    /*background-color: white;*/
-    /*border-bottom: 1px solid white;*/
-    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-left.png);
-}
-ul#apptabs li.thisapp a {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-right.png);
-}
-ul#apptabs li.thisapp a span {
-    background-image: url(../ivle.webapp.core/images/chrome/tab-selected-mid.png);
-}
-
-ul#apptabs a {
-    color: navy;    /* Text colour not to change */
-    text-decoration: none;
-}
-
 /* Terms of Service accept / decline buttons */
 #tos_acceptbuttons {
     text-align: center;
-}
-
-/* For system warning messages */
-.system_warning {
-    margin: 1em;
-    padding: 0.5em;
-    border: 1px solid #a22;
-    background: #f88;
 }
 
 form.verticalform div {
