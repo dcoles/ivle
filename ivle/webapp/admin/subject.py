@@ -43,8 +43,7 @@ from ivle.database import Subject, Semester, Offering, Enrolment, User,\
 from ivle import util
 import ivle.date
 
-from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
-                                             ProjectRESTView
+from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.publishing import (root_to_subject,
             subject_to_offering, offering_to_projectset, offering_to_project,
@@ -232,7 +231,6 @@ class Plugin(ViewPlugin, MediaPlugin):
 
              (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
              (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
-             (Project, '+index', ProjectRESTView, 'api'),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
