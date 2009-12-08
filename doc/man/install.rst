@@ -43,7 +43,6 @@ software.
    + Genshi (``python-genshi``)
    + psycopg2 (``python-psycopg2``)
    + pysvn (``python-svn``)
-   + Routes (``python-routes``)
    + Storm (``python-storm``)
 * jQuery (``libjs-jquery``)
 * PostgreSQL 8.3 or later (``postgresql``)
@@ -69,9 +68,8 @@ If you want to grab all of the required packages in one command, use::
 
     sudo apt-get install apache2 libapache2-mod-python libapache2-svn \
     python2.6 python-cjson python-configobj python-docutils python-epydoc \
-    python-formencode python-genshi python-psycopg2 python-svn python-routes \
-    python-storm libjs-jquery postgresql subversion debootstrap rsync \
-    build-essential
+    python-formencode python-genshi python-psycopg2 python-svn python-storm \
+    libjs-jquery postgresql subversion debootstrap rsync build-essential
 
 While installing from a distribution package is often a better idea for
 users, developers will need to install from a plain source tree.
