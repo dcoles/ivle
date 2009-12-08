@@ -21,11 +21,17 @@
 Configuring IVLE
 ****************
 
-This page describes the configuration of IVLE, which is done by editing the
-file :file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`.
+This page describes the configuration of IVLE. This consists of populating the 
+:file:`ivle.conf` file and configuring Apache to serve the IVLE webapp and 
+Subversion repositories.
 
 Configuration options
 =====================
+
+Most of the configuration of IVLE is done by editing the file 
+:file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`. These 
+settings are required as part of the `install process <ref-install>` and for 
+actual running of IVLE.
 
 [urls]
 ------
@@ -364,3 +370,145 @@ inside their jail.
 
 Apache configuration
 ====================
+Apache is used in IVLE for hosting of the IVLE web application and hosting 
+Subversion repositories over WebDAV. Typically the Subversion repository will 
+run on the Master server and the Web Application will be run on a collection 
+of slaves.  It is also possible to combine the two function together to run as 
+a standalone server.
+
+
+Web Application
+---------------
+The IVLE web application runs on Apache using ``mod_python``. An example 
+configuration is provided in the file :file:`examples/config/apache.conf`.
+
+At minimum the following settings must be specified:
+
+.. describe:: ServerName
+
+    Should be the formal hostname of the server, typically one that users will 
+    use to access IVLE. For example, 'ivle.org'.
+
+.. describe:: ServerAlias
+
+    Should be set to the value of ``[urls] public_host`` that is specified in 
+    :file:`ivle.conf`. This is to ensure that Apache will correctly handle 
+    requests for the public content.
+
+.. describe:: SetHandler
+
+    Must be ``mod_python``
+
+.. describe:: PythonHandler
+
+    Must be ``ivle.dispatch``
+
+.. describe:: PythonOption mod_python.file_session.database_directory
+
+    Session directory for mod_python. This must be a shared directory between 
+    all Slave servers, in particular when operating through a load balancer.  
+    If not provided then users will encounter inconsistent behavior such as 
+    being thrown back to the login screen after logging in.
+
+Optional settings are:
+
+.. describe:: PythonOption mod_python.session.cookie_name
+
+    The name to be set for cookies rather than the one automatically generated 
+    by mod_python. For example, 'ivle'.
+
+.. describe:: PythonDebug
+
+    If this option is set, any uncaught errors from mod_python will be sent to 
+    the browser rather than being sent to the error log. It is recommended 
+    that this setting is only used for development or debugging.
+
+Subversion Repository
+---------------------
+IVLE also uses Apache to provide HTTP access to user's Subversion repositories 
+using ``mod_dav_svn``. Typically this is run on a single, stand alone server; 
+though it may be run in conjunction with the Web Application.  An example 
+configuration is provided in the file :file:`examples/config/apache-svn.conf`.  
+IVLE will automatically generate password hash and repository permission files 
+that are used to control access to the repositories.
+
+IVLE expects to find the paths ``users/`` and ``groups/`` at the URL provided 
+by the value of ``[urls] svn_addr`` set in :file:`ivle.conf`. Thus there 
+should be two ``Location`` clauses configured, one for users and one for 
+groups.
+
+User Repositories
+~~~~~~~~~~~~~~~~~
+
+.. describe:: DAV
+
+    Must be ``svn``
+
+.. describe:: SVNParentPath
+
+    Directory where user repositories are stored. Should be the value of 
+    ``[path] [[svn]] repo_path`` in :file:`ivle.conf` with 'users' appended.  
+    For example, '/var/lib/ivle/svn/repositories/users'.
+
+.. describe:: AuthzSVNAccessFile
+
+    Location of the configuration file used to assign permissions to user 
+    repositories. Should be the same value as ``[path] [[svn]] conf`` in 
+    :file:`ivle.conf`.
+
+.. describe:: Require
+
+    Must be ``valid-user``
+
+.. describe:: AuthType
+
+    Must be ``Basic``
+
+.. describe:: AuthName
+
+    The name that should appear on authentication requests. For example, 'IVLE 
+    Subversion repository'.
+
+.. describe:: AuthUserFile
+
+    Location of the password hash file for Subversion users. Should be the 
+    same as the value of ``[path] [[svn]] auth_ivle``. For example, 
+    '/var/lib/ivle/svn/ivle.auth'.
+
+Group Repositories
+~~~~~~~~~~~~~~~~~~
+
+.. describe:: DAV
+
+    Must be ``svn``
+
+.. describe:: SVNParentPath
+
+    Directory where user repositories are stored. Should be the value of 
+    ``[path] [[svn]] repo_path`` in :file:`ivle.conf` with 'groups' appended.  
+    For example, '/var/lib/ivle/svn/repositories/groups'.
+
+.. describe:: AuthzSVNAccessFile
+
+    Location of the configuration file used to assign permissions to group 
+    repositories. Should be the same value as ``[path] [[svn]] group_conf`` in 
+    :file:`ivle.conf`.
+
+.. describe:: Require
+
+    Must be ``valid-user``
+
+.. describe:: AuthType
+
+    Must be ``Basic``
+
+.. describe:: AuthName
+
+    The name that should appear on authentication requests. For example, 'IVLE 
+    Subversion repository'.
+
+.. describe:: AuthUserFile
+
+    Location of the password hash file for Subversion users. Should be the 
+    same as the value of ``[path] [[svn]] auth_ivle``. For example, 
+    '/var/lib/ivle/svn/ivle.auth'.
