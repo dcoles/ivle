@@ -156,6 +156,7 @@ class EnrolView(XHTMLView):
 
         ctx['data'] = data or {}
         ctx['offering'] = self.context
+        ctx['roles_auth'] = self.context.get_permissions(req.user)
         ctx['errors'] = errors
 
 class OfferingProjectsView(XHTMLView):
