@@ -214,3 +214,33 @@ form.verticalform div label {
     margin-right: 5px;
     font-weight: bold;
 }
+
+.pretty_table {
+  text-align: left;
+  border-collapse: collapse;
+}
+
+.pretty_table td, .pretty_table th {
+  padding: 0.2em 0.7em;
+  border-bottom: 1px solid #ccc;
+}
+
+.pretty_table th {
+  border-bottom: 2px solid gray;
+}
+
+.pretty_table tbody td {
+  color: #444;
+}
+
+.pretty_table tbody tr:hover {
+  background-color: #efefef;
+}
+
+.pretty_table td:first-child, .pretty_table th:first-child {
+  padding-left: 0;
+}
+
+.pretty_table tbody tr:hover td {
+  color: #111;
+}

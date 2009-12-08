@@ -50,33 +50,3 @@ li {
 .project-title img {
   vertical-align: top;
 }
-
-.project_list {
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.project_list td, .project_list th {
-  padding: 0.2em 0.7em;
-  border-bottom: 1px solid #ccc;
-}
-
-.project_list th {
-  border-bottom: 2px solid gray;
-}
-
-.project_list tbody td {
-  color: #444;
-}
-
-.project_list tbody tr:hover {
-  background-color: #efefef;
-}
-
-.project_list td:first-child, .project_list th:first-child {
-  padding-left: 0;
-}
-
-.project_list tbody tr:hover td {
-  color: #111;
-}
