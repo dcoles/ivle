@@ -30,8 +30,13 @@ Configuration options
 
 Most of the configuration of IVLE is done by editing the file 
 :file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`. These 
-settings are required as part of the `install process <ref-install>` and for 
-actual running of IVLE.
+settings are required as part of the :ref:`install process <ref-install>` and 
+for actual running of IVLE.
+
+It uses the `ConfigObj`_ text format which is heavily based on the 'INI' text 
+format.
+
+.. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 
 [urls]
 ------
