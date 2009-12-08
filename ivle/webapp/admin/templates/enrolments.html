@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Staff and students - ${offering.subject.name}</title>
+    <title>Enrolments - ${offering.subject.name}</title>
   </head>
   <body>
     <h1>Staff and students in ${offering.subject.name}</h1>
@@ -9,10 +9,15 @@
       <div py:def="userlist(title, role)"
            py:if="offering.get_members_by_role(unicode(role)).count()">
         <h2>${title}</h2>
-        <ul>
-          <li py:for="user in offering.get_members_by_role(unicode(role))">
-            ${user.login} (${user.display_name})</li>
-        </ul>
+        <table class="pretty_table">
+          <thead><tr><th>Login</th><th>Name</th></tr></thead>
+          <tbody>
+            <tr py:for="user in offering.get_members_by_role(unicode(role))">
+              <td>${user.login}</td>
+              <td>${user.display_name}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       ${userlist("Lecturers", "lecturer")}
       ${userlist("Tutors", "tutor")}
