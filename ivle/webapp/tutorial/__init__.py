@@ -33,6 +33,7 @@ from xml.dom import minidom
 import formencode
 import formencode.validators
 import genshi
+import genshi.input
 from genshi.filters import HTMLFormFiller
 
 import ivle.database
@@ -412,6 +413,8 @@ class WorksheetFormView(XHTMLView):
                 req.throw_redirect(req.publisher.generate(worksheet))
             except formencode.Invalid, e:
                 errors = e.unpack_errors()
+            except genshi.input.ParseError, e:
+                errors = {'data': 'Could not parse XML: %s' % e.message}
             except ivle.worksheet.utils.ExerciseNotFound, e:
                 errors = {'data': 'Could not find exercise "%s"' % e.message}
         else:
