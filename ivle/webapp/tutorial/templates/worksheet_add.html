@@ -1,42 +1,40 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>New Worksheet - ${subject.name}</title>
-    <!-- These let the javascript know which worksheet is open -->
-    <script type="text/javascript">
-        subject = "${subject.short_name}";
-        year = "${year}";
-        semester = "${semester}";
-    </script>
+    <title>New Worksheet - ${offering.subject.name}</title>
   </head>
   <body>
-    <h1>New worksheet for ${subject.name}</h1>
+    <h1>New worksheet for ${offering.subject.name}</h1>
     <div id="ivle_padding">
-      <div id='worksheet_input'>
-        <label for='worksheet_identifier'>Unique Identifier:</label>
-        <input type='text' id='worksheet_identifier' class='worksheet_id' />
+      <form method="post">
+        <label for='name'>Name:</label>
+        <input type='text' id='worksheet_name' name='name' class='worksheet_area' />
+        <span py:if="'name' in errors" class="form_error">${errors.name}</span>
         <br />
-        <label for='worksheet_name'>Name:</label>
-        <input type='text' id='worksheet_name' class='worksheet_area' />
+        <label for='worksheet_identifier'>Short name:</label>
+        <input type='text' id='worksheet_identifier' name='identifier' class='worksheet_id' />
+        <span py:if="'identifier' in errors" class="form_error">${errors.identifer}</span>
         <br />
-        <label for='worksheet_asses'>Assessable:</label>
-        <input type='checkbox' name='asses' id='worksheet_asses' />
+        <label for='worksheet_assesable'>Assessable:</label>
+        <input type='checkbox' name='assessable' id='worksheet_assessable' />
+        <span py:if="'assessable' in errors" class="form_error">${errors.assessable}</span>
         <br />
-        <label for='worksheet_format'>Worksheet Format:</label>
+        <label for='worksheet_format'>Format:</label>
         <select name='format' id='worksheet_format'>
-          <py:for each="format in formats">
-            <option value='${format}'>${format}</option>
+          <py:for each="niceformat in formats">
+            <option value='${formats[niceformat]}'>${niceformat}</option>
           </py:for>
         </select>
+        <span py:if="'format' in errors" class="form_error">${errors.format}</span>
         <br />
-        <textarea id='worksheet_data' class='worksheet_area' cols='80'
+        <textarea id='worksheet_data' name='data' class='worksheet_area' cols='80'
         rows='30'></textarea>
+        <br />
+        <span py:if="'data' in errors" class="form_error">${errors.data}</span>
         <p>
-          <span id="savepanel">
-            <input onclick='addworksheet()' type="submit" value="Create" />
-          </span>
+          <input type="submit" value="Create" />
         </p>
-      </div>
+      </form>
     </div>
   </body>
 </html>

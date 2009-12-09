@@ -30,7 +30,10 @@ import mimetypes
 from datetime import datetime
 from xml.dom import minidom
 
+import formencode
+import formencode.validators
 import genshi
+from genshi.filters import HTMLFormFiller
 
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
@@ -359,21 +362,59 @@ class WorksheetEditView(XHTMLView):
         ctx['formats'] = ['xml', 'rst']
 
 
+WORKSHEET_FORMATS = {'XML': 'xml', 'reStructuredText': 'rst'}
+
+class WorksheetSchema(formencode.Schema):
+    identifier = formencode.validators.UnicodeString(not_empty=True)
+    name = formencode.validators.UnicodeString(not_empty=True)
+    assessable = formencode.validators.StringBoolean(if_missing=False)
+    data = formencode.validators.UnicodeString(not_empty=True)
+    format = formencode.validators.UnicodeString(not_empty=True)
+
+
 class WorksheetAddView(XHTMLView):
-    """This view allows a user to add a worksheet"""
-    permission = "edit"
-    template = "templates/worksheet_add.html"
+    """A form to add a worksheet to an offering."""
+    template = 'templates/worksheet_add.html'
+    permission = 'edit'
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
 
     def populate(self, req, ctx):
-        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
-        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
-        
-        ctx['subject'] = self.context.subject
-        ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
-        
-        #XXX: Get the list of formats from somewhere else
-        ctx['formats'] = ['xml', 'rst']
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = WorksheetSchema()
+                req.offering = self.context # XXX: Getting into state.
+                data = validator.to_python(data, state=req)
+
+                new_worksheet = DBWorksheet()
+                new_worksheet.seq_no = self.context.worksheets.count()
+                # Setting new_worksheet.offering implicitly adds new_worksheet,
+                # hence worksheets.count MUST be called above it
+                new_worksheet.offering = self.context
+                new_worksheet.identifier = data['identifier']
+                new_worksheet.name = data['name']
+                new_worksheet.assessable = data['assessable']
+                new_worksheet.data = data['data']
+                new_worksheet.format = data['format']
+
+                req.store.add(new_worksheet)
+
+                ivle.worksheet.utils.update_exerciselist(new_worksheet)
+
+                req.store.commit()
+                req.throw_redirect(req.uri)
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {}
+            errors = {}
+
+        ctx['data'] = data or {}
+        ctx['offering'] = self.context
+        ctx['errors'] = errors
+        ctx['formats'] = WORKSHEET_FORMATS
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
