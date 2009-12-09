@@ -13,12 +13,14 @@
         &quot;Save&quot;)"
         cols="80" rows="${exercise.num_rows}">${exercisesave}</textarea>
     <div class="exercisebuttons">
-      <input type="button" value="Saved" disabled="disabled" id="savebutton_${exercise.id}"
-          onclick="saveexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-          title="Save your solution to this exercise" />
-      <input type="button" value="Reset" id="resetbutton_${exercise.id}"
-          onclick="resetexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-          title="Reload the original partial solution for this exercise" />
+      <py:if test="worksheet">
+        <input type="button" value="Saved" disabled="disabled" id="savebutton_${exercise.id}"
+            onclick="saveexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
+            title="Save your solution to this exercise" />
+        <input type="button" value="Reset" id="resetbutton_${exercise.id}"
+            onclick="resetexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
+            title="Reload the original partial solution for this exercise" />
+      </py:if>
       <input type="button" value="Run"
           onclick="runexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
           title="Run this program in the console" />

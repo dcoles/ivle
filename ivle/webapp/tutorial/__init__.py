@@ -280,6 +280,7 @@ def present_exercise(req, identifier, worksheet=None):
     # Exercise-specific context is used here, as we already have all the data
     # we need
     curctx = genshi.template.Context()
+    curctx['worksheet'] = worksheet
 
     if worksheet is not None:
         worksheet_exercise = req.store.find(WorksheetExercise,
