@@ -32,11 +32,14 @@ Configuration options
 
 Most of the configuration of IVLE is done by editing the file 
 :file:`ivle.conf`, located by default in :file:`/etc/ivle/ivle.conf`. These 
-settings are required as part of the :ref:`install process <ref-install>` and 
-for actual running of IVLE.
+settings are required as part of the :ref:`install process <ref-install>`, 
+though the :ref:`admin script <ref-admin-scripts>` :program:`ivle-config` can 
+be used to propagate most of these settings.
 
 It uses the `ConfigObj`_ text format which is heavily based on the 'INI' text 
-format.
+format. Of particular note, lists with single items need to be terminated 
+with a ',' otherwise it will be treated as a list of characters (usually not 
+what is desired).
 
 .. _ConfigObj: http://www.voidspace.org.uk/python/configobj.html
 
@@ -328,18 +331,15 @@ Options that control how the `Jail <ref-jail>`_ is built.
     :type: string_list(default=list())
 
     A list of extra source locations to be added to the jail builder (such as 
-    for site specific packages).
+    for site specific packages). For example, 'deb 
+    http://ppa.launchpad.net/wgrant/ivle/ubuntu/ hardy main,'.
 
 .. describe:: extra_packages
 
     :type: string_list(default=list())
 
     A list of extra packages to be installed in addition to the core packages 
-    required for IVLE.
-
-.. FIXME: Is this correct. Is it extra user packages (such as
-    python-scipy) or all packages that aren't in a standard debootstrap build 
-    (such as python-svn and python-cjson)?.
+    required for IVLE. For example, 'python-scipy, python-networkx,'
 
 .. describe:: extra_keys
 
@@ -347,8 +347,36 @@ Options that control how the `Jail <ref-jail>`_ is built.
 
     Any extra package signing keys to accept as correctly validate installed 
     packages.  Typically used for validating ``extra_sources`` packages.
-    
-    .. note:: Cannot have triple-quoted list members.
+
+    Keys can be provided in tripple quoted blocks. For multiple keys, simply 
+    concatinate the key blocks. For example::
+
+        extra_keys = '''-----BEGIN PGP PUBLIC KEY BLOCK-----
+        Version: SKS 1.0.10
+
+        mI0ESXMxaQEEAMdundmJeTMUcB6fRXGQ3WJH+5hlfj3ehurF3u0ubr4sQpxfJvl6/KV4UcOC
+        RvK4aufNInJxKrT6xvzdMNE9z5NO/ZVZdkr2NfcRO/0Yxgmaft9qjxfV+3NEBrvJkqm8ApVO
+        hsxFW6VWyeHBELSiNxNGToPp+2g3i5VAlWbtzaapABEBAAG0H0xhdW5jaHBhZCBQUEEgZm9y
+        IFdpbGxpYW0gR3JhbnSIRgQQEQIABgUCSXOMJAAKCRABz5LwpyR9xeXXAJ97VdeI3lLDvyM9
+        TLeb48Ylj8dWdQCfcOJDRGfjRu9PI2+ekIoV8TqaC0GItgQTAQIAIAUCSXMxaQIbAwYLCQgH
+        AwIEFQIIAwQWAgMBAh4BAheAAAoJECp86x2KYmtCEBED/0aRhr7wKmA/nyX2rUN/1dpyYT2T
+        khxJT0F7l91/PGRkLUdvcX81ceRcYeiiR1x8N1tL7pwrTWZwaQ/HTHF19ZAXjptnn8zaLKUc
+        VwhOrUdFE2FzNo42BWpXQAuJuBCG3DeIXDDuPRvtL+sx7h8PD/DlE5RsTaztkkbWdpkMtJp9
+        =5ocD
+        -----END PGP PUBLIC KEY BLOCK-----
+        -----BEGIN PGP PUBLIC KEY BLOCK-----
+        Version: GnuPG v1.4.9 (GNU/Linux)
+
+        mQGiBEFEnz8RBAC7LstGsKD7McXZgd58oN68KquARLBl6rjA2vdhwl77KkPPOr3O
+        YeSBH/voUsqausJfDNuTNivOfwceDe50lbhq52ODj4Mx9Jg+4aHn9fmRkIk41i2J
+        3hZiIGPACY/FsSlRq1AhBH2wZG1lQ45W/p77AeARRehYKJP9HY+1h/uihwCgrVE2
+        VzACJLuZWHbDsPoJaNQjiFcEAKbUF1rMyjd1xJM7bZeXbs8c+ohUo/ywSI/OIr8n
+        <SNIP>
+        RwIbDAAKCRBAl26vQ30FtdxYAJsFjU+xbex7gevyGQ2/mhqidES4MwCggqQyo+w1
+        Twx6DKLF+3rF5nf1F3Q=
+        =PBAe
+        -----END PGP PUBLIC KEY BLOCK-----
+        '''
 
 
 [user_info]
