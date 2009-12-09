@@ -66,8 +66,8 @@
                       <label for="var_type_${variable.varid}">Type:</label>
                       <select name="Variable Type" id="var_type_${variable.varid}">
                         <py:for each="var_type in var_types">
-                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_type}</option>
-                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_type}</option>
+                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_types[var_type]}</option>
+                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_types[var_type]}</option>
                         </py:for>
                       </select>
                       <label for="var_name_${variable.varid}">Var Name:</label>
@@ -84,7 +84,7 @@
                     <label for="new_var_type_${test_suite.suiteid}">Type:</label>
                     <select name="Variable Type" id="new_var_type_${test_suite.suiteid}">
                       <py:for each="var_type in var_types">
-                        <option  value="${var_type}">${var_type}</option>
+                        <option  value="${var_type}">${var_types[var_type]}</option>
                       </py:for>
                     </select>
                     <label for="new_var_name_${test_suite.suiteid}">Var Name:</label>
@@ -119,15 +119,15 @@
                             <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
-                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
-                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
+                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_types[part_type]}</option>
+                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_types[part_type]}</option>
                               </py:for>
                             </select>
                             <label for="test_part_${test_part.partid}_test_type">Test Type</label>
                             <select name="Test Type" id="test_part_${test_part.partid}_test_type">
                               <py:for each="test_type in test_types">
-                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
-                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
+                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_types[test_type]}</option>
+                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_types[test_type]}</option>
                               </py:for>
                             </select>
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
@@ -140,13 +140,13 @@
                               <label for="test_part_new_part_type_${test_case.testid}">Part Type:</label>
                               <select name="Part Type" id="test_part_new_part_type_${test_case.testid}">
                                 <py:for each="part_type in part_types">
-                                  <option value="${part_type}">${part_type}</option>
+                                  <option value="${part_type}">${part_types[part_type]}</option>
                                 </py:for>
                               </select>
                               <label for="test_part_new_test_type_${test_case.testid}">Test Type:</label>
                               <select name="Test Type" id="test_part_new_test_type_${test_case.testid}">
                                 <py:for each="test_type in test_types">
-                                  <option value="${test_type}">${test_type}</option>
+                                  <option value="${test_type}">${test_types[test_type]}</option>
                                 </py:for>
                               </select>
                               <iw:textarea name="data" desc="Test" rows="2" cols="80" />
