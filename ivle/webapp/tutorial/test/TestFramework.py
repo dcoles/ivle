@@ -20,8 +20,24 @@
 #         Steven Bird (revisions)
 # Date:   24/1/2008
 
-# Brief description of the Module# define custom exceptions
-# use exceptions for all errors found in testing
+"""Test framework for verifying student exercise solutions.
+
+With the ability to run flexible user-specified tests over student
+exercise submissions, this is the core of the automated testing mechanism.
+
+Note that this has three classes and another concept with the same names as
+IVLE database classes, but corresponding to something different:
+
+   TestFramework | IVLE
+   ----------------------------------
+   TestSuite     | Exercise (sort of)
+   TestCase      | TestSuite
+   TestCasePart  | TestCase
+   test          | TestCasePart
+
+The test framework uses the IVLE console subsystem to execute student code
+in a safe environment.
+"""
 
 import sys, copy
 import types
