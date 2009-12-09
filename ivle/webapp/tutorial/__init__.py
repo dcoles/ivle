@@ -328,7 +328,7 @@ def present_exercise(req, src, worksheet):
 
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(os.path.join(os.path.dirname(__file__),
-        "templates/exercise.html"))
+        "templates/exercise_fragment.html"))
     ex_stream = tmpl.generate(curctx)
     return {'name': exercise.name,
             'complete': curctx['complete_class'],
