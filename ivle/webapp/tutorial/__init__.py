@@ -198,8 +198,10 @@ def add_exercises(stream, ctx, req):
             if data[0] == 'worksheet':
                 continue
             # If we have an exercise node, replace it with the content of the
-            # exercise.
-            elif data[0] == 'exercise':
+            # exercise. Note that we only consider exercises with a
+            # 'src' attribute, the same condition that generate_worksheet_data
+            # uses to create ctx['exercises'].
+            elif data[0] == 'exercise' and 'src' in dict(data[1]):
                 # XXX: Note that we presume ctx['exercises'] has a correct list
                 #      of exercises. If it doesn't, something has gone wrong.
                 new_stream = ctx['exercises'][exid]['stream']
