@@ -10,6 +10,9 @@
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
 
       <h2>Latest submissions</h2>
+      <div py:if="project.latest_submissions.count() == 0">
+        There are no submissions.
+      </div>
       <table id="project_submissions" class="pretty_table" summary="Latest Submissions"
              py:if="project.latest_submissions.count() > 0">
         <thead>
@@ -36,7 +39,13 @@
       </table>
 
       <h2>Assigned submitters</h2>
-      <table id="project_assigneds" class="pretty_table">
+      <div py:if="project.project_set.assigned.count() == 0"
+           py:choose="project.project_set.is_group">
+        <py:when test="True">There are no groups assigned to submit this project. Do you want to <a href="${req.publisher.generate(project.project_set, GroupsView)}">create some</a>?</py:when>
+        <py:otherwise>There are no students assigned to submit this project. Do you want to <a href="${req.publisher.generate(project.project_set.offering, EnrolView)}">enrol some</a>?</py:otherwise>
+      </div>
+      <table id="project_assigneds" class="pretty_table"
+             py:if="project.project_set.assigned.count() > 0">
         <thead><tr><th>Assigned</th></tr></thead>
         <tbody>
         <py:for each="assignee in project.project_set.assigned">
