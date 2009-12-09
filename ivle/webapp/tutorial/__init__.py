@@ -411,10 +411,8 @@ class WorksheetAddSchema(WorksheetSchema):
         formencode.validators.UnicodeString(not_empty=True))
 
 
-class WorksheetAddView(XHTMLView):
-    """A form to add a worksheet to an offering."""
-    template = 'templates/worksheet_add.html'
-    permission = 'edit'
+class WorksheetFormView(XHTMLView):
+    """An abstract form for a worksheet in an offering."""
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
@@ -427,23 +425,11 @@ class WorksheetAddView(XHTMLView):
                 req.offering = self.context # XXX: Getting into state.
                 data = validator.to_python(data, state=req)
 
-                new_worksheet = DBWorksheet()
-                new_worksheet.seq_no = self.context.worksheets.count()
-                # Setting new_worksheet.offering implicitly adds new_worksheet,
-                # hence worksheets.count MUST be called above it
-                new_worksheet.offering = self.context
-                new_worksheet.identifier = data['identifier']
-                new_worksheet.name = data['name']
-                new_worksheet.assessable = data['assessable']
-                new_worksheet.data = data['data']
-                new_worksheet.format = data['format']
-
-                req.store.add(new_worksheet)
-
-                ivle.worksheet.utils.update_exerciselist(new_worksheet)
+                worksheet = self.get_worksheet_object(req, data)
+                ivle.worksheet.utils.update_exerciselist(worksheet)
 
                 req.store.commit()
-                req.throw_redirect(req.publisher.generate(new_worksheet))
+                req.throw_redirect(req.publisher.generate(worksheet))
             except formencode.Invalid, e:
                 errors = e.unpack_errors()
         else:
@@ -454,6 +440,28 @@ class WorksheetAddView(XHTMLView):
         ctx['offering'] = self.context
         ctx['errors'] = errors
         ctx['formats'] = WORKSHEET_FORMATS
+
+
+class WorksheetAddView(WorksheetFormView):
+    """An form to create a worksheet in an offering."""
+    template = 'templates/worksheet_add.html'
+    permission = 'edit'
+
+    def get_worksheet_object(self, req, data):
+        new_worksheet = DBWorksheet()
+        new_worksheet.seq_no = self.context.worksheets.count()
+        # Setting new_worksheet.offering implicitly adds new_worksheet,
+        # hence worksheets.count MUST be called above it
+        new_worksheet.offering = self.context
+        new_worksheet.identifier = data['identifier']
+        new_worksheet.name = data['name']
+        new_worksheet.assessable = data['assessable']
+        new_worksheet.data = data['data']
+        new_worksheet.format = data['format']
+
+        req.store.add(new_worksheet)
+        return new_worksheet
+
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
