@@ -358,7 +358,7 @@ class WorksheetFormatValidator(formencode.FancyValidator):
 class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
     """A FormEncode validator that checks that a worksheet name is unused.
 
-    If initialised with a 'matching' argument, that worksheet is permitted
+    The worksheet referenced by state.existing_worksheet is permitted
     to hold that name. If any other object holds it, the input is rejected.
 
     The state must have an 'offering' attribute.
@@ -369,14 +369,16 @@ class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
     def _to_python(self, value, state):
         if (state.store.find(
             DBWorksheet, offering=state.offering,
-            identifier=value).one() not in (None, self.matching)):
+            identifier=value).one() not in (None, state.existing_worksheet)):
             raise formencode.Invalid(
                 'Short name already taken', value, state)
         return value
 
 
 class WorksheetSchema(formencode.Schema):
-    identifier = formencode.validators.UnicodeString(not_empty=True)
+    identifier = formencode.All(
+        WorksheetIdentifierUniquenessValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
     assessable = formencode.validators.StringBoolean(if_missing=False)
     data = formencode.validators.UnicodeString(not_empty=True)
@@ -385,31 +387,22 @@ class WorksheetSchema(formencode.Schema):
         formencode.validators.UnicodeString(not_empty=True))
 
 
-class WorksheetAddSchema(WorksheetSchema):
-    identifier = formencode.All(
-        WorksheetIdentifierUniquenessValidator(),
-        formencode.validators.UnicodeString(not_empty=True))
-
-
-class WorksheetEditSchema(WorksheetSchema):
-    def __init__(self, existing_worksheet):
-        self.identifier = formencode.All(
-            WorksheetIdentifierUniquenessValidator(existing_worksheet),
-            formencode.validators.UnicodeString(not_empty=True))
-
-
 class WorksheetFormView(XHTMLView):
     """An abstract form for a worksheet in an offering."""
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
 
+    def populate_state(self, state):
+        state.existing_worksheet = None
+
     def populate(self, req, ctx):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
             try:
-                validator = self.schema
-                req.offering = self.context # XXX: Getting into state.
+                validator = WorksheetSchema()
+                req.offering = self.offering # XXX: Getting into state.
+                self.populate_state(req)
                 data = validator.to_python(data, state=req)
 
                 worksheet = self.get_worksheet_object(req, data)
@@ -438,10 +431,6 @@ class WorksheetAddView(WorksheetFormView):
     def offering(self):
         return self.context
 
-    @property
-    def schema(self):
-        return WorksheetAddSchema()
-
     def get_default_data(self, req):
         return {}
 
@@ -466,13 +455,12 @@ class WorksheetEditView(WorksheetFormView):
     template = 'templates/worksheet_edit.html'
     permission = 'edit'
 
+    def populate_state(self, state):
+        state.existing_worksheet = self.context
+
     @property
     def offering(self):
         return self.context.offering
-
-    @property
-    def schema(self):
-        return WorksheetEditSchema(self.context)
 
     def get_default_data(self, req):
         return {
