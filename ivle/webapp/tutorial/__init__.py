@@ -340,29 +340,9 @@ class OfferingAdminView(XHTMLView):
     worksheets are actually displayed on the page."""
     pass
 
-class WorksheetEditView(XHTMLView):
-    """The admin view for an offering.
-    
-    This view is designed to replace worksheets.xml, turning them instead
-    into XML directly from RST."""
-    permission = "edit"
-    template = "templates/worksheet_edit.html"
-    tab = "subjects"
-
-    def populate(self, req, ctx):
-        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
-        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
-
-        ctx['worksheet'] = self.context
-        ctx['worksheetname'] = self.context.identifier
-        ctx['subject'] = self.context.offering.subject
-        ctx['year'] = self.context.offering.semester.year
-        ctx['semester'] = self.context.offering.semester.semester
-        #XXX: Get the list of formats from somewhere else
-        ctx['formats'] = ['xml', 'rst']
-
 
 WORKSHEET_FORMATS = {'XML': 'xml', 'reStructuredText': 'rst'}
+
 
 class WorksheetFormatValidator(formencode.FancyValidator):
     """A FormEncode validator that turns a username into a user.
@@ -411,6 +391,13 @@ class WorksheetAddSchema(WorksheetSchema):
         formencode.validators.UnicodeString(not_empty=True))
 
 
+class WorksheetEditSchema(WorksheetSchema):
+    def __init__(self, existing_worksheet):
+        self.identifier = formencode.All(
+            WorksheetIdentifierUniquenessValidator(existing_worksheet),
+            formencode.validators.UnicodeString(not_empty=True))
+
+
 class WorksheetFormView(XHTMLView):
     """An abstract form for a worksheet in an offering."""
 
@@ -421,7 +408,7 @@ class WorksheetFormView(XHTMLView):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
             try:
-                validator = WorksheetAddSchema()
+                validator = self.schema
                 req.offering = self.context # XXX: Getting into state.
                 data = validator.to_python(data, state=req)
 
@@ -433,7 +420,7 @@ class WorksheetFormView(XHTMLView):
             except formencode.Invalid, e:
                 errors = e.unpack_errors()
         else:
-            data = {}
+            data = self.get_default_data(req)
             errors = {}
 
         ctx['data'] = data or {}
@@ -446,6 +433,17 @@ class WorksheetAddView(WorksheetFormView):
     """An form to create a worksheet in an offering."""
     template = 'templates/worksheet_add.html'
     permission = 'edit'
+
+    @property
+    def offering(self):
+        return self.context
+
+    @property
+    def schema(self):
+        return WorksheetAddSchema()
+
+    def get_default_data(self, req):
+        return {}
 
     def get_worksheet_object(self, req, data):
         new_worksheet = DBWorksheet()
@@ -461,6 +459,38 @@ class WorksheetAddView(WorksheetFormView):
 
         req.store.add(new_worksheet)
         return new_worksheet
+
+
+class WorksheetEditView(WorksheetFormView):
+    """An form to alter a worksheet in an offering."""
+    template = 'templates/worksheet_edit.html'
+    permission = 'edit'
+
+    @property
+    def offering(self):
+        return self.context.offering
+
+    @property
+    def schema(self):
+        return WorksheetEditSchema(self.context)
+
+    def get_default_data(self, req):
+        return {
+            'identifier': self.context.identifier,
+            'name': self.context.name,
+            'assessable': self.context.assessable,
+            'data': self.context.data,
+            'format': self.context.format
+            }
+
+    def get_worksheet_object(self, req, data):
+        self.context.identifier = data['identifier']
+        self.context.name = data['name']
+        self.context.assessable = data['assessable']
+        self.context.data = data['data']
+        self.context.format = data['format']
+
+        return self.context
 
 
 class WorksheetsEditView(XHTMLView):
