@@ -176,7 +176,7 @@ class ExerciseRESTView(JSONRESTView):
         return {'result': 'ok'}
         
     @named_operation(u'edit')
-    def add_testcase(self, req, suiteid, passmsg, failmsg, default):
+    def add_testcase(self, req, suiteid, passmsg, failmsg):
         
         suite = req.store.find(TestSuite,
             TestSuite.suiteid == int(suiteid),
@@ -188,7 +188,6 @@ class ExerciseRESTView(JSONRESTView):
         new_case = TestCase()
         new_case.passmsg = unicode(passmsg)
         new_case.failmsg = unicode(failmsg)
-        new_case.test_default = unicode(default)
         new_case.seq_no = suite.test_cases.count()
         suite.test_cases.add(new_case)
         
@@ -197,7 +196,7 @@ class ExerciseRESTView(JSONRESTView):
         return {'result': 'ok'}
     
     @named_operation(u'edit')
-    def edit_testcase(self, req, suiteid, testid, passmsg, failmsg, default):
+    def edit_testcase(self, req, suiteid, testid, passmsg, failmsg):
         
         suite = req.store.find(TestSuite,
             TestSuite.suiteid == int(suiteid),
@@ -213,7 +212,6 @@ class ExerciseRESTView(JSONRESTView):
         
         test_case.passmsg = unicode(passmsg)
         test_case.failmsg = unicode(failmsg)
-        test_case.test_default = unicode(default)
         
         return {'result': 'ok'}
     

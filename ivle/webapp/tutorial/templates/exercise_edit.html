@@ -108,9 +108,8 @@
                       </h5>
                       <div py:with="iw_prefix='test_case_%d_%d' % (test_case.testid, test_suite.suiteid)"
                            class="test_case" id="${iw_prefix}">
-                        <iw:text name="pass" desc="Pass Message">${test_case.passmsg}</iw:text>
-                        <iw:text name="fail" desc="Fail Message">${test_case.failmsg}</iw:text>
-                        <iw:text name="default" desc="Default Mode">${test_case.test_default}</iw:text>
+                        <iw:text name="pass" desc="Pass message">${test_case.passmsg}</iw:text>
+                        <iw:text name="fail" desc="Fail message">${test_case.failmsg}</iw:text>
                         <input type="button" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
 
                         <h5>Test Case Parts</h5>
@@ -164,9 +163,8 @@
                     <h5><a onclick="tog('new_test_case_${test_suite.suiteid}')">New test case</a></h5>
                     <div py:with="iw_prefix='new_test_case_%d' % (test_suite.suiteid)"
                          class="test_case" id="${iw_prefix}">
-                        <iw:text name="pass" desc="Pass Message" />
-                        <iw:text name="fail" desc="Fail Message" />
-                        <iw:text name="default" desc="Default Mode" />
+                        <iw:text name="pass" desc="Pass message" />
+                        <iw:text name="fail" desc="Fail message" />
                         <input type="button" value="Create Case" onclick="add_test_case('${test_suite.suiteid}')" />
                     </div>
                   </li>

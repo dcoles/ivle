@@ -274,7 +274,6 @@ function add_test_case(suiteid)
 {
     var passmsg = $("#new_test_case_" + suiteid + "_pass").val();
     var failmsg = $("#new_test_case_" + suiteid + "_fail").val();
-    var case_default = $("#new_test_case_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -294,8 +293,7 @@ function add_test_case(suiteid)
     }
     
     var args = {'ivle.op': 'add_testcase', 'passmsg': passmsg, 
-                'failmsg': failmsg, 'default': case_default,
-                'suiteid': suiteid};
+                'failmsg': failmsg, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
     
@@ -305,7 +303,6 @@ function edit_test_case(testid, suiteid)
 {
     var passmsg = $("#test_case_" + testid + "_" + suiteid + "_pass").val();
     var failmsg = $("#test_case_" + testid + "_" + suiteid + "_fail").val();
-    var case_default = $("#test_case_" + testid + "_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -324,8 +321,7 @@ function edit_test_case(testid, suiteid)
     }
     
     var args = {'ivle.op': 'edit_testcase', 'passmsg': passmsg, 
-                'failmsg': failmsg, 'default': case_default,
-                'testid':testid, 'suiteid': suiteid};
+                'failmsg': failmsg, 'testid':testid, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }
