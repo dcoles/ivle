@@ -25,6 +25,7 @@ This is a list of Frequently Asked Questions for IVLE. It answers questions
 about common issues encountered when configuring or running the system.
 
 .. _ref-faq-how:
+
 How can I...
 ============
 
@@ -35,6 +36,7 @@ You should customize the ToS notice at :file:`/var/lib/ivle/notices/tos.html`.
 
 
 .. _ref-faq-why:
+
 Why does...
 ===========
 
