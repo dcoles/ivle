@@ -159,7 +159,11 @@ class TestCasePart:
 
     def _set_default_function(self, function, test_type):
         """"Ensure test type is valid and set function to a default
-        if not specified"""
+        if not specified.
+        
+        The function may be a string containing the code, in which case
+        it will be evaluated by a hack in _check_code.
+        """
         
         if test_type not in ['norm', 'check']:
             raise TestCreationError("Invalid test type in %s" %self._desc)
@@ -255,7 +259,9 @@ class TestCasePart:
         """Compare solution code and attempt code using the
         specified comparison function.
         """
-        if type(f) in types.StringTypes:  # kludge
+        # XXX: Horrible kludge. We get a string from the DB, but we need
+        # an actual callable object.
+        if type(f) in types.StringTypes:
             f = eval(str(f), include_space)
         if test_type == 'norm':
             return f(solution) == f(attempt)
