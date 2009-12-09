@@ -278,11 +278,12 @@ def configure(args):
 
     optnames = []
     for opt in config_options:
+        print opt.option_name
         optnames.append(opt.option_name + "=")
     (opts, args) = getopt.gnu_getopt(args, "", optnames)
 
     if args != []:
-        print >>sys.stderr, "Invalid arguments:", string.join(args, ' ')
+        print >>sys.stderr, "Invalid arguments:", ' '.join(args)
         return 2
 
     if opts == []:
