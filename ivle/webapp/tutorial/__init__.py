@@ -443,7 +443,7 @@ class WorksheetAddView(XHTMLView):
                 ivle.worksheet.utils.update_exerciselist(new_worksheet)
 
                 req.store.commit()
-                req.throw_redirect(req.uri)
+                req.throw_redirect(req.publisher.generate(new_worksheet))
             except formencode.Invalid, e:
                 errors = e.unpack_errors()
         else:
