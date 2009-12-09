@@ -6,7 +6,8 @@
   </head>
   <body>
     <h1>New worksheet for ${offering.subject.name}</h1>
-    <div id="ivle_padding">
+    <div py:with="submit_button_label = 'Create'"
+         id="ivle_padding">
       <xi:include href="worksheet_form.html" />
     </div>
   </body>

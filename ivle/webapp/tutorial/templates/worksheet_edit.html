@@ -6,7 +6,8 @@
   </head>
   <body>
     <h1>Edit ${offering.name} in ${offering.offering.subject.name}</h1>
-    <div id="ivle_padding">
+    <div py:with="submit_button_label = 'Save'"
+         id="ivle_padding">
       <xi:include href="worksheet_form.html" />
     </div>
   </body>
