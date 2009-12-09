@@ -215,6 +215,10 @@ form.verticalform div label {
     font-weight: bold;
 }
 
+form.verticalform div.submit input[type=submit] {
+    margin-left: 205px;
+}
+
 /* Subjects list */
 .subject_current {
     font-weight: bold;
