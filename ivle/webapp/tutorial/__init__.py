@@ -537,7 +537,7 @@ class ExerciseEditView(XHTMLView):
             'exception': 'the raised exception',
             'code': 'the code',
             }
-        ctx['test_types'] = {'norm': 'normalisation', 'check': 'checking'}
+        ctx['test_types'] = {'norm': 'normalisation', 'check': 'comparison'}
 
 class ExerciseDeleteView(XHTMLView):
     """View for confirming the deletion of an exercise."""

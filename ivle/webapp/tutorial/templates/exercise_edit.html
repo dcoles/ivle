@@ -116,40 +116,45 @@
                         <ul class="test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
-                            <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
+                            <label for="test_part_${test_part.partid}_part_type">Test</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
                                 <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_types[part_type]}</option>
                                 <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_types[part_type]}</option>
                               </py:for>
                             </select>
-                            <label for="test_part_${test_part.partid}_test_type">Test Type</label>
+                            <label for="test_part_${test_part.partid}_test_type">using the following</label>
                             <select name="Test Type" id="test_part_${test_part.partid}_test_type">
                               <py:for each="test_type in test_types">
                                 <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_types[test_type]}</option>
                                 <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_types[test_type]}</option>
                               </py:for>
                             </select>
+                            function:
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
-                            <iw:textarea name="data" desc="Test" rows="2" cols="80">${test_part.data}</iw:textarea>
+                            <textarea id="data" cols="80" rows="2">${test_part.data}</textarea>
+                            <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
                           <li py:with="iw_prefix='test_part_new'">
                             <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
                             <div class="add_new_part" id="new_test_part_${test_case.testid}">
-                              <label for="test_part_new_part_type_${test_case.testid}">Part Type:</label>
+                              <label for="test_part_new_part_type_${test_case.testid}">Test</label>
                               <select name="Part Type" id="test_part_new_part_type_${test_case.testid}">
                                 <py:for each="part_type in part_types">
                                   <option value="${part_type}">${part_types[part_type]}</option>
                                 </py:for>
                               </select>
-                              <label for="test_part_new_test_type_${test_case.testid}">Test Type:</label>
+                              <label for="test_part_new_test_type_${test_case.testid}">using the following</label>
                               <select name="Test Type" id="test_part_new_test_type_${test_case.testid}">
                                 <py:for each="test_type in test_types">
                                   <option value="${test_type}">${test_types[test_type]}</option>
                                 </py:for>
                               </select>
-                              <iw:textarea name="data" desc="Test" rows="2" cols="80" />
+                              function:
+                              <br />
+                              <textarea id="data" cols="80" rows="2"></textarea>
+                              <br />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                             </div>
                           </li>
