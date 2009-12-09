@@ -153,26 +153,32 @@ for path in ('tmp', 'var/lock', 'var/tmp'):
 
 # Verify that nothing in the jail is world-writable.
 # We don't want students to write into places that others can see.
-for path, dirs, files in os.walk(build_path):
-    for dname in dirs:
-        d = os.path.join(path, dname)
-        if os.path.islink(d):
-            continue
-        if os.stat(d).st_mode & stat.S_IWOTH:
-            raise UnsafeJail(d)
-
-    for fname in files:
-        f = os.path.join(path, fname)
-        if os.path.islink(f):
-            continue
-        if os.stat(f).st_mode & stat.S_IWOTH:
-            if (os.path.dirname(f) == os.path.join(build_path, 'dev') and
-                os.path.basename(f) in ('ptmx', 'null', 'tty', 'full', 'zero',
-                                        'random', 'urandom')
-                ):
+try:
+    for path, dirs, files in os.walk(build_path):
+        for dname in dirs:
+            d = os.path.join(path, dname)
+            if os.path.islink(d):
                 continue
-            raise UnsafeJail(f)
+            if os.stat(d).st_mode & stat.S_IWOTH:
+                raise UnsafeJail(d)
 
+        for fname in files:
+            f = os.path.join(path, fname)
+            if os.path.islink(f):
+                continue
+            if os.stat(f).st_mode & stat.S_IWOTH:
+                if (os.path.dirname(f) == os.path.join(build_path, 'dev') and
+                    os.path.basename(f) in ('ptmx', 'null', 'tty', 'full', 'zero',
+                                            'random', 'urandom')
+                    ):
+                    continue
+                raise UnsafeJail(f)
+except UnsafeJail, e:
+    print >> sys.stderr,"""Error: Jail contains world writable path: '%s'.
+This is a security vulnerability as jail template contents are shared between 
+users. Please either make this path world unwriteable or remove it from the 
+jail."""%str(e)
+    sys.exit(1)
 
 # Copy jail template build to actual jail template
 template_path = conf['paths']['jails']['template']
