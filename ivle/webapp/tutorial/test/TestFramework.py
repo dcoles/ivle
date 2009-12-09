@@ -123,7 +123,12 @@ class TestCasePart:
     false = classmethod(lambda *x: False)
 
     def __init__(self, test_case):
-        """Initialise with descriptions (pass,fail) and a default behavior for output
+        """Create a testable TestCasePart from an IVLE database TestCase.
+
+        The name mismatch is unfortunately not a typo. A database TestCase
+        represents a TestFramework TestCasePart.
+
+        Initialise with descriptions (pass,fail) and a default behavior for output
         If default is match, unspecified files are matched exactly
         If default is ignore, unspecified files are ignored
         The default default is match.
@@ -332,9 +337,13 @@ class TestCase:
     A set of tests with a common inputs
     """
     def __init__(self, console, suite):
-        """Initialise with name and optionally, a function to test (instead of the entire script)
-        The inputs stdin, the filespace and global variables can also be specified at
-        initialisation, but may also be set later.
+        """Create a testable TestCase from an IVLE database TestSuite.
+
+        The name mismatch is unfortunately not a typo. A database TestSuite
+        represents a TestFramework TestCase.
+
+        'console' should be an ivle.console.Console, in which to execute
+        the student code.
         """
         self._console = console
         self._name = suite.description
@@ -563,8 +572,13 @@ class TestSuite:
     The complete collection of test cases for a given exercise
     """
     def __init__(self, exercise, console):
-        """Initialise with the name of the test suite (the exercise name) and the solution.
-        The solution may be specified later.
+        """Create a testable TestSuite from an IVLE database Exercise.
+
+        This is not to be confused with the TestFramework object derived
+        from a database TestSuite, which is in fact a TestFramework TestCase.
+
+        'console' should be an ivle.console.Console, in which to execute
+        the student code.
         """
         self._solution = exercise.solution
         self._name = exercise.id
