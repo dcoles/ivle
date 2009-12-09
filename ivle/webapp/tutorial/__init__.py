@@ -412,6 +412,8 @@ class WorksheetFormView(XHTMLView):
                 req.throw_redirect(req.publisher.generate(worksheet))
             except formencode.Invalid, e:
                 errors = e.unpack_errors()
+            except ivle.worksheet.utils.ExerciseNotFound, e:
+                errors = {'data': 'Could not find exercise "%s"' % e.message}
         else:
             data = self.get_default_data(req)
             errors = {}

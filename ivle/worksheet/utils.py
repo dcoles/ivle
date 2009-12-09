@@ -30,9 +30,13 @@ import ivle.database
 from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet, \
                           WorksheetExercise, Exercise
 
-__all__ = ['get_exercise_status', 'get_exercise_stored_text',
-           'get_exercise_attempts', 'get_exercise_attempt',
+__all__ = ['ExerciseNotFound', 'get_exercise_status',
+           'get_exercise_stored_text', 'get_exercise_attempts',
+           'get_exercise_attempt',
           ]
+
+class ExerciseNotFound(Exception):
+    pass
 
 def get_exercise_status(store, user, worksheet_exercise, as_of=None):
     """Given a storm.store, User and Exercise, returns information about
@@ -268,7 +272,7 @@ def update_exerciselist(worksheet):
                 Exercise.id == exerciseid
             ).one()
             if exercise is None:
-                raise NotFound()
+                raise ExerciseNotFound(exerciseid)
             worksheet_exercise = WorksheetExercise()
             worksheet_exercise.worksheet_id = worksheet.id
             worksheet_exercise.exercise_id = exercise.id
