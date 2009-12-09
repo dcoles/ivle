@@ -375,14 +375,40 @@ class WorksheetFormatValidator(formencode.FancyValidator):
         return value
 
 
+class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a worksheet name is unused.
+
+    If initialised with a 'matching' argument, that worksheet is permitted
+    to hold that name. If any other object holds it, the input is rejected.
+
+    The state must have an 'offering' attribute.
+    """
+    def __init__(self, matching=None):
+        self.matching = matching
+
+    def _to_python(self, value, state):
+        if (state.store.find(
+            DBWorksheet, offering=state.offering,
+            identifier=value).one() not in (None, self.matching)):
+            raise formencode.Invalid(
+                'Short name already taken', value, state)
+        return value
+
+
 class WorksheetSchema(formencode.Schema):
     identifier = formencode.validators.UnicodeString(not_empty=True)
     name = formencode.validators.UnicodeString(not_empty=True)
     assessable = formencode.validators.StringBoolean(if_missing=False)
     data = formencode.validators.UnicodeString(not_empty=True)
     format = formencode.All(
-        formencode.validators.UnicodeString(not_empty=True),
-        WorksheetFormatValidator())
+        WorksheetFormatValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
+
+
+class WorksheetAddSchema(WorksheetSchema):
+    identifier = formencode.All(
+        WorksheetIdentifierUniquenessValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
 
 
 class WorksheetAddView(XHTMLView):
@@ -397,7 +423,7 @@ class WorksheetAddView(XHTMLView):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
             try:
-                validator = WorksheetSchema()
+                validator = WorksheetAddSchema()
                 req.offering = self.context # XXX: Getting into state.
                 data = validator.to_python(data, state=req)
 
