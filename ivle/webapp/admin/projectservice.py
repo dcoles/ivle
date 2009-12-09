@@ -59,6 +59,3 @@ class ProjectSetRESTView(XHTMLRESTView):
         self.ctx['project'] = new_project
 
         return {'success': True, 'projectset_id': self.context.id}
-
-class ProjectRESTView(XHTMLRESTView):
-    """Rest view for a project."""

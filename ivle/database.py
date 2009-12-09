@@ -465,16 +465,20 @@ class ProjectSet(Storm):
         return self.offering.get_permissions(user)
 
     @property
+    def is_group(self):
+        return self.max_students_per_group is not None
+
+    @property
     def assigned(self):
         """Get the entities (groups or users) assigned to submit this project.
 
         This will be a Storm ResultSet.
         """
         #If its a solo project, return everyone in offering
-        if self.max_students_per_group is None:
-            return self.offering.students
-        else:
+        if self.is_group:
             return self.project_groups
+        else:
+            return self.offering.students
 
 class Project(Storm):
     """A student project for which submissions can be made."""

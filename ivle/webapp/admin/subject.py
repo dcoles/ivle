@@ -43,8 +43,7 @@ from ivle.database import Subject, Semester, Offering, Enrolment, User,\
 from ivle import util
 import ivle.date
 
-from ivle.webapp.admin.projectservice import ProjectSetRESTView,\
-                                             ProjectRESTView
+from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.publishing import (root_to_subject,
             subject_to_offering, offering_to_projectset, offering_to_project,
@@ -231,15 +230,14 @@ class ProjectView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
 
+        ctx['req'] = req
+        ctx['GroupsView'] = GroupsView
+        ctx['EnrolView'] = EnrolView
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
         ctx['build_subversion_url'] = self.build_subversion_url
         ctx['svn_addr'] = req.config['urls']['svn_addr']
         ctx['project'] = self.context
         ctx['user'] = req.user
-
-class OfferingEnrolmentSet(object):
-    def __init__(self, offering):
-        self.offering = offering
 
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_subject, subject_to_offering,
@@ -254,7 +252,6 @@ class Plugin(ViewPlugin, MediaPlugin):
 
              (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
              (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
-             (Project, '+index', ProjectRESTView, 'api'),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
