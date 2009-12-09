@@ -1,0 +1,35 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <body py:strip="">
+      <form method="post">
+        <label for='name'>Name:</label>
+        <input type='text' id='worksheet_name' name='name' class='worksheet_area' />
+        <span py:if="'name' in errors" class="form_error">${errors.name}</span>
+        <br />
+        <label for='worksheet_identifier'>Short name:</label>
+        <input type='text' id='worksheet_identifier' name='identifier' class='worksheet_id' />
+        <span py:if="'identifier' in errors" class="form_error">${errors.identifier}</span>
+        <br />
+        <label for='worksheet_assesable'>Assessable:</label>
+        <input type='checkbox' name='assessable' id='worksheet_assessable' />
+        <span py:if="'assessable' in errors" class="form_error">${errors.assessable}</span>
+        <br />
+        <label for='worksheet_format'>Format:</label>
+        <select name='format' id='worksheet_format'>
+          <py:for each="niceformat in formats">
+            <option value='${formats[niceformat]}'>${niceformat}</option>
+          </py:for>
+        </select>
+        <span py:if="'format' in errors" class="form_error">${errors.format}</span>
+        <br />
+        <textarea id='worksheet_data' name='data' class='worksheet_area' cols='80'
+        rows='30'></textarea>
+        <br />
+        <span py:if="'data' in errors" class="form_error">${errors.data}</span>
+        <p>
+          <input type="submit" value="${submit_button_label}" />
+        </p>
+      </form>
+  </body>
+</html>
