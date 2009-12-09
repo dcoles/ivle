@@ -30,7 +30,11 @@ import mimetypes
 from datetime import datetime
 from xml.dom import minidom
 
+import formencode
+import formencode.validators
 import genshi
+import genshi.input
+from genshi.filters import HTMLFormFiller
 
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
@@ -46,7 +50,7 @@ from ivle.webapp.errors import NotFound
 from ivle.worksheet.rst import rst as rstfunc
 
 from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
-            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView)
+            WorksheetExerciseRESTView, WorksheetsRESTView)
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
 from ivle.webapp.tutorial.publishing import (root_to_exercise, exercise_url,
@@ -194,8 +198,10 @@ def add_exercises(stream, ctx, req):
             if data[0] == 'worksheet':
                 continue
             # If we have an exercise node, replace it with the content of the
-            # exercise.
-            elif data[0] == 'exercise':
+            # exercise. Note that we only consider exercises with a
+            # 'src' attribute, the same condition that generate_worksheet_data
+            # uses to create ctx['exercises'].
+            elif data[0] == 'exercise' and 'src' in dict(data[1]):
                 # XXX: Note that we presume ctx['exercises'] has a correct list
                 #      of exercises. If it doesn't, something has gone wrong.
                 new_stream = ctx['exercises'][exid]['stream']
@@ -337,43 +343,153 @@ class OfferingAdminView(XHTMLView):
     worksheets are actually displayed on the page."""
     pass
 
-class WorksheetEditView(XHTMLView):
-    """The admin view for an offering.
-    
-    This view is designed to replace worksheets.xml, turning them instead
-    into XML directly from RST."""
-    permission = "edit"
-    template = "templates/worksheet_edit.html"
-    tab = "subjects"
+
+WORKSHEET_FORMATS = {'XML': 'xml', 'reStructuredText': 'rst'}
+
+
+class WorksheetFormatValidator(formencode.FancyValidator):
+    """A FormEncode validator that turns a username into a user.
+
+    The state must have a 'store' attribute, which is the Storm store
+    to use."""
+    def _to_python(self, value, state):
+        if value not in WORKSHEET_FORMATS.values():
+            raise formencode.Invalid('Unsupported format', value, state)
+        return value
+
+
+class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a worksheet name is unused.
+
+    The worksheet referenced by state.existing_worksheet is permitted
+    to hold that name. If any other object holds it, the input is rejected.
+
+    The state must have an 'offering' attribute.
+    """
+    def __init__(self, matching=None):
+        self.matching = matching
+
+    def _to_python(self, value, state):
+        if (state.store.find(
+            DBWorksheet, offering=state.offering,
+            identifier=value).one() not in (None, state.existing_worksheet)):
+            raise formencode.Invalid(
+                'Short name already taken', value, state)
+        return value
+
+
+class WorksheetSchema(formencode.Schema):
+    identifier = formencode.All(
+        WorksheetIdentifierUniquenessValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
+    name = formencode.validators.UnicodeString(not_empty=True)
+    assessable = formencode.validators.StringBoolean(if_missing=False)
+    data = formencode.validators.UnicodeString(not_empty=True)
+    format = formencode.All(
+        WorksheetFormatValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
+
+
+class WorksheetFormView(XHTMLView):
+    """An abstract form for a worksheet in an offering."""
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate_state(self, state):
+        state.existing_worksheet = None
 
     def populate(self, req, ctx):
-        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
-        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = WorksheetSchema()
+                req.offering = self.offering # XXX: Getting into state.
+                self.populate_state(req)
+                data = validator.to_python(data, state=req)
 
-        ctx['worksheet'] = self.context
-        ctx['worksheetname'] = self.context.identifier
-        ctx['subject'] = self.context.offering.subject
-        ctx['year'] = self.context.offering.semester.year
-        ctx['semester'] = self.context.offering.semester.semester
-        #XXX: Get the list of formats from somewhere else
-        ctx['formats'] = ['xml', 'rst']
+                worksheet = self.get_worksheet_object(req, data)
+                ivle.worksheet.utils.update_exerciselist(worksheet)
+
+                req.store.commit()
+                req.throw_redirect(req.publisher.generate(worksheet))
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+            except genshi.input.ParseError, e:
+                errors = {'data': 'Could not parse XML: %s' % e.message}
+            except ivle.worksheet.utils.ExerciseNotFound, e:
+                errors = {'data': 'Could not find exercise "%s"' % e.message}
+        else:
+            data = self.get_default_data(req)
+            errors = {}
+
+        if errors:
+            req.store.rollback()
+
+        ctx['data'] = data or {}
+        ctx['offering'] = self.context
+        ctx['errors'] = errors
+        ctx['formats'] = WORKSHEET_FORMATS
 
 
-class WorksheetAddView(XHTMLView):
-    """This view allows a user to add a worksheet"""
-    permission = "edit"
-    template = "templates/worksheet_add.html"
+class WorksheetAddView(WorksheetFormView):
+    """An form to create a worksheet in an offering."""
+    template = 'templates/worksheet_add.html'
+    permission = 'edit'
 
-    def populate(self, req, ctx):
-        self.plugin_styles[Plugin] = ["tutorial_admin.css"]
-        self.plugin_scripts[Plugin] = ['tutorial_admin.js']
-        
-        ctx['subject'] = self.context.subject
-        ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
-        
-        #XXX: Get the list of formats from somewhere else
-        ctx['formats'] = ['xml', 'rst']
+    @property
+    def offering(self):
+        return self.context
+
+    def get_default_data(self, req):
+        return {}
+
+    def get_worksheet_object(self, req, data):
+        new_worksheet = DBWorksheet()
+        new_worksheet.seq_no = self.context.worksheets.count()
+        # Setting new_worksheet.offering implicitly adds new_worksheet,
+        # hence worksheets.count MUST be called above it
+        new_worksheet.offering = self.context
+        new_worksheet.identifier = data['identifier']
+        new_worksheet.name = data['name']
+        new_worksheet.assessable = data['assessable']
+        new_worksheet.data = data['data']
+        new_worksheet.format = data['format']
+
+        req.store.add(new_worksheet)
+        return new_worksheet
+
+
+class WorksheetEditView(WorksheetFormView):
+    """An form to alter a worksheet in an offering."""
+    template = 'templates/worksheet_edit.html'
+    permission = 'edit'
+
+    def populate_state(self, state):
+        state.existing_worksheet = self.context
+
+    @property
+    def offering(self):
+        return self.context.offering
+
+    def get_default_data(self, req):
+        return {
+            'identifier': self.context.identifier,
+            'name': self.context.name,
+            'assessable': self.context.assessable,
+            'data': self.context.data,
+            'format': self.context.format
+            }
+
+    def get_worksheet_object(self, req, data):
+        self.context.identifier = data['identifier']
+        self.context.name = data['name']
+        self.context.assessable = data['assessable']
+        self.context.data = data['data']
+        self.context.format = data['format']
+
+        return self.context
+
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
@@ -502,7 +618,6 @@ class Plugin(ViewPlugin, MediaPlugin):
              (SubjectMediaFile, '+index', SubjectMediaView),
 
              (Offering, ('+worksheets', '+index'), WorksheetsRESTView, 'api'),
-             (DBWorksheet, '+index', WorksheetRESTView, 'api'),
              (WorksheetExercise, '+index', WorksheetExerciseRESTView, 'api'),
              (ExerciseAttempts, '+index', AttemptsRESTView, 'api'),
              (ExerciseAttempt, '+index', AttemptRESTView, 'api'),

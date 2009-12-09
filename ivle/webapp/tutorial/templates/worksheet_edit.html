@@ -1,47 +1,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/">
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
   <head>
-    <title>Edit - ${worksheet.name} - ${subject.name}</title>
-    <!-- These let the javascript know which worksheet is open -->
-    <script type="text/javascript">
-        subject = "${subject.short_name}";
-        worksheet = "${worksheetname}";
-        year = "${year}";
-        semester = "${semester}";
-    </script>
+    <title>Edit - ${offering.name} - ${offering.offering.subject.name}</title>
   </head>
   <body>
-    <h1>Edit ${worksheet.name} in ${subject.name}</h1>
-    <div id="ivle_padding">
-      <div id='worksheet_input'>
-        <label for='worksheet_name'>Name:</label>
-        <input type='text' id='worksheet_name' class='worksheet_area' value='${worksheet.name}' />
-        <br />
-        <label for='worksheet_asses'>Assessable:</label>
-        <input type='checkbox' name='asses' id='worksheet_asses'
-               py:attrs="{'checked': 'checked' if worksheet.assessable else None}" />
-        <br />
-        <label for='worksheet_format'>Worksheet Format:</label>
-        <select name='format' id='worksheet_format'>
-          <py:for each="format in formats">
-            <py:if test="unicode(format) == worksheet.format">
-              <option selected="selected" value='${format}'>${format}</option>
-            </py:if>
-            <py:if test="format != worksheet.format">
-              <option value='${format}'>${format}</option>
-            </py:if>
-          </py:for>
-        </select>
-        <br />
-        <textarea id='worksheet_data' class='worksheet_area' cols='80'
-        rows='30'>${worksheet.data}</textarea>
-        <p>
-          <span id="savepanel">
-            <input onclick='editworksheet()' type="submit" value="Save" />
-            <input onclick='undo_changes()' type="submit" value='Undo' />
-          </span>
-        </p>
-      </div>
+    <h1>Edit ${offering.name} in ${offering.offering.subject.name}</h1>
+    <div py:with="submit_button_label = 'Save'"
+         id="ivle_padding">
+      <xi:include href="worksheet_form.html" />
     </div>
   </body>
 </html>
+
