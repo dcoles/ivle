@@ -364,12 +364,25 @@ class WorksheetEditView(XHTMLView):
 
 WORKSHEET_FORMATS = {'XML': 'xml', 'reStructuredText': 'rst'}
 
+class WorksheetFormatValidator(formencode.FancyValidator):
+    """A FormEncode validator that turns a username into a user.
+
+    The state must have a 'store' attribute, which is the Storm store
+    to use."""
+    def _to_python(self, value, state):
+        if value not in WORKSHEET_FORMATS.values():
+            raise formencode.Invalid('Unsupported format', value, state)
+        return value
+
+
 class WorksheetSchema(formencode.Schema):
     identifier = formencode.validators.UnicodeString(not_empty=True)
     name = formencode.validators.UnicodeString(not_empty=True)
     assessable = formencode.validators.StringBoolean(if_missing=False)
     data = formencode.validators.UnicodeString(not_empty=True)
-    format = formencode.validators.UnicodeString(not_empty=True)
+    format = formencode.All(
+        formencode.validators.UnicodeString(not_empty=True),
+        WorksheetFormatValidator())
 
 
 class WorksheetAddView(XHTMLView):
