@@ -22,7 +22,6 @@ import stat
 import sys
 import shutil
 
-import ivle.conf
 import ivle.config
 import ivle.jailbuilder.debian
 
@@ -33,8 +32,13 @@ usage = """usage: %prog [options]
 (requires root)
 Builds or updates the base IVLE jail."""
 
+# Requires root
+if os.getuid() != 0:
+    print >> sys.stderr, "This script requires root privlages to run"
+    sys.exit(1)
+
 conf = ivle.config.Config()
-build_path = ivle.conf.jail_system_build
+build_path = conf['paths']['jails']['template_build']
 
 # Parse arguments
 parser = optparse.OptionParser(usage)
@@ -115,7 +119,7 @@ if options.upgrade:
 
 if conf['jail']['devmode']:
     # Copy all console and operating system files into the jail
-    services_path = os.path.join(ivle.conf.share_path, 'services')
+    services_path = os.path.join(conf['paths']['share'], 'services')
     jail_services_path = os.path.join(build_path, services_path[1:])
     if os.path.exists(jail_services_path):
         shutil.rmtree(jail_services_path)
@@ -168,21 +172,23 @@ for path, dirs, files in os.walk(build_path):
                 ):
                 continue
             raise UnsafeJail(f)
-    
 
+
+# Copy jail template build to actual jail template
+template_path = conf['paths']['jails']['template']
 if os.spawnvp(os.P_WAIT, 'rsync', ['rsync', '-a', '--delete',
-              build_path + '/', ivle.conf.jail_system]) != 0:
+              build_path + '/', template_path]) != 0:
     print >> sys.stderr, "Jail copying failed."
     sys.exit(1)
 
 # Now mangle things a bit, so we can bind-mount the user bits in.
 # /etc/passwd and /etc/ivle/ivle.conf need to be symlinks to somewhere in /home
 
-os.rename(os.path.join(ivle.conf.jail_system, 'etc/passwd'),
-          os.path.join(ivle.conf.jail_system, 'home/.passwd')
+os.rename(os.path.join(template_path, 'etc/passwd'),
+          os.path.join(template_path, 'home/.passwd')
           )
-os.symlink('../home/.passwd', os.path.join(ivle.conf.jail_system, 'etc/passwd'))
+os.symlink('../home/.passwd', os.path.join(template_path, 'etc/passwd'))
 
-os.makedirs(os.path.join(ivle.conf.jail_system, "etc/ivle"))
+os.makedirs(os.path.join(template_path, "etc/ivle"))
 os.symlink('../../home/.ivle.conf',
-           os.path.join(ivle.conf.jail_system, "etc/ivle/ivle.conf"))
+           os.path.join(template_path, "etc/ivle/ivle.conf"))
