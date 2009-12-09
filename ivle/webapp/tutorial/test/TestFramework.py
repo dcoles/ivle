@@ -166,6 +166,8 @@ class TestCasePart:
         
         for part in test_case.parts:
             if part.part_type =="file":
+                raise AssertionError(
+                    "Files not supported by the console - see bug #492437.")
                 self.add_file_test(part)
             elif part.part_type =="stdout":
                 self.add_stdout_test(part)
@@ -405,6 +407,8 @@ class TestCase:
     def add_file(self, filevar):
         """ Insert the given filename-data pair into the filespace for this test case"""
         # TODO: Add the file to the console
+        raise AssertionError(
+            "Files not supported by the console - see bug #492437.")
         self._filespace.add_file(filevar.var_name, "")
         
     def add_variable(self, var):
