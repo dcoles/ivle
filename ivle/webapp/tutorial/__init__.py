@@ -525,9 +525,9 @@ class ExerciseEditView(XHTMLView):
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else
 
-        ctx['var_types'] = (u'file', u'var', u'arg', u'exception')
-        ctx['part_types'] = (u'stdout',u'stderr', u'result',
-                             u'exception', u'file', u'code')
+        ctx['var_types'] = (u'var', u'arg', u'exception')
+        ctx['part_types'] = (
+            u'stdout',u'stderr', u'result', u'exception', u'code')
         
         ctx['test_types'] = ('norm', 'check')
 
