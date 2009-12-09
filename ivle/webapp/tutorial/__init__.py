@@ -50,7 +50,7 @@ from ivle.webapp.errors import NotFound
 from ivle.worksheet.rst import rst as rstfunc
 
 from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
-            WorksheetExerciseRESTView, WorksheetRESTView, WorksheetsRESTView)
+            WorksheetExerciseRESTView, WorksheetsRESTView)
 from ivle.webapp.tutorial.exercise_service import ExercisesRESTView, \
                                                   ExerciseRESTView
 from ivle.webapp.tutorial.publishing import (root_to_exercise, exercise_url,
@@ -618,7 +618,6 @@ class Plugin(ViewPlugin, MediaPlugin):
              (SubjectMediaFile, '+index', SubjectMediaView),
 
              (Offering, ('+worksheets', '+index'), WorksheetsRESTView, 'api'),
-             (DBWorksheet, '+index', WorksheetRESTView, 'api'),
              (WorksheetExercise, '+index', WorksheetExerciseRESTView, 'api'),
              (ExerciseAttempts, '+index', AttemptsRESTView, 'api'),
              (ExerciseAttempt, '+index', AttemptRESTView, 'api'),

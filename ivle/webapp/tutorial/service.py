@@ -131,46 +131,8 @@ class WorksheetExerciseRESTView(JSONRESTView):
         return {"result": "ok"}
 
 
-# Note that this is the view of an existing worksheet. Creation is handled
-# by OfferingRESTView (as offerings have worksheets)
-class WorksheetRESTView(JSONRESTView):
-    """View used to update a worksheet."""
-
-    @named_operation('edit')
-    def save(self, req, name, assessable, data, format):
-        """Takes worksheet data and saves it."""
-        self.context.name = unicode(name)
-        self.context.assessable = self.convert_bool(assessable)
-        self.context.data = unicode(data)
-        self.context.format = unicode(format)
-        ivle.worksheet.utils.update_exerciselist(self.context)
-        
-        return {"result": "ok"}
-
 class WorksheetsRESTView(JSONRESTView):
     """View used to update and create Worksheets."""
-
-    @named_operation('edit')
-    def add_worksheet(self, req, identifier, name, assessable, data, format):
-        """Takes worksheet data and adds it."""
-        
-        new_worksheet = Worksheet()
-        new_worksheet.seq_no = self.context.worksheets.count()
-        # Setting new_worksheet.offering implicitly adds new_worksheet,
-        # hence worksheets.count MUST be called above it
-        new_worksheet.offering = self.context
-        new_worksheet.identifier = unicode(identifier)
-        new_worksheet.name = unicode(name)
-        new_worksheet.assessable = self.convert_bool(assessable)
-        new_worksheet.data = unicode(data)
-        new_worksheet.format = unicode(format)
-        
-        # This call is added for clarity, as the worksheet is implicitly added.        
-        req.store.add(new_worksheet)
-
-        ivle.worksheet.utils.update_exerciselist(new_worksheet)
-
-        return {"result": "ok"}
 
     @named_operation('edit')
     def move_up(self, req, worksheetid):
