@@ -236,7 +236,7 @@ class ExerciseRESTView(JSONRESTView):
     
     @named_operation(u'edit')
     def edit_testpart(self, req, suiteid, testid, partid, part_type, test_type, 
-                      data, filename):
+                      data):
     
         suite = req.store.find(TestSuite,
             TestSuite.suiteid == int(suiteid),
@@ -259,13 +259,12 @@ class ExerciseRESTView(JSONRESTView):
         test_part.part_type = unicode(part_type)
         test_part.test_type = unicode(test_type)
         test_part.data = unicode(data)
-        test_part.filename = unicode(filename)
         
         return {'result': 'ok'}
     
     @named_operation(u'edit')
     def add_testpart(self, req, suiteid, testid, part_type, test_type, 
-                      data, filename):
+                      data):
     
         suite = req.store.find(TestSuite,
             TestSuite.suiteid == int(suiteid),
@@ -283,7 +282,6 @@ class ExerciseRESTView(JSONRESTView):
         test_part.part_type = unicode(part_type)
         test_part.test_type = unicode(test_type)
         test_part.data = unicode(data)
-        test_part.filename = unicode(filename)
         
         test_case.parts.add(test_part)
         

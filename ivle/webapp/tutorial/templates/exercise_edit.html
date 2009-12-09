@@ -132,7 +132,6 @@
                             </select>
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
                             <iw:textarea name="data" desc="Test" rows="2" cols="80">${test_part.data}</iw:textarea>
-                            <iw:text name="file" desc="Filename">${test_part.filename}</iw:text>
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
                           <li py:with="iw_prefix='test_part_new'">
@@ -151,7 +150,6 @@
                                 </py:for>
                               </select>
                               <iw:textarea name="data" desc="Test" rows="2" cols="80" />
-                              <iw:text name="file" desc="Filename" />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                             </div>
                           </li>
