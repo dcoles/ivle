@@ -423,6 +423,9 @@ class WorksheetFormView(XHTMLView):
             data = self.get_default_data(req)
             errors = {}
 
+        if errors:
+            req.store.rollback()
+
         ctx['data'] = data or {}
         ctx['offering'] = self.context
         ctx['errors'] = errors
