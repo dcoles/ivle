@@ -62,3 +62,56 @@ that directory exists.
 
 The default is :file:`/var/lib/ivle/sessions`.
 
+
+... ivle-buildjail throw an UnsafeJail exception
+------------------------------------------------
+
+When running :program:`ivle-buildjail` you may occasionally see an error 
+like::
+
+    Traceback (most recent call last):
+      File "bin/ivle-buildjail", line 158, in <module>
+        raise UnsafeJail(d)
+    __main__.UnsafeJail: /var/lib/ivle/jails/__base_build__/tmp/.ICE-unix
+
+This means that writable files exist in the Jail template. If left in the jail 
+then users would be able to edit a file that is shared between all jail 
+instances. The usual solution is just to remove these file from the jail build 
+directory and try again.
+
+
+... the console return 'Console Restart' messages
+-------------------------------------------------
+
+There are three cases where a console may be restarted:
+
+1. **Console Restart: The IVLE console has timed out due to inactivity**
+
+    The Python console process is no longer running. This is most likey due to 
+    the console process being automatically terminated due to no messages 
+    being sent or received by the console in the previous 15 minutes.
+
+    This message can also be triggered if the console is terminated for 
+    another reason (such as being sent :const:`SIGKILL` from the system 
+    command line or any other fatal signal).
+
+2. **Console Restart: CPU Time Limit Exceeded**
+
+   To prevent exhaustion of local system resources, Python console processes 
+   are set with an CPU Time Limit of 25 seconds of user time (time executing 
+   on the CPU rather than real "clock-on-the-wall" time).
+
+   This setting can be configured by changing the values associated with 
+   :const:`RLIMIT_CPU` in :file:`bin/trampoline/trampoline.c`.
+
+3. **Console Restart: Communication to console process lost**
+
+    IVLE was unable to understand a response from the console process. This 
+    will only happen if the console sends a malformed response and quite 
+    likely a bug.
+
+4. **Console Restart: Communication to console process reset**
+
+    IVLE's TCP connection to the console process was reset. May indicate 
+    network issues.
+
