@@ -327,33 +327,39 @@ function handle_testresponse(exercisediv, exerciseid, testresponse)
         }
     }
 
+    /* If we have a worksheet, we will get back stats:
+     *  - is the exercise complete (ie. passed in any previous attempt)
+     *  - how many attempts did it take to complete the exercise?
     /* Update the summary box (completed, attempts) with the new values we got
      * back from the tutorialservice.
      * (Also update the balls in the table-of-contents).
      */
-    var toc_li = document.getElementById("toc_li_" + exerciseid);
-    var summaryli = document.getElementById("summaryli_" + exerciseid);
-    var summarycomplete = document.getElementById("summarycomplete_"
-        + exerciseid);
-    var summaryattempts = document.getElementById("summaryattempts_"
-        + exerciseid);
-    toc_li.setAttribute("class",
-        (testresponse.completed ? "complete" : "incomplete"));
-    summaryli.setAttribute("class",
-        (testresponse.completed ? "complete" : "incomplete"));
-    summarycomplete.removeChild(summarycomplete.lastChild);
-    summarycomplete.appendChild(document.createTextNode(testresponse.completed
-        ? "Complete" : "Incomplete"));
-    var old_attempts_value = summaryattempts.lastChild.data;
-    summaryattempts.removeChild(summaryattempts.lastChild);
-    summaryattempts.appendChild(document.createTextNode(
-        testresponse.attempts));
-    if (testresponse.completed && testresponse.attempts == 1 &&
-        old_attempts_value == "0")
+    if (worksheet)
     {
-        /* Add "Well done" for extra congratulations */
-        summaryli.appendChild(document.createTextNode(
-            " Well done!"));
+        var toc_li = document.getElementById("toc_li_" + exerciseid);
+        var summaryli = document.getElementById("summaryli_" + exerciseid);
+        var summarycomplete = document.getElementById("summarycomplete_"
+            + exerciseid);
+        var summaryattempts = document.getElementById("summaryattempts_"
+            + exerciseid);
+        toc_li.setAttribute("class",
+            (testresponse.completed ? "complete" : "incomplete"));
+        summaryli.setAttribute("class",
+            (testresponse.completed ? "complete" : "incomplete"));
+        summarycomplete.removeChild(summarycomplete.lastChild);
+        summarycomplete.appendChild(document.createTextNode(testresponse.completed
+            ? "Complete" : "Incomplete"));
+        var old_attempts_value = summaryattempts.lastChild.data;
+        summaryattempts.removeChild(summaryattempts.lastChild);
+        summaryattempts.appendChild(document.createTextNode(
+            testresponse.attempts));
+        if (testresponse.completed && testresponse.attempts == 1 &&
+            old_attempts_value == "0")
+        {
+            /* Add "Well done" for extra congratulations */
+            summaryli.appendChild(document.createTextNode(
+                " Well done!"));
+        }
     }
 }
 
