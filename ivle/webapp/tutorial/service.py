@@ -19,24 +19,22 @@
 
 '''AJAX backend for the tutorial application.'''
 
-import os
 import datetime
 
 import genshi
 from storm.locals import Store
 
-import ivle.console
 import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
                           Offering, Subject, Semester, User, WorksheetExercise
 import ivle.worksheet.utils
-import ivle.webapp.tutorial.test
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
 
 
 TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 class AttemptsRESTView(JSONRESTView):
     '''REST view of a user's attempts at an exercise.'''
@@ -58,23 +56,9 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def PUT(self, req, data):
         """ Tests the given submission """
-        # Start a console to run the tests on
-        jail_path = os.path.join(req.config['paths']['jails']['mounts'],
-                                 req.user.login)
-        working_dir = os.path.join("/home", req.user.login)
-        cons = ivle.console.Console(req.config, req.user.unixid, jail_path,
-                                    working_dir)
-
-        # Parse the file into a exercise object using the test suite
-        exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(
-                            self.context.worksheet_exercise.exercise, cons)
-
-        # Run the test cases. Get the result back as a JSONable object.
-        # Return it.
-        test_results = exercise_obj.run_tests(data['code'])
-
-        # Close the console
-        cons.close()
+        test_results = ivle.worksheet.utils.test_exercise_submission(
+            req.config, req.user, self.context.worksheet_exercise.exercise,
+            data['code'])
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
             worksheet_exercise = self.context.worksheet_exercise,

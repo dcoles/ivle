@@ -23,16 +23,19 @@ Worksheet Utility Functions
 This module provides functions for tutorial and worksheet computations.
 """
 
+import os.path
+
 from storm.locals import And, Asc, Desc, Store
 import genshi
 
 import ivle.database
 from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet, \
                           WorksheetExercise, Exercise
+import ivle.webapp.tutorial.test
 
 __all__ = ['ExerciseNotFound', 'get_exercise_status',
            'get_exercise_stored_text', 'get_exercise_attempts',
-           'get_exercise_attempt',
+           'get_exercise_attempt', 'test_exercise_submission',
           ]
 
 class ExerciseNotFound(Exception):
@@ -281,3 +284,28 @@ def update_exerciselist(worksheet):
         worksheet_exercise.seq_no = ex_num
         worksheet_exercise.optional = optional
 
+
+def test_exercise_submission(config, user, exercise, code):
+    """Test the given code against an exercise.
+
+    The code is run in a console process as the provided user.
+    """
+    # Start a console to run the tests on
+    jail_path = os.path.join(config['paths']['jails']['mounts'],
+                             user.login)
+    working_dir = os.path.join("/home", user.login)
+    cons = ivle.console.Console(config, user.unixid, jail_path,
+                                working_dir)
+
+    # Parse the file into a exercise object using the test suite
+    exercise_obj = ivle.webapp.tutorial.test.parse_exercise_file(
+        exercise, cons)
+
+    # Run the test cases. Get the result back as a JSONable object.
+    # Return it.
+    test_results = exercise_obj.run_tests(code)
+
+    # Close the console
+    cons.close()
+
+    return test_results
