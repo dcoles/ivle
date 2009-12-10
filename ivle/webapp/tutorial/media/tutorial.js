@@ -90,8 +90,14 @@ function submitexercise(exerciseid, filename)
             /* Close the "view previous" area (force reload) */
             close_previous(exerciseid);
         }
-    attempts_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
-        "/+worksheets/" + worksheet + "/" + filename + '/+attempts/' + username;
+    if (worksheet)
+        attempts_path = (
+            "api/subjects/" + subject + "/" + year + "/" +
+            semester + "/+worksheets/" + worksheet + "/" + filename +
+            '/+attempts/' + username);
+    else
+       attempts_path = "api/+exercises/+attempts" + filename
+
     ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
 }
 
@@ -166,6 +172,11 @@ savetimers = {}
  */
 function set_saved_status(exerciseid, filename, stat)
 {
+    /* If the current worksheet is undefined, we cannot save state.
+     * This button probably doesn't even exist. */
+    if (!worksheet)
+        return;
+
     var timername = "savetimer_" + exerciseid;
     var button = document.getElementById("savebutton_" + exerciseid);
     var is_saved = stat != "Save";
@@ -204,6 +215,9 @@ function set_saved_status(exerciseid, filename, stat)
  */
 function get_saved_status(exerciseid)
 {
+    /* No worksheet => no state => no save button. */
+    if (!worksheet)
+        return;
     var button = document.getElementById("savebutton_" + exerciseid);
     return button.value;
 }
