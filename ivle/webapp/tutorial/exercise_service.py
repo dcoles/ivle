@@ -319,4 +319,4 @@ class ExerciseRESTView(JSONRESTView):
             return test_exercise_submission(
                 req.config, req.user, self.context, code)
         except TestCreationError, e:
-            return {'test_creation_error': e._reason}
+            return {'critical_error': {'name': 'TestCreationError', 'detail': e._reason}}
