@@ -540,7 +540,7 @@ class TestCase:
 
         exception_name = None
         if 'exception' in inspection:
-            exception = inspection['exception']['except']
+            exception = inspection['exception']
             exception_name = type(exception).__name__
             raise(exception)
 
@@ -576,7 +576,7 @@ class TestCase:
 
         exception_name = None
         if 'exception' in call:
-            exception = call['exception']['except']
+            exception = call['exception']
             exception_name = type(exception).__name__
             raise(exception)
 
