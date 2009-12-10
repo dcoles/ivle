@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Test - ${exercise.name}</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+      worksheet = null;
+      exercise = '${exercise.id}';
+    </script>
+  </head>
+  <body>
+    <h1>${exercise.name}</h1>
+    <div id="ivle_padding">
+      ${exercise_fragment}
+    </div>
+  </body>
+</html>

@@ -520,6 +520,23 @@ class WorksheetsEditView(XHTMLView):
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 
+class ExerciseView(XHTMLView):
+    """View of an exercise."""
+
+    permission = 'edit'
+    template = 'templates/exercise.html'
+
+    def populate(self, req, ctx):
+        self.plugin_scripts[Plugin] = ['tutorial.js']
+        self.plugin_styles[Plugin] = ['tutorial.css']
+
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
+
+        ctx['exercise'] = self.context
+        ctx['exercise_fragment'] = present_exercise(
+            req, self.context.id)['stream']
+
+
 class ExerciseEditView(XHTMLView):
     """View for editing a worksheet."""
     
@@ -631,6 +648,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (DBWorksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
              (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
+             (Exercise, '+index', ExerciseView),
              (Exercise, '+edit', ExerciseEditView),
              (Exercise, '+delete', ExerciseDeleteView),
              (SubjectMediaFile, '+index', SubjectMediaView),
