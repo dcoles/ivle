@@ -297,9 +297,8 @@ class Console(object):
               
         # Unpickle any exceptions
         if 'exception' in execute:
-            return cPickle.loads(execute['exception'])
-        else:
-            return execute
+            execute['exception'] = cPickle.loads(execute['exception'])
+        return execute
 
 
     def set_vars(self, variables):
