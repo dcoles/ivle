@@ -219,6 +219,10 @@ form.verticalform div.submit input[type=submit] {
     margin-left: 205px;
 }
 
+.stackedform div label {
+    font-weight: bold;
+}
+
 /* Subjects list */
 .subject_current {
     font-weight: bold;

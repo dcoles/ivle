@@ -26,10 +26,10 @@
 
     <a py:match="iw:delete" href="javascript:${select('@action')}"><img title="Delete" alt="Delete" src="${mediapath}cross.png"/></a>
 
-    <h1>Edit Exercise - ${exercise.id}</h1>
+    <h1>Edit ${exercise.name}</h1>
     <div id="ivle_padding">
-      <h3>Exercise Values:</h3>
-      <div py:with="iw_prefix='exercise'; iw_label_linebreak=True">
+      <div py:with="iw_prefix='exercise'; iw_label_linebreak=True"
+           class="stackedform">
         <iw:text name="id" desc="Identifier">${exercise.id}</iw:text>
         <iw:text name="name" desc="Name">${exercise.name}</iw:text>
         <iw:text name="num_rows" desc="Number of Rows">${exercise.num_rows}</iw:text>
