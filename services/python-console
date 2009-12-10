@@ -399,7 +399,7 @@ def flatten(object):
     for o in object:
         try:
             flat[o] = cPickle.dumps(object[o], PICKLEVERSION)
-        except TypeError:
+        except (TypeError, cPickle.PicklingError):
             try:
                 o_type = type(object[o]).__name__
                 o_name = object[o].__name__
