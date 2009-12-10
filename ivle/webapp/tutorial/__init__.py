@@ -270,28 +270,32 @@ def getTextData(element):
 
     return data.strip()
 
-def present_exercise(req, src, worksheet):
-    """Open a exercise file, and write out the exercise to the request in HTML.
-    exercisesrc: "src" of the exercise file. A path relative to the top-level
-        exercises base directory, as configured in conf.
+def present_exercise(req, identifier, worksheet=None):
+    """Render an HTML representation of an exercise.
+
+    identifier: The exercise identifier (URL name).
+    worksheet: An optional worksheet from which to retrieve saved results.
+               If omitted, a clean exercise will be presented.
     """
     # Exercise-specific context is used here, as we already have all the data
     # we need
     curctx = genshi.template.Context()
+    curctx['worksheet'] = worksheet
 
-    worksheet_exercise = req.store.find(WorksheetExercise,
-        WorksheetExercise.worksheet_id == worksheet.id,
-        WorksheetExercise.exercise_id == src).one()
+    if worksheet is not None:
+        worksheet_exercise = req.store.find(WorksheetExercise,
+            WorksheetExercise.worksheet_id == worksheet.id,
+            WorksheetExercise.exercise_id == identifier).one()
 
-    if worksheet_exercise is None:
-        raise NotFound()
+        if worksheet_exercise is None:
+            raise NotFound()
 
     # Retrieve the exercise details from the database
     exercise = req.store.find(Exercise, 
-        Exercise.id == worksheet_exercise.exercise_id).one()
+        Exercise.id == identifier).one()
 
     if exercise is None:
-        raise NotFound(exercisesrc)
+        raise ExerciseNotFound(identifier)
 
     # Read exercise file and present the exercise
     # Note: We do not use the testing framework because it does a lot more
@@ -310,25 +314,31 @@ def present_exercise(req, src, worksheet):
     # an attempt, then use that text instead of the supplied "partial".
     # Get exercise stored text will return a save, or the most recent attempt,
     # whichever is more recent
-    save = ivle.worksheet.utils.get_exercise_stored_text(
-                        req.store, req.user, worksheet_exercise)
+    if worksheet is not None:
+        save = ivle.worksheet.utils.get_exercise_stored_text(
+                            req.store, req.user, worksheet_exercise)
 
-    # Also get the number of attempts taken and whether this is complete.
-    complete, curctx['attempts'] = \
-            ivle.worksheet.utils.get_exercise_status(req.store, req.user, 
-                                               worksheet_exercise)
-    if save is not None:
-        curctx['exercisesave'] = save.text
+        # Also get the number of attempts taken and whether this is complete.
+        complete, curctx['attempts'] = \
+                ivle.worksheet.utils.get_exercise_status(req.store, req.user, 
+                                                         worksheet_exercise)
+        if save is not None:
+            curctx['exercisesave'] = save.text
+        else:
+            curctx['exercisesave']= exercise.partial
+        curctx['complete'] = 'Complete' if complete else 'Incomplete'
+        curctx['complete_class'] = curctx['complete'].lower()
     else:
-        curctx['exercisesave']= exercise.partial
-    curctx['complete'] = 'Complete' if complete else 'Incomplete'
-    curctx['complete_class'] = curctx['complete'].lower()
+        curctx['exercisesave'] = exercise.partial
+        curctx['complete'] = 'Incomplete'
+        curctx['complete_class'] = curctx['complete'].lower()
+        curctx['attempts'] = 0
 
     #Save the exercise details to the Table of Contents
 
     loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(os.path.join(os.path.dirname(__file__),
-        "templates/exercise.html"))
+        "templates/exercise_fragment.html"))
     ex_stream = tmpl.generate(curctx)
     return {'name': exercise.name,
             'complete': curctx['complete_class'],
@@ -493,7 +503,6 @@ class WorksheetEditView(WorksheetFormView):
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
-    
     permission = 'edit'
     template = 'templates/worksheets_edit.html'
 
@@ -510,18 +519,39 @@ class WorksheetsEditView(XHTMLView):
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 
+class ExerciseView(XHTMLView):
+    """View of an exercise.
+
+    Primarily to preview and test an exercise without adding it to a
+    worksheet for all to see.
+    """
+    permission = 'edit'
+    template = 'templates/exercise.html'
+
+    def populate(self, req, ctx):
+        self.plugin_scripts[Plugin] = ['tutorial.js']
+        self.plugin_styles[Plugin] = ['tutorial.css']
+
+        ctx['req'] = req
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
+        ctx['exercise'] = self.context
+        ctx['exercise_fragment'] = present_exercise(
+            req, self.context.id)['stream']
+        ctx['ExerciseEditView'] = ExerciseEditView
+
+
 class ExerciseEditView(XHTMLView):
     """View for editing a worksheet."""
-    
     permission = 'edit'
     template = 'templates/exercise_edit.html'
-    
+    breadcrumb_text = 'Edit'
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
-            
+
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
-        
+
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else
 
@@ -538,6 +568,7 @@ class ExerciseEditView(XHTMLView):
             'code': 'the code',
             }
         ctx['test_types'] = {'norm': 'normalisation', 'check': 'comparison'}
+
 
 class ExerciseDeleteView(XHTMLView):
     """View for confirming the deletion of an exercise."""
@@ -621,6 +652,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (DBWorksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
              (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
+             (Exercise, '+index', ExerciseView),
              (Exercise, '+edit', ExerciseEditView),
              (Exercise, '+delete', ExerciseDeleteView),
              (SubjectMediaFile, '+index', SubjectMediaView),

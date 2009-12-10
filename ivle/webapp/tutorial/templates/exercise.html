@@ -1,73 +1,24 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:py="http://genshi.edgewall.org/" py:strip="">
-  <div class="exercise" id="${exercise.id}">
-    <p><b>Exercise:</b> ${exercise.name}</p>
-    <py:if test="description is not None">
-      <div>${description}</div>
-    </py:if>
-    <input id="input_resettext_${exercise.id}" type="hidden" value="${exercise.partial}" />
-    <textarea id="textarea_${exercise.id}" class="exercisebox"
-        onkeypress="return catch_textbox_input(&quot;${exercise.id}&quot;, '${exercise.id}',
-        event.keyCode)"
-        onchange="set_saved_status(&quot;${exercise.id}&quot;, '${exercise.id}',
-        &quot;Save&quot;)"
-        cols="80" rows="${exercise.num_rows}">${exercisesave}</textarea>
-    <div class="exercisebuttons">
-      <input type="button" value="Saved" disabled="disabled" id="savebutton_${exercise.id}"
-          onclick="saveexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-          title="Save your solution to this exercise" />
-      <input type="button" value="Reset" id="resetbutton_${exercise.id}"
-          onclick="resetexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-          title="Reload the original partial solution for this exercise" />
-      <input type="button" value="Run"
-          onclick="runexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-          title="Run this program in the console" />
-      <input type="button" value="Submit"
-              id="submitbutton_${exercise.id}"
-              onclick="submitexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
-              title="Submit this solution for evaluation" />
-    </div>
-    <div class="testoutput">
-    </div>
-    <div class="problem_summary">
-      <ul>
-        <li id="summaryli_${exercise.id}" class="${complete_class}">
-          <b><span id="summarycomplete_${exercise.id}">${complete}</span>.</b>
-            Attempts: <span id="summaryattempts_${exercise.id}">${attempts}</span>.
-        </li>
-      </ul>
-    </div>
-    <!-- This is filled in by javascript when the page loads -->
-    <div class="attempthistory">
+     xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Test - ${exercise.name}</title>
+    <!-- These let the javascript know which worksheet is open -->
+    <script type="text/javascript">
+      worksheet = null;
+      exercise = '${exercise.id}';
+    </script>
+  </head>
+  <body>
+    <h1>${exercise.name}</h1>
+    <div id="ivle_padding">
       <p>
-        <a title="Click to view previous submissions you have made for this exercise" 
-              onclick="open_previous(&quot;${exercise.id}&quot;, '${exercise.id}')">
-          View previous attempts
+        You may test this exercise here. Submission results will not be recorded as they would be in a worksheet.
+        <a py:if="'edit' in exercise.get_permissions(req.user)"
+           href="${req.publisher.generate(exercise, ExerciseEditView)}">
+         (edit this exercise)
         </a>
       </p>
-    <div style="display: none">
-      <h3>Previous attempts</h3>
-        <p>
-          <a title="Close the previous attempts" onclick="close_previous(&quot;${exercise.id}&quot;)">
-            Close attempts
-          </a>
-        </p>
-        <p class="attemptslist" style="display: none">
-          <select title="Select an attempt's time stamp from the list">
-            <option></option>
-          </select>
-          <input type="button" value="View"
-              onclick="select_attempt(&quot;${exercise.id}&quot;, '${exercise.id}')" />
-        </p>
-        <p class="noattempts" style="display: none">
-          No attempts have been made for this exercise.
-        </p>
-        <p>
-          <textarea readonly="readonly" class="exercisebox" cols="80" rows="${exercise.num_rows}"
-              title="You submitted this code on a previous attempt">
-          </textarea>
-        </p>
-      </div>
+      ${exercise_fragment}
     </div>
-  </div>
+  </body>
 </html>

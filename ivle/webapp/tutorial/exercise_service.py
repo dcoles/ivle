@@ -24,6 +24,7 @@ from ivle.database import Exercise, TestSuite, TestCase, \
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound, BadRequest
+from ivle.worksheet.utils import test_exercise_submission
 
 
 class ExercisesRESTView(JSONRESTView):
@@ -310,3 +311,7 @@ class ExerciseRESTView(JSONRESTView):
         test_part.delete()
         
         return {'result': 'ok'}
+
+    @named_operation(u'edit')
+    def test(self, req, code):
+        return test_exercise_submission(req.config, req.user, self.context, code)

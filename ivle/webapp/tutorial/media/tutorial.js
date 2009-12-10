@@ -63,8 +63,6 @@ function submitexercise(exerciseid, filename)
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
-    var args = {'code': code};
-
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
     /* AJAX callback function */
@@ -88,11 +86,24 @@ function submitexercise(exerciseid, filename)
             set_saved_status(exerciseid, filename, "Saved");
             set_submit_status(exerciseid, filename, "Submit");
             /* Close the "view previous" area (force reload) */
-            close_previous(exerciseid);
+            if (worksheet)
+                close_previous(exerciseid);
         }
-    attempts_path = "api/subjects/" + subject + "/" + year + "/" + semester + 
-        "/+worksheets/" + worksheet + "/" + filename + '/+attempts/' + username;
-    ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
+    if (worksheet)
+    {
+        var args = {'code': code};
+        var attempts_path = (
+            "api/subjects/" + subject + "/" + year + "/" +
+            semester + "/+worksheets/" + worksheet + "/" + filename +
+            '/+attempts/' + username);
+        ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
+    }
+    else
+    {
+        var args = {'ivle.op': 'test', 'code': code};
+        var attempts_path = "api/+exercises/" + filename
+        ajax_call(callback, attempts_path, "", args, "POST");
+    }
 }
 
 /** User clicks "Save" button. Do an Ajax call to store it.
@@ -166,6 +177,11 @@ savetimers = {}
  */
 function set_saved_status(exerciseid, filename, stat)
 {
+    /* If the current worksheet is undefined, we cannot save state.
+     * This button probably doesn't even exist. */
+    if (!worksheet)
+        return;
+
     var timername = "savetimer_" + exerciseid;
     var button = document.getElementById("savebutton_" + exerciseid);
     var is_saved = stat != "Save";
@@ -204,6 +220,9 @@ function set_saved_status(exerciseid, filename, stat)
  */
 function get_saved_status(exerciseid)
 {
+    /* No worksheet => no state => no save button. */
+    if (!worksheet)
+        return;
     var button = document.getElementById("savebutton_" + exerciseid);
     return button.value;
 }
@@ -308,33 +327,39 @@ function handle_testresponse(exercisediv, exerciseid, testresponse)
         }
     }
 
+    /* If we have a worksheet, we will get back stats:
+     *  - is the exercise complete (ie. passed in any previous attempt)
+     *  - how many attempts did it take to complete the exercise?
     /* Update the summary box (completed, attempts) with the new values we got
      * back from the tutorialservice.
      * (Also update the balls in the table-of-contents).
      */
-    var toc_li = document.getElementById("toc_li_" + exerciseid);
-    var summaryli = document.getElementById("summaryli_" + exerciseid);
-    var summarycomplete = document.getElementById("summarycomplete_"
-        + exerciseid);
-    var summaryattempts = document.getElementById("summaryattempts_"
-        + exerciseid);
-    toc_li.setAttribute("class",
-        (testresponse.completed ? "complete" : "incomplete"));
-    summaryli.setAttribute("class",
-        (testresponse.completed ? "complete" : "incomplete"));
-    summarycomplete.removeChild(summarycomplete.lastChild);
-    summarycomplete.appendChild(document.createTextNode(testresponse.completed
-        ? "Complete" : "Incomplete"));
-    var old_attempts_value = summaryattempts.lastChild.data;
-    summaryattempts.removeChild(summaryattempts.lastChild);
-    summaryattempts.appendChild(document.createTextNode(
-        testresponse.attempts));
-    if (testresponse.completed && testresponse.attempts == 1 &&
-        old_attempts_value == "0")
+    if (worksheet)
     {
-        /* Add "Well done" for extra congratulations */
-        summaryli.appendChild(document.createTextNode(
-            " Well done!"));
+        var toc_li = document.getElementById("toc_li_" + exerciseid);
+        var summaryli = document.getElementById("summaryli_" + exerciseid);
+        var summarycomplete = document.getElementById("summarycomplete_"
+            + exerciseid);
+        var summaryattempts = document.getElementById("summaryattempts_"
+            + exerciseid);
+        toc_li.setAttribute("class",
+            (testresponse.completed ? "complete" : "incomplete"));
+        summaryli.setAttribute("class",
+            (testresponse.completed ? "complete" : "incomplete"));
+        summarycomplete.removeChild(summarycomplete.lastChild);
+        summarycomplete.appendChild(document.createTextNode(testresponse.completed
+            ? "Complete" : "Incomplete"));
+        var old_attempts_value = summaryattempts.lastChild.data;
+        summaryattempts.removeChild(summaryattempts.lastChild);
+        summaryattempts.appendChild(document.createTextNode(
+            testresponse.attempts));
+        if (testresponse.completed && testresponse.attempts == 1 &&
+            old_attempts_value == "0")
+        {
+            /* Add "Well done" for extra congratulations */
+            summaryli.appendChild(document.createTextNode(
+                " Well done!"));
+        }
     }
 }
 
