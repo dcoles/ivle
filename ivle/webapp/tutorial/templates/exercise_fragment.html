@@ -40,7 +40,7 @@
       </ul>
     </div>
     <!-- This is filled in by javascript when the page loads -->
-    <div class="attempthistory">
+    <div py:if="worksheet" class="attempthistory">
       <p>
         <a title="Click to view previous submissions you have made for this exercise" 
               onclick="open_previous(&quot;${exercise.id}&quot;, '${exercise.id}')">

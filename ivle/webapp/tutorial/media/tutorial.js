@@ -88,7 +88,8 @@ function submitexercise(exerciseid, filename)
             set_saved_status(exerciseid, filename, "Saved");
             set_submit_status(exerciseid, filename, "Submit");
             /* Close the "view previous" area (force reload) */
-            close_previous(exerciseid);
+            if (worksheet)
+                close_previous(exerciseid);
         }
     if (worksheet)
         attempts_path = (
