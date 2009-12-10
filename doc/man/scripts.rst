@@ -21,10 +21,10 @@
 Admin scripts
 *************
 
-IVLE has a number of Admin scripts to configure IVLE or for functionality not  
-directly in the web application.
+IVLE has a number of admin scripts for uncommon configuration or other
+functionality not available in the web application.
 
-Most of these script are required to be run as root.
+Most of these scripts must be run as root.
 
 ivle-addexercise
 ----------------
@@ -33,7 +33,11 @@ ivle-addexercise
 
 :program:`ivle-addexercise <EXERCISE>`
 
-Adds an XML encoded exercise to the IVLE database.
+Adds an XML encoded exercise to the IVLE database. This is primarily
+for importing exercises that pre-date the database storage system.
+
+The exercise's name will be set to the complete path specified on the
+command line -- keep this in mind when choosing a working directory.
 
 .. cmdoption:: <EXERCISE>
 
@@ -46,26 +50,25 @@ ivle-adduser
 
 :program:`ivle-adduser [OPTIONS] <LOGIN> <FULLNAME>`
 
-Script to create a new user.
+Creates a new user in the database. On-disk structures (jails and
+Subversion repositories) will be created upon first login.
 
 .. FIXME: "This can also be done through the administration interface."
     (Not yet!)
 
-This script wraps common.makeuser. It also creates a unix account which 
-common.makeuser does not. (This script may not be appropriate for production 
-on a multi-node environment)
 
 .. cmdoption:: <LOGIN>
 
-    The login name of the new user
+    Login name of the new user
 
 .. cmdoption:: <FULLNAME>
 
-    The full name of the user
+    Full name of the user
 
 .. cmdoption:: -p <PASSWORD>, --password <PASSWORD>
 
-    Cleartext password
+    Cleartext password. If omitted, external authentication mechanisms
+    will be tried.
 
 .. cmdoption:: -n <NICK>, --nick <NICK>
 
@@ -81,7 +84,7 @@ on a multi-node environment)
 
 .. cmdoption:: --admin
 
-    Give the user full administrative privileges
+    Give the user global IVLE administrative privileges
 
 
 ivle-buildjail
@@ -90,6 +93,8 @@ ivle-buildjail
 .. program:: ivle-buildjail
 
 :program:`ivle-buildjail [OPTIONS]`
+
+Creates or updates the IVLE jail template. 
 
 .. cmdoption:: -r, --recreate
 
@@ -106,7 +111,8 @@ ivle-buildjail
 
 .. cmdoption:: -m <MIRROR>, --mirror <MIRROR>
 
-    Sets the APT mirror.
+    Sets the APT mirror. May also be specified in the ``jail/mirror``
+    config key.
 
 
 ivle-cloneworksheets
@@ -117,8 +123,8 @@ ivle-cloneworksheets
 :program:`ivle-cloneworksheets <OLDSUBJECTCODE> <OLDYEAR> <OLDSEMESTER> 
 <NEWSUBJECTCODE> <NEWYEAR> <NEWSEMESTER>`
 
-Populates the subject specified by ``<NEWSUBJECTCODE> <NEWYEAR> 
-<NEWSEMESTER>`` with a copy of the worksheets from the subject specified by 
+Populates the offering specified by ``<NEWSUBJECTCODE> <NEWYEAR> 
+<NEWSEMESTER>`` with a copy of the worksheets from the offering specified by 
 ``<OLDSUBJECTCODE> <OLDYEAR> <OLDSEMESTER>``.
 
 
@@ -129,17 +135,19 @@ ivle-config
 
 :program:`ivle-config [ARG1] [ARG2] ...`
 
-Configures IVLE with machine-specific details, most notably, various paths.
+Configures IVLE with machine-specific details, most notably various paths.
 Either prompts the administrator for these details or accepts them as
-command-line args.
+command line arguments.
 
-Command-line arguments may be any of the :ref:`configuration option 
+Command line arguments may be any of the :ref:`configuration option 
 <ref-configuration-options>` used in :file:`ivle.conf`. They are provided in 
 the form of :samp:`--{section}/{subsection}/{property} {VALUE}` such as 
 ``--urls/root ivle.org`` or ``--media/externals/jquery 
 /usr/share/javascript/jquery``.
 
-Automatically creates the file :file:`/etc/ivle.conf`.
+Creates or updates :file:`/etc/ivle/ivle.conf` with the selected values,
+and overwrites :file:`/etc/ivle/plugins.d/000default` with the latest
+default plugin list.
 
 
 ivle-createdatadirs
@@ -149,7 +157,8 @@ ivle-createdatadirs
 
 :program:`ivle-createdatadirs`
 
-Creates an IVLE data hierarchy if it does not already exist.
+Creates the IVLE data hierarchy (by default under :file:`/var/lib/ivle`) if
+it does not already exist.
 
 
 ivle-enrol
@@ -159,27 +168,31 @@ ivle-enrol
 
 :program:`ivle-enrol <LOGIN> <SUBJECTCODE> <YEAR> <SEMESTER> [ROLE]`
 
-Script to enrol a user in an offering.
+Enrols a user in an offering.
+
+.. note::
+    Users may also be enrolled from the offering administration panel
+    in the web interface.
 
 .. cmdoption:: <LOGIN>
 
-    The login of the user to enrol.
+    Login of the user to enrol
 
 .. cmdoption:: <SUBJECTCODE>
 
-    The subject code of the offering.
+    Subject code
 
 .. cmdoption:: <YEAR>
 
-    The year of the offering.
+    Offering year
 
 .. cmdoption:: <SEMESTER>
 
-    The semester of the offering
+    Offering semester
 
 .. cmdoption:: [ROLE]
 
-    Set the role of the user. Should be one of 'student' (default), 'tutor' or 
+    Role of the user. Should be one of 'student' (default), 'tutor' or
     'lecturer'.
 
 
@@ -190,13 +203,15 @@ ivle-enrolallusers
 
 :program:`ivle-enrolallusers`
 
-Script to add enrolments for all users on the system.
+Adds enrolments for all users on the system.
 Pulls from the configured :ref:`subject pulldown module 
 <ref-subject-pulldown-modules>` the subjects each student
 is enrolled in, and adds enrolments to the database.
 Does not remove any enrolments.
 
-Requires root to run.
+.. note::
+    Pulldown modules are consulted for each user each time they log in,
+    so use of this script may not be required.
 
 .. cmdoption:: -u <LOGIN>, --user <LOGIN>
 
@@ -206,42 +221,40 @@ Requires root to run.
 
     Print out the details of each enrolment.
 
-.. cmdoption:: -y, --year
-
-    If specified, year to make enrolments for (default is the current year)
-
 
 ivle-fetchsubmissions
 ---------------------
 
 .. program:: ivle-fetchsubmissions
 
-:program:`ivle-fetchsubmissions [OPTIONS] <SUBJECT> <PROJECTNAME>`
+:program:`ivle-fetchsubmissions [OPTIONS] <SUBJECT> <PROJECT>`
 
 Retrieves all submissions for a given project. Places each submission in its 
-own directory, in a subdirectory of '.'. Any errors are reported to stderr 
+own subdirectory of the current directory. Any errors are reported to stderr
 (otherwise is silent).
 
-Requires root to run.
+.. note::
+    Since this script accesses Subversion repositories through the
+    filesystem, it must be run on the master server.
 
 .. cmdoption:: <SUBJECT>
 
-    The short name given to the subject
+    Subject short (URL) name
 
 .. cmdoption:: <PROJECTNAME>
 
-    The name of the project to retrieve.
+    Project short (URL) name
 
 .. cmdoption:: -s <SEMESTER>, --semester <SEMESTER>
 
-    Semester of the subject's offering (eg. 2009/1). Defaults to the currently 
+    Semester of the offering (eg. 2009/1). Defaults to the currently
     active semester.
 
 .. cmdoption:: -d <PATH>, --dest <PATH>
 
-    Destination directory (defaults to '.') to place submissions. Will create 
-    subdirectories in this directory of the form 
-    ``subject/year/semester/project``.
+    Destination directory (defaults to the current directory) in
+    which to place submissions. Will create subdirectories in this
+    directory of the form ``subject/year/semester/project``.
 
 .. cmdoption:: -z, --zip
 
@@ -249,7 +262,7 @@ Requires root to run.
 
 .. cmdoption:: -v, --verbose
 
-    Print out the name of each submission as it is extracted.
+    Print the name of each submission as it is extracted.
 
 .. cmdoption:: --no-txt
 
@@ -263,13 +276,11 @@ ivle-listusers
 
 :program:`ivle-listusers [OPTIONS]`
 
-Gets a list of all users in the IVLE database.
-
-Requires root to run.
+Lists all users in the IVLE database.
 
 .. cmdoption:: -n, --names
 
-    Only prints the logins of users
+    Print only each user's login name
 
 
 ivle-marks
@@ -281,15 +292,13 @@ ivle-marks
 
 Reports each student's marks for a given subject offering.
 
-Requires root to run.
-
 .. cmdoption:: <SUBJECT>
 
-    The short name given to the subject
+    Subject short (URL) name
 
 .. cmdoption:: -s <SEMESTER>, --semester <SEMESTER>
 
-    Semester of the subject's offering (eg. 2009/1). Defaults to the currently 
+    Semester of the offering (eg. 2009/1). Defaults to the currently
     active semester.
 
 .. cmdoption:: -c <CUTOFF>, --cutoff <CUTOFF>
@@ -309,14 +318,12 @@ Attempts to mount the jails of all users.
 
 .. note::
 
-    Administrators should not be required to manually run this script for 
-    regular operation.  IVLE will automatically mount user's jails on demand.
-
-Requires root to run.
+    Administrators should not need to manually run this script for regular
+    operation.  IVLE will automatically mount users' jails on demand.
 
 .. cmdoption:: -v, --verbose
 
-    Prints the details of each user's jail being mounted/unmounted
+    Print a message for each mount or unmount.
 
 .. cmdoption:: -u, --unmount
 
@@ -330,9 +337,25 @@ ivle-refreshfilesystem
 
 :program:`ivle-refreshfilesystem`
 
-Refresh parts of the filesystem that are generated from the database.
+Refresh parts of the filesystem to match the database.
 
-In particular, the Subversion authorisation files are rewritten.
+In particular:
+ - all jails are rebuilt
+ - missing user jails are created
+ - missing user and group Subversion repositories are created
+ - jails for missing users are removed
+ - Subversion repositories for missing users or groups are removed
+ - the Subversion password file is updated
+ - the Subversion authorisation files are rewritten
+
+.. warning::
+    Due to the full jail rebuilds, existing jail mounts may be broken
+    after this script has run. To recover from this situation, use
+    ``ivle-mountallusers`` to unmount all of the jails.
+
+.. note::
+    Jails and Subversion repositories are not entirely removed. They
+    can be found in a timestamped directory alongside their parent.
 
 
 ivle-remakeuser
@@ -344,22 +367,21 @@ ivle-remakeuser
 
 :program:`ivle-remakeuser [OPTIONS] -a`
 
-Rebuilds the Jail of a user or all users in IVLE. This will not delete the 
-data of the users being rebuilt.
-
-Requires root to run.
+Rebuilds the jail of a single user or of all users in IVLE. This will
+retain all user data, but recreate the rest of the hierarchy and
+internal configuration files.
 
 .. cmdoption:: <USER>
 
-    Login of the user whose Jail will be rebuilt.
-
-.. cmdoption:: -v, --verbose
-
-    Prints the details of each user's jail being remade.
+    Login of the user whose jail should be rebuilt
 
 .. cmdoption:: -a, --all
 
-    Rebuild all users Jails.
+    Rebuild the jail of every user
+
+.. cmdoption:: -v, --verbose
+
+    Print a message as each user's jail is remade
 
 
 ivle-showenrolment
@@ -370,10 +392,8 @@ ivle-showenrolment
 :program:`ivle-showenrolment <USER>`
 
 Shows the enrolments of a user. Prints subject code, subject name, year, 
-semester and role the user has in each subject they are enrolled in.
-
-Requires root to run.
+semester and the held role for each subject in which they are enrolled.
 
 .. cmdoption:: <USER>
 
-    Login of the user to view enrolments details.
+    Login of the user
