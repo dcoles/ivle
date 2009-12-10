@@ -84,8 +84,9 @@ if options.recreate:
               build_path, mirror=options.apt_mirror)
 
     ivle.jailbuilder.debian.apt_update_cache(build_path)
+    # Minimal required packages
     ivle.jailbuilder.debian.apt_install(build_path,
-                        ['python2.5', 'python-cjson', 'python-svn'])
+            ['python2.5', 'python-cjson', 'python-svn', 'python-configobj'])
 
     ivle.jailbuilder.debian.apt_clean(build_path)
 
