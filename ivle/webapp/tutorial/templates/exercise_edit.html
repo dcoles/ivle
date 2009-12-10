@@ -132,7 +132,7 @@
                             </select>
                             function:
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
-                            <textarea id="data" cols="80" rows="2">${test_part.data}</textarea>
+                            <textarea id="test_part_${test_part.partid}_data" cols="80" rows="2">${test_part.data}</textarea>
                             <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
@@ -153,7 +153,7 @@
                               </select>
                               function:
                               <br />
-                              <textarea id="data" cols="80" rows="2"></textarea>
+                              <textarea id="test_part_new_data_${test_case.testid}" cols="80" rows="2"></textarea>
                               <br />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                             </div>
