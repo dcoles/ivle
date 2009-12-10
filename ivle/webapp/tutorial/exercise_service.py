@@ -310,3 +310,7 @@ class ExerciseRESTView(JSONRESTView):
         test_part.delete()
         
         return {'result': 'ok'}
+
+    @named_operation(u'edit')
+    def test(self, req, code):
+        return {}

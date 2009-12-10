@@ -63,8 +63,6 @@ function submitexercise(exerciseid, filename)
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
-    var args = {'code': code};
-
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
     /* AJAX callback function */
@@ -92,14 +90,20 @@ function submitexercise(exerciseid, filename)
                 close_previous(exerciseid);
         }
     if (worksheet)
-        attempts_path = (
+    {
+        var args = {'code': code};
+        var attempts_path = (
             "api/subjects/" + subject + "/" + year + "/" +
             semester + "/+worksheets/" + worksheet + "/" + filename +
             '/+attempts/' + username);
+        ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
+    }
     else
-       attempts_path = "api/+exercises/+attempts" + filename
-
-    ajax_call(callback, attempts_path, "", args, "PUT", "application/json");
+    {
+        var args = {'ivle.op': 'test', 'code': code};
+        var attempts_path = "api/+exercises/" + filename
+        ajax_call(callback, attempts_path, "", args, "POST");
+    }
 }
 
 /** User clicks "Save" button. Do an Ajax call to store it.
