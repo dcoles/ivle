@@ -63,21 +63,26 @@ that directory exists.
 The default is :file:`/var/lib/ivle/sessions`.
 
 
-... ivle-buildjail throw an UnsafeJail exception
-------------------------------------------------
+... ivle-buildjail fail with 'Error: Jail contains world writable path'
+-----------------------------------------------------------------------
 
 When running :program:`ivle-buildjail` you may occasionally see an error 
 like::
 
-    Traceback (most recent call last):
-      File "bin/ivle-buildjail", line 158, in <module>
-        raise UnsafeJail(d)
-    __main__.UnsafeJail: /var/lib/ivle/jails/__base_build__/tmp/.ICE-unix
+    Error: Jail contains world writable path: 
+    '/var/lib/ivle/jails/__base_build__/tmp/.ICE-unix'.
+    This is a security vulnerability as jail template contents are shared 
+    between users. Please either make this path world unwriteable or remove it 
+    from the jail.
 
 This means that writable files exist in the Jail template. If left in the jail 
 then users would be able to edit a file that is shared between all jail 
 instances. The usual solution is just to remove these file from the jail build 
 directory and try again.
+
+At present it is not possible to include world writable files outside a user's 
+home directory so if this file is deliberately included you will need to 
+ensure that it is not world writeable.
 
 
 ... the console return 'Console Restart' messages
