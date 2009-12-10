@@ -503,7 +503,6 @@ class WorksheetEditView(WorksheetFormView):
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
-    
     permission = 'edit'
     template = 'templates/worksheets_edit.html'
 
@@ -543,16 +542,16 @@ class ExerciseView(XHTMLView):
 
 class ExerciseEditView(XHTMLView):
     """View for editing a worksheet."""
-    
     permission = 'edit'
     template = 'templates/exercise_edit.html'
-    
+    breadcrumb_text = 'Edit'
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
-            
+
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
-        
+
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else
 
@@ -569,6 +568,7 @@ class ExerciseEditView(XHTMLView):
             'code': 'the code',
             }
         ctx['test_types'] = {'norm': 'normalisation', 'check': 'comparison'}
+
 
 class ExerciseDeleteView(XHTMLView):
     """View for confirming the deletion of an exercise."""
