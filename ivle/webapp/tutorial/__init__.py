@@ -521,8 +521,11 @@ class WorksheetsEditView(XHTMLView):
 
 
 class ExerciseView(XHTMLView):
-    """View of an exercise."""
+    """View of an exercise.
 
+    Primarily to preview and test an exercise without adding it to a
+    worksheet for all to see.
+    """
     permission = 'edit'
     template = 'templates/exercise.html'
 
@@ -530,11 +533,12 @@ class ExerciseView(XHTMLView):
         self.plugin_scripts[Plugin] = ['tutorial.js']
         self.plugin_styles[Plugin] = ['tutorial.css']
 
+        ctx['req'] = req
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
-
         ctx['exercise'] = self.context
         ctx['exercise_fragment'] = present_exercise(
             req, self.context.id)['stream']
+        ctx['ExerciseEditView'] = ExerciseEditView
 
 
 class ExerciseEditView(XHTMLView):
