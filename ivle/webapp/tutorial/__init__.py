@@ -525,11 +525,19 @@ class ExerciseEditView(XHTMLView):
         ctx['exercise'] = self.context
         #XXX: These should come from somewhere else
 
-        ctx['var_types'] = (u'file', u'var', u'arg', u'exception')
-        ctx['part_types'] = (u'stdout',u'stderr', u'result',
-                             u'exception', u'file', u'code')
-        
-        ctx['test_types'] = ('norm', 'check')
+        ctx['var_types'] = {
+            'var': 'variable',
+            'arg': 'function argument',
+            'exception': 'exception',
+            }
+        ctx['part_types'] = {
+            'stdout': 'standard output',
+            'stderr': 'standard error',
+            'result': 'the function result',
+            'exception': 'the raised exception',
+            'code': 'the code',
+            }
+        ctx['test_types'] = {'norm': 'normalisation', 'check': 'comparison'}
 
 class ExerciseDeleteView(XHTMLView):
     """View for confirming the deletion of an exercise."""

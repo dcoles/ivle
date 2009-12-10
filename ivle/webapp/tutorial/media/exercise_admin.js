@@ -274,7 +274,6 @@ function add_test_case(suiteid)
 {
     var passmsg = $("#new_test_case_" + suiteid + "_pass").val();
     var failmsg = $("#new_test_case_" + suiteid + "_fail").val();
-    var case_default = $("#new_test_case_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -294,8 +293,7 @@ function add_test_case(suiteid)
     }
     
     var args = {'ivle.op': 'add_testcase', 'passmsg': passmsg, 
-                'failmsg': failmsg, 'default': case_default,
-                'suiteid': suiteid};
+                'failmsg': failmsg, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
     
@@ -305,7 +303,6 @@ function edit_test_case(testid, suiteid)
 {
     var passmsg = $("#test_case_" + testid + "_" + suiteid + "_pass").val();
     var failmsg = $("#test_case_" + testid + "_" + suiteid + "_fail").val();
-    var case_default = $("#test_case_" + testid + "_" + suiteid + "_default").val();
     
     var callback = function(xhr)
     {
@@ -324,8 +321,7 @@ function edit_test_case(testid, suiteid)
     }
     
     var args = {'ivle.op': 'edit_testcase', 'passmsg': passmsg, 
-                'failmsg': failmsg, 'default': case_default,
-                'testid':testid, 'suiteid': suiteid};
+                'failmsg': failmsg, 'testid':testid, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }
@@ -361,7 +357,6 @@ function edit_test_part(partid, testid, suiteid)
     var part_type = $("#test_part_" + partid + "_part_type").val();
     var test_type = $("#test_part_" + partid + "_test_type").val();
     var data = $("#test_part_" + partid + "_data").val();
-    var filename = $("#test_part_" + partid + "_file").val();
     
     var callback = function(xhr)
     {
@@ -379,8 +374,8 @@ function edit_test_part(partid, testid, suiteid)
     }
     
     var args = {'ivle.op': 'edit_testpart', 'part_type': part_type, 
-                'test_type': test_type, 'data': data, 'filename': filename,
-                'partid': partid, 'testid': testid, 'suiteid': suiteid};
+                'test_type': test_type, 'data': data, 'partid': partid,
+                'testid': testid, 'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }
@@ -390,7 +385,6 @@ function add_test_part(testid, suiteid)
     var part_type = $("#test_part_new_part_type_" + testid).val();
     var test_type = $("#test_part_new_test_type_" + testid).val();
     var data = $("#test_part_new_data_" + testid).val();
-    var filename = $("#test_part_new_file_" + testid).val();
 
     var savebutton = $("#new_test_part_save_" + testid);
     savebutton.attr('value', 'Saving...');
@@ -419,8 +413,8 @@ function add_test_part(testid, suiteid)
     }
     
     var args = {'ivle.op': 'add_testpart', 'part_type': part_type, 
-                'test_type': test_type, 'data': data, 'filename': filename,
-                'testid': testid, 'suiteid': suiteid};
+                'test_type': test_type, 'data': data, 'testid': testid,
+                'suiteid': suiteid};
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }

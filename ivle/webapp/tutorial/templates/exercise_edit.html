@@ -66,8 +66,8 @@
                       <label for="var_type_${variable.varid}">Type:</label>
                       <select name="Variable Type" id="var_type_${variable.varid}">
                         <py:for each="var_type in var_types">
-                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_type}</option>
-                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_type}</option>
+                          <option py:if="var_type == variable.var_type" selected="selected" value="${var_type}">${var_types[var_type]}</option>
+                          <option py:if="var_type != variable.var_type" value="${var_type}">${var_types[var_type]}</option>
                         </py:for>
                       </select>
                       <label for="var_name_${variable.varid}">Var Name:</label>
@@ -84,7 +84,7 @@
                     <label for="new_var_type_${test_suite.suiteid}">Type:</label>
                     <select name="Variable Type" id="new_var_type_${test_suite.suiteid}">
                       <py:for each="var_type in var_types">
-                        <option  value="${var_type}">${var_type}</option>
+                        <option  value="${var_type}">${var_types[var_type]}</option>
                       </py:for>
                     </select>
                     <label for="new_var_name_${test_suite.suiteid}">Var Name:</label>
@@ -108,51 +108,53 @@
                       </h5>
                       <div py:with="iw_prefix='test_case_%d_%d' % (test_case.testid, test_suite.suiteid)"
                            class="test_case" id="${iw_prefix}">
-                        <iw:text name="pass" desc="Pass Message">${test_case.passmsg}</iw:text>
-                        <iw:text name="fail" desc="Fail Message">${test_case.failmsg}</iw:text>
-                        <iw:text name="default" desc="Default Mode">${test_case.test_default}</iw:text>
+                        <iw:text name="pass" desc="Pass message">${test_case.passmsg}</iw:text>
+                        <iw:text name="fail" desc="Fail message">${test_case.failmsg}</iw:text>
                         <input type="button" onclick="edit_test_case('${test_case.testid}','${test_suite.suiteid}')" value="Save Case" />
 
                         <h5>Test Case Parts</h5>
                         <ul class="test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
-                            <label for="test_part_${test_part.partid}_part_type">Part Type:</label>
+                            <label for="test_part_${test_part.partid}_part_type">Test</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
-                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_type}</option>
-                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_type}</option>
+                                <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_types[part_type]}</option>
+                                <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_types[part_type]}</option>
                               </py:for>
                             </select>
-                            <label for="test_part_${test_part.partid}_test_type">Test Type</label>
+                            <label for="test_part_${test_part.partid}_test_type">using the following</label>
                             <select name="Test Type" id="test_part_${test_part.partid}_test_type">
                               <py:for each="test_type in test_types">
-                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_type}</option>
-                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_type}</option>
+                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_types[test_type]}</option>
+                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_types[test_type]}</option>
                               </py:for>
                             </select>
+                            function:
                             <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
-                            <iw:textarea name="data" desc="Test" rows="2" cols="80">${test_part.data}</iw:textarea>
-                            <iw:text name="file" desc="Filename">${test_part.filename}</iw:text>
+                            <textarea id="test_part_${test_part.partid}_data" cols="80" rows="2">${test_part.data}</textarea>
+                            <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
                           <li py:with="iw_prefix='test_part_new'">
                             <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
                             <div class="add_new_part" id="new_test_part_${test_case.testid}">
-                              <label for="test_part_new_part_type_${test_case.testid}">Part Type:</label>
+                              <label for="test_part_new_part_type_${test_case.testid}">Test</label>
                               <select name="Part Type" id="test_part_new_part_type_${test_case.testid}">
                                 <py:for each="part_type in part_types">
-                                  <option value="${part_type}">${part_type}</option>
+                                  <option value="${part_type}">${part_types[part_type]}</option>
                                 </py:for>
                               </select>
-                              <label for="test_part_new_test_type_${test_case.testid}">Test Type:</label>
+                              <label for="test_part_new_test_type_${test_case.testid}">using the following</label>
                               <select name="Test Type" id="test_part_new_test_type_${test_case.testid}">
                                 <py:for each="test_type in test_types">
-                                  <option value="${test_type}">${test_type}</option>
+                                  <option value="${test_type}">${test_types[test_type]}</option>
                                 </py:for>
                               </select>
-                              <iw:textarea name="data" desc="Test" rows="2" cols="80" />
-                              <iw:text name="file" desc="Filename" />
+                              function:
+                              <br />
+                              <textarea id="test_part_new_data_${test_case.testid}" cols="80" rows="2"></textarea>
+                              <br />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                             </div>
                           </li>
@@ -164,9 +166,8 @@
                     <h5><a onclick="tog('new_test_case_${test_suite.suiteid}')">New test case</a></h5>
                     <div py:with="iw_prefix='new_test_case_%d' % (test_suite.suiteid)"
                          class="test_case" id="${iw_prefix}">
-                        <iw:text name="pass" desc="Pass Message" />
-                        <iw:text name="fail" desc="Fail Message" />
-                        <iw:text name="default" desc="Default Mode" />
+                        <iw:text name="pass" desc="Pass message" />
+                        <iw:text name="fail" desc="Fail message" />
                         <input type="button" value="Create Case" onclick="add_test_case('${test_suite.suiteid}')" />
                     </div>
                   </li>

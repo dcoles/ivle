@@ -990,7 +990,7 @@ class TestCase(Storm):
     suite = Reference(suiteid, "TestSuite.suiteid")
     passmsg = Unicode()
     failmsg = Unicode()
-    test_default = Unicode()
+    test_default = Unicode() # Currently unused - only used for file matching.
     seq_no = Int()
 
     parts = ReferenceSet(testid, "TestCasePart.testid")
