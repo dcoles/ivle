@@ -28,6 +28,8 @@ import subprocess
 import logging
 import readline
 
+import psycopg2
+
 from ivle.config import Config
 
 logging.basicConfig(
@@ -120,13 +122,14 @@ errmsg = subprocess.check_call(["sudo", "-u", options.pg_user, "createlang",
 
 # Populate with database schema
 logging.info("Populating database with schema.")
-file = open("userdb/users.sql")
-proc = subprocess.Popen(["psql", "-h", "localhost", "-W", dbconfig["name"],
-                           dbconfig["username"]], stdin=file)
-if proc.wait() != 0:
-    file.close()
-    sys.exit(1)
-file.close()
+ivleconn = psycopg2.connect(
+    host='localhost', database=dbconfig['name'], user=dbconfig['username'],
+    password=dbconfig['password'])
+ivlecursor = ivleconn.cursor()
+logging.info("Populating database with schema.")
+schemafile = open("userdb/users.sql")
+ivlecursor.execute(schemafile.read())
+schemafile.close()
 
 # Build or rebuild all of the users' filesystems and subversion repos
 logging.info("Creating data directories.")
