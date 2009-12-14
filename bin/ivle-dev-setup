@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+# IVLE - Informatics Virtual Learning Environment
+# Copyright (C) 2007-2009 The University of Melbourne
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+"""Script to install an IVLE development environment."""
+
+import hashlib
+import logging
+import subprocess
+import sys
+import uuid
+
+if len(sys.argv) == 2:
+    user = sys.argv[1]
+    logging.info("Installing IVLE development environment for %s" % user)
+else:
+    print >> sys.stderr, \
+"""This script will install an IVLE development environment on a system
+running Ubuntu 9.04 or later. It will fiddle with /etc/hosts, create
+PostgreSQL users and databases, add some Apache virtual hosts, create
+directories in /var/lib/ivle, copy a Python package into your PYTHONPATH,
+and possibly other things too. If you really want all that to happen,
+rerun this script with your username as an argument.
+"""
+    sys.exit(1)
+
+logging.info("Installing dependencies.")
+subprocess.check_call([
+    "sudo", "apt-get", "install", "apache2", "libapache2-mod-python",
+    "libapache2-svn", "python2.6", "python-cjson", "python-configobj",
+    "python-docutils", "python-epydoc", "python-formencode",
+    "python-genshi", "python-psycopg2", "python-svn", "python-storm",
+    "libjs-jquery", "postgresql", "subversion", "debootstrap", "rsync",
+    "build-essential"])
+
+logging.info("Building.")
+subprocess.check_call(["./setup.py", "build"])
+subprocess.check_call(["sudo", "./setup.py", "install"])
+
+
+# Set up the database.
+
+logging.info("Creating %s as PostgreSQL superuser." % user)
+subprocess.check_call(["sudo", "-u", "postgres", "createuser", "-s", user])
+
+# We installed psycopg2 above, so we can import it now.
+import psycopg2
+import psycopg2.extensions
+
+logging.info("Connecting to PostgreSQL.")
+conn = psycopg2.connect(database='postgres')
+conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+cursor = conn.cursor()
+
+logging.info("Creating ivle as normal PostgreSQL user.")
+ivle_password = hashlib.md5(uuid.uuid4().bytes).hexdigest()
+cursor.execute("CREATE ROLE ivle PASSWORD '%s' LOGIN" % ivle_password)
+
+logging.info("Creating IVLE database.")
+cursor.execute("CREATE DATABASE ivle OWNER ivle")
+
+logging.info("Connecting to IVLE database.")
+ivlesuconn = psycopg2.connect(database='ivle')
+ivlesuconn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+ivlesucursor = ivlesuconn.cursor()
+
+logging.info("Creating language plpgsql.")
+ivlesucursor.execute("CREATE LANGUAGE plpgsql")
+
+logging.info("Connecting to IVLE database as new user.")
+ivleconn = psycopg2.connect(
+    host='localhost', database='ivle', user='ivle', password=ivle_password)
+ivleconn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+ivlecursor = ivleconn.cursor()
+logging.info("Populating database with schema.")
+schemafile = open("userdb/users.sql")
+ivlecursor.execute(schemafile.read())
+
+suite = subprocess.Popen(
+    ["lsb_release", "-c", "-s"], stdout=subprocess.PIPE).communicate()[0][:-1]
+
+# Set the filesystem and config up.
+logging.info("Configuring IVLE.")
+subprocess.check_call([
+    "sudo", "ivle-config",
+    "--database/username", "ivle",
+    "--database/password", ivle_password,
+    "--jail/devmode", "True",
+    "--jail/suite", suite,
+    ])
+
+logging.info("Creating data hierarchy.")
+subprocess.check_call(["sudo", "ivle-createdatadirs"])
+
+
+# Configure Apache
+logging.info("Configuring Apache.")
+subprocess.check_call(
+    ["sudo", "cp", "examples/config/apache.conf",
+     "/etc/apache2/sites-available/ivle"])
+subprocess.check_call(
+    ["sudo", "a2ensite", "ivle"])
+
+subprocess.check_call(
+    ["sudo", "cp", "examples/config/apache-svn.conf",
+     "/etc/apache2/sites-available/ivle-svn"])
+subprocess.check_call(
+    ["sudo", "a2ensite", "ivle-svn"])
+
+subprocess.check_call(
+    ["sudo", "/etc/init.d/apache2", "reload"])
+
+
+# Configure name resolution
+logging.info("Configuring /etc/hosts.")
+hosts_tee = subprocess.Popen(
+    ["sudo", "tee", "-a", "/etc/hosts"], stdin=subprocess.PIPE)
+hosts_tee.communicate(
+    "127.0.1.1 ivle.localhost public.ivle.localhost svn.ivle.localhost")
+
+
+# Configure usrmgt-server init script.
+logging.info("Installing usrmgt-server.")
+subprocess.check_call(
+    ["sudo", "cp", "examples/config/usrmgt-server.init",
+     "/etc/init.d/ivle-usrmgt-server"])
+subprocess.check_call(["sudo", "/etc/init.d/ivle-usrmgt-server", "start"])
+subprocess.check_call(
+    ["sudo", "update-rc.d", "ivle-usrmgt-server", "defaults", "99"])
