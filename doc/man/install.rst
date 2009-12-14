@@ -28,7 +28,8 @@ Given versions are those on which IVLE is known to work; earlier versions
 might work too. Debian/Ubuntu package names are given after the name of the
 software.
 
-.. If this list changes, you also need to change the list below.
+.. If this list changes, you also need to change the list below, and
+   the list in bin/ivle-dev-setup.
 
 * Ubuntu 8.04 or later (other distros should work with some tweaking, but are untested)
 * Apache 2.x (``apache2``) with modules:
@@ -59,10 +60,88 @@ Installing from a Debian package
 
 .. _database-setup:
 
+
 Installing from source
 ======================
 
-.. If this list changes, you also need to change the list above.
+When setting up a development IVLE environment on Ubuntu 9.04 or later,
+there are scripts to automate most of the process. First get and extract
+a release, or check out the latest code from the bzr branch: ::
+
+   bzr get lp:ivle
+
+This will create a new directory, ``ivle``, containing a pristine
+source tree. The remaining steps assume that you are in this new
+directory.
+
+The ``ivle-dev-setup`` script will configure PostgreSQL, Apache, IVLE
+and the filesystem to cooperate, getting you most of the way to a
+working system in just one step: ::
+
+   bin/ivle-dev-setup
+
+.. warning::
+   This reconfigures parts of your system, and has the potential to
+   break other applications using Apache or PostgreSQL. It may also
+   fail to execute if you have existing incompatible configurations
+   of those services.
+   
+
+This may take a few minutes, and will ask you to confirm installation
+of the dependency packages.
+
+Upon completion, you must build a self-contained jail in which to run
+untrusted user code. ``ivle-dev-setup`` will have configured most of
+the necessary settings, but you may wish to use a local Ubuntu mirror
+to improve speed or minimise download costs. If you don't wish to use
+a special mirror, you may omit the first step. ::
+
+   sudo ivle-config --jail/mirror http://url.to.mirror/ubuntu
+   sudo ivle-buildjail -r
+
+.. warning::
+   ``ivle-buildjail`` will download a large volume of package data --
+   potentially some hundreds of megabytes.
+
+``ivle-buildjail`` will download, unpack and install a minimal Ubuntu
+system and configure it for IVLE usage. This could take a while.
+
+Once the jail has been successfully built, IVLE is up and running,
+but with no user accounts or other data in place. For development
+or demonstration purposes, sample data (including fictitious users,
+subjects, and projects) can be loaded.
+
+For other environments, it may be more appropriate to start with an
+empty database and just create users as required.
+
+To load the sample data: ::
+
+   sudo ivle-loadsampledata examples/db/sample.sql
+
+.. warning::
+   If you answer 'yes' to the ``ivle-loadsampledata`` prompt, any
+   existing data in your IVLE database will be **permanently
+   destroyed**.
+
+... or to add a new admin user: ::
+
+   sudo ivle-adduser --admin -p password username 'Full Name'
+
+You should then be able to browse to http://ivle.localhost/, and
+log in with username ``alice`` and password ``password``, or the
+username and password that you gave to ``ivle-adduser``.
+
+
+Manual steps
+------------
+
+If the automatic installation scripts do not work, or if you want more
+control over the whole process, these manual steps are probably for
+you. But you need not read this section at all if you were able to log
+in after following the steps above.
+
+.. If this list changes, you also need to change the list above, and
+   the command in bin/ivle-dev-setup.
 
 If you want to grab all of the required packages in one command, use::
 
@@ -155,7 +234,7 @@ Configuring Apache
 IVLE makes use of two Apache virtual hosts: one for the application itself,
 and one for the Subversion services. There are example configuration files
 in ``examples/config/apache.conf`` and ``examples/config/apache-svn.conf``,
-which will run IVLE at ``http://ivle.localhost/``.
+which will run IVLE at http://ivle.localhost/.
 
 On a Debian or Ubuntu system, just copy those two files into
 ``/etc/apache2/sites-available`` under appropriate names (eg. ``ivle`` and
@@ -207,7 +286,7 @@ probably want admin privileges - if not, drop the ``--admin``. ::
 
    sudo ivle-adduser --admin -p password username 'Full Name'
 
-You should then be able to browse to ``http://ivle.localhost/``, and
+You should then be able to browse to http://ivle.localhost/, and
 log in with that username and password.
 
 *Alternatively*, you may wish to import the IVLE sample data, for a complete
