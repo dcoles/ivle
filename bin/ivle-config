@@ -203,6 +203,22 @@ config_options.append(ConfigOption("usrmgt/magic", None,
     """
 # The password for the usrmgt-server.""", ask=False))
 
+config_options.append(ConfigOption("jail/suite", "hardy",
+    """The distribution release to use to build the jail:""",
+    """
+# The distribution release to use to build the jail.""", ask=True))
+
+config_options.append(ConfigOption("jail/mirror", "archive.ubuntu.com",
+    """The archive mirror to use to build the jail:""",
+    """
+# The archive mirror to use to build the jail.""", ask=True))
+
+config_options.append(ConfigOption("jail/devmode", False,
+    """Whether jail development mode be activated:""",
+    """
+# Should jail development mode be activated?""", ask=False))
+
+# The password for the usrmgt-server.""", ask=False))
 def query_user(default, prompt):
     """Prompts the user for a string, which is read from a line of stdin.
     Exits silently if EOF is encountered. Returns the string, with spaces
