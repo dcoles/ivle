@@ -146,6 +146,13 @@ if conf['jail']['devmode']:
         shutil.rmtree(jail_site_packages)
     shutil.copytree(ivle_site_packages, jail_site_packages)
 
+    # And finally copy in /etc/hosts, /etc/resolv.conf and /etc/hostname,
+    # so name resolution is less unlikely to work.
+    shutil.copy(
+        '/etc/resolv.conf', os.path.join(build_path, 'etc/resolv.conf'))
+    shutil.copy('/etc/hosts', os.path.join(build_path, 'etc/hosts'))
+    shutil.copy('/etc/hostname', os.path.join(build_path, 'etc/hostname'))
+
 # Make /tmp and /var/lock un-world-writable. /tmp will be mounted over,
 # and /var/{lock,tmp} should die.
 for path in ('tmp', 'var/lock', 'var/tmp'):
