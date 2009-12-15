@@ -430,7 +430,11 @@ class TestCase:
             if var.var_name == None or var.var_name == '':
                 self._list_args.append(eval(var.var_value))
             else:
-                self._keyword_args[var.var_name] = var.var_value
+                # XXX: keyword argument names must be strs, not unicode,
+                #      but they are stored in the DB as unicodes for
+                #      reasons that I cannot fathom.
+                var_name_str = str(var.var_name)
+                self._keyword_args[var_name_str] = var.var_value
         except:
             raise TestCreationError("Invalid value for function argument: %s" %var.var_value)
 
