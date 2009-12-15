@@ -378,19 +378,16 @@ class TestCase:
         self._parts = []
         self._allowed_exceptions = set()
         
-        args = {}
         for var in suite.variables:
             if var.var_type == "file":
                 self.add_file(var)
             elif var.var_type == "var":
                 self.add_variable(var)
             elif var.var_type == "arg":
-                args[var.arg_no] = var
+                self.add_arg(var)
             elif var.var_type == "exception":
                 self.add_exception(var)
         
-        for i in xrange(len(args)):
-            self.add_arg(args[i])
         for test_case in suite.test_cases:
             self.add_part(TestCasePart(test_case))
 
