@@ -732,7 +732,6 @@ def action_svncheckout(req, fields):
     url = ivle.conf.svn_addr + "/" + urllib.quote(paths[0])
     local_path = actionpath_to_local(req, str(paths[1]))
     try:
-        svnclient.callback_get_login = get_login
         svnclient.checkout(url, local_path, recurse=True)
     except pysvn.ClientError, e:
         raise ActionError(str(e))
@@ -746,7 +745,6 @@ def action_svnrepomkdir(req, fields):
     logmsg = fields.getfirst('logmsg')
     url = ivle.conf.svn_addr + "/" + path
     try:
-        svnclient.callback_get_login = get_login
         svnclient.mkdir(url, log_message=logmsg)
     except pysvn.ClientError, e:
         raise ActionError(str(e))
@@ -763,7 +761,6 @@ def action_svnrepostat(req, fields):
     svnclient.exception_style = 1
 
     try:
-        svnclient.callback_get_login = get_login
         info = svnclient.info2(url,
             revision=pysvn.Revision(pysvn.opt_revision_kind.head))[0][1]
         return {'svnrevision': info['rev'].number
