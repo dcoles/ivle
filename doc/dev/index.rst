@@ -23,5 +23,6 @@ Developer Documentation
     :maxdepth: 2
 
     coding.rst
+    docs.rst
     packaging.rst
     architecture.rst
