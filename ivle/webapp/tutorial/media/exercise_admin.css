@@ -80,12 +80,6 @@
   width: 350px;
 }
 
-.test_suite_vals div label {
-  float: left;
-  text-align: right;
-  width: 100px;
-}
-
 .add_variable {
   display: none;
 }

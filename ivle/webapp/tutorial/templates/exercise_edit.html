@@ -58,10 +58,26 @@
             
             <div class="testsuite" id="suite_data_${test_suite.suiteid}">
               <div class="test_suite_vals"
-                   py:with="iw_prefix='test_suite_%d' % test_suite.suiteid">
+                   py:with="iw_prefix='test_suite_%d' % test_suite.suiteid; iw_label_linebreak=True">
                 <iw:textarea name="description" desc="Description" cols="80" rows="1">${test_suite.description}</iw:textarea>
-                <iw:textarea name="function" desc="Function" cols="80" rows="1">${test_suite.function}</iw:textarea>
-                <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4">${test_suite.stdin}</iw:textarea>
+                <div>
+                  <input type="checkbox" id="test_suite_${test_suite.suiteid}_function_enabled"
+                         py:attrs="{'checked': 'checked'} if test_suite.function else {}"
+                         onchange="test_suite_checkbox_toggled('function', '${test_suite.suiteid}')"/>
+                  <label for="test_suite_${test_suite.suiteid}_function">Call this function:</label>
+                  <input type="text" id="test_suite_${test_suite.suiteid}_function"
+                         value="${test_suite.function}"
+                         py:attrs="{} if test_suite.function else {'disabled': 'disabled'}" />
+                </div>
+                <div>
+                  <input type="checkbox" id="test_suite_${test_suite.suiteid}_stdin_enabled"
+                         py:attrs="{'checked': 'checked'} if test_suite.stdin else {}"
+                         onchange="test_suite_checkbox_toggled('stdin', '${test_suite.suiteid}')"/>
+                  <label for="test_suite_${test_suite.suiteid}_stdin">Send this as standard input:</label>
+                  <br />
+                  <textarea id="test_suite_${test_suite.suiteid}_stdin" cols="80" rows="4"
+                         py:attrs="{} if test_suite.stdin else {'disabled': 'disabled'}">${test_suite.stdin}</textarea>
+                </div>
                 <input type="button" value="Save Suite" onclick="edit_suite('${test_suite.suiteid}')" />
               </div>
           
@@ -182,10 +198,20 @@
         <li class="new">
           <h3><a onclick="tog('suite_data_new')">New test suite</a></h3>
           <div class="testsuite" id="suite_data_new">
-          <div class="test_suite_vals" py:with="iw_prefix='new_test_suite'">
+          <div class="test_suite_vals" py:with="iw_prefix='test_suite_new'; iw_label_linebreak=True">
             <iw:textarea name="description" desc="Description" cols="80" rows="1" />
-            <iw:textarea name="function" desc="Function" cols="80" rows="1" />
-            <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4" />
+            <div>
+              <input type="checkbox" id="test_suite_new_function_enabled" onchange="test_suite_checkbox_toggled('function', 'new')"/>
+              <label for="test_suite_new_function">Call this function:</label>
+              <input type="text" id="test_suite_new_function" value="" disabled="disabled" />
+            </div>
+            <div>
+              <input type="checkbox" id="test_suite_new_stdin_enabled"
+                     onchange="test_suite_checkbox_toggled('stdin', 'new')"/>
+              <label for="test_suite_new_stdin">Send this as standard input:</label>
+              <br />
+              <textarea id="test_suite_new_stdin" cols="80" rows="4" disabled="disabled"></textarea>
+            </div>
             <input type="button" value="Create Suite" onclick="add_suite()" />
           </div>
           </div>
