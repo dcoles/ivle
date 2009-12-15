@@ -125,6 +125,16 @@ is "password".
    When studentb logs in for the first time, his SVN repository is created,
    and given a random password.
 
+Files
+-----
+
+The repository for user "studenta" has a few sample files. All of the
+directories must be checked out (using the Checkout button) before the files
+can be seen from the IVLE application.
+
+* In the :file:`stuff` directory is a sample file, :file:`hello.py`. This is a
+  simple Python script, which can be executed with the "Serve" command.
+
 Projects
 --------
 
@@ -141,6 +151,17 @@ two projects in it, demonstrating that the students get to keep their group
 
 Finally, there is a single group for projects 2 and 3, which has the students
 studenta and studentb enlisted.
+
+Worksheets
+----------
+
+There are not yet any worksheets.
+
+Exercises
+---------
+
+There is currently a single exercise, ``factorial``, which prompts the user to
+write a factorial function and tests its correctness.
 
 Updating the sample data
 ========================
