@@ -80,7 +80,7 @@
   width: 350px;
 }
 
-.test_suite_vals div label {
+.test_suite_vals > div > label:first-child {
   float: left;
   text-align: right;
   width: 100px;

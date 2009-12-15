@@ -60,7 +60,15 @@
               <div class="test_suite_vals"
                    py:with="iw_prefix='test_suite_%d' % test_suite.suiteid">
                 <iw:textarea name="description" desc="Description" cols="80" rows="1">${test_suite.description}</iw:textarea>
-                <iw:textarea name="function" desc="Function" cols="80" rows="1">${test_suite.function}</iw:textarea>
+                <div>
+                  <input type="checkbox" id="test_suite_${test_suite.suiteid}_function_enabled"
+                         py:attrs="{'checked': 'checked'} if test_suite.function else {}"
+                         onchange="test_suite_function_enabled('${test_suite.suiteid}')"/>
+                  <label for="test_suite_${test_suite.suiteid}_function">Call this function:</label>
+                  <input type="text" id="test_suite_${test_suite.suiteid}_function"
+                         value="${test_suite.function}"
+                         py:attrs="{} if test_suite.function else {'disabled': 'disabled'}" />
+                </div>
                 <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4">${test_suite.stdin}</iw:textarea>
                 <input type="button" value="Save Suite" onclick="edit_suite('${test_suite.suiteid}')" />
               </div>
@@ -184,7 +192,11 @@
           <div class="testsuite" id="suite_data_new">
           <div class="test_suite_vals" py:with="iw_prefix='test_suite_new'">
             <iw:textarea name="description" desc="Description" cols="80" rows="1" />
-            <iw:textarea name="function" desc="Function" cols="80" rows="1" />
+            <div>
+              <input type="checkbox" id="test_suite_new_function_enabled" onchange="test_suite_function_enabled('new')"/>
+              <label for="test_suite_new_function">Call this function:</label>
+              <input type="text" id="test_suite_new_function" value="" disabled="disabled" />
+            </div>
             <iw:textarea name="stdin" desc="Stdin" cols="80" rows="4" />
             <input type="button" value="Create Suite" onclick="add_suite()" />
           </div>

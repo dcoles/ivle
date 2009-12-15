@@ -481,3 +481,20 @@ function test_part_type_changed(partid)
     enable_test_part_function(partid, enable);
     set_test_part_function(partid, test_type);
 };
+
+/* When a test suite's function checkbox is toggled, enable or
+ * disable and clear the textbox.
+ */
+function test_suite_function_enabled(suiteid)
+{
+    var name = "test_suite_" + suiteid + "_function";
+    var textbox_elem = $("#" + name);
+
+    if ($("#" + name + "_enabled").is(":checked"))
+        textbox_elem.removeAttr("disabled")
+    else
+    {
+        textbox_elem.attr("disabled", "disabled");
+        textbox_elem.val("");
+    }
+};
