@@ -145,6 +145,16 @@ Where do I find...
 
 All of the classes are defined in ``ivle/database.py``.
 
+What does "TypeError: Expected unicode, found <type 'str'>" mean?
+-----------------------------------------------------------------
+
+All string data going into and out of Storm (i.e., the IVLE database classes)
+must be a Unicode string (type :class:`unicode`), not a regular byte string
+(type :class:`str`). If you have a regular string, convert it to Unicode by
+wrapping it in the :func:`unicode` function. For example::
+
+    username = unicode(username)
+
 Subversion
 ==========
 
