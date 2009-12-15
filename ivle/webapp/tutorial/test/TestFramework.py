@@ -575,7 +575,7 @@ class TestCase:
 
         exception_name = None
         if 'exception' in call:
-            exception = call['exception']
+            exception = call['exception']['except']
             exception_name = type(exception).__name__
             raise(exception)
 
