@@ -26,3 +26,4 @@ Developer Documentation
     docs.rst
     packaging.rst
     architecture.rst
+    faq.rst
