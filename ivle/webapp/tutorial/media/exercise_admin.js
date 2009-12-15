@@ -182,9 +182,9 @@ function delete_suite(suiteid)
 /* Modify and add Variables */
 function edit_var(varid, suiteid)
 {
-    var var_name = $('#var_type_' + varid).val();
-    var var_val = $('#var_val' + varid).val();
-    var var_type = $('#var_name_' + varid).val();
+    var var_name = $('#var_name_' + varid).val();
+    var var_val = $('#var_val_' + varid).val();
+    var var_type = $('#var_type_' + varid).val();
     var argno = $('#var_argno_' + varid).val();
 
     var callback = function(xhr)

@@ -140,8 +140,8 @@ class ExerciseRESTView(JSONRESTView):
         new_var = TestSuiteVar()
         new_var.var_type = unicode(var_type)
         new_var.var_name = unicode(var_name)
-        new_var.var_val = unicode(var_val)
-        new_var.argno = argno
+        new_var.var_value = unicode(var_val)
+        new_var.arg_no = int(argno) if len(argno) else None
         new_var.suite = suite
         
         req.store.add(new_var)
@@ -160,8 +160,8 @@ class ExerciseRESTView(JSONRESTView):
             
         var.var_type = unicode(var_type)
         var.var_name = unicode(var_name)
-        var.var_val = unicode(var_val)
-        var.argno = argno
+        var.var_value = unicode(var_val)
+        var.arg_no = int(argno) if len(argno) else None
         
         return {'result': 'ok'}
     
