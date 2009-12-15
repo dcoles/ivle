@@ -971,7 +971,7 @@ class TestSuite(Storm):
 
     def delete(self):
         """Delete this suite, without asking questions."""
-        for vaariable in self.variables:
+        for variable in self.variables:
             variable.delete()
         for test_case in self.test_cases:
             test_case.delete()
