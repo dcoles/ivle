@@ -23,9 +23,27 @@ import stat
 
 import pysvn
 
+def create_auth_svn_client_autopass(username):
+    """Create a new pysvn client which is set up to automatically authenticate
+    with the supplied user. The user's Subversion password is automatically
+    looked up in the database.
+    (Requires database access -- can't be used inside the jail.)
+    @param username: IVLE/Subversion username.
+    """
+    # Note: Must do this inside the function, since this file may be used in
+    # the jail, and importing ivle.database crashes in the jail.
+    from ivle.config import Config
+    import ivle.database
+    from ivle.database import User
+    store = ivle.database.get_store(Config())
+    user = store.find(User, User.login==unicode(username)).one()
+    return create_auth_svn_client(username, user.svn_pass)
+
 def create_auth_svn_client(username, password):
     """Create a new pysvn client which is set up to automatically authenticate
     with the supplied credentials.
+    @param username: IVLE/Subversion username.
+    @param password: Subversion password.
     """
     username = str(username)
     password = str(password)
