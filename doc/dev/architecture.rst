@@ -201,7 +201,7 @@ class :class:`ivle.console.Console` to start a new console in the user's jail.
 .. _JSON: http://json.org
 
 
-.. _ref-usermgt-server:
+.. _ref-usrmgt-server:
 
 User Management Server
 ======================
@@ -300,7 +300,7 @@ Repositories
 
 Each user is allocated a Subversion repository when their :ref:`Jail 
 <ref-jail>` is created by the :ref:`User Management Server 
-<ref-usermgt-server>`. Repository are stored in the location specified by 
+<ref-usrmgt-server>`. Repository are stored in the location specified by 
 ``[paths] [[svn]] repo_path`` in :file:`/etc/ivle/ivle.conf` (by default 
 :file:`/var/lib/ivle/svn/repositories/`). User repositories are stored in the 
 :samp:`users/{USERNAME}/` subdirectory and group repositories in 
