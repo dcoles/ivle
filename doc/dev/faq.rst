@@ -51,7 +51,10 @@ For example, to get the Subversion repository path, use
    will contain some user-specific data.
 
 Database
---------
+========
+
+How can I...
+------------
 
 IVLE exclusively uses the `Storm`_ API for database access. Do not write any
 SQL code yourself, or make use of low-level database libraries. The only
@@ -60,7 +63,7 @@ exception is in preparing the database schema, which is stored as an SQL file.
 .. _Storm: https://storm.canonical.com/
 
 ... update the database schema?
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Modify :file:`userdb/users.sql`. Any changes also need to be made in to a
 migrations file, in :file:`userdb/migrations/`.
@@ -70,7 +73,7 @@ TODO: More detail on migrations.
 .. _ref-dev-faq-read-data:
 
 ... read data from the database?
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
@@ -103,7 +106,7 @@ All of the classes are defined in ``ivle/database.py``.
    For help with the database API, see the `Storm`_ documentation.
 
 ... write data to the database?
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Get an object out of the database, as :ref:`above <ref-dev-faq-read-data>`,
 and simply write to the object's attributes. This updates the *in-memory* copy
@@ -116,7 +119,7 @@ To write the changes back to the database, simply use::
 using the same store object as used to retrieve the object in the first place.
 
 ... insert a new object into the database?
-------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create the new object using its constructor, as with any Python object. e.g.::
 
@@ -132,8 +135,21 @@ and use::
     store.add(user)
     store.commit()
 
+Where do I find...
+------------------
+
+.. This is for finding obscure things in the code.
+
+... the class definitions for database objects?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All of the classes are defined in ``ivle/database.py``.
+
 Subversion
-----------
+==========
+
+How can I...
+------------
 
 ... get the local file path to a user's Subversion repo?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,13 +197,3 @@ A good example of Subversion client code is in
 ``ivle/fileservice_lib/action.py``.
 
 .. _ref-dev-faq-where:
-
-Where do I find...
-==================
-
-.. This is for finding obscure things in the code.
-
-... the class definitions for database objects?
------------------------------------------------
-
-All of the classes are defined in ``ivle/database.py``.
