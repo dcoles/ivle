@@ -50,6 +50,88 @@ For example, to get the Subversion repository path, use
    variables than code running outside. It will be missing a lot of data, and
    will contain some user-specific data.
 
+Database
+--------
+
+IVLE exclusively uses the `Storm`_ API for database access. Do not write any
+SQL code yourself, or make use of low-level database libraries. The only
+exception is in preparing the database schema, which is stored as an SQL file.
+
+.. _Storm: https://storm.canonical.com/
+
+... update the database schema?
+-------------------------------
+
+Modify :file:`userdb/users.sql`. Any changes also need to be made in to a
+migrations file, in :file:`userdb/migrations/`.
+
+TODO: More detail on migrations.
+
+.. _ref-dev-faq-read-data:
+
+... read data from the database?
+--------------------------------
+
+::
+
+    import ivle.database
+    # Typically, you import all database classes you want here
+    from ivle.database import User
+
+You need a `store` object to perform any interactions with the database. If
+you are inside the web app, get a hold of the `req` (request) object, and use
+``req.store``. In other code, create a new store as follows (where `config` is
+a :ref:`config <ref-dev-faq-config>` object)::
+
+    store = ivle.database.get_store(config)
+
+You can read objects out of the database through the store. For example, to
+get a User object::
+
+    user = store.find(User, User.login==username).one()
+
+(Note that ``store.find(User)`` just returns a sequence of all users.)
+
+You can then treat `user` as a normal object, and read from its attributes.
+All of the classes are defined in ``ivle/database.py``.
+
+.. note::
+   The code must be executed outside of the jail. Jail code runs under user
+   privileges and cannot access the database.
+
+.. note::
+   For help with the database API, see the `Storm`_ documentation.
+
+... write data to the database?
+--------------------------------
+
+Get an object out of the database, as :ref:`above <ref-dev-faq-read-data>`,
+and simply write to the object's attributes. This updates the *in-memory* copy
+of the data only.
+
+To write the changes back to the database, simply use::
+
+    store.commit()
+
+using the same store object as used to retrieve the object in the first place.
+
+... insert a new object into the database?
+------------------------------------------
+
+Create the new object using its constructor, as with any Python object. e.g.::
+
+    import ivle.database
+    user = ivle.database.User()
+
+You can then set the attributes of the object as desired. As with writing,
+this only creates an *in-memory* object.
+
+To add the object to the database, get a :ref:`store <ref-dev-faq-read-data>`,
+and use::
+
+    store.add(user)
+    store.commit()
+
 Subversion
 ----------
 
@@ -104,3 +186,8 @@ Where do I find...
 ==================
 
 .. This is for finding obscure things in the code.
+
+... the class definitions for database objects?
+-----------------------------------------------
+
+All of the classes are defined in ``ivle/database.py``.
