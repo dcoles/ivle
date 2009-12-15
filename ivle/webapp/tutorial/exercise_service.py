@@ -24,7 +24,8 @@ from ivle.database import Exercise, TestSuite, TestCase, \
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound, BadRequest
-from ivle.webapp.tutorial.test.TestFramework import TestCreationError
+from ivle.webapp.tutorial.test.TestFramework import (
+    TestCreationError, TestError)
 from ivle.worksheet.utils import test_exercise_submission
 
 
@@ -324,3 +325,5 @@ class ExerciseRESTView(JSONRESTView):
                 req.config, req.user, self.context, code)
         except TestCreationError, e:
             return {'critical_error': {'name': 'TestCreationError', 'detail': e._reason}}
+        except TestError, e:
+            return {'critical_error': {'name': 'TestError', 'detail': str(e)}}
