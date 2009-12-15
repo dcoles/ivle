@@ -92,28 +92,28 @@ SELECT pg_catalog.setval('subject_subjectid_seq', 4, true);
 -- Name: suite_variable_varid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('suite_variable_varid_seq', 1, false);
+SELECT pg_catalog.setval('suite_variable_varid_seq', 2, true);
 
 
 --
 -- Name: test_case_part_partid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_case_part_partid_seq', 1, false);
+SELECT pg_catalog.setval('test_case_part_partid_seq', 6, true);
 
 
 --
 -- Name: test_case_testid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_case_testid_seq', 1, false);
+SELECT pg_catalog.setval('test_case_testid_seq', 6, true);
 
 
 --
 -- Name: test_suite_suiteid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_suite_suiteid_seq', 1, false);
+SELECT pg_catalog.setval('test_suite_suiteid_seq', 3, true);
 
 
 --
@@ -261,6 +261,30 @@ ALTER TABLE enrolment ENABLE TRIGGER ALL;
 
 ALTER TABLE exercise DISABLE TRIGGER ALL;
 
+INSERT INTO exercise (identifier, name, description, partial, solution, include, num_rows) VALUES ('factorial', 'Factorial', 'Write a function, `fac`, to compute the **factorial** of a number. e.g.::
+
+    >>> fac(4)
+    24
+
+Then, write a function `main`, which reads a number from stdin, and writes its factorial to stdout. e.g.::
+
+    >>> main()
+    4
+    24
+', 'def fac(n):
+    pass
+
+def main():
+    pass
+', 'def fac(n):
+    if n == 0:
+        return 1
+    else:
+        return n * fac(n-1)
+
+def main():
+    f = int(raw_input())
+    print fac(f)', '', 12);
 
 
 ALTER TABLE exercise ENABLE TRIGGER ALL;
@@ -363,6 +387,10 @@ ALTER TABLE project_submission ENABLE TRIGGER ALL;
 
 ALTER TABLE test_suite DISABLE TRIGGER ALL;
 
+INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (2, 'factorial', 'Test fac(5)', 1, 'fac', '');
+INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (1, 'factorial', 'Test fac(4)', 0, 'fac', '');
+INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (3, 'factorial', 'Test main', 2, 'main', '4
+');
 
 
 ALTER TABLE test_suite ENABLE TRIGGER ALL;
@@ -373,6 +401,8 @@ ALTER TABLE test_suite ENABLE TRIGGER ALL;
 
 ALTER TABLE suite_variable DISABLE TRIGGER ALL;
 
+INSERT INTO suite_variable (varid, suiteid, var_name, var_value, var_type, arg_no) VALUES (1, 1, '', '4', 'arg', 0);
+INSERT INTO suite_variable (varid, suiteid, var_name, var_value, var_type, arg_no) VALUES (2, 2, '', '5', 'arg', 0);
 
 
 ALTER TABLE suite_variable ENABLE TRIGGER ALL;
@@ -383,6 +413,12 @@ ALTER TABLE suite_variable ENABLE TRIGGER ALL;
 
 ALTER TABLE test_case DISABLE TRIGGER ALL;
 
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (1, 1, 'Calculates factorial correctly', 'Wrong answer', 'ignore', 0);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (2, 1, 'Doesn''t use functools', 'You used functools, you arrogant git', 'ignore', 1);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (3, 2, 'Calculates factorial correctly', 'Wrong answer', 'ignore', 0);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (5, 3, 'Main worked correctly', 'Main printed something else as well. You should only print out the answer.', 'ignore', 1);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (4, 3, 'Main printout included the correct answer', 'Main didn''t print out the correct answer', 'ignore', 0);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (6, 1, 'Doesn''t use __import__', 'You used __import__, you subversive git!', 'ignore', 2);
 
 
 ALTER TABLE test_case ENABLE TRIGGER ALL;
@@ -393,6 +429,12 @@ ALTER TABLE test_case ENABLE TRIGGER ALL;
 
 ALTER TABLE test_case_part DISABLE TRIGGER ALL;
 
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (1, 1, 'result', 'match', '', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (2, 2, 'code', 'check', 'lambda solution, attempt: ''functools'' not in attempt', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (3, 3, 'result', 'match', '', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (5, 5, 'stdout', 'norm', 'lambda x: x.strip() # Allow leading or trailing whitespace', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (4, 4, 'stdout', 'check', 'lambda solution, attempt: solution.strip() in attempt   # Substring test', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (6, 6, 'code', 'check', 'lambda solution, attempt: ''__import__'' not in attempt', NULL);
 
 
 ALTER TABLE test_case_part ENABLE TRIGGER ALL;
