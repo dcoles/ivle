@@ -129,9 +129,9 @@ function edit_suite(suiteid)
 
 function add_suite()
 {
-    var desc = $('#new_test_suite_description').val();
-    var func = $('#new_test_suite_function').val();
-    var stdin = $('#new_test_suite_stdin').val();
+    var desc = $('#test_suite_new_description').val();
+    var func = $('#test_suite_new_function').val();
+    var stdin = $('#test_suite_new_stdin').val();
     
     var callback = function(xhr)
     {
