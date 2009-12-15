@@ -190,7 +190,7 @@ class TestCasePart:
         it will be evaluated by a hack in _check_code.
         """
         
-        if test_type not in ['norm', 'check']:
+        if test_type not in ['norm', 'check', 'match']:
             raise TestCreationError("Invalid test type in %s" %self._desc)
         
         if function == '':
@@ -274,8 +274,10 @@ class TestCasePart:
         """
         solution_output = str(solution_output)
         attempt_output = str(attempt_output)
-            
-        if test_type == 'norm':
+
+        if test_type == 'match':
+            return solution_output == attempt_output
+        elif test_type == 'norm':
             return f(solution_output) == f(attempt_output)
         else:
             return f(solution_output, attempt_output)
@@ -288,7 +290,9 @@ class TestCasePart:
         # an actual callable object.
         if type(f) in types.StringTypes:
             f = eval(str(f), include_space)
-        if test_type == 'norm':
+        if test_type == 'match':
+            return solution == attempt
+        elif test_type == 'norm':
             return f(solution) == f(attempt)
         else:
             return f(solution, attempt)
