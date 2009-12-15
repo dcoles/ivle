@@ -144,26 +144,12 @@ import pysvn
 from ivle import (util, studpath, zip)
 from ivle.fileservice_lib.exceptions import WillNotOverwrite
 import ivle.conf
+import ivle.svn
 
-
-def get_login(_realm, existing_login, _may_save):
-    """Callback function used by pysvn for authentication.
-    realm, existing_login, _may_save: The 3 arguments passed by pysvn to
-        callback_get_login.
-        The following has been determined empirically, not from docs:
-        existing_login will be the name of the user who owns the process on
-        the first attempt, "" on subsequent attempts. We use this fact.
-    """
-    # Only provide credentials on the _first_ attempt.
-    # If we're being asked again, then it means the credentials failed for
-    # some reason and we should just fail. (This is not desirable, but it's
-    # better than being asked an infinite number of times).
-    return (existing_login != "", str(ivle.conf.login),
-                                  str(ivle.conf.svn_pass), True)
-
-# Make a Subversion client object
-svnclient = pysvn.Client()
-svnclient.callback_get_login = get_login
+# Make a Subversion client object (which will log in with this user's
+# credentials, upon request)
+svnclient = ivle.svn.create_auth_svn_client(username=ivle.conf.login,
+                                            password=ivle.conf.svn_pass)
 svnclient.exception_style = 0               # Simple (string) exceptions
 
 DEFAULT_LOGMESSAGE = "No log message supplied."

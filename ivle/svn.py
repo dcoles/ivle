@@ -23,6 +23,30 @@ import stat
 
 import pysvn
 
+def create_auth_svn_client(username, password):
+    """Create a new pysvn client which is set up to automatically authenticate
+    with the supplied credentials.
+    """
+    username = str(username)
+    password = str(password)
+    def get_login(_realm, existing_login, _may_save):
+        """Callback function used by pysvn for authentication.
+        realm, existing_login, _may_save: The 3 arguments passed by pysvn to
+            callback_get_login.
+            The following has been determined empirically, not from docs:
+            existing_login will be the name of the user who owns the process on
+            the first attempt, "" on subsequent attempts. We use this fact.
+        """
+        # Only provide credentials on the _first_ attempt.
+        # If we're being asked again, then it means the credentials failed for
+        # some reason and we should just fail. (This is not desirable, but it's
+        # better than being asked an infinite number of times).
+        return (existing_login != "", username, password, True)
+
+    svnclient = pysvn.Client()
+    svnclient.callback_get_login = get_login
+    return svnclient
+
 def revision_from_string(r_str):
     if r_str is None:
         pass
