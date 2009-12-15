@@ -269,7 +269,7 @@ def make_jail(user, config, force=True):
         # User jail already exists. Blow it away but preserve their home
         # directory. It should be all that is there anyway, but you never
         # know!
-        # Ignore warnings about the use of tmpnam
+        # Ignore warnings about the use of tempnam
         warnings.simplefilter('ignore')
         homebackup = os.tempnam(tempdir)
         warnings.resetwarnings()
