@@ -23,12 +23,14 @@ import stat
 
 import pysvn
 
-def create_auth_svn_client_autopass(username):
+def create_auth_svn_client_autopass(username, save_credentials=False):
     """Create a new pysvn client which is set up to automatically authenticate
     with the supplied user. The user's Subversion password is automatically
     looked up in the database.
     (Requires database access -- can't be used inside the jail.)
     @param username: IVLE/Subversion username.
+    @param save_credentials: Save the user's credentials. Should be False when
+        outside the jail.
     """
     # Note: Must do this inside the function, since this file may be used in
     # the jail, and importing ivle.database crashes in the jail.
@@ -37,13 +39,15 @@ def create_auth_svn_client_autopass(username):
     from ivle.database import User
     store = ivle.database.get_store(Config())
     user = store.find(User, User.login==unicode(username)).one()
-    return create_auth_svn_client(username, user.svn_pass)
+    return create_auth_svn_client(username, user.svn_pass, save_credentials)
 
-def create_auth_svn_client(username, password):
+def create_auth_svn_client(username, password, save_credentials=True):
     """Create a new pysvn client which is set up to automatically authenticate
     with the supplied credentials.
     @param username: IVLE/Subversion username.
     @param password: Subversion password.
+    @param save_credentials: Save the user's credentials. Should be False when
+        outside the jail.
     """
     username = str(username)
     password = str(password)
@@ -59,7 +63,7 @@ def create_auth_svn_client(username, password):
         # If we're being asked again, then it means the credentials failed for
         # some reason and we should just fail. (This is not desirable, but it's
         # better than being asked an infinite number of times).
-        return (existing_login != "", username, password, True)
+        return (existing_login != "", username, password, save_credentials)
 
     svnclient = pysvn.Client()
     svnclient.callback_get_login = get_login
