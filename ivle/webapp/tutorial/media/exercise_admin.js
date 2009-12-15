@@ -355,7 +355,7 @@ function delete_testcase(testid, suiteid)
 function edit_test_part(partid, testid, suiteid)
 {
     var part_type = $("#test_part_" + partid + "_part_type").val();
-    var test_type = $("#test_part_" + partid + "_test_type").val();
+    var test_type = $("input[name='test_part_" + partid + "_test_type']:checked").val();
     var data = $("#test_part_" + partid + "_data").val();
     
     var callback = function(xhr)
@@ -383,7 +383,7 @@ function edit_test_part(partid, testid, suiteid)
 function add_test_part(testid, suiteid)
 {
     var part_type = $("#test_part_new_part_type_" + testid).val();
-    var test_type = $("#test_part_new_test_type_" + testid).val();
+    var test_type = $("input[name='test_part_new_" + testid + "_test_type']:checked").val();
     var data = $("#test_part_new_data_" + testid).val();
 
     var savebutton = $("#new_test_part_save_" + testid);

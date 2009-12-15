@@ -24,6 +24,12 @@
       <input type="text" id="${name}" value="${select('*|text()')}" />
     </div>
 
+    <div py:match="iw:radio" py:with="name=((iw_prefix + '_') or '') + str(select('@name')); id=name + '_' + str(select('@value'))">
+      <input type="radio" name="${name}" id="${id}" value="${str(select('@value'))}"
+             py:attrs="{'checked': 'checked'} if str(select('@current')) == str(select('@value')) else {}" />
+      <label for="${id}">${select('@desc')}</label>
+    </div>
+
     <a py:match="iw:delete" href="javascript:${select('@action')}"><img title="Delete" alt="Delete" src="${mediapath}cross.png"/></a>
 
     <h1>Edit ${exercise.name}</h1>
@@ -116,22 +122,19 @@
                         <ul class="test_case_parts" id="test_case_parts_${test_case.testid}_${test_suite.suiteid}">
                           <li py:for="test_part in test_case.parts"
                               py:with="iw_prefix='test_part_%d' % test_part.partid">
-                            <label for="test_part_${test_part.partid}_part_type">Test</label>
+                            <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
+                            <label for="test_part_${test_part.partid}_part_type">Test the solution and attempt</label>
                             <select name="Part Type" id="test_part_${test_part.partid}_part_type">
                               <py:for each="part_type in part_types">
                                 <option py:if="part_type==test_part.part_type" selected="selected" value="${part_type}">${part_types[part_type]}</option>
                                 <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_types[part_type]}</option>
                               </py:for>
                             </select>
-                            <label for="test_part_${test_part.partid}_test_type">using the following</label>
-                            <select name="Test Type" id="test_part_${test_part.partid}_test_type">
-                              <py:for each="test_type in test_types">
-                                <option py:if="test_type==test_part.test_type" selected="selected" value="${test_type}">${test_types[test_type]}</option>
-                                <option py:if="test_type!=test_part.test_type" value="${test_type}">${test_types[test_type]}</option>
-                              </py:for>
-                            </select>
-                            function:
-                            <iw:delete action="delete_testpart('${test_part.partid}','${test_case.testid}','${test_suite.suiteid}')" />
+                            <div py:with="iw_prefix='test_part_%d' % test_part.partid">
+                              <iw:radio name="test_type" desc="for an exact match, with no normalisation" value="match" current="${test_part.test_type}" />
+                              <iw:radio name="test_type" desc="for an exact match, after passing each through the following normalisation function" value="norm" current="${test_part.test_type}" />
+                              <iw:radio name="test_type" desc="using the following comparison function" value="check" current="${test_part.test_type}" />
+                            </div>
                             <textarea id="test_part_${test_part.partid}_data" cols="80" rows="2">${test_part.data}</textarea>
                             <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
@@ -139,20 +142,17 @@
                           <li py:with="iw_prefix='test_part_new'">
                             <a onclick="tog('new_test_part_${test_case.testid}')">New test case part</a>
                             <div class="add_new_part" id="new_test_part_${test_case.testid}">
-                              <label for="test_part_new_part_type_${test_case.testid}">Test</label>
+                              <label for="test_part_new_part_type_${test_case.testid}">Test the solution and attempt</label>
                               <select name="Part Type" id="test_part_new_part_type_${test_case.testid}">
                                 <py:for each="part_type in part_types">
                                   <option value="${part_type}">${part_types[part_type]}</option>
                                 </py:for>
                               </select>
-                              <label for="test_part_new_test_type_${test_case.testid}">using the following</label>
-                              <select name="Test Type" id="test_part_new_test_type_${test_case.testid}">
-                                <py:for each="test_type in test_types">
-                                  <option value="${test_type}">${test_types[test_type]}</option>
-                                </py:for>
-                              </select>
-                              function:
-                              <br />
+                              <div py:with="iw_prefix='test_part_new_%d' % test_case.testid">
+                                <iw:radio name="test_type" desc="for an exact match, with no normalisation" value="match" />
+                                <iw:radio name="test_type" desc="for an exact match, after passing each through the following normalisation function" value="norm" />
+                                <iw:radio name="test_type" desc="using the following comparison function" value="check" />
+                              </div>
                               <textarea id="test_part_new_data_${test_case.testid}" cols="80" rows="2"></textarea>
                               <br />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />

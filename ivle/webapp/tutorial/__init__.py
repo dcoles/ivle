@@ -563,9 +563,9 @@ class ExerciseEditView(XHTMLView):
         ctx['part_types'] = {
             'stdout': 'standard output',
             'stderr': 'standard error',
-            'result': 'the function result',
-            'exception': 'the raised exception',
-            'code': 'the code',
+            'result': 'function result',
+            'exception': 'raised exception',
+            'code': 'code',
             }
         ctx['test_types'] = {'norm': 'normalisation', 'check': 'comparison'}
 
