@@ -729,7 +729,7 @@ def action_svnrepomkdir(req, fields):
     """
     path = fields.getfirst('path')
     logmsg = fields.getfirst('logmsg')
-    url = ivle.conf.svn_addr + "/" + path
+    url = ivle.conf.svn_addr + "/" + urllib.quote(path)
     try:
         svnclient.mkdir(url, log_message=logmsg)
     except pysvn.ClientError, e:
@@ -743,7 +743,7 @@ def action_svnrepostat(req, fields):
     Reads fields: 'path'
     """
     path = fields.getfirst('path')
-    url = ivle.conf.svn_addr + "/" + path
+    url = ivle.conf.svn_addr + "/" + urllib.quote(path)
     svnclient.exception_style = 1
 
     try:
