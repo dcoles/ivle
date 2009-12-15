@@ -23,14 +23,17 @@ experimentation.
 
 import sys
 import os
+import shutil
 import optparse
 import subprocess
 import logging
 import readline
+import warnings
 
 import psycopg2
 
 from ivle.config import Config
+import ivle.svn
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
@@ -154,3 +157,44 @@ file.close()
 # (This will create fresh user dirs and repos because the jails were empty.)
 logging.info("Building sample users' filesystems and repos.")
 subprocess.check_call(["bin/ivle-refreshfilesystem"])
+
+config = Config()
+dbconfig = config['database']
+
+# Populate some of the users' Subversion repos
+def temp_checkout(svnclient, username):
+    """Checkout user `username`'s repo to a temporary directory.
+    @return: The temporary workspace directory.
+    """
+    # Do the checkout over HTTP, since we then use the user's own credentials
+    repourl = config['urls']['svn_addr'] + '/users/' + username
+    # Ignore warnings about the use of tempnam
+    warnings.simplefilter('ignore')
+    tempdir = os.tempnam()
+    warnings.resetwarnings()
+    svnclient.checkout(repourl, tempdir)
+    return tempdir
+
+logging.info("Populating student repositories")
+
+svnclient = ivle.svn.create_auth_svn_client_autopass("studenta")
+workspace = temp_checkout(svnclient, "studenta")
+dirname = os.path.join(workspace, "stuff")
+filename = os.path.join(dirname, "hello.py")
+if not os.path.isdir(dirname):
+    os.makedirs(dirname)
+svnclient.add(dirname, force=True)
+# XXX Copy files from a sample directory
+f = open(filename, "w")
+f.write("""\
+# Hello IVLE, by Alice Student
+# CGI program -- Prints CGI headers, then HTML output
+
+print "Content-Type: text/html"
+print
+print "<html><body><p>Hello, world!</p></body></html>"
+""")
+f.close()
+svnclient.add(filename, force=True)
+svnclient.checkin(workspace, "Added some files")
+shutil.rmtree(workspace)
