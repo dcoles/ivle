@@ -145,8 +145,8 @@ class TestCasePart:
         represents a TestFramework TestCasePart.
 
         Initialise with descriptions (pass,fail) and a default behavior for output
-        If default is match, unspecified files are matched exactly
-        If default is ignore, unspecified files are ignored
+        If default is match, values without tests are matched exactly
+        If default is ignore, values without tests are ignored
         The default default is match.
         """
         self._pass_msg = test_case.passmsg
@@ -155,6 +155,8 @@ class TestCasePart:
         if self._default == 'ignore':
             self._default_func = self.true
         else:
+            raise TestCreationError(
+                "Only 'ignore' defaults are supported at this time.")
             self._default_func = self.match
 
         self._file_tests = {}

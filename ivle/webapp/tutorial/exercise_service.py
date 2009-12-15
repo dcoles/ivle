@@ -191,6 +191,10 @@ class ExerciseRESTView(JSONRESTView):
         new_case.passmsg = unicode(passmsg)
         new_case.failmsg = unicode(failmsg)
         new_case.seq_no = suite.test_cases.count()
+        # XXX: Force this for now, since we don't support the
+        #      'match' default. It might make sense to support
+        #      this again once file testing support returns.
+        new_case.test_default = u'ignore'
         suite.test_cases.add(new_case)
         
         req.store.add(new_case)
