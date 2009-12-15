@@ -215,11 +215,11 @@ responsible for:
 * Creating group Subversion repositories.
 * Rebuilding Subversion authorization files. 
 
-Communication with the Server is done using the `Chat Protocol <ref-chat>`_.  
-To prevent unauthorized use, communication with the User Management Server 
-requires that a *shared secret* be used to communicate with the server.  This 
-secret is stored in the `magic` variable in the `[usrmgt]` section of 
-:file:`/etc/ivle/ivle.conf`.
+Communication with the Server is done using the :ref:`Chat Protocol
+<ref-chat>`.  To prevent unauthorized use, communication with the User
+Management Server requires that a *shared secret* be used to communicate with
+the server.  This secret is stored in the `magic` variable in the `[usrmgt]`
+section of :file:`/etc/ivle/ivle.conf`.
 
 The User Management Server is called almost exclusively from the 
 :mod:`ivle.webapp.userservice` module.
@@ -231,10 +231,10 @@ The User Management Server is called almost exclusively from the
 Chat Protocol
 =============
 
-**Chat** is our JSON_-based client/server communication protocol used in 
-communicating to `Python Console <ref-python-console>`_ processes and `User 
-Management Server <ref-usrmgt-server>`_.  Since it is JSON-based it can be 
-called from either Python or JavaScript.
+**Chat** is our JSON_-based client/server communication protocol used in
+communicating to :ref:`Python Console <ref-python-console>` processes and
+:ref:`User Management Server <ref-usrmgt-server>`.  Since it is JSON-based it
+can be called from either Python or JavaScript.
 
 Protocol
 --------

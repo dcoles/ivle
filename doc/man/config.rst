@@ -109,7 +109,7 @@ Configuration for IVLE installation and data paths.
 
 [[jails]]
 ~~~~~~~~~
-Configuration paths for user `Jails <ref-jail>`_.
+Configuration paths for user :ref:`Jails <ref-jail>`.
 
 .. describe:: mounts
 
@@ -176,7 +176,7 @@ Configuration paths for Subversion repositories.
 
 [media]
 -------
-Configuration of `media serving <ref-media-serving>`_.
+Configuration of :ref:`media serving <ref-media-serving>`.
 
 .. describe:: version
 
@@ -241,15 +241,16 @@ Configuration for the PostgreSQL database that IVLE uses.
 
 [auth]
 ------
-Settings for configuring external user authentication with `authentication 
-modules <ref-auth-modules>`_ and automatic subject enrollment with `subject 
-pulldown modules <ref-subject-pulldown-modules>`_.
+Settings for configuring external user authentication with
+:ref:`authentication modules <ref-auth-modules>` and automatic subject
+enrollment with :ref:`subject pulldown modules
+<ref-subject-pulldown-modules>`.
 
 .. describe:: modules
 
     :type: string_list(default=list())
 
-    List of `authentication modules <ref-auth-modules>`_ to attempt to 
+    List of :ref:`authentication modules <ref-auth-modules>` to attempt to 
     authenticate with if a user does not have a password set in the local 
     database.
 
@@ -268,13 +269,13 @@ pulldown modules <ref-subject-pulldown-modules>`_.
 
     :type: string_list(default=list())
 
-    List of `subject pulldown modules <ref-subject-pulldown-modules>`_ to be 
-    checked when a user signs into IVLE to see what subjects a student is 
+    List of :ref:`subject pulldown modules <ref-subject-pulldown-modules>` to
+    be checked when a user signs into IVLE to see what subjects a student is
     enrolled in.
 
 [usrmgt]
 --------
-Settings for the `User Management Server <ref-usrmgt-server>`_.
+Settings for the :ref:`User Management Server <ref-usrmgt-server>`.
 
 .. describe:: host
 
@@ -297,7 +298,7 @@ Settings for the `User Management Server <ref-usrmgt-server>`_.
 
 [jail]
 ------
-Options that control how the `Jail <ref-jail>`_ is built.
+Options that control how the :ref:`Jail <ref-jail>` is built.
 
 .. describe:: devmode
 
