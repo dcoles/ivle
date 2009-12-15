@@ -384,7 +384,7 @@ function add_test_part(testid, suiteid)
 {
     var part_type = $("#test_part_new_part_type_" + testid).val();
     var test_type = $("input[name='test_part_new_" + testid + "_test_type']:checked").val();
-    var data = $("#test_part_new_data_" + testid).val();
+    var data = $("#test_part_new_" + testid + "_data").val();
 
     var savebutton = $("#new_test_part_save_" + testid);
     savebutton.attr('value', 'Saving...');
@@ -442,3 +442,42 @@ function delete_testpart(partid, testid, suiteid)
     update_path = "api/+exercises/" + exercise;
     ajax_call(callback, update_path, "", args, 'POST');
 }
+
+function enable_test_part_function(partid, which)
+{
+    var elem = $("#test_part_" + partid + "_data");
+    if (which)
+        elem.removeAttr("disabled");
+    else
+        elem.attr("disabled", "disabled");
+}
+
+/* Set a test part's code to a reasonable default. This clobbers any
+ * code that is present.
+ */
+function set_test_part_function(partid, test_type)
+{
+    var defaults = new Object();
+    defaults.match = "";
+    defaults.norm = "lambda x: x";
+    defaults.check = "lambda solution, attempt: solution == attempt";
+
+    $("#test_part_" + partid + "_data").text(defaults[test_type]);
+}
+
+/* When a test part's test type (norm/check/match) is changed, enable
+ * or disable the code textarea and set some example code.
+ */
+function test_part_type_changed(partid)
+{
+    var name = "test_part_" + partid + "_test_type";
+    var enable = true;
+    var test_type = $("input[name='" + name + "']:checked").val();
+    var sample_code = "";
+
+    if (test_type == "match")
+        enable = false;
+
+    enable_test_part_function(partid, enable);
+    set_test_part_function(partid, test_type);
+};

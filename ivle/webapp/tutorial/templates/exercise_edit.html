@@ -25,7 +25,8 @@
     </div>
 
     <div py:match="iw:radio" py:with="name=((iw_prefix + '_') or '') + str(select('@name')); id=name + '_' + str(select('@value'))">
-      <input type="radio" name="${name}" id="${id}" value="${str(select('@value'))}"
+      <input type="radio" name="${name}" id="${id}"
+             value="${str(select('@value'))}" onchange="${iw_onchange if defined('iw_onchange') else None}"
              py:attrs="{'checked': 'checked'} if str(select('@current')) == str(select('@value')) else {}" />
       <label for="${id}">${select('@desc')}</label>
     </div>
@@ -130,12 +131,13 @@
                                 <option py:if="part_type!=test_part.part_type" value="${part_type}">${part_types[part_type]}</option>
                               </py:for>
                             </select>
-                            <div py:with="iw_prefix='test_part_%d' % test_part.partid">
+                            <div py:with="iw_prefix='test_part_%d' % test_part.partid; iw_onchange='test_part_type_changed(%d)' % test_part.partid">
                               <iw:radio name="test_type" desc="for an exact match, with no normalisation" value="match" current="${test_part.test_type}" />
                               <iw:radio name="test_type" desc="for an exact match, after passing each through the following normalisation function" value="norm" current="${test_part.test_type}" />
                               <iw:radio name="test_type" desc="using the following comparison function" value="check" current="${test_part.test_type}" />
                             </div>
-                            <textarea id="test_part_${test_part.partid}_data" cols="80" rows="2">${test_part.data}</textarea>
+                            <textarea id="test_part_${test_part.partid}_data" cols="80" rows="2"
+                                      py:attrs="{'disabled': 'disabled'} if test_part.test_type == 'match' else {}">${test_part.data}</textarea>
                             <br />
                             <input type="button" value="Save Part" onclick="edit_test_part('${test_part.partid}', '${test_case.testid}', ${test_suite.suiteid})" />
                           </li>
@@ -148,12 +150,12 @@
                                   <option value="${part_type}">${part_types[part_type]}</option>
                                 </py:for>
                               </select>
-                              <div py:with="iw_prefix='test_part_new_%d' % test_case.testid">
-                                <iw:radio name="test_type" desc="for an exact match, with no normalisation" value="match" />
+                              <div py:with="iw_prefix='test_part_new_%d' % test_case.testid; iw_onchange='test_part_type_changed(\'new_%d\')' % test_case.testid">
+                                <iw:radio name="test_type" desc="for an exact match, with no normalisation" value="match" current="match" />
                                 <iw:radio name="test_type" desc="for an exact match, after passing each through the following normalisation function" value="norm" />
                                 <iw:radio name="test_type" desc="using the following comparison function" value="check" />
                               </div>
-                              <textarea id="test_part_new_data_${test_case.testid}" cols="80" rows="2"></textarea>
+                              <textarea id="test_part_new_${test_case.testid}_data" disabled="disabled" cols="80" rows="2"></textarea>
                               <br />
                               <input type="button" value="Create Part" onclick="add_test_part('${test_case.testid}', '${test_suite.suiteid}')" id="new_test_part_save_${test_case.testid}" />
                             </div>
