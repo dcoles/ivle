@@ -482,7 +482,7 @@ class TestCase:
                     self._list_args, self._keyword_args, solution)
                 
         except Exception, e:
-            raise e #ScriptExecutionError(sys.exc_info())
+            raise TestError(sys.exc_info())
 
         # Run student attempt
         try:
