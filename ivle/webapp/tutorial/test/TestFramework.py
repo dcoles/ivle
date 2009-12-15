@@ -131,12 +131,12 @@ class TestCasePart:
     applying normalisations.
     """
 
-    ident = classmethod(lambda x: x)
-    ignore = classmethod(lambda x: None)
-    match = classmethod(lambda x,y: x==y)
-    always_match = classmethod(lambda x,y: True)
-    true = classmethod(lambda *x: True)
-    false = classmethod(lambda *x: False)
+    ident = staticmethod(lambda x: x)
+    ignore = staticmethod(lambda x: None)
+    match = staticmethod(lambda x,y: x==y)
+    always_match = staticmethod(lambda x,y: True)
+    true = staticmethod(lambda *x: True)
+    false = staticmethod(lambda *x: False)
 
     def __init__(self, test_case):
         """Create a testable TestCasePart from an IVLE database TestCase.
