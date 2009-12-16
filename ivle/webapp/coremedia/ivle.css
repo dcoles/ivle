@@ -257,3 +257,27 @@ form.verticalform div.submit input[type=submit] {
 .pretty_table tbody tr:hover td {
   color: #111;
 }
+
+/* Action links have a 16x16 icon on the left. */
+.addaction,
+.editaction {
+  padding-left: 18px;
+  background-position: left center;
+  background-repeat: no-repeat;
+}
+
+.addaction {
+  background-image: url(images/interface/add.png);
+}
+
+.editaction {
+  background-image: url(images/interface/pencil.png);
+}
+
+/* Actions relating the context can be floated at the right. */
+.contextactions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 1em;
+}
