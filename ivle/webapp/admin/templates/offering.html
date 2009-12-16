@@ -22,8 +22,12 @@
             There are no projects for this offering.
           </p>
 
-          <div py:otherwise="">
-          </div>
+          <ul py:otherwise="" class="paddedlist">
+            <li py:for="project in context.projects">
+              <a href="${project.url}">${project.name}</a> (<span title="Due ${format_datetime(project.deadline)}">due ${format_datetime_short(project.deadline)}</span>)<br />
+              ${project.synopsis}
+            </li>
+          </ul>
         </py:choose>
 
         <a py:if="'edit' in permissions"

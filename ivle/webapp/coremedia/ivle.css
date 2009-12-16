@@ -263,6 +263,10 @@ form.verticalform div.submit input[type=submit] {
   color: #111;
 }
 
+.paddedlist > li {
+  margin-bottom: 0.5em;
+}
+
 /* Action links have a 16x16 icon on the left. */
 .addaction,
 .editaction,

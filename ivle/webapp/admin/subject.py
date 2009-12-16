@@ -85,6 +85,8 @@ class OfferingView(XHTMLView):
         ctx['context'] = self.context
         ctx['req'] = req
         ctx['permissions'] = self.context.get_permissions(req.user)
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
 
 class UserValidator(formencode.FancyValidator):
