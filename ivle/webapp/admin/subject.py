@@ -84,6 +84,7 @@ class OfferingView(XHTMLView):
     def populate(self, req, ctx):
         ctx['context'] = self.context
         ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user)
 
 
 class UserValidator(formencode.FancyValidator):
