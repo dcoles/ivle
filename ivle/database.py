@@ -578,6 +578,11 @@ class Project(Storm):
             )
         )
 
+    def has_deadline_passed(self, user):
+        """Check whether the deadline has passed."""
+        # XXX: Need to respect extensions.
+        return self.deadline < datetime.datetime.now()
+
 
 class ProjectGroup(Storm):
     """A group of students working together on a project."""

@@ -310,3 +310,7 @@ form.verticalform div.submit input[type=submit] {
   display: block;
   margin-bottom: 0.3em;
 }
+
+.project.closed {
+    opacity: 0.6;
+}

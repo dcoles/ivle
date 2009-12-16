@@ -23,7 +23,10 @@
           </p>
 
           <ul py:otherwise="" class="paddedlist">
-            <li py:for="project in context.projects">
+            <li py:for="project in context.projects"
+                py:attrs="{'class': 'project closed'}
+                          if project.has_deadline_passed(req.user)
+                          else {'class': 'project'}">
               <a href="${project.url}">${project.name}</a> &ndash;
               <span py:content="format_submitters(req.user, project.project_set.get_submitters(req.user))" /> &ndash;
               <span title="${format_datetime(project.deadline)}">
