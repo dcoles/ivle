@@ -189,6 +189,11 @@ ul#ivle_breadcrumbs > li.crumbmenu > a {
     padding: 0 1em 1em 1em;
 }
 
+/* Add extra vertical spacing between major page sections. */
+#ivle_padding .majorsection {
+    margin-bottom: 2em;
+}
+
 p.userhello {
     font-size: .8em;
     margin: 0;
