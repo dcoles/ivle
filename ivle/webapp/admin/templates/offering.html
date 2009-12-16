@@ -12,12 +12,26 @@
            href="${req.publisher.generate(context, None, ('+enrolments', '+new'))}">
           Enrol users
         </a>
+      </div>
+
+      <div py:if="'edit' in permissions or context.projects.count() > 0">
+        <h2>Projects</h2>
+        <py:choose test="context.projects.count()">
+          <p py:when="0">
+            There are no projects for this offering.
+          </p>
+
+          <div py:otherwise="">
+          </div>
+        </py:choose>
+
         <a py:if="'edit' in permissions"
            class="manageaction"
            href="${req.publisher.generate(context, None, '+projects')}">
           Manage projects
         </a>
       </div>
+
       <div py:if="'edit' in permissions or context.worksheets.count() > 0">
         <h2>Worksheets</h2>
         <py:choose test="context.worksheets.count()">
