@@ -82,7 +82,7 @@ class Worksheet:
         return ("Worksheet(id=%s, name=%s, assessable=%s)"
                 % (repr(self.id), repr(self.name), repr(self.assessable)))
 
-class OfferingView(XHTMLView):
+class WorksheetsView(XHTMLView):
     '''The view of the index of worksheets for an offering.'''
     template = 'templates/subjectmenu.html'
     tab = 'subjects' # XXX
@@ -645,7 +645,7 @@ class Plugin(ViewPlugin, MediaPlugin):
                    DBWorksheet: WorksheetBreadcrumb
                   }
 
-    views = [(Offering, ('+worksheets', '+index'), OfferingView),
+    views = [(Offering, ('+worksheets', '+index'), WorksheetsView),
              (Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
              (DBWorksheet, '+index', WorksheetView),
