@@ -260,7 +260,8 @@ form.verticalform div.submit input[type=submit] {
 
 /* Action links have a 16x16 icon on the left. */
 .addaction,
-.editaction {
+.editaction,
+.keyaction {
   padding-left: 18px;
   background-position: left center;
   background-repeat: no-repeat;
@@ -274,10 +275,19 @@ form.verticalform div.submit input[type=submit] {
   background-image: url(images/interface/pencil.png);
 }
 
+.keyaction {
+  background-image: url(images/interface/key.png);
+}
+
 /* Actions relating the context can be floated at the right. */
 .contextactions {
   position: absolute;
   top: 0;
   right: 0;
   margin: 1em;
+}
+
+.contextactions a {
+  display: block;
+  margin-bottom: 0.3em;
 }

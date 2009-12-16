@@ -6,11 +6,13 @@
   <body>
     <h1>Edit profile of ${user.nick}</h1>
     <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="req.user.admin" class="editaction" href="/~${user.login}/+admin">Administer user</a>
+        <a py:if="user.passhash" class="keyaction" href="/~${user.login}/+changepassword">Change password</a>
+        <a py:if="req.user.admin" class="keyaction" href="/~${user.login}/+resetpassword">Reset password</a>
+      </div>
       <p>
         ${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)
-        <a py:if="user.passhash" href="/~${user.login}/+changepassword">(change password)</a>
-        <a py:if="req.user.admin" href="/~${user.login}/+resetpassword">(reset password)</a>
-        <a py:if="req.user.admin" href="/~${user.login}/+admin">(administer)</a>
       </p>
     
       <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
