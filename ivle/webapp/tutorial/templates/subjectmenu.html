@@ -7,6 +7,9 @@
     <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
     <h1>Worksheets for ${subject.name}</h1>
     <div id="ivle_padding">
+      <div class="contextactions" py:if="'edit' in offering.get_permissions(user)">
+        <a class="editaction" href="${offering_url(offering)}/+worksheets/+edit">Edit worksheets</a>
+      </div>
       <p py:if="len(worksheets) == 0">There are not currently any worksheets for this subject.</p>
       <ul id="tutorial-toc">
         <py:for each="worksheet in worksheets">
@@ -31,9 +34,6 @@
         <p style="font-weight: bold">
           Worksheet mark: ${mark}/${max_mark}
         </p>
-      </py:if>
-      <py:if test="'edit' in offering.get_permissions(user)">
-        <p><a href="${offering_url(offering)}/+worksheets/+edit">Edit worksheets</a></p>
       </py:if>
     </div>            
   </body>
