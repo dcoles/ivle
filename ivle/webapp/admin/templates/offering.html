@@ -30,7 +30,7 @@
               <a href="${project.url}">${project.name}</a> &ndash;
               <span py:content="format_submitters(req.user, project.project_set.get_submitters(req.user))" /> &ndash;
               <span title="${format_datetime(project.deadline)}">
-                due ${format_datetime_short(project.deadline)}
+                ${'closed' if project.has_deadline_passed(req.user) else 'due'} ${format_datetime_short(project.deadline)}
               </span><br />
               ${project.synopsis}
             </li>
