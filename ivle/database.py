@@ -468,6 +468,31 @@ class ProjectSet(Storm):
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
 
+    def get_groups_for_user(self, user):
+        """List all groups in this offering of which the user is a member."""
+        assert self.is_group
+        return Store.of(self).find(
+            ProjectGroup,
+            ProjectGroupMembership.user_id == user.id,
+            ProjectGroupMembership.project_group_id == ProjectGroup.id,
+            ProjectGroup.project_set_id == self.id)
+
+    def get_submitters(self, user):
+        """Get a list of users who can submit with the given user.
+
+        If this is a solo project set, just the given user is returned.
+        If the user is a member of exactly one group, all of the group
+        members are returned. Otherwise, None is returned.
+        """
+        if self.is_group:
+            groups = self.get_groups_for_user(user)
+            if groups.count() == 1:
+                return list(groups.one().members)
+            else:
+                return None
+        else:
+            return [user]
+
     @property
     def is_group(self):
         return self.max_students_per_group is not None

@@ -75,6 +75,32 @@ class SubjectsView(XHTMLView):
                 ctx['semesters'].append((semester, offerings))
 
 
+def format_submitters(user, submitters):
+    """Render a list of users to fit in the offering project listing.
+
+    Given a user and a list of submitters, returns 'solo' if the
+    only submitter is the user, or a string of the form
+    'with A, B and C' if there are any other submitters.
+
+    If submitters is None, we assume that the list of members could
+    not be determined, so we just return 'group'.
+    """
+    if submitters is None:
+        return 'group'
+
+    display_names = sorted(
+        submitter.display_name for submitter in submitters
+        if submitter is not user)
+
+    if len(display_names) == 0:
+        return 'solo'
+    elif len(display_names) == 1:
+        return 'with %s' % display_names[0]
+    else:
+        return 'with %s and %s' % (', '.join(display_names[:-1]),
+                                   display_names[-1])
+
+
 class OfferingView(XHTMLView):
     """The home page of an offering."""
     template = 'templates/offering.html'
@@ -85,6 +111,7 @@ class OfferingView(XHTMLView):
         ctx['context'] = self.context
         ctx['req'] = req
         ctx['permissions'] = self.context.get_permissions(req.user)
+        ctx['format_submitters'] = format_submitters
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
