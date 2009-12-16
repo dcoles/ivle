@@ -330,6 +330,10 @@ class Offering(Storm):
                            'Enrolment.user_id',
                            'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
+    projects = ReferenceSet(id,
+                            'ProjectSet.offering_id',
+                            'ProjectSet.id',
+                            'Project.project_set_id')
 
     worksheets = ReferenceSet(id, 
         'Worksheet.offering_id', 
