@@ -99,6 +99,8 @@ def format_submission_principal(user, principal):
         return 'solo (%s)' % principal.name
     elif len(display_names) == 1:
         return 'with %s (%s)' % (display_names[0], principal.name)
+    elif len(display_names) > 5:
+        return 'with %d others (%s)' % (len(display_names), principal.name)
     else:
         return 'with %s and %s (%s)' % (', '.join(display_names[:-1]),
                                         display_names[-1], principal.name)
