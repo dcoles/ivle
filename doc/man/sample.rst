@@ -63,6 +63,10 @@ The script is executed with the following command::
    If there are any existing users (including sample users from previous runs
    of the script), their files and subversion repos will be moved out of the
    way to a backup location, ``/var/lib/ivle/jails-removed-<date>/``.
+   If you run this script regularly, your ``/var/lib/ivle/`` will become full
+   of these backups, so you may wish to remove them often. However, they are
+   typically fairly small (a few hundred kilobytes each), because they only
+   contain user content, not the full jail image.
 
 What is included
 ================
