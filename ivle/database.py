@@ -477,21 +477,21 @@ class ProjectSet(Storm):
             ProjectGroupMembership.project_group_id == ProjectGroup.id,
             ProjectGroup.project_set_id == self.id)
 
-    def get_submitters(self, user):
-        """Get a list of users who can submit with the given user.
+    def get_submission_principal(self, user):
+        """Get the principal on behalf of which the user can submit.
 
-        If this is a solo project set, just the given user is returned.
-        If the user is a member of exactly one group, all of the group
-        members are returned. Otherwise, None is returned.
+        If this is a solo project set, the given user is returned. If
+        the user is a member of exactly one group, all the group is
+        returned. Otherwise, None is returned.
         """
         if self.is_group:
             groups = self.get_groups_for_user(user)
             if groups.count() == 1:
-                return list(groups.one().members)
+                return groups.one()
             else:
                 return None
         else:
-            return [user]
+            return user
 
     @property
     def is_group(self):

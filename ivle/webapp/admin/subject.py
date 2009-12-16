@@ -75,7 +75,7 @@ class SubjectsView(XHTMLView):
                 ctx['semesters'].append((semester, offerings))
 
 
-def format_submitters(user, submitters):
+def format_submission_principal(user, principal):
     """Render a list of users to fit in the offering project listing.
 
     Given a user and a list of submitters, returns 'solo' if the
@@ -85,20 +85,23 @@ def format_submitters(user, submitters):
     If submitters is None, we assume that the list of members could
     not be determined, so we just return 'group'.
     """
-    if submitters is None:
+    if principal is None:
         return 'group'
 
+    if principal is user:
+        return 'solo'
+
     display_names = sorted(
-        submitter.display_name for submitter in submitters
-        if submitter is not user)
+        member.display_name for member in principal.members
+        if member is not user)
 
     if len(display_names) == 0:
-        return 'solo'
+        return 'solo (%s)' % principal.name
     elif len(display_names) == 1:
-        return 'with %s' % display_names[0]
+        return 'with %s (%s)' % (display_names[0], principal.name)
     else:
-        return 'with %s and %s' % (', '.join(display_names[:-1]),
-                                   display_names[-1])
+        return 'with %s and %s (%s)' % (', '.join(display_names[:-1]),
+                                        display_names[-1], principal.name)
 
 
 class OfferingView(XHTMLView):
@@ -111,7 +114,7 @@ class OfferingView(XHTMLView):
         ctx['context'] = self.context
         ctx['req'] = req
         ctx['permissions'] = self.context.get_permissions(req.user)
-        ctx['format_submitters'] = format_submitters
+        ctx['format_submission_principal'] = format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
