@@ -1,0 +1,30 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>${context.subject.name} (${context.semester.year} semester ${context.semester.semester})</title>
+  </head>
+  <body>
+    <h1>${context.subject.name}</h1>
+    <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'enrol' in context.get_permissions(req.user)"
+           class="editaction"
+           href="${req.publisher.generate(context, None, ('+enrolments', '+new'))}">
+          Enrol users
+        </a>
+        <a py:if="'edit' in context.get_permissions(req.user)"
+           class="editaction"
+           href="${req.publisher.generate(context, None, '+projects')}">
+          Manage projects
+        </a>
+        <a py:if="'edit' in context.get_permissions(req.user)"
+           class="editaction"
+           href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}">
+          Manage worksheets
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
+    
+

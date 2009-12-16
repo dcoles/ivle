@@ -75,6 +75,17 @@ class SubjectsView(XHTMLView):
                 ctx['semesters'].append((semester, offerings))
 
 
+class OfferingView(XHTMLView):
+    """The home page of an offering."""
+    template = 'templates/offering.html'
+    tab = 'subjects'
+    permission = 'view'
+
+    def populate(self, req, ctx):
+        ctx['context'] = self.context
+        ctx['req'] = req
+
+
 class UserValidator(formencode.FancyValidator):
     """A FormEncode validator that turns a username into a user.
 
@@ -245,6 +256,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     reverse_routes = (subject_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (Offering, '+index', OfferingView),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
