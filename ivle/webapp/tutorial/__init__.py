@@ -64,24 +64,6 @@ from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
 from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
     subject_to_media)
 
-class Worksheet:
-    """This class represents a worksheet and a particular students progress
-    through it.
-    
-    Do not confuse this with a worksheet in the database. This worksheet
-    has extra information for use in the output, such as marks."""
-    def __init__(self, id, name, assessable):
-        self.id = id
-        self.name = name
-        self.assessable = assessable
-        self.complete_class = ''
-        self.optional_message = ''
-        self.total = 0
-        self.mand_done = 0
-    def __repr__(self):
-        return ("Worksheet(id=%s, name=%s, assessable=%s)"
-                % (repr(self.id), repr(self.name), repr(self.assessable)))
-
 class WorksheetsView(XHTMLView):
     '''The view of the index of worksheets for an offering.'''
     template = 'templates/subjectmenu.html'
@@ -100,34 +82,9 @@ class WorksheetsView(XHTMLView):
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
 
-        ctx['worksheets'] = []
-        problems_done = 0
-        problems_total = 0
-        # Offering.worksheets is ordered by the worksheets seq_no
-        for worksheet in self.context.worksheets:
-            new_worksheet = Worksheet(worksheet.identifier, worksheet.name, 
-                                      worksheet.assessable)
-            if new_worksheet.assessable:
-                # Calculate the user's score for this worksheet
-                mand_done, mand_total, opt_done, opt_total = (
-                    ivle.worksheet.utils.calculate_score(req.store, req.user,
-                        worksheet))
-                if opt_total > 0:
-                    optional_message = " (excluding optional exercises)"
-                else:
-                    optional_message = ""
-                if mand_done >= mand_total:
-                    new_worksheet.complete_class = "complete"
-                elif mand_done > 0:
-                    new_worksheet.complete_class = "semicomplete"
-                else:
-                    new_worksheet.complete_class = "incomplete"
-                problems_done += mand_done
-                problems_total += mand_total
-                new_worksheet.mand_done = mand_done
-                new_worksheet.total = mand_total
-                new_worksheet.optional_message = optional_message
-            ctx['worksheets'].append(new_worksheet)
+        ctx['worksheets'], problems_total, problems_done = (
+            ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
+                req.store, req.user, self.context))
 
         ctx['problems_total'] = problems_total
         ctx['problems_done'] = problems_done
