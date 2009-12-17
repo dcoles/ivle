@@ -7,7 +7,7 @@
     <h1>Edit profile of ${user.nick}</h1>
     <div id="ivle_padding">
       <div class="contextactions">
-        <a py:if="req.user.admin" class="editaction" href="/~${user.login}/+admin">Administer user</a>
+        <a py:if="req.user.admin" class="manageaction" href="/~${user.login}/+admin">Administer user</a>
         <a py:if="user.passhash" class="keyaction" href="/~${user.login}/+changepassword">Change password</a>
         <a py:if="req.user.admin" class="keyaction" href="/~${user.login}/+resetpassword">Reset password</a>
       </div>
