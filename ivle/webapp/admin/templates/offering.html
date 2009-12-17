@@ -51,23 +51,25 @@
                 ${project.synopsis}
               </li>
             </ul>
-            <p>
-              To submit to a project that has not yet closed, use the file
-              browser to navigate to the file or directory that you wish to
-              submit, click &ldquo;More actions...&rdquo;,
-              &ldquo;Submit&rdquo;, and then select the correct project.
-            </p>
-            <p>
-              If the project to which you intend to submit is not listed,
-              ensure that you are in the correct directory, or a subdirectory
-              thereof. For solo projects, you must be inside the
-              &ldquo;mywork&rdquo; directory. For group projects, you must be
-              inside the directory for the assigned group.
-            </p>
-            <p>
-              You may resubmit a project as you wish until the deadline, but
-              a new submission will overwrite any earlier ones.
-            </p>
+            <py:if test="context.get_open_projects_for_user(req.user).count() > 0">
+              <p>
+                To submit to a project that has not yet closed, use the file
+                browser to navigate to the file or directory that you wish to
+                submit, click &ldquo;More actions...&rdquo;,
+                &ldquo;Submit&rdquo;, and then select the correct project.
+              </p>
+              <p>
+                If the project to which you intend to submit is not listed,
+                ensure that you are in the correct directory, or a subdirectory
+                thereof. For solo projects, you must be inside the
+                &ldquo;mywork&rdquo; directory. For group projects, you must be
+                inside the directory for the assigned group.
+              </p>
+              <p>
+                You may resubmit a project as you wish until the deadline, but
+                a new submission will overwrite any made earlier.
+              </p>
+            </py:if>
           </py:otherwise>
         </py:choose>
 
