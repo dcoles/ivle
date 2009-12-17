@@ -35,9 +35,12 @@ a img {
 
 h1 {
     margin: 0;
-    padding: 0.5em 0 0 0.5em;
     font-size: x-large;
     font-weight: normal;
+}
+
+#ivleview > h1 {
+    padding: 0.5em 0 0 0.5em;
 }
 
 h2 {
@@ -189,6 +192,19 @@ ul#ivle_breadcrumbs > li.crumbmenu > a {
     padding: 0 1em 1em 1em;
 }
 
+/* Add extra vertical spacing between major page sections. */
+#ivle_padding .majorsection {
+    margin-bottom: 2em;
+}
+
+#ivle_padding .majorsection > * {
+    margin-left: 1.5em;
+}
+
+#ivle_padding .majorsection > h2:first-child {
+    margin-left: 0;
+}
+
 p.userhello {
     font-size: .8em;
     margin: 0;
@@ -258,6 +274,10 @@ form.verticalform div.submit input[type=submit] {
   color: #111;
 }
 
+.paddedlist > li {
+  margin-bottom: 0.5em;
+}
+
 /* Action links have a 16x16 icon on the left. */
 .addaction,
 .editaction,
@@ -300,4 +320,8 @@ form.verticalform div.submit input[type=submit] {
 .contextactions a {
   display: block;
   margin-bottom: 0.3em;
+}
+
+.project.closed {
+    opacity: 0.6;
 }

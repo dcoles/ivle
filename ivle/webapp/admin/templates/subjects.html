@@ -13,18 +13,9 @@
           ${semester.year}, semester ${semester.semester}
         </h2>
         <ul>
-          <py:for each="offering in offerings">
-            <li>
-              <a href="${offering_url(offering)}/+worksheets">${offering.subject.name}</a>
-              <py:if test="'edit' in offering.get_permissions(user)">
-                -
-                <a href="${offering_url(offering)}/+projects">(administer projects)</a>
-                <py:if test="'enrol' in offering.get_permissions(user)">
-                  <a href="${offering_url(offering)}/+enrolments/+new">(enrol users)</a>
-                </py:if>
-              </py:if>
-            </li>
-          </py:for>
+          <li py:for="offering in offerings">
+            <a href="${offering_url(offering)}">${offering.subject.name}</a>
+          </li>
         </ul>
       </py:for>
     </div>

@@ -51,6 +51,7 @@ from ivle.webapp.admin.publishing import (root_to_subject,
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
 from ivle.webapp.groups import GroupsView
+from ivle.webapp.tutorial import Plugin as TutorialPlugin
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -73,6 +74,76 @@ class SubjectsView(XHTMLView):
                                     semester.enrolments.find(user=req.user)]
             if len(offerings):
                 ctx['semesters'].append((semester, offerings))
+
+
+def format_submission_principal(user, principal):
+    """Render a list of users to fit in the offering project listing.
+
+    Given a user and a list of submitters, returns 'solo' if the
+    only submitter is the user, or a string of the form
+    'with A, B and C' if there are any other submitters.
+
+    If submitters is None, we assume that the list of members could
+    not be determined, so we just return 'group'.
+    """
+    if principal is None:
+        return 'group'
+
+    if principal is user:
+        return 'solo'
+
+    display_names = sorted(
+        member.display_name for member in principal.members
+        if member is not user)
+
+    if len(display_names) == 0:
+        return 'solo (%s)' % principal.name
+    elif len(display_names) == 1:
+        return 'with %s (%s)' % (display_names[0], principal.name)
+    elif len(display_names) > 5:
+        return 'with %d others (%s)' % (len(display_names), principal.name)
+    else:
+        return 'with %s and %s (%s)' % (', '.join(display_names[:-1]),
+                                        display_names[-1], principal.name)
+
+
+class OfferingView(XHTMLView):
+    """The home page of an offering."""
+    template = 'templates/offering.html'
+    tab = 'subjects'
+    permission = 'view'
+
+    def populate(self, req, ctx):
+        # Need the worksheet result styles.
+        self.plugin_styles[TutorialPlugin] = ['tutorial.css']
+        ctx['context'] = self.context
+        ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user)
+        ctx['format_submission_principal'] = format_submission_principal
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+
+        # As we go, calculate the total score for this subject
+        # (Assessable worksheets only, mandatory problems only)
+
+        ctx['worksheets'], problems_total, problems_done = (
+            ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
+                req.store, req.user, self.context))
+
+        ctx['exercises_total'] = problems_total
+        ctx['exercises_done'] = problems_done
+        if problems_total > 0:
+            if problems_done >= problems_total:
+                ctx['worksheets_complete_class'] = "complete"
+            elif problems_done > 0:
+                ctx['worksheets_complete_class'] = "semicomplete"
+            else:
+                ctx['worksheets_complete_class'] = "incomplete"
+            # Calculate the final percentage and mark for the subject
+            (ctx['exercises_pct'], ctx['worksheet_mark'],
+             ctx['worksheet_max_mark']) = (
+                ivle.worksheet.utils.calculate_mark(
+                    problems_done, problems_total))
 
 
 class UserValidator(formencode.FancyValidator):
@@ -245,6 +316,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     reverse_routes = (subject_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (Offering, '+index', OfferingView),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),

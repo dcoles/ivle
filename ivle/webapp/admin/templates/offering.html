@@ -1,0 +1,129 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>${context.subject.name} (${context.semester.year} semester ${context.semester.semester})</title>
+  </head>
+  <body>
+    <h1>${context.subject.name}</h1>
+    <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'enrol' in permissions"
+           class="groupaction"
+           href="${req.publisher.generate(context, None, ('+enrolments', '+new'))}">
+          Enrol users
+        </a>
+      </div>
+
+      <div py:if="'edit' in permissions or context.projects.count() > 0"
+           class="majorsection">
+        <h2>Projects</h2>
+        <py:choose test="context.projects.count()">
+          <p py:when="0">
+            There are no projects for this offering.
+          </p>
+          <py:otherwise>
+            <ul class="paddedlist">
+              <li py:for="project in context.projects"
+                  py:attrs="{'class': 'project closed'}
+                            if project.has_deadline_passed(req.user)
+                            else {'class': 'project'}"
+                  py:with="principal = project.project_set.get_submission_principal(req.user)">
+                <a href="${project.url}">${project.name}</a> &ndash;
+                <span py:content="format_submission_principal(req.user, principal)" /> &ndash;
+                <span title="${format_datetime(project.deadline)}">
+                  ${'closed' if project.has_deadline_passed(req.user) else 'due'} ${format_datetime_short(project.deadline)}
+                </span>
+                <py:if test="principal is not None"
+                       py:with="submissions = project.get_submissions_for_principal(principal)">
+                  &ndash;
+                  <py:choose test="submissions.count()">
+                    <span py:when="0">
+                      not yet submitted
+                    </span>
+                    <span py:otherwise=""
+                          py:with="latest = submissions.last()"
+                          title="${format_datetime(latest.date_submitted)}">
+                      last submitted ${format_datetime_short(latest.date_submitted)}
+                    </span>
+                  </py:choose>
+                </py:if>
+                <br />
+                ${project.synopsis}
+              </li>
+            </ul>
+            <py:if test="context.get_open_projects_for_user(req.user).count() > 0">
+              <p>
+                To submit to a project that has not yet closed, use the file
+                browser to navigate to the file or directory that you wish to
+                submit, click &ldquo;More actions...&rdquo;,
+                &ldquo;Submit&rdquo;, and then select the correct project.
+              </p>
+              <p>
+                If the project to which you intend to submit is not listed,
+                ensure that you are in the correct directory, or a subdirectory
+                thereof. For solo projects, you must be inside the subject's
+                &ldquo;mywork&rdquo; directory. For group projects, you must be
+                inside the directory for the assigned group.
+              </p>
+              <p>
+                You may resubmit a project as you wish until the deadline, but
+                a new submission will overwrite any made earlier.
+              </p>
+            </py:if>
+          </py:otherwise>
+        </py:choose>
+
+        <a py:if="'edit' in permissions"
+           class="manageaction"
+           href="${req.publisher.generate(context, None, '+projects')}">
+          Manage projects
+        </a>
+      </div>
+
+      <div py:if="'edit' in permissions or context.worksheets.count() > 0"
+           class="majorsection">
+        <h2>Worksheets</h2>
+        <py:choose test="context.worksheets.count()">
+          <p py:when="0">
+            There are no worksheets for this offering.
+            <a class="addaction" href="${req.publisher.generate(context, None, ('+worksheets', '+new'))}">Create one now</a>
+          </p>
+          <div py:otherwise="">
+            <ul id="tutorial-toc">
+              <py:for each="worksheet in worksheets">
+                <li>
+                  <!-- Can't generate a URL directly to the worksheet, since this is a fake worksheet. -->
+                  <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.name}">${worksheet.name}</a>
+                  <py:if test="worksheet.assessable">
+                    <ul>
+                      <li class="${worksheet.complete_class}">
+                        Completed ${worksheet.mand_done}/${worksheet.total}${worksheet.optional_message}
+                      </li>
+                    </ul>
+                  </py:if>
+                </li>
+              </py:for>
+            </ul>
+            <py:if test="exercises_total > 0">
+              <ul>
+                <li class="${worksheets_complete_class}">
+                  Total exercises completed: ${exercises_done}/${exercises_total} (${exercises_pct}%)
+                </li>
+              </ul> 
+              <p>
+                <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
+              </p>
+            </py:if>
+            <a py:if="'edit' in permissions"
+               class="manageaction"
+               href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}">
+              Manage worksheets
+            </a>
+          </div>
+        </py:choose>
+      </div>
+    </div>
+  </body>
+</html>
+    
+

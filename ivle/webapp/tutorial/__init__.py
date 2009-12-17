@@ -39,7 +39,7 @@ from genshi.filters import HTMLFormFiller
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise, ExerciseAttempt
-from ivle.database import Worksheet as DBWorksheet
+from ivle.database import Worksheet
 import ivle.worksheet.utils
 from ivle.webapp import ApplicationRoot
 from ivle.webapp.base.views import BaseView
@@ -64,84 +64,6 @@ from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
 from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
     subject_to_media)
 
-class Worksheet:
-    """This class represents a worksheet and a particular students progress
-    through it.
-    
-    Do not confuse this with a worksheet in the database. This worksheet
-    has extra information for use in the output, such as marks."""
-    def __init__(self, id, name, assessable):
-        self.id = id
-        self.name = name
-        self.assessable = assessable
-        self.complete_class = ''
-        self.optional_message = ''
-        self.total = 0
-        self.mand_done = 0
-    def __repr__(self):
-        return ("Worksheet(id=%s, name=%s, assessable=%s)"
-                % (repr(self.id), repr(self.name), repr(self.assessable)))
-
-class OfferingView(XHTMLView):
-    '''The view of the index of worksheets for an offering.'''
-    template = 'templates/subjectmenu.html'
-    tab = 'subjects' # XXX
-    permission = 'view'
-    breadcrumb_text = 'Worksheets'
-
-    def populate(self, req, ctx):
-        """Create the context for the given offering."""
-        self.plugin_styles[Plugin] = ['tutorial.css']
-
-        ctx['subject'] = self.context.subject
-        ctx['offering'] = self.context
-        ctx['user'] = req.user
-
-        # As we go, calculate the total score for this subject
-        # (Assessable worksheets only, mandatory problems only)
-
-        ctx['worksheets'] = []
-        problems_done = 0
-        problems_total = 0
-        # Offering.worksheets is ordered by the worksheets seq_no
-        for worksheet in self.context.worksheets:
-            new_worksheet = Worksheet(worksheet.identifier, worksheet.name, 
-                                      worksheet.assessable)
-            if new_worksheet.assessable:
-                # Calculate the user's score for this worksheet
-                mand_done, mand_total, opt_done, opt_total = (
-                    ivle.worksheet.utils.calculate_score(req.store, req.user,
-                        worksheet))
-                if opt_total > 0:
-                    optional_message = " (excluding optional exercises)"
-                else:
-                    optional_message = ""
-                if mand_done >= mand_total:
-                    new_worksheet.complete_class = "complete"
-                elif mand_done > 0:
-                    new_worksheet.complete_class = "semicomplete"
-                else:
-                    new_worksheet.complete_class = "incomplete"
-                problems_done += mand_done
-                problems_total += mand_total
-                new_worksheet.mand_done = mand_done
-                new_worksheet.total = mand_total
-                new_worksheet.optional_message = optional_message
-            ctx['worksheets'].append(new_worksheet)
-
-        ctx['problems_total'] = problems_total
-        ctx['problems_done'] = problems_done
-        if problems_total > 0:
-            if problems_done >= problems_total:
-                ctx['complete_class'] = "complete"
-            elif problems_done > 0:
-                ctx['complete_class'] = "semicomplete"
-            else:
-                ctx['complete_class'] = "incomplete"
-            # Calculate the final percentage and mark for the subject
-            ctx['problems_pct'], ctx['mark'], ctx['max_mark'] = (
-                ivle.worksheet.utils.calculate_mark(
-                    problems_done, problems_total))
 
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
@@ -381,7 +303,7 @@ class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
 
     def _to_python(self, value, state):
         if (state.store.find(
-            DBWorksheet, offering=state.offering,
+            Worksheet, offering=state.offering,
             identifier=value).one() not in (None, state.existing_worksheet)):
             raise formencode.Invalid(
                 'Short name already taken', value, state)
@@ -455,7 +377,7 @@ class WorksheetAddView(WorksheetFormView):
         return {}
 
     def get_worksheet_object(self, req, data):
-        new_worksheet = DBWorksheet()
+        new_worksheet = Worksheet()
         new_worksheet.seq_no = self.context.worksheets.count()
         # Setting new_worksheet.offering implicitly adds new_worksheet,
         # hence worksheets.count MUST be called above it
@@ -642,14 +564,13 @@ class Plugin(ViewPlugin, MediaPlugin):
         exerciseattempts_url, exerciseattempt_url)
 
     breadcrumbs = {Exercise: ExerciseBreadcrumb,
-                   DBWorksheet: WorksheetBreadcrumb
+                   Worksheet: WorksheetBreadcrumb
                   }
 
-    views = [(Offering, ('+worksheets', '+index'), OfferingView),
-             (Offering, ('+worksheets', '+new'), WorksheetAddView),
+    views = [(Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
-             (DBWorksheet, '+index', WorksheetView),
-             (DBWorksheet, '+edit', WorksheetEditView),
+             (Worksheet, '+index', WorksheetView),
+             (Worksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
              (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
              (Exercise, '+index', ExerciseView),

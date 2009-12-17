@@ -51,13 +51,6 @@ class OfferingBreadcrumb(object):
         return '%s semester %s' % (self.context.semester.year,
                                    self.context.semester.semester)
 
-    @property
-    def menu(self):
-        return {
-            'Worksheets': self.req.publisher.generate(self.context, None,
-                                                   ('+worksheets')),
-            }
-
 class ProjectBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req

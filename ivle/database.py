@@ -330,6 +330,10 @@ class Offering(Storm):
                            'Enrolment.user_id',
                            'User.id')
     project_sets = ReferenceSet(id, 'ProjectSet.offering_id')
+    projects = ReferenceSet(id,
+                            'ProjectSet.offering_id',
+                            'ProjectSet.id',
+                            'Project.project_set_id')
 
     worksheets = ReferenceSet(id, 
         'Worksheet.offering_id', 
@@ -405,6 +409,11 @@ class Offering(Storm):
     def students(self):
         return self.get_members_by_role(u'student')
 
+    def get_open_projects_for_user(self, user):
+        """Find all projects currently open to submissions by a user."""
+        # XXX: Respect extensions.
+        return self.projects.find(Project.deadline > datetime.datetime.now())
+
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
 
@@ -463,6 +472,31 @@ class ProjectSet(Storm):
 
     def get_permissions(self, user):
         return self.offering.get_permissions(user)
+
+    def get_groups_for_user(self, user):
+        """List all groups in this offering of which the user is a member."""
+        assert self.is_group
+        return Store.of(self).find(
+            ProjectGroup,
+            ProjectGroupMembership.user_id == user.id,
+            ProjectGroupMembership.project_group_id == ProjectGroup.id,
+            ProjectGroup.project_set_id == self.id)
+
+    def get_submission_principal(self, user):
+        """Get the principal on behalf of which the user can submit.
+
+        If this is a solo project set, the given user is returned. If
+        the user is a member of exactly one group, all the group is
+        returned. Otherwise, None is returned.
+        """
+        if self.is_group:
+            groups = self.get_groups_for_user(user)
+            if groups.count() == 1:
+                return groups.one()
+            else:
+                return None
+        else:
+            return user
 
     @property
     def is_group(self):
@@ -548,6 +582,19 @@ class Project(Storm):
                     tables=ProjectSubmission
             )
         )
+
+    def has_deadline_passed(self, user):
+        """Check whether the deadline has passed."""
+        # XXX: Need to respect extensions.
+        return self.deadline < datetime.datetime.now()
+
+    def get_submissions_for_principal(self, principal):
+        """Fetch a ResultSet of all submissions by a particular principal."""
+        assessed = Assessed.get(Store.of(self), principal, self)
+        if assessed is None:
+            return
+        return assessed.submissions
+
 
 
 class ProjectGroup(Storm):
@@ -647,7 +694,8 @@ class Assessed(Storm):
     project = Reference(project_id, Project.id)
 
     extensions = ReferenceSet(id, 'ProjectExtension.assessed_id')
-    submissions = ReferenceSet(id, 'ProjectSubmission.assessed_id')
+    submissions = ReferenceSet(
+        id, 'ProjectSubmission.assessed_id', order_by='date_submitted')
 
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__,
