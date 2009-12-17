@@ -60,7 +60,7 @@ type_icons_path_large = "+media/ivle.webapp.core/images/mime/large";
 
 /* Mapping SVN status to icons, just the file's basename */
 svn_icons = {
-    "unversioned": null,
+    "unversioned": "unversioned.png",
     "normal": "normal.png",
     "added": "added.png",
     "missing": "missing.png",
