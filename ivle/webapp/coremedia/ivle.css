@@ -194,6 +194,14 @@ ul#ivle_breadcrumbs > li.crumbmenu > a {
     margin-bottom: 2em;
 }
 
+#ivle_padding .majorsection > * {
+    margin-left: 1.5em;
+}
+
+#ivle_padding .majorsection > h2:first-child {
+    margin-left: 0;
+}
+
 p.userhello {
     font-size: .8em;
     margin: 0;
