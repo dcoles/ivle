@@ -681,7 +681,8 @@ class Assessed(Storm):
     project = Reference(project_id, Project.id)
 
     extensions = ReferenceSet(id, 'ProjectExtension.assessed_id')
-    submissions = ReferenceSet(id, 'ProjectSubmission.assessed_id')
+    submissions = ReferenceSet(
+        id, 'ProjectSubmission.assessed_id', order_by='date_submitted')
 
     def __repr__(self):
         return "<%s %r in %r>" % (type(self).__name__,
