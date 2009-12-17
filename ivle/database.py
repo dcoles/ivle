@@ -409,6 +409,11 @@ class Offering(Storm):
     def students(self):
         return self.get_members_by_role(u'student')
 
+    def get_open_projects_for_user(self, user):
+        """Find all projects currently open to submissions by a user."""
+        # XXX: Respect extensions.
+        return self.projects.find(Project.deadline > datetime.datetime.now())
+
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
 
