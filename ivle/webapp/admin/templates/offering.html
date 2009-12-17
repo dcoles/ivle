@@ -89,6 +89,31 @@
             <a class="addaction" href="${req.publisher.generate(context, None, ('+worksheets', '+new'))}">Create one now</a>
           </p>
           <div py:otherwise="">
+            <ul id="tutorial-toc">
+              <py:for each="worksheet in worksheets">
+                <li>
+                  <!-- Can't generate a URL directly to the worksheet, since this is a fake worksheet. -->
+                  <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.name}">${worksheet.name}</a>
+                  <py:if test="worksheet.assessable">
+                    <ul>
+                      <li class="${worksheet.complete_class}">
+                        Completed ${worksheet.mand_done}/${worksheet.total}${worksheet.optional_message}
+                      </li>
+                    </ul>
+                  </py:if>
+                </li>
+              </py:for>
+            </ul>
+            <py:if test="exercises_total > 0">
+              <ul>
+                <li class="${worksheets_complete_class}">
+                  Total exercises completed: ${exercises_done}/${exercises_total} (${exercises_pct}%)
+                </li>
+              </ul> 
+              <p>
+                <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
+              </p>
+            </py:if>
             <a py:if="'edit' in permissions"
                class="manageaction"
                href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}">

@@ -51,6 +51,7 @@ from ivle.webapp.admin.publishing import (root_to_subject,
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
 from ivle.webapp.groups import GroupsView
+from ivle.webapp.tutorial import Plugin as TutorialPlugin
 
 class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
@@ -113,12 +114,36 @@ class OfferingView(XHTMLView):
     permission = 'view'
 
     def populate(self, req, ctx):
+        # Need the worksheet result styles.
+        self.plugin_styles[TutorialPlugin] = ['tutorial.css']
         ctx['context'] = self.context
         ctx['req'] = req
         ctx['permissions'] = self.context.get_permissions(req.user)
         ctx['format_submission_principal'] = format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+
+        # As we go, calculate the total score for this subject
+        # (Assessable worksheets only, mandatory problems only)
+
+        ctx['worksheets'], problems_total, problems_done = (
+            ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
+                req.store, req.user, self.context))
+
+        ctx['exercises_total'] = problems_total
+        ctx['exercises_done'] = problems_done
+        if problems_total > 0:
+            if problems_done >= problems_total:
+                ctx['worksheets_complete_class'] = "complete"
+            elif problems_done > 0:
+                ctx['worksheets_complete_class'] = "semicomplete"
+            else:
+                ctx['worksheets_complete_class'] = "incomplete"
+            # Calculate the final percentage and mark for the subject
+            (ctx['exercises_pct'], ctx['worksheet_mark'],
+             ctx['worksheet_max_mark']) = (
+                ivle.worksheet.utils.calculate_mark(
+                    problems_done, problems_total))
 
 
 class UserValidator(formencode.FancyValidator):
