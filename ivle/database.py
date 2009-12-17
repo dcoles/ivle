@@ -583,6 +583,14 @@ class Project(Storm):
         # XXX: Need to respect extensions.
         return self.deadline < datetime.datetime.now()
 
+    def get_submissions_for_principal(self, principal):
+        """Fetch a ResultSet of all submissions by a particular principal."""
+        assessed = Assessed.get(Store.of(self), principal, self)
+        if assessed is None:
+            return
+        return assessed.submissions
+
+
 
 class ProjectGroup(Storm):
     """A group of students working together on a project."""
