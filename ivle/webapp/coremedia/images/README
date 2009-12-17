@@ -5,3 +5,5 @@ mime/large/multi.png:
 
 All files in mime/large: Reduced from 128x128 to 96x96 with ImageMagick.
 mime/dir.png: Reduced from 128x128 to 16x16 with ImageMagick.
+
+svn/*: From FamFamFam silk icon set.
