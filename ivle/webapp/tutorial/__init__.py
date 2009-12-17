@@ -64,41 +64,6 @@ from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
 from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
     subject_to_media)
 
-class WorksheetsView(XHTMLView):
-    '''The view of the index of worksheets for an offering.'''
-    template = 'templates/subjectmenu.html'
-    tab = 'subjects' # XXX
-    permission = 'view'
-    breadcrumb_text = 'Worksheets'
-
-    def populate(self, req, ctx):
-        """Create the context for the given offering."""
-        self.plugin_styles[Plugin] = ['tutorial.css']
-
-        ctx['subject'] = self.context.subject
-        ctx['offering'] = self.context
-        ctx['user'] = req.user
-
-        # As we go, calculate the total score for this subject
-        # (Assessable worksheets only, mandatory problems only)
-
-        ctx['worksheets'], problems_total, problems_done = (
-            ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
-                req.store, req.user, self.context))
-
-        ctx['problems_total'] = problems_total
-        ctx['problems_done'] = problems_done
-        if problems_total > 0:
-            if problems_done >= problems_total:
-                ctx['complete_class'] = "complete"
-            elif problems_done > 0:
-                ctx['complete_class'] = "semicomplete"
-            else:
-                ctx['complete_class'] = "incomplete"
-            # Calculate the final percentage and mark for the subject
-            ctx['problems_pct'], ctx['mark'], ctx['max_mark'] = (
-                ivle.worksheet.utils.calculate_mark(
-                    problems_done, problems_total))
 
 class WorksheetView(XHTMLView):
     '''The view of a worksheet with exercises.'''
@@ -602,8 +567,7 @@ class Plugin(ViewPlugin, MediaPlugin):
                    Worksheet: WorksheetBreadcrumb
                   }
 
-    views = [(Offering, ('+worksheets', '+index'), WorksheetsView),
-             (Offering, ('+worksheets', '+new'), WorksheetAddView),
+    views = [(Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
              (Worksheet, '+index', WorksheetView),
              (Worksheet, '+edit', WorksheetEditView),
