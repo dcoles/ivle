@@ -94,7 +94,7 @@ class SubmitView(XHTMLView):
             if project is None:
                 raise BadRequest('Specified project does not exist')
 
-            project.submit(self.context, self.path, revision, req.user)
+            project.submit(self.context, unicode(self.path), revision, req.user)
 
             # The Subversion configuration needs to be updated, to grant
             # tutors and lecturers access to this submission. We have to 
