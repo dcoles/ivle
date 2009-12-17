@@ -9,7 +9,7 @@
     <h3 py:otherwise="">
       Group projects
       <span py:if="projectset.max_students_per_group != 0"> - up to ${projectset.max_students_per_group} students per group</span>
-      <a href="${req.publisher.generate(projectset, GroupsView)}">(administer groups)</a>
+      <a class="groupaction" href="${req.publisher.generate(projectset, GroupsView)}">Manage groups</a>
     </h3>
   </py:choose>
   <ul id="projectslist_${projectset.id}">
@@ -19,7 +19,7 @@
     </py:for>
     <li class="add-project">
       <a href="#" id="add_new_project_${projectset.id}"
-         class="add-project-link">Add a new project</a>
+         class="add-project-link addaction">Add a new project</a>
       <form id="new_project_${projectset.id}" class="new_project" method="post" action="${req.publisher.generate(projectset, ProjectSetRESTView)}">
         <div>
           <label for="new_project_name_${projectset.id}">Name:</label>
