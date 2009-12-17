@@ -676,7 +676,7 @@ class Assessed(Storm):
         a = store.find(cls,
             (t is User) or (cls.project_group_id == principal.id),
             (t is ProjectGroup) or (cls.user_id == principal.id),
-            Project.id == project.id).one()
+            cls.project_id == project.id).one()
 
         if a is None:
             a = cls()
