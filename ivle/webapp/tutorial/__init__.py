@@ -39,7 +39,7 @@ from genshi.filters import HTMLFormFiller
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
                           ExerciseSave, WorksheetExercise, ExerciseAttempt
-from ivle.database import Worksheet as DBWorksheet
+from ivle.database import Worksheet
 import ivle.worksheet.utils
 from ivle.webapp import ApplicationRoot
 from ivle.webapp.base.views import BaseView
@@ -338,7 +338,7 @@ class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
 
     def _to_python(self, value, state):
         if (state.store.find(
-            DBWorksheet, offering=state.offering,
+            Worksheet, offering=state.offering,
             identifier=value).one() not in (None, state.existing_worksheet)):
             raise formencode.Invalid(
                 'Short name already taken', value, state)
@@ -412,7 +412,7 @@ class WorksheetAddView(WorksheetFormView):
         return {}
 
     def get_worksheet_object(self, req, data):
-        new_worksheet = DBWorksheet()
+        new_worksheet = Worksheet()
         new_worksheet.seq_no = self.context.worksheets.count()
         # Setting new_worksheet.offering implicitly adds new_worksheet,
         # hence worksheets.count MUST be called above it
@@ -599,14 +599,14 @@ class Plugin(ViewPlugin, MediaPlugin):
         exerciseattempts_url, exerciseattempt_url)
 
     breadcrumbs = {Exercise: ExerciseBreadcrumb,
-                   DBWorksheet: WorksheetBreadcrumb
+                   Worksheet: WorksheetBreadcrumb
                   }
 
     views = [(Offering, ('+worksheets', '+index'), WorksheetsView),
              (Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
-             (DBWorksheet, '+index', WorksheetView),
-             (DBWorksheet, '+edit', WorksheetEditView),
+             (Worksheet, '+index', WorksheetView),
+             (Worksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
              (ApplicationRoot, ('+exercises', '+add'), ExerciseAddView),
              (Exercise, '+index', ExerciseView),
