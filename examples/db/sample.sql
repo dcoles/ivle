@@ -252,12 +252,12 @@ ALTER TABLE login ENABLE TRIGGER ALL;
 
 ALTER TABLE offering DISABLE TRIGGER ALL;
 
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (1, 1, 1, 'none', NULL, 'http://www.ivle.org/example/101');
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (2, 2, 2, 'none', NULL, 'http://www.ivle.org/example/102');
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (3, 1, 3, 'none', NULL, 'http://www.ivle.org/example/101');
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (4, 3, 3, 'none', NULL, 'http://www.ivle.org/example/201');
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (5, 2, 4, 'none', NULL, 'http://www.ivle.org/example/102');
-INSERT INTO offering (offeringid, subject, semesterid, groups_student_permissions, description, url) VALUES (6, 4, 4, 'none', NULL, 'http://www.ivle.org/example/202');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (1, 1, 1, 'This subject will introduce you to the basics of IVLE.', 'http://www.ivle.org/example/101', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (2, 2, 2, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge.', 'http://www.ivle.org/example/102', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (3, 1, 3, 'This subject will introduce you to the basics of IVLE, again.', 'http://www.ivle.org/example/101', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (4, 3, 3, 'This subject will provide you with a working knowledge of advanced IVLE concepts.', 'http://www.ivle.org/example/201', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (5, 2, 4, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge, again.', 'http://www.ivle.org/example/102', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (6, 4, 4, 'After undertaking this subject, you should be a master of all things IVLEy.', 'http://www.ivle.org/example/202', 'none');
 
 
 ALTER TABLE offering ENABLE TRIGGER ALL;
