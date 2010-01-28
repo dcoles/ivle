@@ -128,7 +128,7 @@ To load the sample data: ::
    sudo ivle-adduser --admin -p password username 'Full Name'
 
 You should then be able to browse to http://ivle.localhost/, and
-log in with username ``alice`` and password ``password``, or the
+log in with username ``admin`` and password ``password``, or the
 username and password that you gave to ``ivle-adduser``.
 
 
