@@ -122,6 +122,7 @@ class OfferingView(XHTMLView):
         ctx['format_submission_principal'] = format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['OfferingEdit'] = OfferingEdit
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)

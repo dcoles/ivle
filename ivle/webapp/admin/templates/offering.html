@@ -7,6 +7,11 @@
     <h1>${context.subject.name}</h1>
     <div id="ivle_padding">
       <div class="contextactions">
+        <a py:if="'edit' in permissions"
+           class="editaction"
+           href="${req.publisher.generate(context, OfferingEdit)}">
+           Change details
+        </a>
         <a py:if="'enrol' in permissions"
            class="groupaction"
            href="${req.publisher.generate(context, None, ('+enrolments', '+new'))}">
