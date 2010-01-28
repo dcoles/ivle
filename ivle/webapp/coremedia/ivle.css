@@ -25,10 +25,6 @@ a:hover, a:active, a:focus {
     color: blue;
 }
 
-.error {
-    color: #a00;
-}
-
 a img {
     border: none;
 }
