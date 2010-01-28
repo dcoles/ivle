@@ -283,7 +283,8 @@ form.verticalform div.submit input[type=submit] {
 .editaction,
 .keyaction,
 .manageaction,
-.groupaction {
+.groupaction,
+.webaction {
   padding-left: 20px;
   background-position: left center;
   background-repeat: no-repeat;
@@ -307,6 +308,10 @@ form.verticalform div.submit input[type=submit] {
 
 .groupaction {
   background-image: url(images/interface/group.png);
+}
+
+.webaction {
+  background-image: url(images/interface/world.png);
 }
 
 /* Actions relating the context can be floated at the right. */

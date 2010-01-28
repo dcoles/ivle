@@ -249,7 +249,6 @@ class Subject(Storm):
     code = Unicode(name="subj_code")
     name = Unicode(name="subj_name")
     short_name = Unicode(name="subj_short_name")
-    url = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.subject_id')
 
@@ -322,6 +321,8 @@ class Offering(Storm):
     subject = Reference(subject_id, Subject.id)
     semester_id = Int(name="semesterid")
     semester = Reference(semester_id, Semester.id)
+    description = Unicode()
+    url = Unicode()
     groups_student_permissions = Unicode()
 
     enrolments = ReferenceSet(id, 'Enrolment.offering_id')

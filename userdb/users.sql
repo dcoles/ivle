@@ -28,8 +28,7 @@ CREATE TABLE subject (
     subjectid       SERIAL PRIMARY KEY NOT NULL,
     subj_code       VARCHAR UNIQUE NOT NULL,
     subj_name       VARCHAR NOT NULL,
-    subj_short_name VARCHAR UNIQUE NOT NULL,
-    url             VARCHAR
+    subj_short_name VARCHAR UNIQUE NOT NULL
 );
 
 CREATE TABLE semester (
@@ -45,6 +44,8 @@ CREATE TABLE offering (
     offeringid  SERIAL PRIMARY KEY NOT NULL,
     subject     INT4 REFERENCES subject (subjectid) NOT NULL,
     semesterid  INTEGER REFERENCES semester (semesterid) NOT NULL,
+    description VARCHAR,
+    url         VARCHAR,
     groups_student_permissions  VARCHAR NOT NULL DEFAULT 'none',
     CHECK (groups_student_permissions in ('none', 'invite', 'create')),
     UNIQUE (subject, semesterid)
