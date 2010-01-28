@@ -328,7 +328,6 @@ def handle_get_enrolments(req, fields):
             'subj_code':       e.offering.subject.code,
             'subj_name':       e.offering.subject.name,
             'subj_short_name': e.offering.subject.short_name,
-            'url':             e.offering.subject.url,
             'year':            e.offering.semester.year,
             'semester':        e.offering.semester.semester,
             'groups':          [{'name': group.name,
