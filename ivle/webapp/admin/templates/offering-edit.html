@@ -6,11 +6,11 @@
   <body>
     <h1>Edit ${context.subject.name}</h1>
     <div id="ivle_padding">
-      <form action="" method="post">
+      <form class="verticalform" action="" method="post">
         <div>
           <div>
             <label for="description">Description:</label>
-            <textarea id="description" name="description"></textarea>
+            <textarea id="description" name="description" cols="80" rows="10"></textarea>
             <span py:if="'description' in errors" class="form_error">${errors.description}.</span>
           </div>
           <div>
@@ -18,7 +18,9 @@
             <input type="text" id="url" name="url" />
             <span py:if="'url' in errors" class="form_error">${errors.url}.</span>
           </div>
-          <input type="submit" value="Save Changes" />
+          <div class="submit">
+            <input type="submit" value="Save Changes" />
+          </div>
         </div>
       </form>
     </div>
