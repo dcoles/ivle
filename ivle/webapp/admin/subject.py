@@ -146,6 +146,44 @@ class OfferingView(XHTMLView):
                     problems_done, problems_total))
 
 
+class OfferingSchema(formencode.Schema):
+    description = formencode.validators.UnicodeString()
+    url = formencode.validators.URL()
+
+
+class OfferingEdit(XHTMLView):
+    """A form to edit an offering's details."""
+    template = 'templates/offering-edit.html'
+    permission = 'edit'
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = OfferingSchema()
+                data = validator.to_python(data, state=req)
+
+                self.context.url = unicode(data['url'])
+                self.context.description = data['description']
+                req.store.commit()
+                req.throw_redirect(req.publisher.generate(self.context))
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {
+                'url': self.context.url,
+                'description': self.context.description,
+            }
+            errors = {}
+
+        ctx['data'] = data or {}
+        ctx['context'] = self.context
+        ctx['errors'] = errors
+
+
 class UserValidator(formencode.FancyValidator):
     """A FormEncode validator that turns a username into a user.
 
@@ -317,6 +355,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (Offering, '+index', OfferingView),
+             (Offering, '+edit', OfferingEdit),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),

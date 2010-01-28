@@ -1,0 +1,26 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit - ${context.subject.name}</title>
+  </head>
+  <body>
+    <h1>Edit ${context.subject.name}</h1>
+    <div id="ivle_padding">
+      <form action="" method="post">
+        <div>
+          <div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description"></textarea>
+            <span py:if="'description' in errors" class="form_error">${errors.description}.</span>
+          </div>
+          <div>
+            <label for="url">Home page URL:</label>
+            <input type="text" id="url" name="url" />
+            <span py:if="'url' in errors" class="form_error">${errors.url}.</span>
+          </div>
+          <input type="submit" value="Save Changes" />
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
