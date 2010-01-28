@@ -148,8 +148,9 @@ class OfferingView(XHTMLView):
 
 
 class OfferingSchema(formencode.Schema):
-    description = formencode.validators.UnicodeString()
-    url = formencode.validators.URL()
+    description = formencode.validators.UnicodeString(
+        if_missing=None, not_empty=False)
+    url = formencode.validators.URL(if_missing=None, not_empty=False)
 
 
 class OfferingEdit(XHTMLView):
@@ -167,7 +168,7 @@ class OfferingEdit(XHTMLView):
                 validator = OfferingSchema()
                 data = validator.to_python(data, state=req)
 
-                self.context.url = unicode(data['url'])
+                self.context.url = unicode(data['url']) if data['url'] else None
                 self.context.description = data['description']
                 req.store.commit()
                 req.throw_redirect(req.publisher.generate(self.context))
