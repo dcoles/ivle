@@ -122,6 +122,7 @@ class OfferingView(XHTMLView):
         ctx['format_submission_principal'] = format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['OfferingEdit'] = OfferingEdit
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
@@ -144,6 +145,45 @@ class OfferingView(XHTMLView):
              ctx['worksheet_max_mark']) = (
                 ivle.worksheet.utils.calculate_mark(
                     problems_done, problems_total))
+
+
+class OfferingSchema(formencode.Schema):
+    description = formencode.validators.UnicodeString(
+        if_missing=None, not_empty=False)
+    url = formencode.validators.URL(if_missing=None, not_empty=False)
+
+
+class OfferingEdit(XHTMLView):
+    """A form to edit an offering's details."""
+    template = 'templates/offering-edit.html'
+    permission = 'edit'
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = OfferingSchema()
+                data = validator.to_python(data, state=req)
+
+                self.context.url = unicode(data['url']) if data['url'] else None
+                self.context.description = data['description']
+                req.store.commit()
+                req.throw_redirect(req.publisher.generate(self.context))
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = {
+                'url': self.context.url,
+                'description': self.context.description,
+            }
+            errors = {}
+
+        ctx['data'] = data or {}
+        ctx['context'] = self.context
+        ctx['errors'] = errors
 
 
 class UserValidator(formencode.FancyValidator):
@@ -317,6 +357,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (Offering, '+index', OfferingView),
+             (Offering, '+edit', OfferingEdit),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
