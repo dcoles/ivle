@@ -330,3 +330,7 @@ form.verticalform div.submit input[type=submit] {
 .project.closed {
     opacity: 0.6;
 }
+
+.form_error {
+    color: darkred;
+}
