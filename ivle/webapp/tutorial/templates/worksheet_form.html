@@ -4,12 +4,12 @@
   <body py:strip="">
       <form class="verticalform" method="post">
         <div>
-          <label for='name'>Name:</label>
+          <label for='name'>Display name:</label>
           <input type='text' id='worksheet_name' name='name' class='worksheet_area' />
           <span py:if="'name' in errors" class="form_error">${errors.name}</span>
         </div>
         <div>
-          <label for='worksheet_identifier'>Short name:</label>
+          <label for='worksheet_identifier'>URL name:</label>
           <input type='text' id='worksheet_identifier' name='identifier' class='worksheet_id' />
           <span py:if="'identifier' in errors" class="form_error">${errors.identifier}</span>
         </div>
