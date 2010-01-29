@@ -44,7 +44,9 @@ def runprog_stderr(*popenargs, **kwargs):
     Return None if the program had a 0 return code.
     Return the string stderr if the program failed.
     """
-    proc = subprocess.Popen(*popenargs, stderr=subprocess.PIPE, **kwargs)
+    kwargs['stderr'] = subprocess.PIPE
+
+    proc = subprocess.Popen(*popenargs, **kwargs)
     _, stderr = proc.communicate()
     if proc.returncode == 0:
         return None
