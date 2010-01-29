@@ -504,23 +504,19 @@ class ExerciseDeleteView(XHTMLView):
         # If post, delete the exercise, or display a message explaining that
         # the exercise cannot be deleted
         if req.method == 'POST':
-            ctx['method'] = 'POST'
             try:
                 self.context.delete()
-                ctx['deleted'] = True
-            except:
-                ctx['deleted'] = False
+                self.template = 'templates/exercise_deleted.html'
+            except Exception:
+                self.template = 'templates/exercise_undeletable.html'
 
         # If get, display a delete confirmation page
         else:
-            ctx['method'] = 'GET'
             if self.context.worksheet_exercises.count() is not 0:
-                ctx['has_worksheets'] = True
-            else:
-                ctx['has_worksheets'] = False
+                self.template = 'templates/exercise_undeletable.html'
+
         # Variables for the template
         ctx['exercise'] = self.context
-        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
 
 class ExerciseAddView(XHTMLView):
     """View for creating a new exercise."""
