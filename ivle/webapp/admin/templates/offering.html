@@ -103,7 +103,7 @@
               <py:for each="worksheet in worksheets">
                 <li>
                   <!-- Can't generate a URL directly to the worksheet, since this is a fake worksheet. -->
-                  <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.name}">${worksheet.name}</a>
+                  <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.id}">${worksheet.name}</a>
                   <py:if test="worksheet.assessable">
                     <ul>
                       <li class="${worksheet.complete_class}">
