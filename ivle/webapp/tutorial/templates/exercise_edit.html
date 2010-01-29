@@ -110,11 +110,11 @@
                         <option  value="${var_type}">${var_types[var_type]}</option>
                       </py:for>
                     </select>
-                    <label for="new_var_name_${test_suite.suiteid}">Var Name:</label>
+                    <label for="new_var_name_${test_suite.suiteid}">Name:</label>
                     <input type="text" id="new_var_name_${test_suite.suiteid}" />
-                    <label for="new_var_val_${test_suite.suiteid}">Var Value:</label>
+                    <label for="new_var_val_${test_suite.suiteid}">Value (Python, will be eval'd):</label>
                     <input type="text" id="new_var_val_${test_suite.suiteid}" />
-                    <label for="new_var_argno_${test_suite.suiteid}">Arg Num:</label>
+                    <label for="new_var_argno_${test_suite.suiteid}">Argument index:</label>
                     <input size="5" type="text" id="new_var_argno_${test_suite.suiteid}" />
                     <input type="button" value="Add Variable" onclick="add_var('${test_suite.suiteid}')" />
                   </div>
