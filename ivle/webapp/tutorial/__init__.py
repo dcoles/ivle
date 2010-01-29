@@ -460,6 +460,7 @@ class ExerciseView(XHTMLView):
         ctx['exercise_fragment'] = present_exercise(
             req, self.context.id)['stream']
         ctx['ExerciseEditView'] = ExerciseEditView
+        ctx['ExerciseDeleteView'] = ExerciseDeleteView
 
 
 class ExerciseEditView(XHTMLView):
@@ -480,7 +481,9 @@ class ExerciseEditView(XHTMLView):
         ctx['var_types'] = {
             'var': 'variable',
             'arg': 'function argument',
-            'exception': 'exception',
+            # XXX: wgrant 2010-01-29 bug=514160: Need to
+            # restore support for this.
+            #'exception': 'exception',
             }
         ctx['part_types'] = {
             'stdout': 'standard output',
@@ -503,23 +506,19 @@ class ExerciseDeleteView(XHTMLView):
         # If post, delete the exercise, or display a message explaining that
         # the exercise cannot be deleted
         if req.method == 'POST':
-            ctx['method'] = 'POST'
             try:
                 self.context.delete()
-                ctx['deleted'] = True
-            except:
-                ctx['deleted'] = False
+                self.template = 'templates/exercise_deleted.html'
+            except Exception:
+                self.template = 'templates/exercise_undeletable.html'
 
         # If get, display a delete confirmation page
         else:
-            ctx['method'] = 'GET'
             if self.context.worksheet_exercises.count() is not 0:
-                ctx['has_worksheets'] = True
-            else:
-                ctx['has_worksheets'] = False
+                self.template = 'templates/exercise_undeletable.html'
+
         # Variables for the template
         ctx['exercise'] = self.context
-        ctx['path'] = "/+exercises/" + self.context.id + "/+delete"
 
 class ExerciseAddView(XHTMLView):
     """View for creating a new exercise."""
@@ -551,8 +550,8 @@ class ExercisesView(XHTMLView):
     
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
+        ctx['req'] = req
         ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
-        ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 
 class Plugin(ViewPlugin, MediaPlugin):

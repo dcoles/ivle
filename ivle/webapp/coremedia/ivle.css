@@ -227,7 +227,7 @@ form.verticalform div label {
     font-weight: bold;
 }
 
-form.verticalform div.submit input[type=submit] {
+form.verticalform div.submit {
     margin-left: 205px;
 }
 
@@ -276,6 +276,7 @@ form.verticalform div.submit input[type=submit] {
 
 /* Action links have a 16x16 icon on the left. */
 .addaction,
+.deleteaction,
 .editaction,
 .keyaction,
 .manageaction,
@@ -288,6 +289,10 @@ form.verticalform div.submit input[type=submit] {
 
 .addaction {
   background-image: url(images/interface/add.png);
+}
+
+.deleteaction {
+  background-image: url(images/interface/delete.png);
 }
 
 .editaction {

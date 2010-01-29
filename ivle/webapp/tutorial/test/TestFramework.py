@@ -392,6 +392,9 @@ class TestCase:
             elif var.var_type == "arg":
                 self.add_arg(var)
             elif var.var_type == "exception":
+                # XXX: wgrant 2010-01-29 bug=514160: Need to restore
+                # support for this.
+                raise AssertionError("Exception variables unsupported.")
                 self.add_exception(var)
         
         for test_case in suite.test_cases:

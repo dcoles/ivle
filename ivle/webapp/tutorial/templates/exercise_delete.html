@@ -1,47 +1,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Delete Exercise - ${exercise.id}</title>
-    <!-- These let the javascript know which worksheet is open -->
-    <script type="text/javascript">
-        exercise = '${exercise.id}';
-    </script>
+    <title>Delete exercise - ${exercise.id}</title>
   </head>
   <body>
-    <h1>Delete Exercise - ${exercise.id}</h1>
+    <h1>Delete exercise</h1>
     <div id="ivle_padding">
-    <py:choose test="method">
-      <py:when test="'POST'">
-        <py:choose test="deleted">
-          <py:when test="True">
-            <h3>Exercise Deleted</h3>
-            <a href="/+exercises">Return to Exercise List</a>
-          </py:when>
-          <py:otherwise>
-            <h3>Error Deleting Exercise</h3>
-            <p>The specified exercise could not be deleted. This could be because it is linked to one or more worksheets.</p>
-          </py:otherwise>
-        </py:choose>
-      </py:when>
-      <py:otherwise>
-        <py:choose test="has_worksheets">
-          <py:when test="True">
-            <h3>Denied</h3>
-            <p>You cannot delete this exercise, as it has been associated with a worksheet.</p>
-          </py:when>
-          <py:otherwise>
-            <h3>Identifier:</h3>
-            <p>${exercise.id}</p>
-            <h3>Name:</h3>
-            <p>${exercise.name}</p>
-            <p>Are you sure you wish to delete this exercise?</p>
-            <form action="${path}" method="POST">
-              <input type="submit" value="Delete"/>
-            </form>
-          </py:otherwise>
-        </py:choose>
-      </py:otherwise>
-    </py:choose>
+      <div><strong>Identifier:</strong> ${exercise.id}</div>
+      <div><strong>Name:</strong> ${exercise.name}</div>
+      <p>Are you sure you want to delete this exercise? It has not been used by any worksheets.</p>
+      <form action="" method="POST">
+        <input type="submit" value="Delete"/>
+      </form>
     </div>
   </body>
 </html>
