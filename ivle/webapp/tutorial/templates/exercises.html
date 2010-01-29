@@ -12,7 +12,7 @@
     <ul>
       <py:for each="exercise in exercises">
         <li class="exercise_names">
-          <div><a href="/+exercises/${exercise.id}/+delete"><img src="${mediapath}cross.png"/></a> <a class="exercise_header" href="/+exercises/${exercise.id}/+edit">${exercise.id}</a></div>${exercise.name}
+          <div><a class="exercise_header" href="${req.publisher.generate(exercise)}">${exercise.id}</a></div>${exercise.name}
         </li>
       </py:for>
     </ul>

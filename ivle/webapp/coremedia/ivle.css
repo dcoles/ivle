@@ -276,6 +276,7 @@ form.verticalform div.submit {
 
 /* Action links have a 16x16 icon on the left. */
 .addaction,
+.deleteaction,
 .editaction,
 .keyaction,
 .manageaction,
@@ -288,6 +289,10 @@ form.verticalform div.submit {
 
 .addaction {
   background-image: url(images/interface/add.png);
+}
+
+.deleteaction {
+  background-image: url(images/interface/delete.png);
 }
 
 .editaction {

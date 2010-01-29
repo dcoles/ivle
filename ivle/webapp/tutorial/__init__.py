@@ -460,6 +460,7 @@ class ExerciseView(XHTMLView):
         ctx['exercise_fragment'] = present_exercise(
             req, self.context.id)['stream']
         ctx['ExerciseEditView'] = ExerciseEditView
+        ctx['ExerciseDeleteView'] = ExerciseDeleteView
 
 
 class ExerciseEditView(XHTMLView):
@@ -551,8 +552,8 @@ class ExercisesView(XHTMLView):
     
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
+        ctx['req'] = req
         ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
-        ctx['mediapath'] = media_url(req, Plugin, 'images/')
 
 
 class Plugin(ViewPlugin, MediaPlugin):
