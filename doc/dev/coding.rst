@@ -62,7 +62,7 @@ a case-by-case basis.
 All associated branches can be found on the `IVLE Launchpad Project Page 
 <https://launchpad.net/ivle/>`_.
 
-Licence
+License
 =======
 IVLE is licenced under the `GNU General Public License Version 2.0 
 <http://www.gnu.org/licenses/gpl-2.0.html>`_ and requires that all 
