@@ -481,7 +481,9 @@ class ExerciseEditView(XHTMLView):
         ctx['var_types'] = {
             'var': 'variable',
             'arg': 'function argument',
-            'exception': 'exception',
+            # XXX: wgrant 2010-01-29 bug=514160: Need to
+            # restore support for this.
+            #'exception': 'exception',
             }
         ctx['part_types'] = {
             'stdout': 'standard output',
