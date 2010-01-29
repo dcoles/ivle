@@ -192,11 +192,21 @@ Python Console
 ==============
 
 IVLE provides a web based programming console, exposing similar features to 
-Python's command line console. It is built around python script 
-:file:`services/python-console` which opens up a socket to which `JSON`_ 
-encoded chat requests can be made. A new console is typically from launched on 
-demand by the web client to the HTTP API, which in turn calls the wrapper 
-class :class:`ivle.console.Console` to start a new console in the user's jail.
+Python's command line console. It is built around the
+:file:`services/python-console` script, which opens up a socket on a random
+port to which `JSON`_ encoded chat requests can be made.
+
+A new console is typically launched on demand by the web client to the HTTP
+API, which in turn calls the wrapper class :class:`ivle.console.Console` to
+start a new console in the user's jail.
+
+Subsequent requests from the same in-browser console connect to the existing
+console process. This is achieved by storing a string on the client which
+identifies the server address and port. The client then makes requests
+through the load balancer, sending this string through to an arbitrary slave
+which forwards the request to the identified console.
+
+This means that all slaves need access to all ports on every other slave.
 
 .. _JSON: http://json.org
 
