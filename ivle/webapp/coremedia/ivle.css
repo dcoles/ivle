@@ -227,7 +227,7 @@ form.verticalform div label {
     font-weight: bold;
 }
 
-form.verticalform div.submit input[type=submit] {
+form.verticalform div.submit {
     margin-left: 205px;
 }
 
