@@ -15,6 +15,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+class ExercisesBreadcrumb(object):
+    @property
+    def url(self):
+        return '/+exercises'
+
+    @property
+    def text(self):
+        return 'Exercises'
+
+
 class ExerciseBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req
@@ -27,6 +37,11 @@ class ExerciseBreadcrumb(object):
     @property
     def text(self):
         return self.context.name
+
+    @property
+    def extra_breadcrumbs_before(self):
+        return [ExercisesBreadcrumb()]
+
 
 class WorksheetBreadcrumb(object):
     def __init__(self, req, context):

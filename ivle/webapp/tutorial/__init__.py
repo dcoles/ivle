@@ -538,16 +538,18 @@ class ExerciseAddView(XHTMLView):
 
 class ExercisesView(XHTMLView):
     """View for seeing the list of all exercises"""
-    
+
     permission = 'edit'
     template = 'templates/exercises.html'
+    breadcrumb_text = 'Exercises'
+
     #XXX: This should be done somewhere else
     def authorize(self, req):
         for offering in req.store.find(Offering):
             if 'edit' in offering.get_permissions(req.user):
                 return True
         return False
-    
+
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         ctx['req'] = req
