@@ -50,7 +50,7 @@
               </li>
             </ul>
           </li>
-          <li py:for="thiscrumb in [crumb(ancestor) for ancestor in ancestry] + extra_breadcrumbs"
+          <li py:for="thiscrumb in breadcrumbs"
               py:if="thiscrumb"
               py:attrs="{True:{'class':'crumbmenu'}, False: None}[hasattr(thiscrumb, 'menu')]">
             <py:choose test="getattr(thiscrumb, 'url', None)">

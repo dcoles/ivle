@@ -106,20 +106,31 @@ class XHTMLView(BaseView):
         ctx['title_img'] = media_url(req, CorePlugin,
                                      "images/chrome/root-breadcrumb.png")
         try:
-            ctx['ancestry'] = self.get_context_ancestry(req)
+            ancestry = self.get_context_ancestry(req)
         except NoPath:
-            ctx['ancestry'] = []
+            ancestry = []
+
+        crumber = Breadcrumber(req)
+
+        ctx['breadcrumbs'] = []
+        for ancestor in ancestry:
+            crumb = crumber.crumb(ancestor)
+            if crumb is None:
+                continue
+
+            if hasattr(crumb, 'extra_breadcrumbs_before'):
+                ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_before)
+            ctx['breadcrumbs'].append(crumb)
+            if hasattr(crumb, 'extra_breadcrumbs_after'):
+                ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_after)
 
         # If the view has specified text for a breadcrumb, add one.
         if self.breadcrumb_text:
-            ctx['extra_breadcrumbs'] = [ViewBreadcrumb(req, self)]
-        else:
-            ctx['extra_breadcrumbs'] = []
+            ctx['breadcrumbs'].append(ViewBreadcrumb(req, self))
 
         # Allow the view to add its own fake breadcrumbs.
-        ctx['extra_breadcrumbs'] += self.extra_breadcrumbs
+        ctx['breadcrumbs'].extend(self.extra_breadcrumbs)
 
-        ctx['crumb'] = Breadcrumber(req).crumb
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
