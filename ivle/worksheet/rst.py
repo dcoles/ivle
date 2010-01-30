@@ -1555,13 +1555,13 @@ class CustomizedHTMLTranslator(HTMLTranslator):
         self.body.append('<exercise weight="1" src="')
 
     def depart_exercise(self, node):
-        self.body.append('"/>')
+        self.body.append('"/>\n')
 
     def visit_challenge(self, node):
         self.body.append('<exercise weight="0" src="')
 
     def depart_challenge(self, node):
-        self.body.append('"/>')
+        self.body.append('"/>\n')
 
     def visit_literal(self, node):
         """Process text to prevent tokens from wrapping."""
