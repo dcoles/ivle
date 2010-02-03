@@ -62,12 +62,18 @@ be pushed out to there if destined for production systems. The packaging is
 kept in a separate branch: `lp:~ivle-dev/ivle/debian-packaging
 <https://code.launchpad.net/~ivle-dev/ivle/debian-packaging>`_.
 
+You will need to be a member of the `University of Melbourne IVLE developers
+<https://launchpad.net/~unimelb-ivle>`_ team, have an OpenPGP key assigned to
+your account, and have signed the Ubuntu Code of Conduct. See the PPA
+documentation linked below for instructions. You should be able to build
+the package on any Debian-derived operating system that uses ``dpkg``.
+
 When performing a release, you should merge trunk into a checkout of the
 packaging branch. Then run ``dch -i`` to add a new Debian changelog entry.
 For the Debian version string, append ``-0ppa1`` to the IVLE version (eg.
-``1.0-0ppa``). Make sure that you target to the correct release (currently
-``hardy``). Also ensure that your name and email address are set correctly
-at the bottom of the new entry.
+``1.0-0ppa1``). Make sure that you target to the correct Ubuntu series (
+currently ``hardy``). Also ensure that your name and email address are set
+correctly at the bottom of the new entry.
 
 Next ensure that you have a copy of the release tarball in the parent
 directory, named ``ivle_VERSION.orig.tar.gz``. Once that's there, run
