@@ -24,6 +24,6 @@ Developer Documentation
 
     coding.rst
     docs.rst
-    packaging.rst
+    releases.rst
     architecture.rst
     faq.rst
