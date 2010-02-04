@@ -276,7 +276,8 @@ class OfferingAdminView(XHTMLView):
     pass
 
 
-WORKSHEET_FORMATS = {'XHTML (legacy)': 'xml', 'reStructuredText': 'rst'}
+# The first element is the default format
+WORKSHEET_FORMATS = (('reStructuredText', 'rst'), ('XHTML (legacy)', 'xml'))
 
 
 class WorksheetFormatValidator(formencode.FancyValidator):
@@ -285,7 +286,7 @@ class WorksheetFormatValidator(formencode.FancyValidator):
     The state must have a 'store' attribute, which is the Storm store
     to use."""
     def _to_python(self, value, state):
-        if value not in WORKSHEET_FORMATS.values():
+        if value not in [x for (_,x) in WORKSHEET_FORMATS]:
             raise formencode.Invalid('Unsupported format', value, state)
         return value
 

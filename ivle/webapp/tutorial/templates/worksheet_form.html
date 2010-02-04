@@ -21,8 +21,8 @@
         <div>
           <label for='worksheet_format'>Format:</label>
           <select name='format' id='worksheet_format'>
-            <py:for each="niceformat in formats">
-              <option value='${formats[niceformat]}'>${niceformat}</option>
+            <py:for each="(display,name) in formats">
+              <option value='${name}'>${display}</option>
             </py:for>
           </select>
           <span py:if="'format' in errors" class="form_error">${errors.format}</span>
