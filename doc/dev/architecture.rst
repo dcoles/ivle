@@ -186,7 +186,7 @@ than the real memory used. For this reason :const:`RLIMIT_AS` is currently set
 very large.
 
 
-.. ref-python-console
+.. _ref-python-console:
 
 Python Console
 ==============
