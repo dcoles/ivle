@@ -15,6 +15,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+
+class UsersBreadcrumb(object):
+    @property
+    def url(self):
+        return '/users'
+
+    @property
+    def text(self):
+        return 'Users'
+
+
 class UserBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req
@@ -28,6 +39,11 @@ class UserBreadcrumb(object):
     def text(self):
         return self.context.nick
 
+    @property
+    def extra_breadcrumbs_before(self):
+        return [UsersBreadcrumb()]
+
+
 class SubjectBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req
@@ -36,6 +52,7 @@ class SubjectBreadcrumb(object):
     @property
     def text(self):
         return self.context.name
+
 
 class OfferingBreadcrumb(object):
     def __init__(self, req, context):
@@ -50,6 +67,7 @@ class OfferingBreadcrumb(object):
     def text(self):
         return '%s semester %s' % (self.context.semester.year,
                                    self.context.semester.semester)
+
 
 class ProjectBreadcrumb(object):
     def __init__(self, req, context):

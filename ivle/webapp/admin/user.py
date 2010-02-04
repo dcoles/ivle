@@ -35,6 +35,7 @@ import ivle.util
 class UsersView(XHTMLView):
     """A list of all IVLE users."""
     template = 'templates/users.html'
+    breadcrumb_text = 'Users'
 
     def authorize(self, req):
         return req.user.admin
