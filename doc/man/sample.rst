@@ -45,7 +45,8 @@ which performs the following tasks:
 * Creates data directories and subversion repositories for all users, backing
   up directories for any existing users.
 
-The script is executed with the following command::
+The script is executed with the following command from the IVLE source
+directory::
 
     sudo ivle-loadsampledata examples/db/sample.sql
 
@@ -53,8 +54,8 @@ The script is executed with the following command::
    installation. Be sure you wish to do this.
 
 .. note:: The script may fail at the "dropping database" phase if Apache or
-   another process are using the database. It is best to stop Apache before
-   executing the script.
+   another process are using the database. It is best to *restart* (not stop)
+   Apache before executing the script (``sudo /etc/init.d/apache2 restart``).
 
    If the database exists, but is not properly initialised, then the script
    may fail. In this case, you should manually run ``ivle-mountallusers -u``,
