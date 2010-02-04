@@ -276,7 +276,7 @@ class OfferingAdminView(XHTMLView):
     pass
 
 
-WORKSHEET_FORMATS = {'XML': 'xml', 'reStructuredText': 'rst'}
+WORKSHEET_FORMATS = {'XHTML (legacy)': 'xml', 'reStructuredText': 'rst'}
 
 
 class WorksheetFormatValidator(formencode.FancyValidator):
