@@ -30,8 +30,9 @@ within the system itself (accessible from the Help tab).
 
    install.rst
    config.rst
+   sample.rst
+   tour.rst
    directory.rst
    architecture.rst
    scripts.rst
    faq.rst
-   sample.rst
