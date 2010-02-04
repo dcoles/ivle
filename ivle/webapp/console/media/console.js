@@ -85,10 +85,19 @@ function start_server(callback)
     var callback1 = function(xhr)
         {
             var json_text = xhr.responseText;
-            server_key = JSON.parse(json_text).key;
-            server_started = true;
-            if (callback != null)
-                callback();
+            try
+            {
+                server_key = JSON.parse(json_text).key;
+                server_started = true;
+                if (callback != null)
+                    callback();
+            }
+            catch (e)
+            {
+                alert("An error occured when starting the IVLE console. " +
+                    "Please refresh the page and try again.\n" +
+                    "Details have been logged for further examination.")
+            }
         }
 
     ajax_call(
