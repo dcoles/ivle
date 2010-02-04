@@ -12,7 +12,8 @@ beginners to check they are typing things in correctly.
 */
 
 /* Include the standard docutils stylesheet. */
-@import url(default.css);
+/* XXX: We're not ready for this CSS, apparently. See bug #516911. */
+/* @import url(default.css); */
 
 /* Custom inline roles */
 span.placeholder    { font-style: italic; font-family: monospace; }
