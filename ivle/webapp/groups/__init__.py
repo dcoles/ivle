@@ -48,4 +48,3 @@ class Plugin(ViewPlugin, MediaPlugin):
     views = [(ProjectSet, '+groups', GroupsView)]
 
     media = 'media'
-    help = {'Groups': 'help.html'}
