@@ -126,19 +126,6 @@ tr.row2sel:hover {
     border-collapse: collapse;
 }
 
-#filetable td, #filetable th {
-    border: 1px solid #888;
-}
-
-/* Borders between icons and filename are turned off. */
-
-#filetable td.col-icons, #filetable th.col-date, #filetable td.col-date {
-    border-right: 0 none;
-}
-#filetable td.col-filename {
-    border-left: 0 none;
-}
-
 /* SIDE PANEL */
 
 #sidepanel_outer {
