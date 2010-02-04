@@ -150,8 +150,9 @@ can be seen from the IVLE application.
 Projects
 --------
 
-The subject ivle-102 has two project sets and three projects. This
-demonstrates the relationship between project sets and projects.
+The subject ivle-102 (2009 semester 2) has two project sets and three
+projects. This demonstrates the relationship between project sets and
+projects.
 
 The first project set is a solo project set (every student works by
 themselves on all projects). It has one project in it.
@@ -164,16 +165,17 @@ two projects in it, demonstrating that the students get to keep their group
 Finally, there is a single group for projects 2 and 3, which has the students
 studenta and studentb enlisted.
 
-Worksheets
-----------
-
-There are not yet any worksheets.
-
 Exercises
 ---------
 
 There is currently a single exercise, ``factorial``, which prompts the user to
 write a factorial function and tests its correctness.
+
+Worksheets
+----------
+
+There is currently a single worksheet in the subject ivle-102 (2009 semester
+2). It embeds the exercise ``factorial``.
 
 Updating the sample data
 ========================

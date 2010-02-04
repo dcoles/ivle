@@ -14,7 +14,7 @@ SET search_path = public, pg_catalog;
 -- Name: assessed_assessedid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('assessed_assessedid_seq', 1, false);
+SELECT pg_catalog.setval('assessed_assessedid_seq', 1, true);
 
 
 --
@@ -119,14 +119,14 @@ SELECT pg_catalog.setval('test_suite_suiteid_seq', 3, true);
 -- Name: worksheet_exercise_ws_ex_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('worksheet_exercise_ws_ex_id_seq', 1, false);
+SELECT pg_catalog.setval('worksheet_exercise_ws_ex_id_seq', 1, true);
 
 
 --
 -- Name: worksheet_worksheetid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('worksheet_worksheetid_seq', 1, false);
+SELECT pg_catalog.setval('worksheet_worksheetid_seq', 1, true);
 
 
 --
@@ -135,6 +135,7 @@ SELECT pg_catalog.setval('worksheet_worksheetid_seq', 1, false);
 
 ALTER TABLE assessed DISABLE TRIGGER ALL;
 
+INSERT INTO assessed (assessedid, loginid, groupid, projectid) VALUES (1, 2, NULL, 1);
 
 
 ALTER TABLE assessed ENABLE TRIGGER ALL;
@@ -422,6 +423,17 @@ ALTER TABLE test_suite ENABLE TRIGGER ALL;
 
 ALTER TABLE worksheet DISABLE TRIGGER ALL;
 
+INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, assessable, seq_no, format) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
+
+Worksheets are reStructuredText (rich text) documents which can present students with information or tutorials, much like a textbook. For example, we might explain that "recursion is when a function calls itself".
+
+We can use any reStructuredText markup, such as **bold** and `links <http://ivle.org>`_. We can also embed exercises. For example, we might invite students to "try out recursion in the following exercise".
+
+Beginning a line with ``.. exercise:: <exercise-name>`` embeds an exercise in a worksheet, like this:
+
+.. exercise:: factorial
+
+Now, the student may try out the above exercise, and submit it as many times as (s)he wishes. Once they have it correct, they will receive a point on their assessment.', true, 0, 'rst');
 
 
 ALTER TABLE worksheet ENABLE TRIGGER ALL;
@@ -432,6 +444,7 @@ ALTER TABLE worksheet ENABLE TRIGGER ALL;
 
 ALTER TABLE worksheet_exercise DISABLE TRIGGER ALL;
 
+INSERT INTO worksheet_exercise (ws_ex_id, worksheetid, exerciseid, seq_no, active, optional) VALUES (1, 1, 'factorial', 0, true, false);
 
 
 ALTER TABLE worksheet_exercise ENABLE TRIGGER ALL;
