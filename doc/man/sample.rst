@@ -137,8 +137,15 @@ The repository for user "studenta" has a few sample files. All of the
 directories must be checked out (using the Checkout button) before the files
 can be seen from the IVLE application.
 
-* In the :file:`stuff` directory is a sample file, :file:`hello.py`. This is a
-  simple Python script, which can be executed with the "Serve" command.
+* :file:`stuff/Welcome to IVLE.html`: A simple web page, which can be
+  displayed with the "Serve" command.
+* :file:`stuff/hello.py`: A simple Python script, which can be executed with
+  the "Serve" command. This file has a few edits in its revision history.
+* :file:`ivle-102/mywork/phase1.html`: A file for a student's project
+  submission.
+* :file:`group1/phase2.html`: A file for a group project submission. This
+  contains edits by both studenta and studentb, and is also accessible if
+  logged in as studentb.
 
 Projects
 --------
