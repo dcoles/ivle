@@ -71,8 +71,8 @@ the package on any Debian-derived operating system that uses ``dpkg``.
 When performing a release, you should merge trunk into a checkout of the
 packaging branch. Then run ``dch -i`` to add a new Debian changelog entry.
 For the Debian version string, append ``-0ppa1`` to the IVLE version (eg.
-``1.0-0ppa1``). Make sure that you target to the correct Ubuntu series (
-currently ``hardy``). Also ensure that your name and email address are set
+``1.0-0ppa1``). Make sure that you target to the correct Ubuntu series
+(currently ``hardy``). Also ensure that your name and email address are set
 correctly at the bottom of the new entry.
 
 Next ensure that you have a copy of the release tarball in the parent
@@ -85,7 +85,7 @@ upload the package to the production PPA. You should receive an acknowledgement
 email from Launchpad within five minutes, at which point Launchpad will begin
 building binaries from the source package. You can check the build progress
 on the `PPA detail page
-<https://~unimelb-ivle/+archive/production/+packages>`_.
+<https://launchpad.net/~unimelb-ivle/+archive/production/+packages>`_.
 
 Remember to commit to and push the ``debian-packaging`` branch when done.
 
