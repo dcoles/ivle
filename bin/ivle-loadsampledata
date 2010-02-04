@@ -178,25 +178,19 @@ def temp_checkout(svnclient, username):
     return tempdir
 
 logging.info("Populating student repositories")
+def svnload(dumpfile, repo):
+    """Run svnadmin load.
+    @param dumpfile: Dump file to load from, relative to examples/userrepos.
+    @param repo: Repo to write to, relative to /var/lib/ivle/svn/repositories.
+    """
+    f = open(os.path.join("examples/userrepos", dumpfile), "rb")
+    repo = os.path.join(config['paths']['svn']['repo_path'], repo)
+    errmsg = runprog_stderr(["sudo", "-u", "www-data", "svnadmin", "load",
+                             repo], stdin=f)
+    if errmsg is not None:
+        logging.error(errmsg)
+    f.close()
 
-svnclient = ivle.svn.create_auth_svn_client_autopass("studenta")
-workspace = temp_checkout(svnclient, "studenta")
-dirname = os.path.join(workspace, "stuff")
-filename = os.path.join(dirname, "hello.py")
-if not os.path.isdir(dirname):
-    os.makedirs(dirname)
-svnclient.add(dirname, force=True)
-# XXX Copy files from a sample directory
-f = open(filename, "w")
-f.write("""\
-# Hello IVLE, by Alice Student
-# CGI program -- Prints CGI headers, then HTML output
-
-print "Content-Type: text/html"
-print
-print "<html><body><p>Hello, world!</p></body></html>"
-""")
-f.close()
-svnclient.add(filename, force=True)
-svnclient.checkin(workspace, "Added some files")
-shutil.rmtree(workspace)
+# Load the known SVN dump files
+svnload("studenta.dump", "users/studenta")
+svnload("group1.dump", "groups/ivle-102_2009_2_group1")

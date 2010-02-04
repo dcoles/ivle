@@ -1,0 +1,142 @@
+SVN-fs-dump-format-version: 2
+
+UUID: 04b5fd35-4d05-4c0a-8cfb-e7c153db22a5
+
+Revision-number: 0
+Prop-content-length: 56
+Content-length: 56
+
+K 8
+svn:date
+V 27
+2010-02-04T01:10:35.204278Z
+PROPS-END
+
+Revision-number: 1
+Prop-content-length: 134
+Content-length: 134
+
+K 7
+svn:log
+V 31
+Begun work on phase2 by myself.
+K 10
+svn:author
+V 8
+studenta
+K 8
+svn:date
+V 27
+2010-02-04T01:30:14.234675Z
+PROPS-END
+
+Node-path: phase2.html
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 289
+Text-content-md5: 1b21356b4d29567ecc5b72bd84ba9db3
+Text-content-sha1: 8dbfe59d6f7e20d37ccbb9b8e739587f8b09a849
+Content-length: 299
+
+PROPS-END
+<html>
+<head>
+<title>Intermediate IVLE &mdash; Phase 2</title>
+</head>
+<body>
+<h1>Intermediate IVLE &mdash; Phase 2</h1>
+<p>By Alice Student</p>
+<h2>Introduction</h2>
+<p>In this project, we propose to discover the use of IVLE's file system
+and Subversion repositories.</p>
+</body>
+</html>
+
+
+Revision-number: 2
+Prop-content-length: 135
+Content-length: 135
+
+K 7
+svn:log
+V 32
+Did a bit of work on the project
+K 10
+svn:author
+V 8
+studentb
+K 8
+svn:date
+V 27
+2010-02-04T01:34:34.433136Z
+PROPS-END
+
+Node-path: phase2.html
+Node-kind: file
+Node-action: change
+Text-content-length: 402
+Text-content-md5: e24b8c8cb8738b227ad9aaae0ac9f4ca
+Text-content-sha1: 8bcd69cfeb5ef198876c3b86d5127f656995e144
+Content-length: 402
+
+<html>
+<head>
+<title>Intermediate IVLE &mdash; Phase 2</title>
+</head>
+<body>
+<h1>Intermediate IVLE &mdash; Phase 2</h1>
+<p>By Alice Student and Bob Student</p>
+<h2>Introduction</h2>
+<p>In this project, we propose to discover the use of IVLE's file system
+and Subversion repositories.</p>
+<p>In particular, we intend to investigate multiple users committing to the
+same repository.</p>
+</body>
+</html>
+
+
+Revision-number: 3
+Prop-content-length: 138
+Content-length: 138
+
+K 7
+svn:log
+V 35
+Wrote the conclusion to the project
+K 10
+svn:author
+V 8
+studenta
+K 8
+svn:date
+V 27
+2010-02-04T01:37:23.342264Z
+PROPS-END
+
+Node-path: phase2.html
+Node-kind: file
+Node-action: change
+Text-content-length: 447
+Text-content-md5: 8ef73247221d6eabe5fb023c41d0ff9f
+Text-content-sha1: 9827d1402e3dfc692c379767282e2404aaef20b9
+Content-length: 447
+
+<html>
+<head>
+<title>Intermediate IVLE &mdash; Phase 2</title>
+</head>
+<body>
+<h1>Intermediate IVLE &mdash; Phase 2</h1>
+<p>By Alice Student and Bob Student</p>
+<h2>Introduction</h2>
+<p>In this project, we propose to discover the use of IVLE's file system
+and Subversion repositories.</p>
+<p>In particular, we intend to investigate multiple users committing to the
+same repository.</p>
+<h2>Conclusion</h2>
+<p>IVLE works great!</p>
+</body>
+</html>
+
+
