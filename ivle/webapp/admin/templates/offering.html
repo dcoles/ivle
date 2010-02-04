@@ -38,7 +38,11 @@
                             if project.has_deadline_passed(req.user)
                             else {'class': 'project'}"
                   py:with="principal = project.project_set.get_submission_principal(req.user)">
-                <a href="${project.url}">${project.name}</a> &ndash;
+                <py:choose test="project.url not in (None, '')">
+                  <a py:when="True" href="${project.url}">${project.name}</a>
+                  <span py:otherwise="">${project.name}</span> 
+                </py:choose>
+                &ndash;
                 <span py:content="format_submission_principal(req.user, principal)" /> &ndash;
                 <span title="${format_datetime(project.deadline)}">
                   ${'closed' if project.has_deadline_passed(req.user) else 'due'} ${format_datetime_short(project.deadline)}
