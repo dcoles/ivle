@@ -112,14 +112,14 @@ is "password".
 
 * admin/password: This user has administrative rights over the entire system.
 * lecturer/password: This is a normal user, but is enrolled as a lecturer in
-  100101 (2009 semester 1) and 100102 (2009 semester 2).
+  ivle-101 (2009 semester 1) and ivle-102 (2009 semester 2).
 * tutor/password: This is a normal user, but is enrolled as a tutor in
-  100102 (2009 semester 2).
-* studenta/password: This is a normal user, enrolled in 100101 (2009 semester
-  1) and 100102 (2009 semester 2).
-* studentb/password: This is a normal user, enrolled in 100102 (2009 semester
-  2). This student has not yet accepted the Terms of Service, so does not have
-  a jail created, etc.
+  ivle-102 (2009 semester 2).
+* studenta/password: This is a normal user, enrolled in ivle-101 (2009
+  semester 1) and ivle-102 (2009 semester 2).
+* studentb/password: This is a normal user, enrolled in ivle-102 (2009
+  semester 2). This student has not yet accepted the Terms of Service, so does
+  not have a jail created, etc.
 
 .. note:: For the first three users, the Subversion password is also
    "password". This means it is possible to access their SVN repository
@@ -150,8 +150,8 @@ can be seen from the IVLE application.
 Projects
 --------
 
-The subject 100102 has two project sets and three projects. This demonstrates
-the relationship between project sets and projects.
+The subject ivle-102 has two project sets and three projects. This
+demonstrates the relationship between project sets and projects.
 
 The first project set is a solo project set (every student works by
 themselves on all projects). It has one project in it.
