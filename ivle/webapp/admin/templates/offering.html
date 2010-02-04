@@ -132,6 +132,11 @@
                class="manageaction"
                href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}">
               Manage worksheets
+            </a><br />
+            <a py:if="'edit' in permissions"
+               class="manageaction"
+               href="/+exercises">
+              Manage exercises
             </a>
           </div>
         </py:choose>
