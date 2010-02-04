@@ -281,6 +281,7 @@ form.verticalform div.submit {
 .keyaction,
 .manageaction,
 .groupaction,
+.subjectaction,
 .webaction {
   padding-left: 20px;
   background-position: left center;
@@ -309,6 +310,10 @@ form.verticalform div.submit {
 
 .groupaction {
   background-image: url(images/interface/group.png);
+}
+
+.subjectaction {
+  background-image: url(../ivle.webapp.tutorial/tutorial-small.png);
 }
 
 .webaction {

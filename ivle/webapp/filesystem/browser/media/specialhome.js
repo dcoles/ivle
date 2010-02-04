@@ -66,9 +66,11 @@ function home_listing(listing, subjects, path)
         {
             var subject = subjects[i];
             var subjpath = subject.subj_short_name;
-            // Header
-            h3 = dom_make_text_elem("h3", subject.subj_name);
-            specialhomediv.appendChild(h3);
+            // Header, with link to offering home page.
+            h3 = $('<h3><span></span> <span style="font-weight: normal">&ndash; <a class="subjectaction">Subject home</a></span>');
+            h3.find('span:first-child').text(subject.subj_name);
+            h3.find('a').attr('href', subject.url);
+            $(specialhomediv).append(h3);
         
             /* Print the file listing */
             ul = document.createElement("ul");

@@ -325,6 +325,7 @@ def handle_get_enrolments(req, fields):
     for e in user.active_enrolments:
         dict_enrolments.append({
             'offeringid':      e.offering.id,
+            'url':             req.publisher.generate(e.offering),
             'subj_code':       e.offering.subject.code,
             'subj_name':       e.offering.subject.name,
             'subj_short_name': e.offering.subject.short_name,
