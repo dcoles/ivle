@@ -48,7 +48,15 @@ try:
     svnclient = pysvn.Client()
     svnclient.exception_style = 1
     diff = svnclient.diff
-    diff_text = diff( '/tmp/svndiff',
+
+    # pysvn's diff tempfile behaviour changes with Subversion 1.6.x.
+    # < 1.6 wants a filename, >= 1.6 wants a directory.
+    if pysvn.svn_version > (1, 6):
+        tmp_path = '/tmp'
+    else:
+        tmp_path = '/tmp/svndiff'
+
+    diff_text = diff(tmp_path,
         os.path.join('/home', sys.argv[1]),
         revision1=revs[0],
         revision2=revs[1]
