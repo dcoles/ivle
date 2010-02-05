@@ -67,6 +67,9 @@ You will need to be a member of the `University of Melbourne IVLE developers
 your account, and have signed the Ubuntu Code of Conduct. See the PPA
 documentation linked below for instructions. You should be able to build
 the package on any Debian-derived operating system that uses ``dpkg``.
+You also need to have an SSH key `associated with your account
+<https://help.launchpad.net/YourAccount/CreatingAnSSHKeyPair>`_ so you can
+commit to the branch on Launchpad.
 
 When performing a release, you should merge trunk into a checkout of the
 packaging branch. Then run ``dch -i`` to add a new Debian changelog entry.
