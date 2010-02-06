@@ -39,6 +39,12 @@ def activate_user(store, props, config):
     @return: None
     """
 
+    if not os.path.exists(config['paths']['jails']['template']):
+        return {
+            'response': 'error',
+            'message': 'Template jail has not been built -- '
+                       'do you need to run ivle-buildjail?'}
+
     os.umask(0022) # Bad, but start_server sets it worse.
 
     login = props['login']

@@ -99,6 +99,11 @@ function handle_accept_response(xhr)
     tos_acceptbuttons.appendChild(dom_make_text_elem("p",
         "Error connecting to server. Please try again later. "));
     }
+    else if (response.response == 'error')
+    {
+    tos_acceptbuttons.appendChild(dom_make_text_elem("p",
+        "Error activating user: " + response.message));
+    }
     else
     {
         /* Refresh the page; as the user is now (apparently) logged in */
