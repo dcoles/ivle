@@ -50,6 +50,16 @@ For example, to get the Subversion repository path, use
    variables than code running outside. It will be missing a lot of data, and
    will contain some user-specific data.
 
+... restrict permission to different views?
+-------------------------------------------
+
+In all views derived from ``BaseView`` the ``authorize`` function is called to 
+check if a user has access to a particular file. Often this is simply a check 
+to ensure that the user is logged in (the value of 'user' is not None), but 
+may be more complex such as checking if a user has a password hash set (to 
+prevent clobbering of external auth) or checking if a user has permission to 
+edit an ``Offering`` object.
+
 Database
 ========
 
@@ -134,6 +144,21 @@ and use::
 
     store.add(user)
     store.commit()
+
+... modify user capabilities or privileges?
+-------------------------------------------
+
+User privileges are set by the ``get_permissions`` functions in 
+``ivle/database.py``. Permissions are highly granular and can be set on almost 
+every object in the database.
+
+Most permissions are set on the ``Offering`` level with ``ProjectSet``, 
+``Project`` and ``Worksheet`` simply delegating the check to ``Offering``.  
+Since ``Exercise`` may be shared between multiple ``Offerings``, the 
+permissions are calculated from the users active enrollments. Other objects 
+such as ``User`` may only be modified by the user or an admin. If a user is 
+not logged in (user is None) then they will typically receive no privileges at 
+all.
 
 Where do I find...
 ------------------
