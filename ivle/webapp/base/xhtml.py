@@ -162,7 +162,12 @@ class XHTMLView(BaseView):
                 continue
 
             for tab in plugin.tabs:
-                # tab is a tuple: name, title, desc, icon, path
+                # tab is a tuple: name, title, desc, icon, path, weight, admin
+                # (Admin is optional, defaults to false)
+                if len(tab) > 6 and tab[6]:
+                    # Admin-only tab
+                    if not (req.user and req.user.admin):
+                        break
                 new_app = {}
                 new_app['this_app'] = hasattr(self, 'tab') \
                                       and tab[0] == self.tab

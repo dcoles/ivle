@@ -35,6 +35,7 @@ import ivle.util
 class UsersView(XHTMLView):
     """A list of all IVLE users."""
     template = 'templates/users.html'
+    tab = 'users'
     breadcrumb_text = 'Users'
 
     def authorize(self, req):
@@ -231,6 +232,11 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ivle.database.User, '+resetpassword', PasswordResetView),
              (ivle.database.User, '+index', UserRESTView, 'api'),
              ]
+
+    tabs = [
+        ('users', 'Users', 'Display and edit all users',
+         'users.png', 'users', 0, True)
+    ]
 
     public_forward_routes = forward_routes
     public_reverse_routes = reverse_routes
