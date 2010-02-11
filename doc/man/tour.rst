@@ -236,20 +236,18 @@ user's own "Change password" page. However, "Reset password" is a special
 admin page which lets you change a user's password without knowing the old
 one. "Administer user" also lets you change administrative settings for the
 user, such as their full name (more formal than display name, which the user
-themselves can change) and student ID. You can also add or remove admin status
-for any user.
+themselves can change) and student ID. You can also add/remove admin status
+for, or disable/enable (i.e., ban from IVLE) any user (except yourself, of
+course -- that could be bad).
 
 .. warning::
    Use this with care. Making a user an admin gives them complete control over
    the system. They could even revoke *your* admin rights!
 
-Firstly, note that admin users enjoy the same privileges as lecturers, for all
-subjects on the system.
-
-If you go to the 
-
-* Edit any user, reset password.
-* Enrol lecturers in a subject.
+Admin users also enjoy the same privileges as lecturers, for all subjects on
+the system. In addition, admins can enrol users in a subject as lecturers
+(this is the only way to become a lecturer). Go to the subject page for
+"Advanced IVLE" and enrol the user "lecturer" as a Lecturer in the subject.
 
 Admin scripts
 -------------
