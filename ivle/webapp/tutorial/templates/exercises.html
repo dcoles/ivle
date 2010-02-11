@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Exercises</title>
+    <title>Manage exercises</title>
     <!-- These let the javascript know which worksheet is open -->
     <script type="text/javascript">
     </script>
@@ -9,14 +9,20 @@
   <body>
     <h1>Exercises</h1>
     <div id="ivle_padding">
-    <ul>
+      <table id='exercises_table'>
+        <tr><th>Name</th><th>Display name</th><th>Actions</th></tr>
       <py:for each="exercise in exercises">
-        <li class="exercise_names">
-          <div><a class="exercise_header" href="${req.publisher.generate(exercise)}">${exercise.id}</a></div>${exercise.name}
-        </li>
+        <tr>
+          <td><a class="exercise_header" href="${req.publisher.generate(exercise)}">${exercise.id}</a></td>
+          <td>${exercise.name}</td>
+            <td>
+              <a href='${req.publisher.generate(exercise)}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" alt="Edit" /></a>
+            </td>
+        </tr>
       </py:for>
-    </ul>
-    <a class="addaction" href="/+exercises/+add">Create an exercise</a>
+      </table>
+      <br />
+    <a class="addaction" href="/+exercises/+add">Create new exercise</a>
     </div>
   </body>
 </html>

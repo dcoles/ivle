@@ -554,6 +554,7 @@ class ExercisesView(XHTMLView):
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
         ctx['req'] = req
+        ctx['mediapath'] = media_url(req, Plugin, 'images/')
         ctx['exercises'] = req.store.find(Exercise).order_by(Exercise.id)
 
 
