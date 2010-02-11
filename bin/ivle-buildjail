@@ -34,7 +34,7 @@ Builds or updates the base IVLE jail."""
 
 # Requires root
 if os.getuid() != 0:
-    print >> sys.stderr, "This script requires root privlages to run"
+    print >> sys.stderr, "This script requires root privileges to run"
     sys.exit(1)
 
 conf = ivle.config.Config()
