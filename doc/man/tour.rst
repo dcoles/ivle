@@ -133,10 +133,88 @@ and you have been awarded some marks.
 A lecturer's view
 =================
 
-Log into IVLE as a lecturer (username: 'lecturer', password: 'password').
+Log into IVLE as a lecturer (username: 'lecturer', password: 'password'). Many
+of these things are also possible as a tutor (try username: 'tutor', password:
+'password').
+
+Being a lecturer or tutor is a per-subject privilege, so it only applies to
+certain subjects. All of your special powers are under the subject home for
+the subjects you are a tutor in. Note that everything a lecturer can do, an
+admin can also do, for all subjects in the system.
+
+Click "Intermediate IVLE - Subject home". From here, you will see largely the
+same view as a student, but with more buttons. "Change details" allows you to
+modify the subject properties. "Enrol users" allows you to add existing IVLE
+users as students or tutors of the subject you are teaching (this is currently
+an irreversible action).
+
+Managing projects
+-----------------
+
+Click "Manage projects" to go to the project management screen. Note that the
+3 projects are grouped into "Solo projects" (projects submitted by each
+individual student) and "Group projects". Try adding a new Solo project, by
+clicking on "Add a new project" within that box. The fields should be fairly
+self-explanatory.
 
 .. warning::
-   To be written.
+   You can't currently edit or delete a project after it has been created.
+
+Group projects are complicated by what we call "project sets". A "project set"
+is a set of group projects where the student groups are the same throughout.
+For instance, you will see Phase 2 and Phase 3 inside the same project set
+box. This means students will get into groups of 3 to submit Phase 2, and then
+the same group will submit Phase 3.
+
+Clicking "Manage groups" lets you put students into groups for a given project
+set.
+
+Click "Add a new project set" and enter a group size of 6. Then, create a
+project in the new set. Each student must get into a new group for each
+project *set*. Note also that the groups will share a Subversion repository
+for all projects in a set, but if you create a new set, the students will have
+to start using a new repository.
+
+Usually, the hassle of getting into new groups and creating new repositories
+means that you will want to create a single project set for a subject, and
+just partition the projects into solo and group projects.
+
+Managing worksheets and exercises
+---------------------------------
+
+Return to the subject home page. Click "Manage worksheets". On this page, you
+will see all of the worksheets for the subject. Here you can edit worksheets,
+add new ones, and re-order them. You can also edit any worksheet from its own
+page.
+
+To get an idea of what a worksheet looks like in edit mode, click the edit
+action (pencil) next to "Worksheet Basics".
+
+* The "URL name" is the name of the worksheet as it appears in URLs.
+* The "Assessable" checkbox will make the exercises in the worksheet count
+  towards each student's worksheet mark, if checked. Uncheck it for
+  informational worksheets.
+* The "Format" selection controls the format used to write the worksheet in
+  the box below. Leave it on "reStructuredText" unless you have a reason not
+  to.
+
+Now, you can edit the worksheet content in reStructuredText. The existing text
+briefly explains this format. See `A ReStruecturedText Primer
+<http://docutils.sourceforge.net/docs/user/rst/quickstart.html>`_ for a full
+guide. Note that the exercises themselves are not in the worksheet. They are
+separate resources, which can be shared across subjects. Exercises can be
+embedded with a line like this::
+
+ .. exercise:: factorial
+
+Click "Manage exercises" to see the exercises (in the sample data, just
+"factorial"). An exercise is a very complex thing, due to the fact that it
+runs automated testing on the student code. The details are outside the scope
+of this tour. Hopefully, you can figure out how they work by examining the
+existing "factorial" exercise.
+
+If you are game enough, create a new worksheet from scratch. If you are
+*really* game, create a new exercise for your worksheet.
 
 An administrator's view
 =======================
