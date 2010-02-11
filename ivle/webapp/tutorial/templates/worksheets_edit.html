@@ -13,9 +13,11 @@
     <h1>Worksheets for ${subject.name}</h1>
     <div id="ivle_padding">
       <table id="worksheets_table" class="pretty_table">
-        <tr><th>Name</th><th>Actions</th></tr>
-      <py:for each="worksheet in worksheets">
-          <tr id='${worksheet.identifier}'>
+        <thead>
+          <tr><th>Name</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr py:for="worksheet in worksheets">
             <td><a href="${worksheet.identifier}/">${worksheet.name}</a></td>
             <td>
               <a href='${worksheet.identifier}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" alt="Edit" /></a>
@@ -23,7 +25,7 @@
               <a title="Move Down" onclick="move_down('${worksheet.identifier}')"><img src="${mediapath + 'down.png'}" alt="Down" /></a>
             </td>
           </tr>
-      </py:for>
+        </tbody>
       </table>
       <br />
       <a class="addaction" href="+new">Create new worksheet</a>

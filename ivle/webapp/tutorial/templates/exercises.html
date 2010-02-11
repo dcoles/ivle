@@ -10,16 +10,18 @@
     <h1>Exercises</h1>
     <div id="ivle_padding">
       <table class="pretty_table">
-        <tr><th>Name</th><th>Display name</th><th>Actions</th></tr>
-      <py:for each="exercise in exercises">
-        <tr>
-          <td><a class="exercise_header" href="${req.publisher.generate(exercise)}">${exercise.id}</a></td>
-          <td>${exercise.name}</td>
+        <thead>
+          <tr><th>Name</th><th>Display name</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <tr py:for="exercise in exercises">
+            <td><a class="exercise_header" href="${req.publisher.generate(exercise)}">${exercise.id}</a></td>
+            <td>${exercise.name}</td>
             <td>
               <a href='${req.publisher.generate(exercise)}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" alt="Edit" /></a>
             </td>
-        </tr>
-      </py:for>
+          </tr>
+        </tbody>
       </table>
       <br />
     <a class="addaction" href="/+exercises/+add">Create new exercise</a>
