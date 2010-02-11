@@ -79,7 +79,7 @@ class UserEditSchema(formencode.Schema):
 class UserEditView(XHTMLView):
     """A form to change a user's details."""
     template = 'templates/user-edit.html'
-    tab = 'settings'
+    tab = 'users'
     permission = 'edit'
 
     def filter(self, stream, ctx):
@@ -122,7 +122,7 @@ class UserAdminSchema(formencode.Schema):
 class UserAdminView(XHTMLView):
     """A form for admins to change more of a user's details."""
     template = 'templates/user-admin.html'
-    tab = 'settings'
+    tab = 'users'
 
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""
@@ -162,7 +162,7 @@ class UserAdminView(XHTMLView):
 class PasswordChangeView(XHTMLView):
     """A form to change a user's password, with knowledge of the old one."""
     template = 'templates/user-password-change.html'
-    tab = 'settings'
+    tab = 'users'
     permission = 'edit'
 
     def authorize(self, req):
@@ -196,7 +196,7 @@ class PasswordChangeView(XHTMLView):
 class PasswordResetView(XHTMLView):
     """A form to reset a user's password, without knowledge of the old one."""
     template = 'templates/user-password-reset.html'
-    tab = 'settings'
+    tab = 'users'
 
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""

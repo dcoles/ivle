@@ -164,10 +164,6 @@ class XHTMLView(BaseView):
             for tab in plugin.tabs:
                 # tab is a tuple: name, title, desc, icon, path, weight, admin
                 # (Admin is optional, defaults to false)
-                if len(tab) > 6 and tab[6]:
-                    # Admin-only tab
-                    if not (req.user and req.user.admin):
-                        break
                 new_app = {}
                 new_app['this_app'] = hasattr(self, 'tab') \
                                       and tab[0] == self.tab
@@ -181,6 +177,12 @@ class XHTMLView(BaseView):
                         ctx['favicon'] = icon_url
                 else:
                     new_app['has_icon'] = False
+                # The following check is here, so it is AFTER setting the
+                # icon, but BEFORE actually installing the tab in the menu
+                if len(tab) > 6 and tab[6]:
+                    # Admin-only tab
+                    if not (req.user and req.user.admin):
+                        break
                 new_app['path'] = req.make_path(tab[4])
                 new_app['desc'] = tab[2]
                 new_app['name'] = tab[1]
