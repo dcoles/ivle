@@ -1,0 +1,26 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <body py:strip="">
+      <form class="verticalform thin" method="post" action="">
+        <div>
+          <label for="field_name">Display name:</label>
+          <input type="text" id="field_name" name="name" />
+          <span py:if="'name' in errors" class="form_error">${errors.name}</span>
+        </div>
+        <div>
+          <label for="field_short_name">URL name:</label>
+          <input type="text" id="field_short_name" name="short_name" />
+          <span py:if="'short_name' in errors" class="form_error">${errors.short_name}</span>
+        </div>
+        <div>
+          <label for="field_code">Code:</label>
+          <input type="text" id="field_code" name="code" />
+          <span py:if="'code' in errors" class="form_error">${errors.code}</span>
+        </div>
+        <div class="submit">
+          <input type="submit" value="${submit_button_label}" />
+        </div>
+      </form>
+  </body>
+</html>

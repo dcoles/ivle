@@ -33,6 +33,7 @@ import genshi
 from genshi.filters import HTMLFormFiller
 from genshi.template import Context, TemplateLoader
 import formencode
+import formencode.validators
 
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
@@ -75,6 +76,114 @@ class SubjectsView(XHTMLView):
                                     semester.enrolments.find(user=req.user)]
             if len(offerings):
                 ctx['semesters'].append((semester, offerings))
+
+
+class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a subject name is unused.
+
+    The subject referenced by state.existing_subject is permitted
+    to hold that name. If any other object holds it, the input is rejected.
+    """
+    def __init__(self, matching=None):
+        self.matching = matching
+
+    def _to_python(self, value, state):
+        if (state.store.find(
+                Subject, short_name=value).one() not in
+                (None, state.existing_subject)):
+            raise formencode.Invalid(
+                'Short name already taken', value, state)
+        return value
+
+
+class SubjectSchema(formencode.Schema):
+    short_name = formencode.All(
+        SubjectShortNameUniquenessValidator(),
+        formencode.validators.UnicodeString(not_empty=True))
+    name = formencode.validators.UnicodeString(not_empty=True)
+    code = formencode.validators.UnicodeString(not_empty=True)
+
+
+class SubjectFormView(XHTMLView):
+    """An abstract form to add or edit a subject."""
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None and req.user.admin
+
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate_state(self, state):
+        state.existing_subject = None
+
+    def populate(self, req, ctx):
+        if req.method == 'POST':
+            data = dict(req.get_fieldstorage())
+            try:
+                validator = SubjectSchema()
+                self.populate_state(req)
+                data = validator.to_python(data, state=req)
+
+                subject = self.update_subject_object(req, data)
+
+                req.store.commit()
+                req.throw_redirect(req.publisher.generate(subject))
+            except formencode.Invalid, e:
+                errors = e.unpack_errors()
+        else:
+            data = self.get_default_data(req)
+            errors = {}
+
+        if errors:
+            req.store.rollback()
+
+        ctx['context'] = self.context
+        ctx['data'] = data or {}
+        ctx['errors'] = errors
+
+
+class SubjectNew(SubjectFormView):
+    """A form to create a subject."""
+    template = 'templates/subject-new.html'
+
+    def populate_state(self, state):
+        state.existing_subject = self.context
+
+    def get_default_data(self, req):
+        return {}
+
+    def update_subject_object(self, req, data):
+        new_subject = Subject()
+        new_subject.short_name = data['short_name']
+        new_subject.name = data['name']
+        new_subject.code = data['code']
+
+        req.store.add(new_subject)
+        return new_subject
+
+
+class SubjectEdit(SubjectFormView):
+    """A form to edit a subject."""
+    template = 'templates/subject-edit.html'
+
+    def populate_state(self, state):
+        state.existing_subject = self.context
+
+    def get_default_data(self, req):
+        return {
+            'short_name': self.context.short_name,
+            'name': self.context.name,
+            'code': self.context.code,
+            }
+
+    def update_subject_object(self, req, data):
+        self.context.short_name = data['short_name']
+        self.context.name = data['name']
+        self.context.code = data['code']
+
+        return self.context
+
 
 class OfferingView(XHTMLView):
     """The home page of an offering."""
@@ -327,6 +436,8 @@ class Plugin(ViewPlugin, MediaPlugin):
     reverse_routes = (subject_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (ApplicationRoot, ('subjects', '+new'), SubjectNew),
+             (Subject, '+edit', SubjectEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
