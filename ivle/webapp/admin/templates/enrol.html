@@ -9,9 +9,9 @@
       <form action="" method="post">
         <p>
           <label for="user">Username:</label>
-          <input type="text" name="user" />
+          <input type="text" id="user" name="user" />
           <label for="role">Enrol as:</label>
-          <select name="role">
+          <select id="role" name="role">
             <option py:if="'enrol_student' in roles_auth" value="student" selected="selected">Student</option>
             <option py:if="'enrol_tutor' in roles_auth" value="tutor">Tutor</option>
             <option py:if="'enrol_lecturer' in roles_auth" value="lecturer">Lecturer</option>
