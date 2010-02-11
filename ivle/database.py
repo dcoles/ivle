@@ -541,9 +541,9 @@ class Project(Storm):
         return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
 
-    def can_submit(self, principal):
+    def can_submit(self, principal, user):
         return (self in principal.get_projects() and
-                self.deadline > datetime.datetime.now())
+                not self.has_deadline_passed(user))
 
     def submit(self, principal, path, revision, who):
         """Submit a Subversion path and revision to a project.
@@ -555,7 +555,7 @@ class Project(Storm):
         @param who: The user who is actually making the submission.
         """
 
-        if not self.can_submit(principal):
+        if not self.can_submit(principal, who):
             raise Exception('cannot submit')
 
         a = Assessed.get(Store.of(self), principal, self)

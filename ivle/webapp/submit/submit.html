@@ -27,11 +27,12 @@
           <form action="" method="post">
             <table>
               <tr py:for="project in principal.get_projects(offering=offering)"
-                  py:with="attrs = {'disabled': 'disabled'} if project.deadline &lt; now else {}">
+                  py:with="attrs = {'disabled': 'disabled'} if project.has_deadline_passed(req.user) else {}">
                 <td style="vertical-align: top">
                   <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
                 </td>
                 <td>
+                  <!-- XXX This deadline does not take the student's extensions into account. -->
                   <label for="project_${project.id}"><a href="${project.url}">${project.name}</a> (<span title="Due ${format_datetime(project.deadline)}">due ${format_datetime_short(project.deadline)}</span>)<br />${project.synopsis}</label>
                 </td>
               </tr>
