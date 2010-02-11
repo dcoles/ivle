@@ -221,5 +221,43 @@ An administrator's view
 
 Log into IVLE as an admin (username: 'admin', password: 'password').
 
+Administrator users in IVLE have significant privileges. Note, however, that
+for technical reasons, admins cannot read or write other users' files. This
+requires root access on the machine IVLE is installed on.
+
+Firstly, pull down the IVLE menu (top-left). There is an additional item for
+admins -- the "Users" page. This lists all users with an account in IVLE.
+Clicking on a username takes you to the user's profile page. Try it with the
+user 'lecturer'.
+
+The profile page is exactly the same as the user himself would see it, but
+with a few more buttons on the side. "Change password" is the same as the
+user's own "Change password" page. However, "Reset password" is a special
+admin page which lets you change a user's password without knowing the old
+one. "Administer user" also lets you change administrative settings for the
+user, such as their full name (more formal than display name, which the user
+themselves can change) and student ID. You can also add or remove admin status
+for any user.
+
 .. warning::
-   To be written.
+   Use this with care. Making a user an admin gives them complete control over
+   the system. They could even revoke *your* admin rights!
+
+Firstly, note that admin users enjoy the same privileges as lecturers, for all
+subjects on the system.
+
+If you go to the 
+
+* Edit any user, reset password.
+* Enrol lecturers in a subject.
+
+Admin scripts
+-------------
+
+Unfortunately, there are still a few tasks which admins need to do which
+haven't been implemented in the UI for the IVLE web application. These tasks
+are available as command-line scripts which can be run by someone with root
+access on the machine IVLE is installed on. They are gradually being migrated
+over to proper UI features in IVLE itself.
+
+Details on these scripts can be found in :ref:`ref-admin-scripts`.

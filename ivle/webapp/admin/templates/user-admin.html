@@ -19,7 +19,8 @@
 
           <div>
             <label for="field_admin">Administrator:</label>
-            <input type="checkbox" name="admin" id="field_admin" />
+            <input type="checkbox" name="admin" id="field_admin"
+                py:attrs="{'disabled': 'disabled'} if disable_admin else {}" />
             <span py:if="'admin' in errors" class="form_error">${errors.admin}</span>
           </div>
           <div>

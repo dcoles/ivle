@@ -138,7 +138,11 @@ class UserAdminView(XHTMLView):
                 validator = UserAdminSchema()
                 data = validator.to_python(data, state=req)
 
-                self.context.admin = data['admin']
+                if self.context is req.user:
+                    # Admin checkbox is disabled -- assume unchanged
+                    data['admin'] = self.context.admin
+                else:
+                    self.context.admin = data['admin']
                 self.context.fullname = data['fullname'] \
                                         if data['fullname'] else None
                 self.context.studentid = data['studentid'] \
@@ -156,6 +160,8 @@ class UserAdminView(XHTMLView):
 
         ctx['req'] = req
         ctx['user'] = self.context
+        # Disable the Admin checkbox if editing oneself
+        ctx['disable_admin'] = self.context is req.user
         ctx['data'] = data
         ctx['errors'] = errors
 
