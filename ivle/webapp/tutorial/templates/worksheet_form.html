@@ -2,9 +2,9 @@
       xmlns:xi="http://www.w3.org/2001/XInclude"
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
   <body py:strip="">
-      <form class="verticalform" method="post">
+      <form class="verticalform" method="post" action="">
         <div>
-          <label for='name'>Display name:</label>
+          <label for='worksheet_name'>Display name:</label>
           <input type='text' id='worksheet_name' name='name' class='worksheet_area' />
           <span py:if="'name' in errors" class="form_error">${errors.name}</span>
         </div>
@@ -14,7 +14,7 @@
           <span py:if="'identifier' in errors" class="form_error">${errors.identifier}</span>
         </div>
         <div>
-          <label for='worksheet_assesable'>Assessable:</label>
+          <label for='worksheet_assessable'>Assessable:</label>
           <input type='checkbox' name='assessable' id='worksheet_assessable' />
           <span py:if="'assessable' in errors" class="form_error">${errors.assessable}</span>
         </div>
