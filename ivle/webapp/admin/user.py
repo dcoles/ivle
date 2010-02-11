@@ -39,7 +39,7 @@ class UsersView(XHTMLView):
     breadcrumb_text = 'Users'
 
     def authorize(self, req):
-        return req.user.admin
+        return req.user and req.user.admin
 
     def populate(self, req, ctx):
         ctx['req'] = req
@@ -127,7 +127,7 @@ class UserAdminView(XHTMLView):
 
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""
-        return req.user.admin
+        return req.user and req.user.admin
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
@@ -212,7 +212,7 @@ class PasswordResetView(XHTMLView):
 
     def authorize(self, req):
         """Only allow access if the requesting user is an admin."""
-        return req.user.admin
+        return req.user and req.user.admin
 
     def populate(self, req, ctx):
         error = None
