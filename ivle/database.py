@@ -515,6 +515,14 @@ class ProjectSet(Storm):
         else:
             return self.offering.students
 
+class DeadlinePassed(Exception):
+    """An exception indicating that a project cannot be submitted because the
+    deadline has passed."""
+    def __init__(self):
+        pass
+    def __str__(self):
+        return "The project deadline has passed"
+
 class Project(Storm):
     """A student project for which submissions can be made."""
 
@@ -556,7 +564,7 @@ class Project(Storm):
         """
 
         if not self.can_submit(principal, who):
-            raise Exception('cannot submit')
+            raise DeadlinePassed()
 
         a = Assessed.get(Store.of(self), principal, self)
         ps = ProjectSubmission()

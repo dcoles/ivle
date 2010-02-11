@@ -24,6 +24,7 @@ import datetime
 
 from storm.locals import Store
 
+from ivle import database
 from ivle.database import (User, ProjectGroup, Offering, Subject, Semester,
                            ProjectSet, Project, Enrolment)
 from ivle.webapp.errors import NotFound, BadRequest
@@ -94,7 +95,11 @@ class SubmitView(XHTMLView):
             if project is None:
                 raise BadRequest('Specified project does not exist.')
 
-            project.submit(self.context, unicode(self.path), revision, req.user)
+            try:
+                project.submit(self.context, unicode(self.path), revision,
+                               req.user)
+            except database.DeadlinePassed, e:
+                raise BadRequest(str(e) + ".")
 
             # The Subversion configuration needs to be updated, to grant
             # tutors and lecturers access to this submission. We have to 
