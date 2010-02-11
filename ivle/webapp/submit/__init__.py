@@ -89,10 +89,10 @@ class SubmitView(XHTMLView):
             # This view's offering will be the sole offering for which the
             # path is permissible. We need to check that.
             if project.project_set.offering is not self.offering:
-                raise BadRequest('Path is not permissible for this offering')
+                raise BadRequest('Path is not permissible for this offering.')
 
             if project is None:
-                raise BadRequest('Specified project does not exist')
+                raise BadRequest('Specified project does not exist.')
 
             project.submit(self.context, unicode(self.path), revision, req.user)
 
