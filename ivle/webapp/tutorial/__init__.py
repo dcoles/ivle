@@ -369,6 +369,7 @@ class WorksheetAddView(WorksheetFormView):
     """An form to create a worksheet in an offering."""
     template = 'templates/worksheet_add.html'
     permission = 'edit'
+    tab = 'subjects'
 
     @property
     def offering(self):
@@ -397,6 +398,7 @@ class WorksheetEditView(WorksheetFormView):
     """An form to alter a worksheet in an offering."""
     template = 'templates/worksheet_edit.html'
     permission = 'edit'
+    tab = 'subjects'
 
     def populate_state(self, state):
         state.existing_worksheet = self.context
@@ -428,6 +430,7 @@ class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
     permission = 'edit'
     template = 'templates/worksheets_edit.html'
+    tab = 'subjects'
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['tutorial_admin.css']
@@ -450,6 +453,7 @@ class ExerciseView(XHTMLView):
     """
     permission = 'edit'
     template = 'templates/exercise.html'
+    tab = 'subjects'
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['tutorial.js']
@@ -469,6 +473,7 @@ class ExerciseEditView(XHTMLView):
     permission = 'edit'
     template = 'templates/exercise_edit.html'
     breadcrumb_text = 'Edit'
+    tab = 'subjects'
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
@@ -501,6 +506,7 @@ class ExerciseDeleteView(XHTMLView):
     
     permission = 'edit'
     template = 'templates/exercise_delete.html'
+    tab = 'subjects'
     
     def populate(self, req, ctx):
 
@@ -523,9 +529,11 @@ class ExerciseDeleteView(XHTMLView):
 
 class ExerciseAddView(XHTMLView):
     """View for creating a new exercise."""
-    
+
     permission = 'edit'
     template = 'templates/exercise_add.html'
+    tab = 'subjects'
+
     #XXX: This should be done somewhere else
     def authorize(self, req):
         for offering in req.store.find(Offering):
@@ -543,6 +551,7 @@ class ExercisesView(XHTMLView):
     permission = 'edit'
     template = 'templates/exercises.html'
     breadcrumb_text = 'Exercises'
+    tab = 'subjects'
 
     #XXX: This should be done somewhere else
     def authorize(self, req):

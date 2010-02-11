@@ -124,6 +124,7 @@ class OfferingSchema(formencode.Schema):
 class OfferingEdit(XHTMLView):
     """A form to edit an offering's details."""
     template = 'templates/offering-edit.html'
+    tab = 'subjects'
     permission = 'edit'
 
     def filter(self, stream, ctx):
@@ -202,6 +203,7 @@ class EnrolSchema(formencode.Schema):
 class EnrolmentsView(XHTMLView):
     """A page which displays all users enrolled in an offering."""
     template = 'templates/enrolments.html'
+    tab = 'subjects'
     permission = 'edit'
 
     def populate(self, req, ctx):

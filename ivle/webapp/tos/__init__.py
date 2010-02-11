@@ -65,7 +65,7 @@ class TermsOfServiceView(XHTMLView):
     Users with state 'no_agreement' see buttons to accept or decline.
     If a user has already accepted it, they just see a static page.
     """
-
+    tab = 'users'
     allow_overlays = False
 
     def __init__(self, req, context, subpath=None):
