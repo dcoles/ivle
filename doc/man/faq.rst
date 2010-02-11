@@ -58,8 +58,8 @@ The steps to completely remove a user would be:
 6. Either change the users login (``UPDATE login SET login='NEWLOGIN' WHERE 
    login='LOGIN'``) or remove all references to this login in the database
 
-The following lines of SQL should remove all traces of a user from the 
-database::
+The following lines of SQL should remove all traces of a user ``LOGIN`` from 
+the database::
 
     BEGIN TRANSACTION;
     DELETE FROM exercise_save USING login WHERE
@@ -85,6 +85,41 @@ database::
         login.login = 'LOGIN';
     DELETE FROM login WHERE login='LOGIN';
     COMMIT;
+
+If you do not want to lose group data, a better option may be to reassign the 
+user ``LOGIN``'s groups to ``NEWLOGIN`` (one possible option would be to 
+create and use a 'nobody' account)::
+
+    BEGIN TRANSACTION;
+    DELETE FROM exercise_save USING login WHERE
+        exercise_save.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM exercise_attempt USING login WHERE
+        exercise_attempt.loginid = login.loginid AND login.login = 'LOGIN';
+    UPDATE project_mark SET marker = l2.loginid FROM login AS l1, login AS l2
+        WHERE marker = l1.loginid AND l1.login = 'LOGIN' AND l2.login = 
+        'NEWLOGIN'
+    DELETE FROM project_submission USING login WHERE
+        submitter = login.loginid AND login.login = 'LOGIN';
+    UPDATE project_extension SET approver = l2.loginid FROM
+        login AS l1, login AS l2 WHERE approver = l1.loginid AND
+        l1.login = 'LOGIN' AND l2.login='NEWLOGIN';
+    DELETE FROM assessed USING login WHERE
+        assessed.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM enrolment USING login WHERE
+        enrolment.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM group_member USING login WHERE
+        group_member.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM group_invitation USING login WHERE
+        group_invitation.loginid = login.loginid AND login.login = 'LOGIN';
+    UPDATE group_invitation SET inviter = l2.loginid FROM
+        login AS l1, login AS l2 WHERE inviter = l1.loginid AND
+        l1.login = 'LOGIN' AND l2.login='NEWLOGIN';
+    UPDATE project_group SET createdby = l2.loginid FROM
+        login AS l1, login AS l2 WHERE createdby = l1.loginid AND
+        l1.login = 'LOGIN' AND l2.login = 'NEWLOGIN';
+    DELETE FROM login WHERE login='LOGIN';
+    COMMIT;
+
 
 .. _ref-faq-why:
 
