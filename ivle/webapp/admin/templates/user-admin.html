@@ -16,7 +16,15 @@
             <label for="field_unixid">UID:</label>
             <span id="field_unixid">${user.unixid}</span>
           </div>
-
+          <div>
+            <label for="field_disabled">Disabled:</label>
+            <input py:if="user.state in (u'enabled', u'disabled')"
+                py:attrs="{'disabled': 'disabled'} if disable_admin else {}"
+                type="checkbox" name="disabled" id="field_disabled" />
+            <span py:if="user.state not in (u'enabled', u'disabled')">
+              Has not accepted agreement
+            </span>
+          </div>
           <div>
             <label for="field_admin">Administrator:</label>
             <input type="checkbox" name="admin" id="field_admin"

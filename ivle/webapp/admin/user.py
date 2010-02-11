@@ -114,6 +114,7 @@ class UserEditView(XHTMLView):
 
 class UserAdminSchema(formencode.Schema):
     admin = formencode.validators.StringBoolean(if_missing=False)
+    disabled = formencode.validators.StringBoolean(if_missing=False)
     fullname = formencode.validators.UnicodeString(not_empty=True)
     studentid = formencode.validators.UnicodeString(not_empty=False,
                                                     if_missing=None
@@ -141,8 +142,12 @@ class UserAdminView(XHTMLView):
                 if self.context is req.user:
                     # Admin checkbox is disabled -- assume unchanged
                     data['admin'] = self.context.admin
+                    data['disabled'] = self.context.state == u'disabled'
                 else:
                     self.context.admin = data['admin']
+                    if self.context.state in (u'enabled', u'disabled'):
+                        self.context.state = (u'disabled' if data['disabled']
+                                else u'enabled')
                 self.context.fullname = data['fullname'] \
                                         if data['fullname'] else None
                 self.context.studentid = data['studentid'] \
@@ -153,6 +158,7 @@ class UserAdminView(XHTMLView):
                 errors = e.unpack_errors()
         else:
             data = {'admin': self.context.admin,
+                    'disabled': self.context.state == u'disabled',
                     'fullname': self.context.fullname,
                     'studentid': self.context.studentid,
                    }
