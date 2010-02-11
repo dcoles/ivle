@@ -12,7 +12,7 @@
   <body>
     <h1>Worksheets for ${subject.name}</h1>
     <div id="ivle_padding">
-      <table id='worksheets_table'>
+      <table id="worksheets_table" class="pretty_table">
         <tr><th>Name</th><th>Actions</th></tr>
       <py:for each="worksheet in worksheets">
           <tr id='${worksheet.identifier}'>
