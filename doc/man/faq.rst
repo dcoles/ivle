@@ -34,6 +34,57 @@ How can I...
 
 You should customize the ToS notice at :file:`/var/lib/ivle/notices/tos.html`.
 
+... delete a user from IVLE?
+----------------------------
+
+This is usually a bad idea since it requires all the references to that user 
+to be removed from IVLE. This may have unintended consequences particularly 
+with groups or projects but might be required in installations where an 
+existing login conflict with a new login (typically encountered when usernames 
+are recycled).
+
+The steps to completely remove a user would be:
+
+1. Disable the users account
+2. Unmount the users jailmount directory (typically 
+   :file:`/var/lib/ivle/jailmounts/LOGIN`)
+3. Backup the user's files (typically :file:`/var/lib/ivle/jails/LOGIN`) and 
+   remove this directory.
+4. Backup the user's repository (typically 
+   :file:`/var/lib/ivle/svn/repositories/users/LOGIN` on the subversion 
+   server) and remove this directory.
+5. Make a backup of the IVLE database (``sudo -u postgres pg_dump ivle > 
+   backup.sql``)
+6. Either change the users login (``UPDATE login SET login='NEWLOGIN' WHERE 
+   login='LOGIN'``) or remove all references to this login in the database
+
+The following lines of SQL should remove all traces of a user from the 
+database::
+
+    BEGIN TRANSACTION;
+    DELETE FROM exercise_save USING login WHERE
+        exercise_save.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM exercise_attempt USING login WHERE
+        exercise_attempt.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM project_mark USING login WHERE marker = login.loginid AND
+        login.login = 'LOGIN';
+    DELETE FROM project_submission USING login WHERE
+        submitter = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM project_extension USING login WHERE
+        approver = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM assessed USING login WHERE
+        assessed.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM enrolment USING login WHERE
+        enrolment.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM group_member USING login WHERE
+        group_member.loginid = login.loginid AND login.login = 'LOGIN';
+    DELETE FROM group_invitation USING login WHERE
+        (group_invitation.loginid = login.loginid OR
+        inviter = login.loginid) AND login.login = 'LOGIN';
+    DELETE FROM project_group USING login WHERE createdby = login.loginid AND
+        login.login = 'LOGIN';
+    DELETE FROM login WHERE login='LOGIN';
+    COMMIT;
 
 .. _ref-faq-why:
 
