@@ -67,7 +67,7 @@ def make_date_nice_short(datetime_or_seconds):
     >>> make_date_nice_short(now - datetime.timedelta(5))
     '5 days ago'
     >>> make_date_nice_short(1242783748)
-    'May 20'
+    'May 20, 2009'
     """
 
     dt = get_datetime(datetime_or_seconds)

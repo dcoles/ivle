@@ -49,7 +49,7 @@ class JSONRESTViewTest(JSONRESTViewTestWithoutPUT):
 class TestJSONRESTView:
     def testGET(self):
         req = FakeRequest()
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"method": "get"}\n'
@@ -58,7 +58,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'PUT'
         req.request_body = '{"test": "FAI\\uA746ED", "result": 1}'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == \
@@ -68,7 +68,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'PATCH'
         req.request_body = '{"test": "FAI\\uA746ED", "result": 1}'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == \
@@ -79,7 +79,7 @@ class TestJSONRESTView:
         req.method = 'PUT'
         req.headers_in['X-IVLE-Patch-Semantics'] = 'yes'
         req.request_body = '{"test": "FAI\\uA746ED", "result": 1}'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == \
@@ -88,7 +88,7 @@ class TestJSONRESTView:
     def testInvalidMethod(self):
         req = FakeRequest()
         req.method = 'FAKEANDBOGUS'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except MethodNotAllowed, e:
@@ -99,7 +99,7 @@ class TestJSONRESTView:
     def testNoPUTMethod(self):
         req = FakeRequest()
         req.method = 'PUT'
-        view = JSONRESTViewTestWithoutPUT(req)
+        view = JSONRESTViewTestWithoutPUT(req, None)
         try:
             view.render(req)
         except MethodNotAllowed, e:
@@ -111,7 +111,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'FAKEANDBOGUS'
         req.headers_in['X-IVLE-Patch-Semantics'] = 'yes'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except MethodNotAllowed:
@@ -124,7 +124,7 @@ class TestJSONRESTView:
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
                                              'what': 'blah'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Did blah!"}\n'
@@ -133,7 +133,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = urllib.urlencode({'what': 'blah'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -145,7 +145,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'enoent'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -157,7 +157,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'GET'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -170,7 +170,7 @@ class TestJSONRESTView:
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
                                              'nothing': 'wrong'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -184,7 +184,7 @@ class TestJSONRESTView:
         req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
                                              'what': 'blah',
                                              'toomany': 'args'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -196,7 +196,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'say_something'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Said nothing!"}\n'
@@ -206,7 +206,7 @@ class TestJSONRESTView:
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'say_something',
                                              'thing': 'something'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Said something!"}\n'
@@ -216,7 +216,7 @@ class TestJSONRESTView:
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'do_say_something',
                                              'thing': 'something'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -228,7 +228,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'get_req_method'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"method": "POST"}\n'
@@ -237,7 +237,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'POST'
         req.request_body = 'I am invalid&&&&'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -250,7 +250,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'PATCH'
         req.request_body = 'I am invalid'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -262,7 +262,7 @@ class TestJSONRESTView:
         req = FakeRequest()
         req.method = 'PUT'
         req.request_body = 'I am invalid'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except BadRequest, e:
@@ -275,7 +275,7 @@ class TestJSONRESTSecurity:
         req = FakeRequest()
         req.user.login = u'otheruser'
         req.method = 'GET'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"method": "get"}\n'
@@ -284,7 +284,7 @@ class TestJSONRESTSecurity:
         req = FakeRequest()
         req.user.login = u'otheruser'
         req.method = 'PUT'
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except Unauthorized, e:
@@ -298,7 +298,7 @@ class TestJSONRESTSecurity:
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'do_stuff',
                                              'what': 'blah'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"result": "Did blah!"}\n'
@@ -308,7 +308,7 @@ class TestJSONRESTSecurity:
         req.user.login = u'otheruser'
         req.method = 'POST'
         req.request_body = urllib.urlencode({'ivle.op': 'say_something'})
-        view = JSONRESTViewTest(req)
+        view = JSONRESTViewTest(req, None)
         try:
             view.render(req)
         except Unauthorized, e:
