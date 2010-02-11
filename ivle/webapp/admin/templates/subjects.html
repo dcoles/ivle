@@ -17,6 +17,24 @@
           </li>
         </ul>
       </py:for>
+      <py:if test="defined('subjects')">
+        <h1>All subjects</h1>
+        <table class="pretty_table">
+          <thead><tr><th>Subject</th><th>Code</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr py:for="subject in subjects">
+              <td><a href="${req.publisher.generate(subject)}">${subject.name}</a></td>
+              <td>${subject.code}</td>
+              <td>
+                <a href="${req.publisher.generate(subject, SubjectEdit)}" title="Edit"><img src="${mediapath + 'interface/pencil.png'}" alt="Edit" /></a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <a class="addaction" href="/subjects/+new">Create new subject</a>
+        </p>
+      </py:if>
     </div>
   </body>
 </html>

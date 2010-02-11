@@ -51,7 +51,9 @@ from ivle.webapp.admin.publishing import (root_to_subject,
             subject_url, offering_url, projectset_url, project_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
+from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.groups import GroupsView
+from ivle.webapp.media import media_url
 from ivle.webapp.tutorial import Plugin as TutorialPlugin
 
 class SubjectsView(XHTMLView):
@@ -66,6 +68,9 @@ class SubjectsView(XHTMLView):
         ctx['req'] = req
         ctx['user'] = req.user
         ctx['semesters'] = []
+        ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['SubjectEdit'] = SubjectEdit
+
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
             if req.user.admin:
@@ -76,6 +81,10 @@ class SubjectsView(XHTMLView):
                                     semester.enrolments.find(user=req.user)]
             if len(offerings):
                 ctx['semesters'].append((semester, offerings))
+
+        # Admins get a separate list of subjects so they can add/edit.
+        if req.user.admin:
+            ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
 
 
 class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
