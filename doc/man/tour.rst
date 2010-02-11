@@ -87,14 +87,11 @@ Project screen.
 
 Choose to submit to Phase 1, and click Submit Project.
 
-.. warning::
-   In the current sample data, the project deadline is in the past, so you
-   won't actually be able to submit it.
-
 If you go into the Intermediate Ivle -> group1 directory, you will be able to
-make a group submission to either Phase 2 or 3 (which are group projects).
-Note that the file here ("phase2.html") was edited by studenta and studentb
-collaboratively, as you can see in the project's revision log.
+make a group submission to Phase 2 (which is a group project). Note that the
+Phase 3 submission has already closed.
+Also note that the file here ("phase2.html") was edited by studenta and
+studentb collaboratively, as you can see in the project's revision log.
 
 Worksheets
 ----------

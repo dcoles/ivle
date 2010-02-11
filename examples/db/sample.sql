@@ -269,9 +269,9 @@ ALTER TABLE offering ENABLE TRIGGER ALL;
 
 ALTER TABLE project DISABLE TRIGGER ALL;
 
-INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (1, 'phase1', 'Phase 1', 'This is the first project in Intermediate IVLE.', NULL, 1, '2009-08-21 18:00:00');
+INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (1, 'phase1', 'Phase 1', 'This is the first project in Intermediate IVLE.', NULL, 1, '3009-08-21 18:00:00');
 INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (2, 'phase2', 'Phase 2', 'This is the second project in Intermediate IVLE.
-Get into groups of 3.', NULL, 2, '2009-09-11 18:00:00');
+Get into groups of 3.', NULL, 2, '3009-09-11 18:00:00');
 INSERT INTO project (projectid, short_name, name, synopsis, url, projectsetid, deadline) VALUES (3, 'phase3', 'Phase 3', 'This is the final project in Intermediate IVLE.
 Complete this with the same group as Phase 2.', NULL, 2, '2009-09-25 18:00:00');
 

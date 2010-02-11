@@ -162,6 +162,9 @@ students work in the *same* group of 3 for every project in the set. It has
 two projects in it, demonstrating that the students get to keep their group
 (including all of the group files) across the two projects in this set.
 
+Projects 1 and 2 have their due date set in the year 3009, so they will always
+be submittable. Project 3 was due in 2009, so it has already closed.
+
 Finally, there is a single group for projects 2 and 3, which has the students
 studenta and studentb enlisted.
 
