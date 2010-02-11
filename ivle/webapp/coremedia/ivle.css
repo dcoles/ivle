@@ -227,8 +227,16 @@ form.verticalform div label {
     font-weight: bold;
 }
 
+form.verticalform.thin div label {
+    width: 100px;
+}
+
 form.verticalform div.submit {
     margin-left: 205px;
+}
+
+form.verticalform.thin div.submit {
+    margin-left: 105px;
 }
 
 .stackedform div label {

@@ -10,14 +10,18 @@
         Please log in to access your files and assessment.
       </p>
 
-      <form action="${path}" method="post">
-        <table>
-          <tr><td>Username:</td><td><input name="user" type="text" /></td></tr>
-          <tr><td>Password:</td><td><input name="pass" type="password" /></td></tr>
-        </table>
-        <div py:if="defined('error')" class="form_error"
-            py:content="error"></div>
-        <div><input type="submit" value="Login" /></div>
+      <form class="verticalform thin" action="${path}" method="post">
+        <div>
+          <label for="field_username">Username:</label>
+          <input id="field_username" name="user" type="text" />
+        </div>
+        <div>
+          <label for="field_password">Password:</label>
+          <input id="field_password" name="pass" type="password" />
+        </div>
+        <div class="submit form_error" py:if="defined('error')"
+             py:content="error"></div>
+        <div class="submit"><input type="submit" value="Login" /></div>
       </form>
     </div>
   </body>
