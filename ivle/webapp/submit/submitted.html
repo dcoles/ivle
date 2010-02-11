@@ -7,6 +7,12 @@
     <h1>Project submitted</h1>
     <div id="ivle_padding">
       <p>You successfully submitted ${project.name} for ${offering.subject.name}.</p>
+      <p>You may resubmit this project again at any time until the deadline,
+      but a new submission will overwrite any made earlier.
+      It is important to verify each submission after you make it.</p>
+      <p><a class="verifyaction"
+          href="${submission.get_verify_url(req.user)}">Verify this submission</a></p>
+      <p>You can verify this submission at any time from the <a href="${req.publisher.generate(offering)}">subject page</a>.</p>
     </div>
   </body>
 </html>

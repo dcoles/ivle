@@ -96,8 +96,8 @@ class SubmitView(XHTMLView):
                 raise BadRequest('Specified project does not exist.')
 
             try:
-                project.submit(self.context, unicode(self.path), revision,
-                               req.user)
+                ctx['submission'] = project.submit(self.context,
+                                    unicode(self.path), revision, req.user)
             except database.DeadlinePassed, e:
                 raise BadRequest(str(e) + ".")
 
