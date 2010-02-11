@@ -719,6 +719,17 @@ class Assessed(Storm):
     def principal(self):
         return self.project_group or self.user
 
+    @property
+    def checkout_location(self):
+        """Returns the location of the Subversion workspace for this piece of
+        assessment, relative to each group member's home directory."""
+        subjectname = self.project.project_set.offering.subject.short_name
+        if self.is_group:
+            checkout_dir_name = self.principal.short_name
+        else:
+            checkout_dir_name = "mywork"
+        return subjectname + "/" + checkout_dir_name
+
     @classmethod
     def get(cls, store, principal, project):
         """Find or create an Assessed for the given user or group and project.
@@ -784,6 +795,19 @@ class ProjectSubmission(Storm):
     submitter = Reference(submitter_id, User.id)
     date_submitted = DateTime()
 
+    def get_verify_url(self, user):
+        """Get the URL for verifying this submission, within the account of
+        the given user."""
+        # If this is a solo project, then self.path will be prefixed with the
+        # subject name. Remove the first path segment.
+        submitpath = self.path[1:] if self.path[:1] == '/' else self.path
+        if not self.assessed.is_group:
+            if '/' in submitpath:
+                submitpath = submitpath.split('/', 1)[1]
+            else:
+                submitpath = ''
+        return "/files/%s/%s/%s?r=%d" % (user.login,
+            self.assessed.checkout_location, submitpath, self.revision)
 
 # WORKSHEETS AND EXERCISES #
 

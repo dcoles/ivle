@@ -290,6 +290,7 @@ form.verticalform.thin div.submit {
 .manageaction,
 .groupaction,
 .subjectaction,
+.verifyaction,
 .webaction {
   padding-left: 20px;
   background-position: left center;
@@ -322,6 +323,10 @@ form.verticalform.thin div.submit {
 
 .subjectaction {
   background-image: url(../ivle.webapp.tutorial/tutorial-small.png);
+}
+
+.verifyaction {
+  background-image: url(images/interface/magnifier.png);
 }
 
 .webaction {

@@ -59,6 +59,7 @@
                           py:with="latest = submissions.last()"
                           title="${format_datetime(latest.date_submitted)}">
                       last submitted ${format_datetime_short(latest.date_submitted)}
+                      <a class="verifyaction" href="${latest.get_verify_url(req.user)}">Verify</a>
                     </span>
                   </py:choose>
                 </py:if>
