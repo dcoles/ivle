@@ -93,8 +93,9 @@ def authenticate(config, store, login, password):
 
             # Don't allow login if it is expired or disabled.
             if auth_result.state == 'disabled' or auth_result.account_expired:
-                raise AuthError("Account is disabled. " +
-                        "Please contact an Administrator.")
+                raise AuthError(
+                    "Your account is disabled. Please contact an "
+                    "administrator if you believe this to be in error.")
 
             return auth_result
         else:
