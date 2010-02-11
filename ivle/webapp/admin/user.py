@@ -247,7 +247,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     tabs = [
         ('users', 'Users', 'Display and edit all users',
-         'users.png', 'users', 0, True)
+         'users.png', 'users', 90, True)
     ]
 
     public_forward_routes = forward_routes
