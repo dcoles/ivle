@@ -85,7 +85,12 @@ into the Intermediate Ivle -> mywork directory. Select "phase1.html" and
 choose More Actions -> Publishing -> Submit. This takes you to the Submit
 Project screen.
 
-Choose to submit to Phase 1, and click Submit Project.
+Choose to submit to Phase 1, and click Submit Project. You should see a page
+telling you the submission was successful, with a link to "verify". Verify
+shows you exactly which files were submitted, and their contents at the time
+of submission (if the files have changed since then, you'll still see the
+submitted version). You should verify after each submission -- you can verify
+any submitted project from the subject page.
 
 If you go into the Intermediate Ivle -> group1 directory, you will be able to
 make a group submission to Phase 2 (which is a group project). Note that the
