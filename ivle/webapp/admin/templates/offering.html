@@ -45,7 +45,7 @@
                 &ndash;
                 <span py:content="format_submission_principal(req.user, principal)" /> &ndash;
                 <!-- XXX This deadline does not take the student's extensions into account. -->
-                <span title="${format_datetime(project.deadline)}">
+                <span title="${'Closed' if project.has_deadline_passed(req.user) else 'Due'}: ${format_datetime(project.deadline)}">
                   ${'closed' if project.has_deadline_passed(req.user) else 'due'} ${format_datetime_short(project.deadline)}
                 </span>
                 <py:if test="principal is not None"
@@ -57,7 +57,7 @@
                     </span>
                     <span py:otherwise=""
                           py:with="latest = submissions.last()"
-                          title="${format_datetime(latest.date_submitted)}">
+                          title="Submitted: ${format_datetime(latest.date_submitted)}">
                       last submitted ${format_datetime_short(latest.date_submitted)}
                       <a class="verifyaction" href="${latest.get_verify_url(req.user)}">Verify</a>
                     </span>
