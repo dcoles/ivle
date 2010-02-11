@@ -267,14 +267,6 @@ def present_exercise(req, identifier, worksheet=None):
             'stream': ex_stream,
             'exid': exercise.id}
 
-class OfferingAdminView(XHTMLView):
-    """The admin view for an Offering.
-    
-    This class is designed to check the user has admin privileges, and
-    then allow them to edit the RST for the offering, which controls which
-    worksheets are actually displayed on the page."""
-    pass
-
 
 # The first element is the default format
 WORKSHEET_FORMATS = (('reStructuredText', 'rst'), ('XHTML (legacy)', 'xml'))
