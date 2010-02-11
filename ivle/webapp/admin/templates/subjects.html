@@ -4,7 +4,6 @@
     <title>Subjects</title>
   </head>
   <body>
-    <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
     <h1>Subjects</h1>
     <div id="ivle_padding">
       <p py:if="len(semesters) == 0">You are not currently enrolled in any subjects.</p>
@@ -14,7 +13,7 @@
         </h2>
         <ul>
           <li py:for="offering in offerings">
-            <a href="${offering_url(offering)}">${offering.subject.name}</a>
+            <a href="${req.publisher.generate(offering)}">${offering.subject.name}</a>
           </li>
         </ul>
       </py:for>
