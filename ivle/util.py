@@ -260,3 +260,33 @@ def safe_rmtree(path, ignore_errors=False, onerror=None):
         os.rmdir(path)
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
+
+def format_submission_principal(user, principal):
+    """Render a list of users to fit in the offering project listing.
+
+    Given a user and a list of submitters, returns 'solo' if the
+    only submitter is the user, or a string of the form
+    'with A, B and C' if there are any other submitters.
+
+    If submitters is None, we assume that the list of members could
+    not be determined, so we just return 'group'.
+    """
+    if principal is None:
+        return 'group'
+
+    if principal is user:
+        return 'solo'
+
+    display_names = sorted(
+        member.display_name for member in principal.members
+        if member is not user)
+
+    if len(display_names) == 0:
+        return 'solo (%s)' % principal.name
+    elif len(display_names) == 1:
+        return 'with %s (%s)' % (display_names[0], principal.name)
+    elif len(display_names) > 5:
+        return 'with %d others (%s)' % (len(display_names), principal.name)
+    else:
+        return 'with %s and %s (%s)' % (', '.join(display_names[:-1]),
+                                        display_names[-1], principal.name)

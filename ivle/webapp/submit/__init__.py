@@ -34,7 +34,7 @@ from ivle.webapp import ApplicationRoot
 
 import ivle.date
 import ivle.chat
-
+from ivle import util
 
 class SubmitView(XHTMLView):
     """A view to submit a Subversion repository path for a project."""
@@ -136,6 +136,7 @@ class SubmitView(XHTMLView):
         ctx['offering'] = self.offering
         ctx['path'] = self.path
         ctx['now'] = datetime.datetime.now()
+        ctx['format_submission_principal'] = util.format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
     
