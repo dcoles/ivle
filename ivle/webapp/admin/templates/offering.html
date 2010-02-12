@@ -65,6 +65,10 @@
                 </py:if>
                 <br />
                 ${project.synopsis}
+                <py:if test="'view_project_submissions' in permissions">
+                  <br />
+                  <a class="verifyaction" href="${req.publisher.generate(project)}">View submissions</a>
+                </py:if>
               </li>
             </ul>
             <py:if test="context.get_open_projects_for_user(req.user).count() > 0">
