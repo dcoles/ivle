@@ -160,6 +160,7 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
 
     cookies = {'clipboard': None}
 
-    help = {'Filesystem': {'Browser': 'help.html'}}
+    help = {'Filesystem': {'Browser': 'help.html',
+                           'Running and Serving': 'help-run-serve.html'}}
 
     media = 'media'

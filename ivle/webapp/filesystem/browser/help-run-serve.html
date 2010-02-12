@@ -1,0 +1,64 @@
+<div class="helpfile">
+<p>You can <strong>run</strong> Python code directly from the IVLE File
+Browser to try it out. You can also <strong>serve</strong> Python web
+applications and other files publicly.</p>
+
+<h2>Running</h2>
+
+<p>In the IVLE Editor, you can create Python scripts (<strong>.py</strong>
+files), which contain working programs. Often, simple programs work by
+printing things out (with the <strong>print</strong> statement), and reading
+input from the user (with the <strong>raw_input</strong> function).</p>
+
+<p>You can run these programs by selecting the <strong>.py</strong> file in
+the File Browser, and clicking <strong>run</strong>. This will open up the
+Python console and display the output of the program, just as if you had typed
+the program into the console yourself.</p>
+
+<p>For example, the following simple Python program prints a message:</p>
+
+<pre>print "Hello, world!"</pre>
+
+<h2>Serving</h2>
+
+<p>IVLE also allows you to create web pages or web applications to show to
+your friends. In the IVLE Editor, you can create HTML web pages
+(<strong>.html</strong> files). For example, the following page contains a
+message:</p>
+
+<pre>&lt;html&gt;&lt;body&gt;&lt;p&gt;Hello, world!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</pre>
+
+<p>You can ask IVLE to serve such a file as a web page by selecting the
+<strong>.html</strong> file in the File Browser, and clicking
+<strong>serve</strong>. This will open a new tab with the web page.</p>
+
+<p>You can also run a Python file as a web application in the same way. In
+IVLE, we use CGI to write web applications in Python, which are a little
+different from a normal Python script. If you serve the above script, you will
+see a warning, explaining that you didn't use CGI properly. An example of a
+simple CGI script follows:</p>
+
+<pre>print "Content-Type: text/html"
+print
+print "&lt;html&gt;&lt;body&gt;&lt;p&gt;Hello, world!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"</pre>
+
+<h2>Publishing</h2>
+
+<p>If you wish to show your web pages and applications to the world, first,
+select nothing and choose <strong>publish</strong> from the "More actions"
+menu. This will <em>publish</em> the directory and all files in it to the
+web.</p>
+
+<p>Then, select the file, and choose <strong>share this file</strong> from the
+"More actions" menu. This will open the file in a new tab, just like
+<strong>serve</strong>, except the address bar will show a "public" URL. If
+you give this URL to someone else (e.g., as a link in an email), they will be
+able to view your content.</p>
+
+<h2>Summary</h2>
+<ul>
+<li><strong>Run</strong> runs Python programs as command-line applications.</li>
+<li><strong>Serve</strong> runs Python programs as CGI applications, showing their web output.</li>
+<li><strong>Publish</strong> lets other people view your web pages and CGI applications as if they were <strong>served</strong>.</li>
+</ul>
+</div>
