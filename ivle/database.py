@@ -377,10 +377,8 @@ class Offering(Storm):
             enrolment = self.get_enrolment(user)
             if enrolment or user.admin:
                 perms.add('view')
-            if (enrolment and enrolment.role in (u'tutor', u'lecturer')) \
-               or user.admin:
-                perms.add('edit')
             if (enrolment and enrolment.role in (u'lecturer')) or user.admin:
+                perms.add('edit')
                 perms.add('enrol')          # Can see enrolment screen at all
                 perms.add('enrol_student')  # Can enrol students
                 perms.add('enrol_tutor')    # Can enrol tutors
