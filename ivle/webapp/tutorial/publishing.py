@@ -84,8 +84,8 @@ class ExerciseAttempts(object):
         self.worksheet_exercise = worksheet_exercise
         self.user = user
 
-    def get_permissions(self, user):
-        return self.user.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.user.get_permissions(user, config)
 
 
 @forward_route(WorksheetExercise, '+attempts', argc=1)

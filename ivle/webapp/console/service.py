@@ -37,7 +37,7 @@ from ivle.webapp.errors import BadRequest
 # XXX: Should be RPC view, with actions in URL?
 class ConsoleServiceRESTView(JSONRESTView):
     '''An RPC interface to a Python console.'''
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         if user is not None:
             return set(['use'])
         else:

@@ -85,6 +85,7 @@ class WorksheetView(XHTMLView):
 
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
         ctx['user'] = req.user
+        ctx['config'] = req.config
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -527,7 +528,8 @@ class ExerciseAddView(XHTMLView):
     tab = 'subjects'
 
     def authorize(self, req):
-        return 'edit' in ivle.database.Exercise.global_permissions(req.user)
+        return ('edit' in
+            ivle.database.Exercise.global_permissions(req.user, req.config))
 
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
@@ -542,7 +544,8 @@ class ExercisesView(XHTMLView):
     tab = 'subjects'
 
     def authorize(self, req):
-        return 'edit' in ivle.database.Exercise.global_permissions(req.user)
+        return ('edit' in
+            ivle.database.Exercise.global_permissions(req.user, req.config))
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']

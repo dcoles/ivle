@@ -45,8 +45,8 @@ class SubjectMediaFile(object):
         subjectdir = os.path.join(self.context.short_name, 'media')
         return os.path.join(subjectdir, self.path)
 
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.context.get_permissions(user, config)
 
 
 class SubjectMediaView(MediaFileView):
@@ -62,8 +62,8 @@ class SubjectMediaView(MediaFileView):
             req.config['paths']['data'],
             'content/subjects', self.context.filename)
 
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.context.get_permissions(user, config)
 
 
 @forward_route(Subject, '+media', argc=INF)

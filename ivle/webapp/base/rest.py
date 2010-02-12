@@ -55,7 +55,8 @@ class JSONRESTView(RESTView):
         if not hasattr(op, '_rest_api_permission'):
             raise Unauthorized()
 
-        if op._rest_api_permission not in self.get_permissions(req.user):
+        if (op._rest_api_permission not in
+            self.get_permissions(req.user, req.config)):
             raise Unauthorized()
     
     def convert_bool(self, value):

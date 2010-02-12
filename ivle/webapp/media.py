@@ -130,7 +130,7 @@ class MediaFileView(BaseView):
     def get_filename(self, req):
         return self.context.filename
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         return set()
 
 def root_to_media(root, *segments):

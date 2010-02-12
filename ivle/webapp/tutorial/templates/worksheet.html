@@ -14,7 +14,7 @@
     <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
     <h1>${worksheet.name} in ${subject.name}</h1>
     <div id="ivle_padding">
-      <div class="contextactions" py:if="'edit' in worksheet.get_permissions(user)">
+      <div class="contextactions" py:if="'edit' in worksheet.get_permissions(user, config)">
         <a class="editaction" href="${offering_url(worksheet.offering)}/+worksheets/${worksheet.identifier}/+edit">Edit this worksheet</a>
       </div>
       <!-- Display the Table Of Contents -->

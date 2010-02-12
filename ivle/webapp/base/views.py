@@ -33,10 +33,10 @@ class BaseView(object):
     def render(self, req):
         raise NotImplementedError()
 
-    def get_permissions(self, user):
-        return self.context.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.context.get_permissions(user, config)
 
     def authorize(self, req):
-        self.perms = self.get_permissions(req.user)
+        self.perms = self.get_permissions(req.user, req.config)
 
         return self.permission is None or self.permission in self.perms

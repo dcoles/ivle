@@ -253,7 +253,7 @@ class OfferingView(XHTMLView):
         self.plugin_styles[TutorialPlugin] = ['tutorial.css']
         ctx['context'] = self.context
         ctx['req'] = req
-        ctx['permissions'] = self.context.get_permissions(req.user)
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
         ctx['format_submission_principal'] = util.format_submission_principal
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
@@ -455,7 +455,8 @@ class RoleEnrolmentValidator(formencode.FancyValidator):
     The state must have an 'offering' attribute.
     """
     def _to_python(self, value, state):
-        if ("enrol_" + value) not in state.offering.get_permissions(state.user):
+        if (("enrol_" + value) not in
+                state.offering.get_permissions(state.user, state.config)):
             raise formencode.Invalid('Not allowed to assign users that role',
                                      value, state)
         return value
@@ -505,7 +506,7 @@ class EnrolView(XHTMLView):
 
         ctx['data'] = data or {}
         ctx['offering'] = self.context
-        ctx['roles_auth'] = self.context.get_permissions(req.user)
+        ctx['roles_auth'] = self.context.get_permissions(req.user, req.config)
         ctx['errors'] = errors
 
 class OfferingProjectsView(XHTMLView):

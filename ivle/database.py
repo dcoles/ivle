@@ -227,7 +227,7 @@ class User(Storm):
         """Find a user in a store by login name."""
         return store.find(cls, cls.login == unicode(login)).one()
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         """Determine privileges held by a user over this object.
 
         If the user requesting privileges is this user or an admin,
@@ -257,7 +257,7 @@ class Subject(Storm):
     def __repr__(self):
         return "<%s '%s'>" % (type(self).__name__, self.short_name)
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         """Determine privileges held by a user over this object.
 
         If the user requesting privileges is an admin, they may edit.
@@ -371,7 +371,7 @@ class Offering(Storm):
                                Enrolment.offering_id == self.id).one()
         Store.of(enrolment).remove(enrolment)
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         perms = set()
         if user is not None:
             enrolment = self.get_enrolment(user)
@@ -470,8 +470,8 @@ class ProjectSet(Storm):
         return "<%s %d in %r>" % (type(self).__name__, self.id,
                                   self.offering)
 
-    def get_permissions(self, user):
-        return self.offering.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.offering.get_permissions(user, config)
 
     def get_groups_for_user(self, user):
         """List all groups in this offering of which the user is a member."""
@@ -575,8 +575,8 @@ class Project(Storm):
 
         return ps
 
-    def get_permissions(self, user):
-        return self.project_set.offering.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.project_set.offering.get_permissions(user, config)
 
     @property
     def latest_submissions(self):
@@ -660,7 +660,7 @@ class ProjectGroup(Storm):
             (not active_only) or (Semester.state == u'current'))
 
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         if user.admin or user in self.members:
             return set(['submit_project'])
         else:
@@ -843,11 +843,11 @@ class Exercise(Storm):
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
-    def get_permissions(self, user):
-        return self.global_permissions(user)
+    def get_permissions(self, user, config):
+        return self.global_permissions(user, config)
 
     @staticmethod
-    def global_permissions(user):
+    def global_permissions(user, config):
         """Gets the set of permissions this user has over *all* exercises.
         This is used to determine who may view the exercises list, and create
         new exercises."""
@@ -927,9 +927,9 @@ class Worksheet(Storm):
         store.find(WorksheetExercise,
             WorksheetExercise.worksheet == self).remove()
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         # Almost the same permissions as for the offering itself
-        perms = self.offering.get_permissions(user)
+        perms = self.offering.get_permissions(user, config)
         # However, "edit" permission is derived from the "edit_worksheets"
         # permission of the offering
         if 'edit_worksheets' in perms:
@@ -987,8 +987,8 @@ class WorksheetExercise(Storm):
         return "<%s %s in %s>" % (type(self).__name__, self.exercise.name,
                                   self.worksheet.identifier)
 
-    def get_permissions(self, user):
-        return self.worksheet.get_permissions(user)
+    def get_permissions(self, user, config):
+        return self.worksheet.get_permissions(user, config)
 
 
 class ExerciseSave(Storm):
@@ -1041,7 +1041,7 @@ class ExerciseAttempt(ExerciseSave):
     complete = Bool()
     active = Bool()
 
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         return set(['view']) if user is self.user else set()
 
 class TestSuite(Storm):

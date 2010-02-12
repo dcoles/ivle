@@ -11,7 +11,7 @@
   <body>
     <h1>${exercise.name}</h1>
     <div id="ivle_padding">
-      <div py:if="'edit' in exercise.get_permissions(req.user)"
+      <div py:if="'edit' in exercise.get_permissions(req.user, req.config)"
            class="contextactions">
         <a class="editaction" href="${req.publisher.generate(exercise, ExerciseEditView)}">Edit exercise</a>
         <a class="deleteaction" href="${req.publisher.generate(exercise, ExerciseDeleteView)}">Delete exercise</a>

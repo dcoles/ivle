@@ -7,7 +7,7 @@ from ivle.webapp.testing import FakeUser, FakeRequest
 
 class JSONRESTViewTestWithoutPUT(JSONRESTView):
     '''A small JSON REST view for testing purposes, without a PUT method.'''
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         if user.login == u'fakeuser':
             return set(['view', 'edit'])
         if user.login == u'otheruser':

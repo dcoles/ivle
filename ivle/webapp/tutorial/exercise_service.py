@@ -33,7 +33,7 @@ class ExercisesRESTView(JSONRESTView):
     """Rest view for adding an exercise."""
     
     #Only lecturers, tutors and admins can add exercises
-    def get_permissions(self, user):
+    def get_permissions(self, user, config):
         if user is not None:
             if user.admin:
                 return set(['save'])

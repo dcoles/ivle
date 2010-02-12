@@ -65,7 +65,7 @@ class ObjectPermissionCheckingPublisher(Publisher):
     def traversed_to_object(self, obj):
         """Check that the user has any permission at all over the object."""
         if (hasattr(obj, 'get_permissions') and
-            len(obj.get_permissions(self.root.user)) == 0):
+            len(obj.get_permissions(self.root.user, config)) == 0):
             # Indicate the forbidden object if this is an admin.
             if self.root.user and self.root.user.admin:
                 raise Unauthorized('Unauthorized: %s' % obj)
