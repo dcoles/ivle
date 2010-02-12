@@ -32,6 +32,7 @@ within the system itself (accessible from the Help tab).
    config.rst
    sample.rst
    tour.rst
+   roles.rst
    directory.rst
    architecture.rst
    scripts.rst

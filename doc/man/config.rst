@@ -174,9 +174,12 @@ Configuration paths for Subversion repositories.
     Location where Subversion WebDAV AuthUserFile password hash file will be 
     stored.
 
+.. _ref-configuration-policy:
+
 [policy]
 --------
-Site-specific policy decisions on permissions, etc.
+Site-specific policy decisions on permissions, etc. These modify the user
+roles, as described in :ref:`ref-user-roles`.
 
 .. describe:: tutors_can_enrol_students
 
