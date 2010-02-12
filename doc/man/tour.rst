@@ -184,6 +184,40 @@ Usually, the hassle of getting into new groups and creating new repositories
 means that you will want to create a single project set for a subject, and
 just partition the projects into solo and group projects.
 
+Viewing submissions
+-------------------
+
+Lecturers and tutors can view any student or group's project submission, using
+an external Subversion client. As submissions are really just Subversion
+commits, you can examine a student's work by simply checking out the correct
+revision of the repository.
+
+From the Projects page, click on the "Phase 1" heading. This takes you to a
+page which lists the latest submissions from every student (presumably you
+will just see the submission made by "studenta" earlier in this tour). Next to
+each submission is a command line, beginning with "svn co". For instance, you
+might see the line::
+
+ svn co --username lecturer -r7 http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html
+
+Paste this line into a command-line (or, if you use a GUI Subversion client,
+use the username, revision and URL given). Subversion will likely prompt for a
+password. For the sample data, this password is "password", but in general, it
+will **not** be your normal IVLE password. You can learn your Subversion
+password by opening a Console in IVLE and typing::
+
+ import ivle.config
+ ivle.config.Config()['user_info']['svn_pass']
+
+This will check out the student's work into the current directory, to inspect.
+
+You can also try to check out the group submission from Phase 2.
+
+.. warning::
+   It is currently not possible to check out a single file (not a directory)
+   submission using the instructions given. Instead, run ``svn cat``, and
+   redirect the output into a file.
+
 Managing worksheets and exercises
 ---------------------------------
 
