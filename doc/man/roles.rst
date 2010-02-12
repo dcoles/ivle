@@ -46,7 +46,7 @@ All users have the ability to:
 
 * Store and edit files in the file system,
 * Execute Python code in the Python console,
-* Serve files privately and publically,
+* Serve files privately and publicly,
 * View and edit some of their own details (e.g., can edit display name, but
   not full name, which is required to be the user's formal name).
 
