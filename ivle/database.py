@@ -380,11 +380,9 @@ class Offering(Storm):
             if (enrolment and enrolment.role in (u'tutor', u'lecturer')) \
                or user.admin:
                 perms.add('edit')
-                # XXX Bug #493945 -- should tutors have these permissions?
-                # Potentially move into the next category (lecturer & admin)
+            if (enrolment and enrolment.role in (u'lecturer')) or user.admin:
                 perms.add('enrol')          # Can see enrolment screen at all
                 perms.add('enrol_student')  # Can enrol students
-            if (enrolment and enrolment.role in (u'lecturer')) or user.admin:
                 perms.add('enrol_tutor')    # Can enrol tutors
             if user.admin:
                 perms.add('enrol_lecturer') # Can enrol lecturers
