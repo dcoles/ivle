@@ -843,6 +843,13 @@ class Exercise(Storm):
         return "<%s %s>" % (type(self).__name__, self.name)
 
     def get_permissions(self, user):
+        return self.global_permissions(user)
+
+    @staticmethod
+    def global_permissions(user):
+        """Gets the set of permissions this user has over *all* exercises.
+        This is used to determine who may view the exercises list, and create
+        new exercises."""
         perms = set()
         roles = set()
         if user is not None:

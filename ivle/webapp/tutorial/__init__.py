@@ -526,13 +526,9 @@ class ExerciseAddView(XHTMLView):
     template = 'templates/exercise_add.html'
     tab = 'subjects'
 
-    #XXX: This should be done somewhere else
     def authorize(self, req):
-        for offering in req.store.find(Offering):
-            if 'edit' in offering.get_permissions(req.user):
-                return True
-        return False
-        
+        return 'edit' in ivle.database.Exercise.global_permissions(req.user)
+
     def populate(self, req, ctx):
         self.plugin_scripts[Plugin] = ['exercise_admin.js']
 
@@ -545,12 +541,8 @@ class ExercisesView(XHTMLView):
     breadcrumb_text = 'Exercises'
     tab = 'subjects'
 
-    #XXX: This should be done somewhere else
     def authorize(self, req):
-        for offering in req.store.find(Offering):
-            if 'edit' in offering.get_permissions(req.user):
-                return True
-        return False
+        return 'edit' in ivle.database.Exercise.global_permissions(req.user)
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['exercise_admin.css']
