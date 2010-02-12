@@ -189,3 +189,4 @@ class Plugin(ViewPlugin):
     views = [(ApplicationRoot, ('+submit', 'users'), UserSubmitView),
              (ApplicationRoot, ('+submit', 'groups'), GroupSubmitView)]
 
+    help = {'Submitting a project': 'help.html'}
