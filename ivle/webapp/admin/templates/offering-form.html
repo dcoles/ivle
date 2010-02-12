@@ -17,6 +17,7 @@
               <option py:for="semester in semesters" value="${semester.year}/${semester.semester}">${semester.year} semester ${semester.semester}</option>
             </select>
             <span py:if="'semester' in errors" class="form_error">${errors.semester}.</span>
+            <a class="addaction" href="/subjects/+new-semester">Create new semester</a>
           </div>
           </py:if>
           <div>

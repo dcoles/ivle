@@ -195,6 +195,53 @@ class SubjectEdit(SubjectFormView):
         return self.context
 
 
+class SemesterUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a semester is unique.
+
+    There cannot be more than one semester for the same year and semester.
+    """
+    def _to_python(self, value, state):
+        if (state.store.find(
+                Semester, year=value['year'], semester=value['semester']
+                ).count() > 0):
+            raise formencode.Invalid(
+                'Semester already exists', value, state)
+        return value
+
+
+class SemesterSchema(formencode.Schema):
+    year = formencode.validators.UnicodeString()
+    semester = formencode.validators.UnicodeString()
+    chained_validators = [SemesterUniquenessValidator()]
+
+
+class SemesterNew(BaseFormView):
+    """A form to create a semester."""
+    template = 'templates/semester-new.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None and req.user.admin
+
+    @property
+    def validator(self):
+        return SemesterSchema()
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_semester = Semester()
+        new_semester.year = data['year']
+        new_semester.semester = data['semester']
+
+        req.store.add(new_semester)
+        return new_semester
+
+    def get_return_url(self, obj):
+        return '/subjects'
+
+
 class OfferingView(XHTMLView):
     """The home page of an offering."""
     template = 'templates/offering.html'
@@ -550,6 +597,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
              (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
+             (ApplicationRoot, ('subjects', '+new-semester'), SemesterNew),
              (Subject, '+edit', SubjectEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),
