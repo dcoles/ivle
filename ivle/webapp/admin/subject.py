@@ -533,7 +533,7 @@ class OfferingProjectsView(XHTMLView):
 class ProjectView(XHTMLView):
     """View the submissions for a ProjectSet"""
     template = "templates/project.html"
-    permission = "edit"
+    permission = "view_project_submissions"
     tab = 'subjects'
 
     def build_subversion_url(self, svnroot, submission):

@@ -379,6 +379,7 @@ class Offering(Storm):
                 perms.add('view')
             if (enrolment and enrolment.role in (u'tutor', u'lecturer')) \
                or user.admin:
+                perms.add('view_project_submissions')
                 # Site-specific policy on the role of tutors
                 if config['policy']['tutors_can_enrol_students']:
                     perms.add('enrol')
@@ -386,6 +387,7 @@ class Offering(Storm):
                 if config['policy']['tutors_can_edit_worksheets']:
                     perms.add('edit_worksheets')
             if (enrolment and enrolment.role in (u'lecturer')) or user.admin:
+                perms.add('view_project_submissions')
                 perms.add('edit_worksheets')
                 perms.add('edit')           # Can edit projects & details
                 perms.add('enrol')          # Can see enrolment screen at all
