@@ -234,44 +234,199 @@ class OfferingView(XHTMLView):
                     problems_done, problems_total))
 
 
+class SubjectValidator(formencode.FancyValidator):
+    """A FormEncode validator that turns a subject name into a subject.
+
+    The state must have a 'store' attribute, which is the Storm store
+    to use.
+    """
+    def _to_python(self, value, state):
+        subject = state.store.find(Subject, short_name=value).one()
+        if subject:
+            return subject
+        else:
+            raise formencode.Invalid('Subject does not exist', value, state)
+
+
+class SemesterValidator(formencode.FancyValidator):
+    """A FormEncode validator that turns a string into a semester.
+
+    The string should be of the form 'year/semester', eg. '2009/1'.
+
+    The state must have a 'store' attribute, which is the Storm store
+    to use.
+    """
+    def _to_python(self, value, state):
+        try:
+            year, semester = value.split('/')
+        except ValueError:
+            year = semester = None
+
+        semester = state.store.find(
+            Semester, year=year, semester=semester).one()
+        if semester:
+            return semester
+        else:
+            raise formencode.Invalid('Semester does not exist', value, state)
+
+
+class OfferingUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that an offering is unique.
+
+    There cannot be more than one offering in the same year and semester.
+
+    The offering referenced by state.existing_offering is permitted to
+    hold that year and semester tuple. If any other object holds it, the
+    input is rejected.
+    """
+    def _to_python(self, value, state):
+        if (state.store.find(
+                Offering, subject=value['subject'],
+                semester=value['semester']).one() not in
+                (None, state.existing_offering)):
+            raise formencode.Invalid(
+                'Offering already exists', value, state)
+        return value
+
+
 class OfferingSchema(formencode.Schema):
     description = formencode.validators.UnicodeString(
         if_missing=None, not_empty=False)
     url = formencode.validators.URL(if_missing=None, not_empty=False)
 
 
-class OfferingEdit(XHTMLView):
-    """A form to edit an offering's details."""
-    template = 'templates/offering-edit.html'
-    tab = 'subjects'
-    permission = 'edit'
+class OfferingAdminSchema(OfferingSchema):
+    subject = formencode.All(
+        SubjectValidator(), formencode.validators.UnicodeString())
+    semester = formencode.All(
+        SemesterValidator(), formencode.validators.UnicodeString())
+    chained_validators = [OfferingUniquenessValidator()]
+
+
+class BaseFormView(XHTMLView):
+    """A base form view."""
 
     def filter(self, stream, ctx):
         return stream | HTMLFormFiller(data=ctx['data'])
+
+    def populate_state(self, state):
+        pass
+
+    def get_return_url(self, obj):
+        return self.req.publisher.generate(obj)
+
+    def get_default_data(self, req):
+        raise NotImplementedError()
+
+    def save_object(self, req, data):
+        raise NotImplementedError()
+
+    @property
+    def validator(self):
+        raise NotImplementedError()
 
     def populate(self, req, ctx):
         if req.method == 'POST':
             data = dict(req.get_fieldstorage())
             try:
-                validator = OfferingSchema()
-                data = validator.to_python(data, state=req)
+                self.populate_state(req)
+                data = self.validator.to_python(data, state=req)
 
-                self.context.url = unicode(data['url']) if data['url'] else None
-                self.context.description = data['description']
+                obj = self.save_object(req, data)
+
                 req.store.commit()
-                req.throw_redirect(req.publisher.generate(self.context))
+                req.throw_redirect(self.get_return_url(obj))
             except formencode.Invalid, e:
+                error_value = e.msg
                 errors = e.unpack_errors()
         else:
-            data = {
-                'url': self.context.url,
-                'description': self.context.description,
-            }
+            data = self.get_default_data(req)
+            error_value = None
             errors = {}
 
-        ctx['data'] = data or {}
+        if errors:
+            req.store.rollback()
+
+        ctx['req'] = req
         ctx['context'] = self.context
+        ctx['data'] = data or {}
         ctx['errors'] = errors
+        # If all of the fields validated, set the global form error.
+        if isinstance(errors, basestring):
+            ctx['error_value'] = errors
+
+
+class OfferingEdit(BaseFormView):
+    """A form to edit an offering's details."""
+    template = 'templates/offering-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        if self.req.user.admin:
+            return OfferingAdminSchema()
+        else:
+            return OfferingSchema()
+
+    def populate(self, req, ctx):
+        super(OfferingEdit, self).populate(req, ctx)
+        ctx['subjects'] = req.store.find(Subject)
+        ctx['semesters'] = req.store.find(Semester)
+
+    def populate_state(self, state):
+        state.existing_offering = self.context
+
+    def get_default_data(self, req):
+        return {
+            'subject': self.context.subject.short_name,
+            'semester': self.context.semester.year + '/' +
+                        self.context.semester.semester,
+            'url': self.context.url,
+            'description': self.context.description,
+            }
+
+    def save_object(self, req, data):
+        if req.user.admin:
+            self.context.subject = data['subject']
+            self.context.semester = data['semester']
+        self.context.description = data['description']
+        self.context.url = unicode(data['url']) if data['url'] else None
+        return self.context
+
+
+class OfferingNew(BaseFormView):
+    """A form to create an offering."""
+    template = 'templates/offering-new.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None and req.user.admin
+
+    @property
+    def validator(self):
+        return OfferingAdminSchema()
+
+    def populate(self, req, ctx):
+        super(OfferingNew, self).populate(req, ctx)
+        ctx['subjects'] = req.store.find(Subject)
+        ctx['semesters'] = req.store.find(Semester)
+
+    def populate_state(self, state):
+        state.existing_offering = None
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_offering = Offering()
+        new_offering.subject = data['subject']
+        new_offering.semester = data['semester']
+        new_offering.description = data['description']
+        new_offering.url = unicode(data['url']) if data['url'] else None
+
+        req.store.add(new_offering)
+        return new_offering
 
 
 class UserValidator(formencode.FancyValidator):
@@ -446,6 +601,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
+             (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
              (Subject, '+edit', SubjectEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),

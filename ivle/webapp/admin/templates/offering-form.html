@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/" py:strip="">
+  <body py:strip="">
+      <form class="verticalform" action="" method="post">
+        <div>
+          <py:if test="req.user.admin">
+          <div>
+            <label for="subject">Subject:</label>
+            <select id="subject" name="subject">
+              <option py:for="subject in subjects" value="${subject.short_name}">${subject.name}</option>
+            </select>
+            <span py:if="'subject' in errors" class="form_error">${errors.subject}.</span>
+          </div>
+          <div>
+            <label for="semester">Semester:</label>
+            <select id="semester" name="semester">
+              <option py:for="semester in semesters" value="${semester.year}/${semester.semester}">${semester.year} semester ${semester.semester}</option>
+            </select>
+            <span py:if="'semester' in errors" class="form_error">${errors.semester}.</span>
+          </div>
+          </py:if>
+          <div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" cols="80" rows="10"></textarea>
+            <span py:if="'description' in errors" class="form_error">${errors.description}.</span>
+          </div>
+          <div>
+            <label for="url">Home page URL:</label>
+            <input type="text" id="url" name="url" />
+            <span py:if="'url' in errors" class="form_error">${errors.url}.</span>
+          </div>
+          <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
+          <div class="submit">
+            <input type="submit" value="${submit_button_label}" />
+          </div>
+        </div>
+      </form>
+  </body>
+</html>
