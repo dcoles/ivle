@@ -96,7 +96,7 @@
         </a>
       </div>
 
-      <div py:if="'edit' in permissions or context.worksheets.count() > 0"
+      <div py:if="'edit_worksheets' in permissions or context.worksheets.count() > 0"
            class="majorsection">
         <h2>Worksheets</h2>
         <py:choose test="context.worksheets.count()">
@@ -130,7 +130,7 @@
                 <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
               </p>
             </py:if>
-            <span py:if="'edit' in permissions">
+            <span py:if="'edit_worksheets' in permissions">
               <a class="manageaction" href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}"> Manage worksheets</a>
               <br />
               <a class="manageaction" href="/+exercises">Manage exercises</a>

@@ -377,8 +377,11 @@ class Offering(Storm):
             enrolment = self.get_enrolment(user)
             if enrolment or user.admin:
                 perms.add('view')
+            if (enrolment and enrolment.role in (u'tutor', u'lecturer')) \
+               or user.admin:
+                perms.add('edit_worksheets')
             if (enrolment and enrolment.role in (u'lecturer')) or user.admin:
-                perms.add('edit')
+                perms.add('edit')           # Can edit projects & details
                 perms.add('enrol')          # Can see enrolment screen at all
                 perms.add('enrol_student')  # Can enrol students
                 perms.add('enrol_tutor')    # Can enrol tutors
@@ -925,7 +928,15 @@ class Worksheet(Storm):
             WorksheetExercise.worksheet == self).remove()
 
     def get_permissions(self, user):
-        return self.offering.get_permissions(user)
+        # Almost the same permissions as for the offering itself
+        perms = self.offering.get_permissions(user)
+        # However, "edit" permission is derived from the "edit_worksheets"
+        # permission of the offering
+        if 'edit_worksheets' in perms:
+            perms.add('edit')
+        else:
+            perms.discard('edit')
+        return perms
 
     def get_xml(self):
         """Returns the xml of this worksheet, converts from rst if required."""

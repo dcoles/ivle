@@ -360,7 +360,7 @@ class WorksheetFormView(XHTMLView):
 class WorksheetAddView(WorksheetFormView):
     """An form to create a worksheet in an offering."""
     template = 'templates/worksheet_add.html'
-    permission = 'edit'
+    permission = 'edit_worksheets'
     tab = 'subjects'
 
     @property
@@ -420,7 +420,7 @@ class WorksheetEditView(WorksheetFormView):
 
 class WorksheetsEditView(XHTMLView):
     """View for arranging worksheets."""
-    permission = 'edit'
+    permission = 'edit_worksheets'
     template = 'templates/worksheets_edit.html'
     tab = 'subjects'
 

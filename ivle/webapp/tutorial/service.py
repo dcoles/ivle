@@ -118,7 +118,7 @@ class WorksheetExerciseRESTView(JSONRESTView):
 class WorksheetsRESTView(JSONRESTView):
     """View used to update and create Worksheets."""
 
-    @named_operation('edit')
+    @named_operation('edit_worksheets')
     def move_up(self, req, worksheetid):
         """Takes a list of worksheet-seq_no pairs and updates their 
         corresponding Worksheet objects to match."""
@@ -139,7 +139,7 @@ class WorksheetsRESTView(JSONRESTView):
         
         return {'result': 'ok'}
 
-    @named_operation('edit')
+    @named_operation('edit_worksheets')
     def move_down(self, req, worksheetid):
         """Takes a list of worksheet-seq_no pairs and updates their 
         corresponding Worksheet objects to match."""
