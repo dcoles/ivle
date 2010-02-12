@@ -33,7 +33,7 @@ class GroupsView(XHTMLView):
     """
     template = 'template.html'
     tab = 'subjects'
-    permission = 'edit'
+    permission = 'admin_groups'
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ['groups.css']
