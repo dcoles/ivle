@@ -130,16 +130,11 @@
                 <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
               </p>
             </py:if>
-            <a py:if="'edit' in permissions"
-               class="manageaction"
-               href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}">
-              Manage worksheets
-            </a><br />
-            <a py:if="'edit' in permissions"
-               class="manageaction"
-               href="/+exercises">
-              Manage exercises
-            </a>
+            <span py:if="'edit' in permissions">
+              <a class="manageaction" href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}"> Manage worksheets</a>
+              <br />
+              <a class="manageaction" href="/+exercises">Manage exercises</a>
+            </span>
           </div>
         </py:choose>
       </div>
