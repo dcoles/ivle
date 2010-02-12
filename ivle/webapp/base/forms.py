@@ -23,24 +23,49 @@ from ivle.webapp.base.xhtml import XHTMLView
 class BaseFormView(XHTMLView):
     """A base form view."""
 
-    def filter(self, stream, ctx):
-        return stream | HTMLFormFiller(data=ctx['data'])
+    @property
+    def validator(self):
+        """The FormEncode validator to use."""
+        raise NotImplementedError()
 
     def populate_state(self, state):
+        """Populate the state given to the FormEncode validator.
+
+        Subclasses can override this and set additional attributes.
+        """
         pass
 
     def get_return_url(self, obj):
+        """Return the URL to which the completed form should redirect.
+
+        By default this will redirect to the saved object.
+        """
         return self.req.publisher.generate(obj)
 
     def get_default_data(self, req):
+        """Return a dict mapping field names to default form values.
+
+        For an edit form, this should return the object's existing data.
+        For a creation form, this should probably return an empty dict.
+
+        This must be overridden by subclasses.
+        """
         raise NotImplementedError()
 
     def save_object(self, req, data):
+        """Take the validated form data and turn it into an object.
+
+        The object must then be returned.
+
+        For an edit form, this should just overwrite data on an existing
+        object.
+        For a creation form, this should create a new object with the given
+        data and add it to the request's store.
+        """
         raise NotImplementedError()
 
-    @property
-    def validator(self):
-        raise NotImplementedError()
+    def filter(self, stream, ctx):
+        return stream | HTMLFormFiller(data=ctx['data'])
 
     def populate(self, req, ctx):
         if req.method == 'POST':
