@@ -25,7 +25,11 @@ class BaseFormView(XHTMLView):
 
     @property
     def validator(self):
-        """The FormEncode validator to use."""
+        """The FormEncode validator to use.
+
+        The request will be passed in as state, after potentially being
+        modified by populate_state().
+        """
         raise NotImplementedError()
 
     def populate_state(self, state):
