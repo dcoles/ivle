@@ -174,6 +174,31 @@ Configuration paths for Subversion repositories.
     Location where Subversion WebDAV AuthUserFile password hash file will be 
     stored.
 
+[policy]
+--------
+Site-specific policy decisions on permissions, etc.
+
+.. describe:: tutors_can_enrol_students
+
+    :type: boolean(default=False)
+
+    If True, tutors can enrol any IVLE user as a student in a subject they are
+    tutoring. This is disabled by default, as it is generally considered
+    unnecessary for tutors to have such power.
+
+.. describe:: tutors_can_edit_worksheets
+
+    :type: boolean(default=True)
+
+    If True, tutors can create and edit worksheets in a subject they are
+    tutoring, and can create and edit *any exercise in the system*. This is
+    turned on by default, but should be used carefully. Untrusted tutors could
+    create site-wide problems.
+
+    (The reason tutors can edit any exercise is because exercises are not
+    stored per-subject, so it isn't possible to limit them just to exercises
+    for a particular subject.)
+
 [media]
 -------
 Configuration of :ref:`media serving <ref-media-serving>`.
