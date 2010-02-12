@@ -56,7 +56,7 @@ Students
 The role of "student" is offering-specific. Any user enrolled in an offering
 is a "student" in that offering.
 
-In addition to ordinary users, students have the ability to:
+In addition to the abilities of ordinary users, students have the ability to:
 
 * View the "subject page" for the offering,
 * View any worksheet in the offering, and its exercises,
@@ -71,8 +71,12 @@ Tutors
 The role of "tutor" is offering-specific. Users may be enrolled in an offering
 as "tutor" by a lecturer or admin.
 
-In addition to students, tutors have the ability to:
+In addition to the abilities of students, tutors have the ability to:
 
+* View submissions to projects in the offering,
+* Check out (with an external Subversion client) the part of a student or
+  group's Subversion repository which was submitted to a project in the
+  offering,
 * Enrol a user in the offering as a student, if the system administrator has
   allowed it (see ``tutors_can_enrol_students`` under
   :ref:`policy configuration <ref-configuration-policy>`). This is
@@ -92,7 +96,7 @@ Lecturers
 The role of "lecturer" is offering-specific. Users may be enrolled in an
 offering as "lecturer" by an admin.
 
-In addition to tutors, lecturers have the ability to:
+In addition to the abilities of tutors, lecturers have the ability to:
 
 * Enrol a user in the offering, as a student or tutor,
 * Create and edit worksheets for the offering
