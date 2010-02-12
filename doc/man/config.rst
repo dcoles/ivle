@@ -201,7 +201,7 @@ Site-specific policy decisions on permissions, etc.
 
 [media]
 -------
-Configuration of :ref:`media serving <ref-media-serving>`.
+Configuration of media serving.
 
 .. describe:: version
 
