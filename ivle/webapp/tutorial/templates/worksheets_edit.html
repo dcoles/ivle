@@ -17,7 +17,7 @@
           <tr><th>Name</th><th>Actions</th></tr>
         </thead>
         <tbody>
-          <tr py:for="worksheet in worksheets">
+          <tr py:for="worksheet in worksheets" id="worksheet_row_${worksheet.identifier}">
             <td><a href="${worksheet.identifier}/">${worksheet.name}</a></td>
             <td>
               <a href='${worksheet.identifier}/+edit' title='Edit'><img src="${mediapath + 'pencil.png'}" alt="Edit" /></a>

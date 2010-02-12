@@ -25,7 +25,7 @@
 //XXX: Make this actually move the element, not just reload the page
 function move_up(worksheet)
 {
-    var ws_row = document.getElementById(worksheet);
+    var ws_row = document.getElementById("worksheet_row_" + worksheet);
     var ws_row_index = ws_row.rowIndex;
     
     if (ws_row_index == 1) {
@@ -59,7 +59,7 @@ function move_up(worksheet)
 function move_down(worksheet)
 {
     var ws_table = document.getElementById('worksheets_table');
-    var ws_row = document.getElementById(worksheet);
+    var ws_row = document.getElementById("worksheet_row_" + worksheet);
     var ws_row_index = ws_row.rowIndex;
     
     if (ws_row_index == (ws_table.rows.length - 1)) {
