@@ -23,7 +23,7 @@
           <thead><tr><th>Subject</th><th>Code</th><th>Actions</th></tr></thead>
           <tbody>
             <tr py:for="subject in subjects">
-              <td><a href="${req.publisher.generate(subject)}">${subject.name}</a></td>
+              <td>${subject.name}</td>
               <td>${subject.code}</td>
               <td>
                 <a href="${req.publisher.generate(subject, SubjectEdit)}" title="Edit"><img src="${mediapath + 'interface/pencil.png'}" alt="Edit" /></a>
