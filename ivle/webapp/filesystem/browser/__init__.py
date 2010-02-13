@@ -162,6 +162,8 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
 
     help = {'Filesystem': {'Browser': 'help.html',
                            'Running and Serving': 'help-run-serve.html',
-                           'Subversion': 'help-svn.html'}}
+                           # TODO: Unstub help page
+                           #'Subversion': 'help-svn.html'
+                           }}
 
     media = 'media'
