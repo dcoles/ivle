@@ -215,7 +215,8 @@ class User(Storm):
             Semester.id == Offering.semester_id,
             (not active_only) or (Semester.state == u'current'),
             Enrolment.offering_id == Offering.id,
-            Enrolment.user_id == self.id)
+            Enrolment.user_id == self.id,
+            Enrolment.active == True)
 
     @staticmethod
     def hash_password(password):

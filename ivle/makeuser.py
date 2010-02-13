@@ -102,7 +102,8 @@ def rebuild_svn_config(store, config):
                     User.login,
                     User.id == Enrolment.user_id,
                     Enrolment.offering_id == offeringid,
-                    Enrolment.role.is_in((u'tutor', u'lecturer'))
+                    Enrolment.role.is_in((u'tutor', u'lecturer')),
+                    Enrolment.active == True,
                 )
             )
 
@@ -185,7 +186,8 @@ def rebuild_svn_group_config(store, config):
                     User.login,
                     User.id == Enrolment.user_id,
                     Enrolment.offering_id == offeringid,
-                    Enrolment.role.is_in((u'tutor', u'lecturer'))
+                    Enrolment.role.is_in((u'tutor', u'lecturer')),
+                    Enrolment.active == True,
                 )
             )
 
