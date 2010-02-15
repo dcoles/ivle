@@ -38,6 +38,7 @@ import formencode.validators
 from ivle.webapp.base.forms import BaseFormView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.errors import BadRequest
 from ivle.webapp import ApplicationRoot
 
 from ivle.database import Subject, Semester, Offering, Enrolment, User,\
@@ -281,6 +282,7 @@ class OfferingView(XHTMLView):
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
         ctx['OfferingEdit'] = OfferingEdit
+        ctx['OfferingCloneWorksheets'] = OfferingCloneWorksheets
         ctx['GroupsView'] = GroupsView
 
         # As we go, calculate the total score for this subject
@@ -448,6 +450,49 @@ class OfferingNew(BaseFormView):
 
         req.store.add(new_offering)
         return new_offering
+
+
+class OfferingCloneWorksheetsSchema(formencode.Schema):
+    subject = formencode.All(
+        SubjectValidator(), formencode.validators.UnicodeString())
+    semester = formencode.All(
+        SemesterValidator(), formencode.validators.UnicodeString())
+
+
+class OfferingCloneWorksheets(BaseFormView):
+    """A form to clone worksheets from one offering to another."""
+    template = 'templates/offering-clone-worksheets.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None and req.user.admin
+
+    @property
+    def validator(self):
+        return OfferingCloneWorksheetsSchema()
+
+    def populate(self, req, ctx):
+        super(OfferingCloneWorksheets, self).populate(req, ctx)
+        ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
+        ctx['semesters'] = req.store.find(Semester).order_by(
+            Semester.year, Semester.semester)
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        if self.context.worksheets.count() > 0:
+            raise BadRequest(
+                "Cannot clone to target with existing worksheets.")
+        offering = req.store.find(
+            Offering, subject=data['subject'], semester=data['semester']).one()
+        if offering is None:
+            raise BadRequest("No such offering.")
+        if offering.worksheets.count() == 0:
+            raise BadRequest("Source offering has no worksheets.")
+
+        self.context.clone_worksheets(offering)
+        return self.context
 
 
 class UserValidator(formencode.FancyValidator):
@@ -631,6 +676,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Semester, '+edit', SemesterEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),
+             (Offering, '+clone-worksheets', OfferingCloneWorksheets),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
              (Offering, ('+projects', '+index'), OfferingProjectsView),

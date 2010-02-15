@@ -54,17 +54,7 @@ dst = store.find(Offering,
 if dst.worksheets.count() > 0:
     die('%r already has worksheets - doing nothing' % dst)
 
-for oldws in src.worksheets:
-    newws = Worksheet()
-    newws.seq_no = oldws.seq_no
-    newws.identifier = oldws.identifier
-    newws.name = oldws.name
-    newws.assessable = oldws.assessable
-    newws.data = oldws.data
-    newws.format = oldws.format
-    newws.offering = dst
-    store.add(newws)
-    ivle.worksheet.utils.update_exerciselist(newws)
+dst.clone_worksheets(src)
 
 print >> sys.stderr, 'copied %d worksheets from %r to %r' \
                      % (dst.worksheets.count(), src, dst)

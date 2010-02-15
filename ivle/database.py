@@ -425,6 +425,22 @@ class Offering(Storm):
         # XXX: Respect extensions.
         return self.projects.find(Project.deadline > datetime.datetime.now())
 
+    def clone_worksheets(self, source):
+        """Clone all worksheets from the specified source to this offering."""
+        import ivle.worksheet.utils
+        for worksheet in source.worksheets:
+            newws = Worksheet()
+            newws.seq_no = worksheet.seq_no
+            newws.identifier = worksheet.identifier
+            newws.name = worksheet.name
+            newws.assessable = worksheet.assessable
+            newws.data = worksheet.data
+            newws.format = worksheet.format
+            newws.offering = self
+            Store.of(self).add(newws)
+            ivle.worksheet.utils.update_exerciselist(newws)
+
+
 class Enrolment(Storm):
     """An enrolment of a user in an offering.
 
