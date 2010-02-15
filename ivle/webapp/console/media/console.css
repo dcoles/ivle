@@ -163,7 +163,7 @@
 }
 #console_filler.minimal {
     /* Trial and error is useful to work this out. */
-    height: 1em;
+    height: 2em;
 }
 *.errorMsg {
     color: red;
