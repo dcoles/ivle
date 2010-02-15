@@ -17,7 +17,8 @@
 
 from storm.locals import Store
 
-from ivle.database import Offering, ProjectSet, Project, Subject, User
+from ivle.database import (
+    Offering, ProjectSet, Project, Semester, Subject, User)
 
 from ivle.webapp import ApplicationRoot
 from ivle.webapp.publisher import ROOT
@@ -32,6 +33,10 @@ def root_to_user(root, segment):
 @forward_route(ApplicationRoot, 'subjects', argc=1)
 def root_to_subject(root, name):
     return root.store.find(Subject, short_name=name).one()
+
+@forward_route(ApplicationRoot, '+semesters', argc=2)
+def root_to_semester(root, year, semester):
+    return root.store.find(Semester, year=year, semester=semester).one()
 
 @forward_route(Subject, argc=2)
 def subject_to_offering(subject, year, semester):
@@ -61,6 +66,10 @@ def user_url(user):
 @reverse_route(Subject)
 def subject_url(subject):
     return (ROOT, ('subjects', subject.short_name))
+
+@reverse_route(Semester)
+def semester_url(semester):
+    return (ROOT, ('+semesters', (semester.year, semester.semester)))
 
 @reverse_route(Offering)
 def offering_url(offering):

@@ -47,9 +47,10 @@ import ivle.date
 
 from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
-from ivle.webapp.admin.publishing import (root_to_subject,
+from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             subject_to_offering, offering_to_projectset, offering_to_project,
-            subject_url, offering_url, projectset_url, project_url)
+            subject_url, semester_url, offering_url, projectset_url,
+            project_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
 from ivle.webapp.core import Plugin as CorePlugin
@@ -568,9 +569,10 @@ class ProjectView(XHTMLView):
         ctx['user'] = req.user
 
 class Plugin(ViewPlugin, MediaPlugin):
-    forward_routes = (root_to_subject, subject_to_offering,
+    forward_routes = (root_to_subject, root_to_semester, subject_to_offering,
                       offering_to_project, offering_to_projectset)
-    reverse_routes = (subject_url, offering_url, projectset_url, project_url)
+    reverse_routes = (
+        subject_url, semester_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
