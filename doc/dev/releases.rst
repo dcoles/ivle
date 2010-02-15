@@ -27,6 +27,13 @@ working IVLE installation. You also need to have your system set up with
 write access to Launchpad branches.
 
 
+Update the internal version strings
+===================================
+
+Change the two version strings in ``doc/conf.py`` and the one in
+``ivle/__init__.py``. Make sure you commit this change now.
+
+
 Tag the release in Bazaar
 =========================
 

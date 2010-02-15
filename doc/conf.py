@@ -42,9 +42,9 @@ copyright = '2009, University of Melbourne'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.1'
+version = '1.0'
 # The full version, including alpha/beta/rc tags.
-release = '0.1'
+release = '1.0'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
