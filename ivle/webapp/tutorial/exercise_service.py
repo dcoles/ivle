@@ -26,7 +26,6 @@ from ivle.webapp.base.rest import (JSONRESTView, named_operation,
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.tutorial.test.TestFramework import (
     TestCreationError, TestError)
-from ivle.worksheet.utils import test_exercise_submission
 
 
 class ExercisesRESTView(JSONRESTView):
@@ -320,6 +319,7 @@ class ExerciseRESTView(JSONRESTView):
 
     @named_operation(u'edit')
     def test(self, req, code):
+        from ivle.worksheet.utils import test_exercise_submission
         try:
             return test_exercise_submission(
                 req.config, req.user, self.context, code)
