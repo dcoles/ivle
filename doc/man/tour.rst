@@ -181,8 +181,8 @@ for all projects in a set, but if you create a new set, the students will have
 to start using a new repository.
 
 Usually, the hassle of getting into new groups and creating new repositories
-means that you will want to create a single project set for a subject, and
-just partition the projects into solo and group projects.
+means that you will want to create just two project sets for a subject: one
+for solo projects, and another for group projects.
 
 Viewing submissions
 -------------------
