@@ -180,7 +180,7 @@ class SemesterUniquenessValidator(formencode.FancyValidator):
     def _to_python(self, value, state):
         if (state.store.find(
                 Semester, year=value['year'], semester=value['semester']
-                ).count() > 0):
+                ).one() not in (None, state.existing_semester)):
             raise formencode.Invalid(
                 'Semester already exists', value, state)
         return value
@@ -189,12 +189,13 @@ class SemesterUniquenessValidator(formencode.FancyValidator):
 class SemesterSchema(formencode.Schema):
     year = formencode.validators.UnicodeString()
     semester = formencode.validators.UnicodeString()
+    state = formencode.All(
+        formencode.validators.OneOf(["past", "current", "future"]),
+        formencode.validators.UnicodeString())
     chained_validators = [SemesterUniquenessValidator()]
 
 
-class SemesterNew(BaseFormView):
-    """A form to create a semester."""
-    template = 'templates/semester-new.html'
+class SemesterFormView(BaseFormView):
     tab = 'subjects'
 
     def authorize(self, req):
@@ -204,6 +205,18 @@ class SemesterNew(BaseFormView):
     def validator(self):
         return SemesterSchema()
 
+    def get_return_url(self, obj):
+        return '/subjects/+manage'
+
+
+class SemesterNew(SemesterFormView):
+    """A form to create a semester."""
+    template = 'templates/semester-new.html'
+    tab = 'subjects'
+
+    def populate_state(self, state):
+        state.existing_semester = None
+
     def get_default_data(self, req):
         return {}
 
@@ -211,12 +224,32 @@ class SemesterNew(BaseFormView):
         new_semester = Semester()
         new_semester.year = data['year']
         new_semester.semester = data['semester']
+        new_semester.state = data['state']
 
         req.store.add(new_semester)
         return new_semester
 
-    def get_return_url(self, obj):
-        return '/subjects'
+
+class SemesterEdit(SemesterFormView):
+    """A form to edit a semester."""
+    template = 'templates/semester-edit.html'
+
+    def populate_state(self, state):
+        state.existing_semester = self.context
+
+    def get_default_data(self, req):
+        return {
+            'year': self.context.year,
+            'semester': self.context.semester,
+            'state': self.context.state,
+            }
+
+    def save_object(self, req, data):
+        self.context.year = data['year']
+        self.context.semester = data['semester']
+        self.context.state = data['state']
+
+        return self.context
 
 
 class OfferingView(XHTMLView):
@@ -577,8 +610,9 @@ class Plugin(ViewPlugin, MediaPlugin):
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
              (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
-             (ApplicationRoot, ('subjects', '+new-semester'), SemesterNew),
+             (ApplicationRoot, ('+semesters', '+new'), SemesterNew),
              (Subject, '+edit', SubjectEdit),
+             (Semester, '+edit', SemesterEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),

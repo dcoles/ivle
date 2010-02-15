@@ -2,27 +2,13 @@
       xmlns:py="http://genshi.edgewall.org/"
       xmlns:xi="http://www.w3.org/2001/XInclude">
   <head>
-    <title>New Semester</title>
+    <title>New semester</title>
   </head>
   <body>
     <h1>New semester</h1>
-    <div id="ivle_padding">
-      <form class="verticalform thin" method="post" action="">
-        <div>
-          <label for="field_year">Year:</label>
-          <input type="text" id="field_year" name="year" />
-          <span py:if="'year' in errors" class="form_error">${errors.year}</span>
-        </div>
-        <div>
-          <label for="field_semester">Semester:</label>
-          <input type="text" id="field_semester" name="semester" />
-          <span py:if="'semester' in errors" class="form_error">${errors.semester}</span>
-        </div>
-        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
-        <div class="submit">
-          <input type="submit" value="Create" />
-        </div>
-      </form>
+    <div py:with="submit_button_label = 'Create'"
+         id="ivle_padding">
+      <xi:include href="semester-form.html" />
     </div>
   </body>
 </html>
