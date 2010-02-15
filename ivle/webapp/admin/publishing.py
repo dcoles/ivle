@@ -69,7 +69,7 @@ def subject_url(subject):
 
 @reverse_route(Semester)
 def semester_url(semester):
-    return (ROOT, ('+semesters', (semester.year, semester.semester)))
+    return (ROOT, ('+semesters', semester.year, semester.semester))
 
 @reverse_route(Offering)
 def offering_url(offering):
