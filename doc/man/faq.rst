@@ -144,7 +144,8 @@ file.
 
 Look for ``PythonOption mod_python.file_session.database_directory``. Make
 sure it is set to the place you want. Then, you need to manually make sure
-that directory exists.
+that directory exists. If you have multiple slaves, this directory will
+need to be shared between them all.
 
 The default is :file:`/var/lib/ivle/sessions`.
 
