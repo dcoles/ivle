@@ -429,8 +429,9 @@ class OfferingNew(BaseFormView):
 
     def populate(self, req, ctx):
         super(OfferingNew, self).populate(req, ctx)
-        ctx['subjects'] = req.store.find(Subject)
-        ctx['semesters'] = req.store.find(Semester)
+        ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
+        ctx['semesters'] = req.store.find(Semester).order_by(
+            Semester.year, Semester.semester)
 
     def populate_state(self, state):
         state.existing_offering = None
