@@ -113,23 +113,24 @@ class XHTMLView(BaseView):
         crumber = Breadcrumber(req)
 
         ctx['breadcrumbs'] = []
-        for ancestor in ancestry:
-            crumb = crumber.crumb(ancestor)
-            if crumb is None:
-                continue
+        if not req.publicmode:
+            for ancestor in ancestry:
+                crumb = crumber.crumb(ancestor)
+                if crumb is None:
+                    continue
 
-            if hasattr(crumb, 'extra_breadcrumbs_before'):
-                ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_before)
-            ctx['breadcrumbs'].append(crumb)
-            if hasattr(crumb, 'extra_breadcrumbs_after'):
-                ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_after)
+                if hasattr(crumb, 'extra_breadcrumbs_before'):
+                    ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_before)
+                ctx['breadcrumbs'].append(crumb)
+                if hasattr(crumb, 'extra_breadcrumbs_after'):
+                    ctx['breadcrumbs'].extend(crumb.extra_breadcrumbs_after)
 
-        # If the view has specified text for a breadcrumb, add one.
-        if self.breadcrumb_text:
-            ctx['breadcrumbs'].append(ViewBreadcrumb(req, self))
+            # If the view has specified text for a breadcrumb, add one.
+            if self.breadcrumb_text:
+                ctx['breadcrumbs'].append(ViewBreadcrumb(req, self))
 
-        # Allow the view to add its own fake breadcrumbs.
-        ctx['breadcrumbs'].extend(self.extra_breadcrumbs)
+            # Allow the view to add its own fake breadcrumbs.
+            ctx['breadcrumbs'].extend(self.extra_breadcrumbs)
 
         self.populate_headings(req, ctx)
         tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
