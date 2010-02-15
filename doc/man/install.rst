@@ -55,6 +55,22 @@ software.
 Master versus slave servers
 ===========================
 
+IVLE is normally deployed in a cluster of several machines, split into
+two different roles: master and slave.
+
+There must be exactly one master server per cluster. The master normally
+runs the PostgreSQL database server, the Subversion server, and the IVLE User
+Management Server (``ivle-usrmgt-server``). It might also export shared data
+directories to the slaves over NFS.
+
+There may be any number of slaves in a cluster. They run the IVLE web
+application, which also starts console host processes. Each slave makes use
+of the shared services on the master.
+
+For a small instance a slave may be run on the same machine as the master.
+This is the setup described on this page.
+
+
 Installing from a Debian package
 ================================
 
