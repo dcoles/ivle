@@ -22,6 +22,10 @@ Releases
 To release IVLE, both generic source tarballs and Ubuntu packages should
 be published.
 
+These instructions expect to be run on a Debian-derived system with a
+working IVLE installation. You also need to have your system set up with
+write access to Launchpad branches.
+
 
 Tag the release in Bazaar
 =========================
