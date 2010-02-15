@@ -1,6 +1,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
   <body py:strip="">
+      <p py:if="req.user.admin" class="form_error">
+        <strong>Warning:</strong> Changing the subject or semester <em>will
+        break</em> any existing Subversion repositories or checkouts
+        associated with this offering. Be very careful.
+      </p>
       <form class="verticalform" action="" method="post">
         <div>
           <py:if test="req.user.admin">
