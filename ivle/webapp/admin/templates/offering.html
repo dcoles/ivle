@@ -68,7 +68,7 @@
                 <py:if test="'view_project_submissions' in permissions">
                   <br />
                   <a class="verifyaction" href="${req.publisher.generate(project)}">View submissions</a>
-                  <a py:if="project.project_set.is_group" class="manageaction"
+                  <a py:if="project.project_set.is_group" class="groupaction"
                      href="${req.publisher.generate(project.project_set, GroupsView)}">Manage groups</a>
                 </py:if>
               </li>
