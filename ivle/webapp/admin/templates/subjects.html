@@ -17,8 +17,9 @@
           </li>
         </ul>
       </py:for>
-      <div py:if="req.user.admin">
-        <a class="manageaction" href="/subjects/+manage">Manage subjects</a>
+      <div class="horizontalactions" py:if="req.user.admin">
+        <a class="addaction" href="/subjects/+new-offering">Create new offering</a>
+        <a class="manageaction" href="/subjects/+manage">Manage subjects and semesters</a>
       </div>
     </div>
   </body>
