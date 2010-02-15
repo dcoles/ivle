@@ -30,15 +30,15 @@ To note down the release's revision in the Bazaar trunk, run ``bzr tag
 -d lp:ivle VERSION``.
 
 
-Generating a source tarball
-===========================
+Generate a source tarball
+=========================
 
 To generate a tarball of the current state of trunk, run ``bzr export 
 ivle-VERSION.tar.gz lp:ivle``.
 
 
-Releasing it on Launchpad
-=========================
+Release it on Launchpad
+=======================
 
 As a member of the `IVLE Developers <https://launchpad.net/~ivle-dev>`_ team,
 visit the `IVLE project page <https://launchpad.net/ivle>`_. There you'll see
@@ -61,8 +61,8 @@ the file, and ensure that the type is "Code Release Tarball".
       releases model.
 
 
-Updating the Ubuntu package
-===========================
+Publish an Ubuntu package
+=========================
 
 An Ubuntu package is kept in the `PPA for production environments
 <https://launchpad.net/~unimelb-ivle/+archive/production>`_. Releases should
