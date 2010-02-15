@@ -52,15 +52,23 @@ be developed in a separate branch with the name
 :samp:`lp:~ivle-dev/ivle/{branch-name}` and then merged into the trunk when 
 complete.
 
-Developers who are not members of the ``ivle-dev`` team will not be able to
+Developers who are not members of the
+`ivle-dev team <https://launchpad.net/~ivle-dev>`_ will not be able to
 commit to ``lp:ivle``. However, contributions are still welcome. External
 developers with a patch or new feature should create a branch named
-:samp:`lp:~{your-name}/ivle/{branch-name}`, and make a merge request to
-``lp:ivle`` when ready. Regular contributors may be invited to ``ivle-dev`` on
-a case-by-case basis.
+:samp:`lp:~{your-name}/ivle/{branch-name}`, and make a Launchpad merge proposal
+to ``lp:ivle`` when ready. Regular contributors may be invited to the core team
+on a case-by-case basis.
 
-All associated branches can be found on the `IVLE Launchpad Project Page 
-<https://launchpad.net/ivle/>`_.
+All associated branches can be found on the `IVLE project page on Launchpad
+<https://launchpad.net/ivle>`_.
+
+
+.. seealso::
+
+   `Bazaar in five minutes <http://doc.bazaar.canonical.com/latest/en/mini-tutorial/>`_
+      A quick introduction to Bazaar's core functionality.
+
 
 License
 =======
