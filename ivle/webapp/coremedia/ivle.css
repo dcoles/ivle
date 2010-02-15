@@ -16,13 +16,13 @@ html, body {
     font-size: 0.95em;
 }
 
-a {
-    color: navy;
-    text-decoration: underline;
-    cursor: pointer;
+a:link, a:visited, a:hover, a:active {
+    color: #0033aa;
+    text-decoration: none;
 }
-a:hover, a:active, a:focus {
-    color: blue;
+
+a:hover {
+    text-decoration: underline;
 }
 
 a img {

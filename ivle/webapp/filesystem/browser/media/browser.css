@@ -53,14 +53,19 @@
  * class "disabled" is for disabled choices.
  */
 #actions1 a.choice, #actions2 a {
-    color: navy;
-    text-decoration: underline;
+    color: #0033aa;
     cursor: pointer;
 }
+
 #actions1 a.choice:hover, #actions1 a.choice:active, #actions1 a.choice:focus,
     #actions2 a:hover, #actions2 a:active, #actions2 a:focus {
-    color: blue;
+    color: #0033aa;
 }
+
+#actions1 a.choice:hover, #actions2 a:hover {
+    text-decoration: underline;
+}
+
 #actions1 a.disabled {
     color: black;
     text-decoration: none;
