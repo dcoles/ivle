@@ -22,6 +22,14 @@ Releases
 To release IVLE, both generic source tarballs and Ubuntu packages should
 be published.
 
+
+Tag the release in Bazaar
+=========================
+
+To note down the release's revision in the Bazaar trunk, run ``bzr tag
+-d lp:ivle VERSION``.
+
+
 Generating a source tarball
 ===========================
 
