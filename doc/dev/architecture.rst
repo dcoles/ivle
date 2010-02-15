@@ -349,9 +349,55 @@ user or group repository settings change.
 Worksheets
 ==========
 
+
 Database
 ========
 
-..  TODO: Not yet merged
-    Object Publishing
-    =================
+
+Object Publishing
+=================
+
+URLs are resolved with a small IVLE-specific object publishing framework --
+that is, resolution is implemented as traversal through an object graph. The
+framework lives in :mod:`ivle.webapp.publisher`, and has an extensive test
+suite.
+
+This object graph is constructed by the dispatcher. Any plugin class deriving
+from ViewPlugin will be searched for ``forward_routes``, ``reverse_routes``
+and ``views`` sequences. Everything is class-based -- an object's routes
+and views are determined by its class.
+
+Forward routes handle resolution of URLs to objects. Given a source object
+and some path segments, the route must calculate the next object.
+A forward route is a tuple of ``(source class, intermediate path segments,
+function, number of subsequent path segments to consume)``, or simply a
+reference to a decorated function (see :mod:`ivle.webapp.admin.publishing`
+for decoration examples). The function must return the next object in the
+path.
+
+A reverse route handles URL generation for an object. Given just an object,
+it must return a tuple of ``(previous object, intermediate path segments)``.
+This creates a chain of objects and path segments until the root is reached.
+Due to IVLE's lack of a utility framework, reverse routes at the root of the
+URL space need to refer to the root object with the magical
+:mod:`ivle.webapp.publisher.ROOT`. 
+
+Views are registered with a tuple of ``(source class, intermediate path segments,
+view class)``.
+
+In all of the above, "intermediate path segments" can either be a single
+segment string, or a sequence of multiple strings representing multiple
+segments.
+
+.. note::
+   While many applications prefer a pattern matching mechanism, this did not
+   work out well for IVLE. Our deep URL structure and multitude of nested
+   objects with lots of views meant that match patterns had to be repeated
+   tediously, and views required many lines of code to turn a match into a
+   context object. It also made URL generation very difficult.
+
+   The simple object publishing framework allows views to be registered with
+   just one line of code, getting their context object for free. URL
+   generation now comes at a cost of approximately one line of code per class,
+   and breadcrumbs are easy too. The reduced code duplication also improves
+   robustness.
