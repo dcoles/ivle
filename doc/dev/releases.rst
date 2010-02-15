@@ -92,8 +92,8 @@ correctly at the bottom of the new entry.
 
 Next ensure that you have a copy of the release tarball in the parent
 directory, named ``ivle_VERSION.orig.tar.gz``. Once that's there, run
-``debuild -S -sa -i`` to build the source package and have the results placed
-in the parent directory.
+``debuild -S -sa -i`` inside the checkout to build the source package and
+have the results placed in the parent directory.
 
 ``dput ppa:unimelb-ivle/production ivle_VERSION_source.changes`` will now
 upload the package to the production PPA. You should receive an acknowledgement
