@@ -358,3 +358,7 @@ form.verticalform.thin div.submit {
 .form_error {
     color: darkred;
 }
+
+.horizontalactions * {
+    margin-right: 0.5em;
+}
