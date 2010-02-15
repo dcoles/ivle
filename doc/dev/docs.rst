@@ -96,3 +96,11 @@ heading, with one blank line in between the label and heading, like this::
  ===============
 
 .. _semantic markup: http://sphinx.pocoo.org/markup/inline.html
+
+Publishing documentation to the website
+=======================================
+
+We currently publish documentation to our old Google Code Subversion
+repository, so they can be linked to from the website. This is done with the
+``ivle-push-docs-to-gc`` script in ``lp:~ivle-dev/ivle/dev-scripts``. See
+the comments at the top of that file for instructions.
