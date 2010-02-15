@@ -192,11 +192,11 @@ an external Subversion client. As submissions are really just Subversion
 commits, you can examine a student's work by simply checking out the correct
 revision of the repository.
 
-From the Projects page, click on the "Phase 1" heading. This takes you to a
-page which lists the latest submissions from every student (presumably you
-will just see the submission made by "studenta" earlier in this tour). Next to
-each submission is a command line, beginning with "svn co". For instance, you
-might see the line::
+From the offering page, click "View submissions" under the project of interest.
+This takes you to a page which lists the latest submissions from every student
+(presumably you will just see the submission made by "studenta" earlier in
+this tour). Next to each submission is a command line, beginning with
+``svn co``. For instance, you might see the line::
 
  svn co --username lecturer -r7 http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html
 
