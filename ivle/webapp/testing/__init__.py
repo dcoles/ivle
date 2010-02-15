@@ -1,5 +1,6 @@
 import datetime
 
+from ivle.config import Config
 from ivle.database import User
 from ivle.dispatch.request import Request
 
@@ -38,6 +39,7 @@ class FakeRequest(Request):
 
         # We don't want DB access in tests (by default)
         self.store = None
+        self.config = Config()
 
         # Default values for the output members
         self.status = Request.HTTP_OK
