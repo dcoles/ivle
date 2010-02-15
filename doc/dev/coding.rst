@@ -70,7 +70,7 @@ contributions be made under it or a compatible license. Code contributions
 should also contain a header of the following form::
 
     # IVLE - Informatics Virtual Learning Environment
-    # Copyright (C) 2007-2009 The University of Melbourne
+    # Copyright (C) 2007-2010 The University of Melbourne
     #
     # This program is free software; you can redistribute it and/or modify
     # it under the terms of the GNU General Public License as published by
