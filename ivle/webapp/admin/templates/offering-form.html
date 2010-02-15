@@ -15,6 +15,7 @@
               <option py:for="subject in subjects" value="${subject.short_name}">${subject.name}</option>
             </select>
             <span py:if="'subject' in errors" class="form_error">${errors.subject}.</span>
+            <a class="addaction" href="/subjects/+new">Create new subject</a>
           </div>
           <div>
             <label for="semester">Semester:</label>
