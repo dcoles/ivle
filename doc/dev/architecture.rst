@@ -311,7 +311,7 @@ Repositories
 Each user is allocated a Subversion repository when their :ref:`Jail 
 <ref-jail>` is created by the :ref:`User Management Server 
 <ref-usrmgt-server>`. Repository are stored in the location specified by 
-``[paths] [[svn]] repo_path`` in :file:`/etc/ivle/ivle.conf` (by default 
+``paths/svn/repo_path`` in :file:`/etc/ivle/ivle.conf` (by default 
 :file:`/var/lib/ivle/svn/repositories/`). User repositories are stored in the 
 :samp:`users/{USERNAME}/` subdirectory and group repositories in 
 :samp:`groups/{SUBJECT}_{YEAR}_{SEMESTER}_{GROUP}`.
@@ -330,18 +330,20 @@ Subversion WebDAV
 These repositories are served by Apache using ``mod_dav_svn`` allowing access 
 over Subversion's WebDAV HTTP or HTTPS backends. Users are authenticated using 
 a randomly generated key which is stored in the database and is made available 
-to each user inside their Jail (``svn_pass`` property inside 
+to each user inside their jail (``svn_pass`` property inside 
 :file:`/home/.ivle.conf`). This key is automatically provided when doing 
-Subversion actions, but can be manually entered when accessing a users 
+Subversion actions, but can be manually entered when accessing a user's 
 repository from an external Subversion client such as with :samp:`svn checkout 
 {svn_addr}/users/{USERNAME}/ workspace`.
 
-Repository permissions for ``AuthzSVNAccessFILE`` are automatically generated 
-and placed in the file located at ``[paths] [[svn]] conf`` for user 
-repositories and ``[paths] [[svn]] group_conf`` for group repositories. User 
-authentication keys for ``AuthUserFile`` are stored in the file located at 
-``[path] [[svn]] auth_ivle``. These will be regenerated each time user or 
-group repository settings change.
+Repository permissions for ``AuthzSVNAccessFile`` are automatically generated 
+and placed in the file specified by the ``paths/svn/conf`` config option
+(usually ``/var/lib/ivle/svn/svn.conf``) for user repositories and the
+``paths/svn/group_conf`` option for group repositories (usually
+``/var/lib/ivle/svn/svn-group.conf``). User authentication keys for
+``AuthUserFile`` are stored in the file specified by ``paths/svn/auth_ivle``,
+usually ``/var/lib/ivle/svn/ivle.auth``. These will be regenerated each time
+user or group repository settings change.
 
 
 Worksheets
