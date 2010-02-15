@@ -70,8 +70,6 @@ class SubjectsView(XHTMLView):
         ctx['req'] = req
         ctx['user'] = req.user
         ctx['semesters'] = []
-        ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
-        ctx['SubjectEdit'] = SubjectEdit
 
         for semester in req.store.find(Semester).order_by(Desc(Semester.year),
                                                      Desc(Semester.semester)):
@@ -84,9 +82,24 @@ class SubjectsView(XHTMLView):
             if len(offerings):
                 ctx['semesters'].append((semester, offerings))
 
-        # Admins get a separate list of subjects so they can add/edit.
-        if req.user.admin:
-            ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
+
+class SubjectsManage(XHTMLView):
+    '''Subject management view.'''
+    template = 'templates/subjects-manage.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None and req.user.admin
+
+    def populate(self, req, ctx):
+        ctx['req'] = req
+        ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['SubjectEdit'] = SubjectEdit
+        ctx['SemesterEdit'] = SemesterEdit
+
+        ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
+        ctx['semesters'] = req.store.find(Semester).order_by(
+            Semester.year, Semester.semester)
 
 
 class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
@@ -608,6 +621,7 @@ class Plugin(ViewPlugin, MediaPlugin):
         subject_url, semester_url, offering_url, projectset_url, project_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
+             (ApplicationRoot, ('subjects', '+manage'), SubjectsManage),
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
              (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
              (ApplicationRoot, ('+semesters', '+new'), SemesterNew),

@@ -17,25 +17,9 @@
           </li>
         </ul>
       </py:for>
-      <py:if test="defined('subjects')">
-        <h1>All subjects</h1>
-        <table class="pretty_table">
-          <thead><tr><th>Subject</th><th>Code</th><th>Actions</th></tr></thead>
-          <tbody>
-            <tr py:for="subject in subjects">
-              <td>${subject.name}</td>
-              <td>${subject.code}</td>
-              <td>
-                <a href="${req.publisher.generate(subject, SubjectEdit)}" title="Edit"><img src="${mediapath + 'interface/pencil.png'}" alt="Edit" /></a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="horizontalactions">
-          <a class="addaction" href="/subjects/+new">Create new subject</a>
-          <a class="addaction" href="/subjects/+new-offering">Create new offering</a>
-        </div>
-      </py:if>
+      <div py:if="req.user.admin">
+        <a class="manageaction" href="/subjects/+manage">Manage subjects</a>
+      </div>
     </div>
   </body>
 </html>
