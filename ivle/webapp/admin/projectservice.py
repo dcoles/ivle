@@ -18,6 +18,10 @@
 # Author: Nick Chadwick
 
 import datetime
+
+import formencode
+import formencode.validators
+
 import ivle.database
 from ivle.database import ProjectSet, Project, Subject, Semester, Offering
 
@@ -40,7 +44,7 @@ class ProjectSetRESTView(XHTMLRESTView):
                  project.short_name)
 
     @named_operation('edit')
-    def add_project(self, req, name, short_name, deadline, synopsis):
+    def add_project(self, req, name, short_name, deadline, synopsis, url):
         """Add a Project to this ProjectSet"""
         if not VALID_URL_NAME.match(short_name):
             raise BadRequest(
@@ -56,9 +60,15 @@ class ProjectSetRESTView(XHTMLRESTView):
                 "A project with that URL name already exists in this offering."
                 )
 
+        try:
+            formencode.validators.URL().to_python(url)
+        except formencode.Invalid, e:
+            raise BadRequest(str(e))
+
         new_project = Project()
         new_project.name = unicode(name)
         new_project.short_name = unicode(short_name)
+        new_project.url = unicode(url)
         new_project.synopsis = unicode(synopsis)
         try:
             new_project.deadline = datetime.datetime.strptime(deadline, '%Y-%m-%d %H:%M:%S')
