@@ -15,10 +15,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+import re
+
 import formencode
+import formencode.validators
 from genshi.filters import HTMLFormFiller
 
 from ivle.webapp.base.xhtml import XHTMLView
+
 
 class BaseFormView(XHTMLView):
     """A base form view."""
@@ -102,3 +106,14 @@ class BaseFormView(XHTMLView):
             ctx['error_value'] = errors
 
 
+VALID_URL_NAME = re.compile(r'^[a-z0-9][a-z0-9\+\.\-]*$')
+
+
+class URLNameValidator(formencode.validators.UnicodeString):
+    def validate_python(self, value, state):
+        super(URLNameValidator, self).validate_python(value, state)
+        if not VALID_URL_NAME.match(value):
+            raise formencode.Invalid(
+                'Must consist of an alphanumeric character followed by any '
+                'number of alphanumerics, ., + or -.',
+                value, state)
