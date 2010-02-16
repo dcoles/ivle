@@ -25,24 +25,3 @@ def require_admin(func):
             raise Unauthorized()
        func(req, *args, **kwargs)
     return admin_or_die
-
-class require_role_anywhere(object):
-    '''Require that the logged in user has a role in any offering.'''
-    def __init__(self, *roles):
-        self.roles = roles
-
-    def __call__(self, func):
-        def role_or_die(req, *args, **kwargs):
-            if not req.user:
-                raise Unauthorized()
-
-            if req.user.admin:
-                return func(req, *args, **kwargs)
-
-            roles = set((e.role for e in req.user.active_enrolments))
-
-            for role in self.roles:
-                if role in roles:
-                    return func(req, *args, **kwargs)
-            raise Unauthorized()
-        return role_or_die

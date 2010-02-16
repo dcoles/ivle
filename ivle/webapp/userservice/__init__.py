@@ -109,8 +109,7 @@ from ivle import (util, chat)
 from ivle.webapp.security import get_user_details
 import ivle.pulldown_subj
 
-from ivle.rpc.decorators import require_method, require_role_anywhere, \
-                                require_admin
+from ivle.rpc.decorators import require_method, require_admin
 
 from ivle.auth import AuthError, authenticate
 import urllib
@@ -285,6 +284,9 @@ def handle_get_project_groups(req, fields):
 
     offering = req.store.get(ivle.database.Offering, offeringid)
 
+    if 'admin_groups' not in offering.get_permissions(req.user, req.config):
+        raise Unauthorized()
+
     dict_projectsets = []
     for p in offering.project_sets:
         dict_projectsets.append({
@@ -299,7 +301,6 @@ def handle_get_project_groups(req, fields):
     req.write(response)
 
 @require_method('POST')
-@require_role_anywhere('tutor', 'lecturer')
 def handle_create_group(req, fields):
     """Required cap: CAP_MANAGEGROUPS
     Creates a project group in a specific project set
@@ -321,13 +322,20 @@ def handle_create_group(req, fields):
     except:
         raise BadRequest("projectsetid must be an integer")
 
+    projectset = req.store.get(ivle.database.ProjectSet, projectsetid)
+    if projectset is None:
+        raise BadRequest("Invalid projectsetid")
+    if 'admin_groups' not in projectset.offering.get_permissions(
+        req.user, req.config):
+        raise Unauthorized()
+
     # Get optional fields
     nick = fields.getfirst('nick').value
     if nick is not None:
         nick = unicode(nick)
 
     group = ivle.database.ProjectGroup(name=groupnm,
-                                       project_set_id=projectsetid,
+                                       project_set=projectset,
                                        nick=nick,
                                        created_by=req.user,
                                        epoch=datetime.datetime.now())
@@ -389,6 +397,8 @@ def handle_get_group_membership(req, fields):
         raise BadRequest("offeringid must be an integer")
     offering = req.store.get(ivle.database.Offering, offeringid)
 
+    if 'admin_groups' not in offering.get_permissions(req.user, req.config):
+        raise Unauthorized()
 
     offeringmembers = [{'login': user.login,
                         'fullname': user.fullname
@@ -413,7 +423,6 @@ def handle_get_group_membership(req, fields):
     req.write(response)
 
 @require_method('POST')
-@require_role_anywhere('tutor', 'lecturer')
 def handle_assign_group(req, fields):
     """ Required cap: CAP_MANAGEGROUPS
     Assigns a user to a project group
@@ -428,6 +437,10 @@ def handle_assign_group(req, fields):
 
     group = req.store.get(ivle.database.ProjectGroup, int(groupid))
     user = ivle.database.User.get_by_login(req.store, login)
+
+    if 'admin_groups' not in group.project_set.offering.get_permissions(
+        req.user, req.config):
+        raise Unauthorized()
 
     # Add membership to database
     # We can't keep a transaction open until the end here, as usrmgt-server
@@ -454,7 +467,6 @@ def handle_assign_group(req, fields):
     return(cjson.encode({'response': 'okay'}))
 
 @require_method('POST')
-@require_role_anywhere('tutor', 'lecturer')
 def handle_unassign_group(req, fields):
     """Remove a user from a project group.
 
@@ -472,6 +484,10 @@ def handle_unassign_group(req, fields):
 
     group = req.store.get(ivle.database.ProjectGroup, int(groupid))
     user = ivle.database.User.get_by_login(req.store, login)
+
+    if 'admin_groups' not in group.project_set.offering.get_permissions(
+        req.user, req.config):
+        raise Unauthorized()
 
     # Remove membership from the database
     # We can't keep a transaction open until the end here, as usrmgt-server
