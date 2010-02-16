@@ -65,7 +65,6 @@ function add_exercise()
 function edit_exercise()
 {
 
-    var exercise_id = $('#exercise_id').val();
     var exercise_name = $('#exercise_name').val();
     var exercise_num_rows = $('#exercise_num_rows').val();
     var exercise_desc = $('#exercise_desc').val();
