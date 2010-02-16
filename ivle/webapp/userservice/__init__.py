@@ -35,14 +35,6 @@
 # Activate the currently-logged-in user's account. Requires that "declaration"
 # is as above, and that the user's state is "no_agreement".
 
-# userservice/create_user
-# Required cap: CAP_CREATEUSER
-# Arguments are the same as the database columns for the "login" table.
-# Required:
-#   login, fullname, rolenm
-# Optional:
-#   password, nick, email, studentid
-
 # TODO
 # userservice/enable_user
 # Required cap: CAP_UPDATEUSER
@@ -239,62 +231,6 @@ def handle_activate_me(req, fields):
     # Write the response
     req.content_type = "text/plain"
     req.write(cjson.encode(response))
-
-create_user_fields_required = [
-    'login', 'fullname',
-]
-create_user_fields_optional = [
-    'admin', 'password', 'nick', 'email', 'studentid'
-]
-
-@require_method('POST')
-@require_admin
-def handle_create_user(req, fields):
-    """Create a new user, whose state is no_agreement.
-    This does not create the user's jail, just an entry in the database which
-    allows the user to accept an agreement.
-       Expected fields:
-        login       - used as a unix login name and svn repository name.
-                      STRING REQUIRED 
-        password    - the clear-text password for the user. If this property is
-                      absent or None, this is an indication that external
-                      authentication should be used (i.e. LDAP).
-                      STRING OPTIONAL
-        email       - the user's email address.
-                      STRING OPTIONAL
-        nick        - the display name to use.
-                      STRING REQUIRED
-        fullname    - The name of the user for results and/or other official
-                      purposes.
-                      STRING REQUIRED
-        admin       - Whether the user is an admin.
-                      BOOLEAN REQUIRED
-        studentid   - If supplied and not None, the student id of the user for
-                      results and/or other official purposes.
-                      STRING OPTIONAL
-       Return Value: the uid associated with the user. INT
-    """
-    # Make a dict of fields to create
-    create = {}
-    for f in create_user_fields_required:
-        val = fields.getfirst(f)
-        if val is not None:
-            create[f] = val
-        else:
-            raise BadRequest("Required field %s missing." % repr(f))
-    for f in create_user_fields_optional:
-        val = fields.getfirst(f)
-        if val is not None:
-            create[f] = val
-        else:
-            pass
-
-    user = ivle.database.User(**create)
-    req.store.add(user)
-    ivle.pulldown_subj.enrol_user(req.config, req.store, user)
-
-    req.content_type = "text/plain"
-    req.write(str(user.unixid))
 
 def handle_get_enrolments(req, fields):
     """
@@ -565,7 +501,6 @@ def handle_unassign_group(req, fields):
 # to actual function objects
 actions_map = {
     "activate_me": handle_activate_me,
-    "create_user": handle_create_user,
     "get_enrolments": handle_get_enrolments,
     "get_project_groups": handle_get_project_groups,
     "get_group_membership": handle_get_group_membership,
