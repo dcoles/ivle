@@ -40,6 +40,10 @@ function create_new_group(projectsetid)
         {
             /* pass */
         }
+        else if (response.status == 400)
+        {
+            alert("Could not create group: " + response.getResponseHeader('X-IVLE-Action-Error'));
+        }
         else
         {
             alert("Error: Could not add group. Does it already exist?");
