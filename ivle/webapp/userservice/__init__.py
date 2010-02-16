@@ -140,11 +140,7 @@ class UserServiceView(BaseView):
             func = actions_map[self.path]
         except KeyError:
             raise NotFound()
-        try:
-            func(req, fields)
-        except BadRequest, e:
-            req.headers_out['X-IVLE-Action-Error'] = e.message
-            raise
+        func(req, fields)
 
     @property
     def path(self):

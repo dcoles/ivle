@@ -42,7 +42,7 @@ function create_new_group(projectsetid)
         }
         else if (response.status == 400)
         {
-            alert("Could not create group: " + response.getResponseHeader('X-IVLE-Action-Error'));
+            alert("Could not create group: " + response.getResponseHeader('X-IVLE-Error'));
         }
         else
         {
