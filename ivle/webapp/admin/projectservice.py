@@ -47,6 +47,15 @@ class ProjectSetRESTView(XHTMLRESTView):
                 "Project names must consist of an alphanumeric character "
                 "followed by any number of alphanumerics, ., + or -.")
 
+        if req.store.find(
+            Project,
+            Project.short_name == unicode(short_name),
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.offering == self.context.offering).one():
+            raise BadRequest(
+                "A project with that URL name already exists in this offering."
+                )
+
         new_project = Project()
         new_project.name = unicode(name)
         new_project.short_name = unicode(short_name)
