@@ -18,7 +18,7 @@ function serializeForm(form){
 };
 
 function add_project(){
-    add_project_form = $(this);
+    var add_project_form = $(this);
     function callback(xhr) {
         if (xhr.status == 200) {
             add_project_form.slideToggle('fast');
