@@ -60,12 +60,6 @@
 # Required cap: None (for yourself)
 # Returns a JSON encoded listing of a students is enrollments
 
-# userservice/get_active_offerings(req, fields):
-# Required cap: None
-# Returns all the active offerings for a particular subject
-# Required:
-#   subjectid
-
 # PROJECTS AND GROUPS
 
 # userservice/get_project_groups
@@ -338,33 +332,6 @@ def handle_get_enrolments(req, fields):
     req.content_type = "text/plain"
     req.write(response)
 
-def handle_get_active_offerings(req, fields):
-    """Required cap: None
-    Returns all the active offerings for a particular subject
-    Required:
-        subjectid
-    """
-
-    subjectid = fields.getfirst('subjectid')
-    if subjectid is None:
-        raise BadRequest("Required: subjectid")
-    try:
-        subjectid = int(subjectid)
-    except:
-        raise BadRequest("subjectid must be an integer")
-
-    subject = req.store.get(ivle.database.Subject, subjectid)
-
-    response = cjson.encode([{'offeringid': offering.id,
-                              'subj_name': offering.subject.name,
-                              'year': offering.semester.year,
-                              'semester': offering.semester.semester,
-                              'active': True # XXX: Eliminate from protocol.
-                             } for offering in subject.offerings
-                                    if offering.semester.state == 'current'])
-    req.content_type = "text/plain"
-    req.write(response)
-
 def handle_get_project_groups(req, fields):
     """Required cap: None
     Returns all the project groups in an offering grouped by project set
@@ -600,7 +567,6 @@ actions_map = {
     "activate_me": handle_activate_me,
     "create_user": handle_create_user,
     "get_enrolments": handle_get_enrolments,
-    "get_active_offerings": handle_get_active_offerings,
     "get_project_groups": handle_get_project_groups,
     "get_group_membership": handle_get_group_membership,
     "create_group": handle_create_group,
