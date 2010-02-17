@@ -516,7 +516,7 @@ function app_path(app /*,...*/)
  */
 function public_app_path(app /*,...*/)
 {
-    return location.protocol + "//" + public_host
+    return "http://" + public_host
         + make_path(path_join.apply(null, arguments));
 }
 
