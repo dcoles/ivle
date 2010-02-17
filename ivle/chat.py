@@ -27,9 +27,12 @@ import os
 import socket
 import traceback
 
+SOCKETTIMEOUT = 60
+BLOCKSIZE = 1024
+
 class Terminate(Exception):
-    """Exception thrown when server is to be shut down. It will attempt to sned 
-    the final_response to the client and then exits"""
+    """Exception thrown when server is to be shut down. It will attempt to
+    send the final_response to the client and then exits"""
     def __init__(self, final_response=None):
         self.final_response = final_response
 
@@ -81,21 +84,12 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
 
     while True:
         (conn, addr) = s.accept()
+        conn.settimeout(SOCKETTIMEOUT)
         try:
             # Grab the input
-            buf = cStringIO.StringIO()
-            blk = conn.recv(1024)
-            while blk:
-                buf.write(blk)
-                try:
-                    blk = conn.recv(1024, socket.MSG_DONTWAIT)
-                except:
-                    # Exception thrown if it WOULD block (but we
-                    # told it not to wait) - ie. we are done
-                    blk = None
-            inp = buf.getvalue()
+            inp = recv_netstring(conn)
             env = cjson.decode(inp)
-            
+
             # Check that the message is 
             digest = hashlib.md5(env['content'] + magic).hexdigest()
             if env['digest'] != digest:
@@ -106,14 +100,14 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
 
             response = handler(content)
 
-            conn.sendall(cjson.encode(response))
+            send_netstring(conn, cjson.encode(response))
 
             conn.close()
 
         except Terminate, t:
             # Try and send final response and then terminate
             if t.final_response:
-                conn.sendall(cjson.encode(t.final_response))
+                send_netstring(conn, cjson.encode(t.final_response))
             conn.close()
             sys.exit(0)
         except Exception:
@@ -126,31 +120,22 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
                 "value": str(e_val),
                 "traceback": tb_dump.getvalue()
             }
-            conn.sendall(cjson.encode(json_exc))
+            send_netstring(conn, cjson.encode(json_exc))
             conn.close()
 
 
 def chat(host, port, msg, magic, decode = True):
     sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sok.connect((host, port))
+    sok.settimeout(SOCKETTIMEOUT)
     content = cjson.encode(msg)
     digest = hashlib.md5(content + magic).hexdigest()
     env = {'digest':digest,'content':content}
-    sok.send(cjson.encode(env))
+    json = cjson.encode(env)
 
-    buf = cStringIO.StringIO()
-    blk = sok.recv(1024)
-    while blk:
-        buf.write(blk)
-        try:
-            blk = sok.recv(1024, socket.MSG_DONTWAIT)
-        except socket.error, e:
-            if e[0] != 11:
-                raise
-            # Exception thrown if it WOULD block (but we
-            # told it not to wait) - ie. we are done
-            blk = None
-    inp = buf.getvalue()
+    send_netstring(sok, json)
+    inp = recv_netstring(sok)
+
     sok.close()
 
     if decode:
@@ -158,3 +143,41 @@ def chat(host, port, msg, magic, decode = True):
     else:
         return inp
 
+
+def send_netstring(sok, data):
+    netstring = "%d:%s,"%(len(data),data)
+    sok.sendall(netstring)
+
+
+def recv_netstring(sok):
+    # Decode netstring
+    size_buffer = []
+    c = sok.recv(1)
+    while c != ':':
+        # Limit the Netstring to less than 10^10 bytes (~1GB).
+        if len(size_buffer) >= 10:
+            raise ValueError("Not valid Netstring: More than 10^10 bytes")
+        size_buffer.append(c)
+        c = sok.recv(1)
+    try:
+        # Message should be length plus ',' terminator
+        recv_expected = int(''.join(size_buffer)) + 1
+    except ValueError, e:
+        raise ValueError("Not valid Netstring: '%s'"%blk)
+
+    # Read data
+    buf = []
+    recv_data = sok.recv(min(recv_expected, BLOCKSIZE))
+    recv_size = len(recv_data)
+    while recv_size < recv_expected:
+        buf.append(recv_data)
+        recv_data = sok.recv(min(recv_expected-recv_size, 1024))
+        recv_size = recv_size + len(recv_data)
+    assert(recv_size == recv_expected)
+
+    # Did we receive the correct amount?
+    if recv_data[-1] != ',':
+        raise ValueError("Not valid Netstring: Did not end with ','")
+    buf.append(recv_data[:-1])
+
+    return ''.join(buf)
