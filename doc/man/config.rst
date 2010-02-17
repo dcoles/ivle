@@ -444,7 +444,10 @@ a standalone server.
 Web Application
 ---------------
 The IVLE web application runs on Apache using ``mod_python``. An example 
-configuration is provided in the file :file:`examples/config/apache.conf`.
+configuration for normal HTTP is provided in the file 
+:file:`examples/config/apache.conf` and an example configuration for using 
+Secure HTTP using SSL certificates is provided in the file 
+:file:`examples/config/apache-ssl.conf`.
 
 At minimum the following settings must be specified:
 
