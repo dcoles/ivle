@@ -650,6 +650,7 @@ class OfferingProjectsView(XHTMLView):
     template = 'templates/offering_projects.html'
     permission = 'edit'
     tab = 'subjects'
+    breadcrumb_text = 'Projects'
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
