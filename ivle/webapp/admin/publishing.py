@@ -18,7 +18,7 @@
 from storm.locals import Store
 
 from ivle.database import (
-    Offering, ProjectSet, Project, Semester, Subject, User)
+    Enrolment, Offering, ProjectSet, Project, Semester, Subject, User)
 
 from ivle.webapp import ApplicationRoot
 from ivle.webapp.publisher import ROOT
@@ -59,6 +59,13 @@ def offering_to_projectset(offering, name):
                                    ProjectSet.id == ps_id,
                                    ProjectSet.offering == offering).one()
 
+@forward_route(Offering, '+enrolments', argc=1)
+def offering_to_enrolment(offering, login):
+    return Store.of(offering).find(Enrolment,
+                                   Enrolment.offering == offering,
+                                   Enrolment.user_id == User.id,
+                                   User.login == login).one()
+
 @reverse_route(User)
 def user_url(user):
     return (ROOT, '~' + user.login)
@@ -83,3 +90,7 @@ def projectset_url(project_set):
 @reverse_route(Project)
 def project_url(project):
     return (project.project_set.offering, ('+projects', project.short_name))
+
+@reverse_route(Enrolment)
+def enrolment_url(enrolment):
+    return (enrolment.offering, ('+enrolments', enrolment.user.login))

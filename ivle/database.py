@@ -472,6 +472,19 @@ class Enrolment(Storm):
         return "<%s %r in %r>" % (type(self).__name__, self.user,
                                   self.offering)
 
+    def get_permissions(self, user, config):
+        # A user can edit any enrolment that they could have created.
+        perms = set()
+        if ('enrol_' + str(self.role)) in self.offering.get_permissions(
+            user, config):
+            perms.add('edit')
+        return perms
+
+    def delete(self):
+        """Delete this enrolment."""
+        Store.of(self).remove(self)
+
+
 # PROJECTS #
 
 class ProjectSet(Storm):

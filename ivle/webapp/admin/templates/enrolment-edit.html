@@ -1,0 +1,25 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Edit ${context.user.fullname}'s enrolment in ${context.offering.subject.name}</title>
+  </head>
+  <body>
+    <h1>Edit ${context.user.fullname}'s enrolment in ${context.offering.subject.name}</h1>
+    <div id="ivle_padding">
+      <form action="" method="post" class="verticalform thin">
+        <div><label for="field_fullname">Full name:</label> <span id="field_fullname">${context.user.fullname}</span></div>
+        <div><label for="field_login">Login:</label> <span id="field_login">${context.user.login}</span></div>
+        <div>
+          <label for="field_role">Role:</label>
+          <select id="field_role" name="role">
+            <option py:if="'enrol_student' in offering_perms" value="student">Student</option>
+            <option py:if="'enrol_tutor' in offering_perms" value="tutor">Tutor</option>
+            <option py:if="'enrol_lecturer' in offering_perms" value="lecturer">Lecturer</option>
+          </select>
+          <span py:if="'role' in errors" class="form_error">${errors.role}.</span>
+        </div>
+        <div class="submit"><input type="submit" value="Change Role"/></div>
+      </form>
+    </div>
+  </body>
+</html>
