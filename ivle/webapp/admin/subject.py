@@ -552,6 +552,8 @@ class EnrolmentsView(XHTMLView):
         ctx['req'] = req
         ctx['offering'] = self.context
         ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['offering_perms'] = self.context.get_permissions(
+            req.user, req.config)
         ctx['EnrolView'] = EnrolView
         ctx['EnrolmentEdit'] = EnrolmentEdit
         ctx['EnrolmentDelete'] = EnrolmentDelete
