@@ -53,7 +53,8 @@ from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             offering_to_enrolment, subject_url, semester_url, offering_url,
             projectset_url, project_url, enrolment_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
-            OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
+            OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb,
+            EnrolmentBreadcrumb)
 from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.groups import GroupsView
 from ivle.webapp.media import media_url
@@ -547,6 +548,7 @@ class EnrolmentsView(XHTMLView):
     template = 'templates/enrolments.html'
     tab = 'subjects'
     permission = 'edit'
+    breadcrumb_text = 'Enrolments'
 
     def populate(self, req, ctx):
         ctx['req'] = req
@@ -757,6 +759,7 @@ class Plugin(ViewPlugin, MediaPlugin):
                    Offering: OfferingBreadcrumb,
                    User: UserBreadcrumb,
                    Project: ProjectBreadcrumb,
+                   Enrolment: EnrolmentBreadcrumb,
                    }
 
     tabs = [

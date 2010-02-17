@@ -82,3 +82,31 @@ class ProjectBreadcrumb(object):
     def text(self):
         return self.context.name
 
+
+class EnrolmentsBreadcrumb(object):
+    """Static 'Enrolments' breadcrumb to precede EnrolmentBreadcrumb."""
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def url(self):
+        return self.req.publisher.generate(self.context, None, '+enrolments')
+
+    @property
+    def text(self):
+        return 'Enrolments'
+
+
+class EnrolmentBreadcrumb(object):
+    def __init__(self, req, context):
+        self.req = req
+        self.context = context
+
+    @property
+    def text(self):
+        return self.context.user.fullname
+
+    @property
+    def extra_breadcrumbs_before(self):
+        return [EnrolmentsBreadcrumb(self.req, self.context.offering)]
