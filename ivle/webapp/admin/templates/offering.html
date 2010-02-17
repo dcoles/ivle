@@ -19,8 +19,8 @@
         </a>
         <a py:if="'enrol' in permissions"
            class="groupaction"
-           href="${req.publisher.generate(context, None, ('+enrolments', '+new'))}">
-          Enrol users
+           href="${req.publisher.generate(context, EnrolmentsView)}">
+          Administer enrolments
         </a>
       </div>
 

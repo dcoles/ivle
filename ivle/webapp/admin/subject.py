@@ -284,6 +284,7 @@ class OfferingView(XHTMLView):
         ctx['OfferingEdit'] = OfferingEdit
         ctx['OfferingCloneWorksheets'] = OfferingCloneWorksheets
         ctx['GroupsView'] = GroupsView
+        ctx['EnrolmentsView'] = EnrolmentsView
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
@@ -548,7 +549,10 @@ class EnrolmentsView(XHTMLView):
     permission = 'edit'
 
     def populate(self, req, ctx):
+        ctx['req'] = req
         ctx['offering'] = self.context
+        ctx['EnrolView'] = EnrolView
+
 
 class EnrolView(XHTMLView):
     """A form to enrol a user in an offering."""
