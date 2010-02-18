@@ -261,13 +261,17 @@ def get_dirlisting(req, svnclient, path, revision):
             ls_list = svnclient.list(path, revision=revision, recurse=False)
             for ls in ls_list:
                 filename, attrs = PysvnList_to_fileinfo(path, ls)
-                listing[filename.decode('utf-8')] = attrs
+                if isinstance(filename, str):   # Expect a unicode from pysvn
+                    filename = filename.decode('utf-8')
+                listing[filename] = attrs
         else:
             status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
             for status in status_list:
                 filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename.decode('utf-8')] = attrs
+                if isinstance(filename, str):   # Expect a unicode from pysvn
+                    filename = filename.decode('utf-8')
+                listing[filename] = attrs
     except (pysvn.ClientError, UnversionedDir), e:
         # Could indicate a serious SVN error, or just that the directory is
         # not under version control (which is perfectly normal).
@@ -315,6 +319,8 @@ def get_dirlisting(req, svnclient, path, revision):
     return listing
 
 def _fullpath_stat_fileinfo(fullpath):
+    if isinstance(fullpath, unicode):
+        fullpath = fullpath.encode('utf-8')     # os.stat can't handle unicode
     file_stat = os.stat(fullpath)
     return _stat_fileinfo(fullpath, file_stat)
 
