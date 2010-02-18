@@ -39,6 +39,9 @@ class Terminate(Exception):
     def __str__(self):
         return repr(self.final_response)
 
+class ProtocolError(Exception):
+    """Exception thrown when client violates the the chat protocol"""
+    pass
 
 def start_server(port, magic, daemon_mode, handler, initializer = None):
     # Attempt to open the socket.
@@ -156,14 +159,17 @@ def recv_netstring(sok):
     while c != ':':
         # Limit the Netstring to less than 10^10 bytes (~1GB).
         if len(size_buffer) >= 10:
-            raise ValueError("Not valid Netstring: More than 10^10 bytes")
+            raise ProtocolError(
+                    "Could not read Netstring size in first 9 bytes: '%s'"%(
+                    ''.join(size_buffer)))
         size_buffer.append(c)
         c = sok.recv(1)
     try:
         # Message should be length plus ',' terminator
         recv_expected = int(''.join(size_buffer)) + 1
     except ValueError, e:
-        raise ValueError("Not valid Netstring: '%s'"%blk)
+        raise ProtocolError("Could not decode Netstring size as int: '%s'"%(
+                ''.join(size_buffer)))
 
     # Read data
     buf = []
@@ -177,7 +183,7 @@ def recv_netstring(sok):
 
     # Did we receive the correct amount?
     if recv_data[-1] != ',':
-        raise ValueError("Not valid Netstring: Did not end with ','")
+        raise ProtocolError("Netstring did not end with ','")
     buf.append(recv_data[:-1])
 
     return ''.join(buf)
