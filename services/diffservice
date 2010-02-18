@@ -64,7 +64,7 @@ try:
         revision1=revs[0],
         revision2=revs[1]
     )
-    print cjson.encode({'diff': diff_text})
+    print cjson.encode({'diff': diff_text.decode('utf-8')})
 except pysvn.ClientError, e:
     error = e[0]
 
