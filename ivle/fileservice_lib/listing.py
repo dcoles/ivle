@@ -263,8 +263,14 @@ def get_dirlisting(req, svnclient, path, revision):
             for status in status_list:
                 filename, attrs = PysvnStatus_to_fileinfo(path, status)
                 listing[filename.decode('utf-8')] = attrs
-    except pysvn.ClientError:
-        # Presumably the directory is not under version control.
+    except pysvn.ClientError, e:
+        # Could indicate a serious SVN error, or just that the directory is
+        # not under version control (which is perfectly normal).
+        # XXX Unfortunately, the only way to tell is to inspect the message
+        if not str(e).endswith("is not a working copy"):
+            # This is a serious error -- let it propagate upwards
+            raise
+        # The directory is not under version control.
         # Fallback to just an OS file listing.
         try:
             for filename in os.listdir(path):
