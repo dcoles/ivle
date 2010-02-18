@@ -251,6 +251,7 @@ def get_dirlisting(req, svnclient, path, revision):
     # Start by trying to do an SVN status, so we can report file version
     # status
     listing = {}
+    svnclient.exception_style = 1       # Get rich exceptions
     try:
         if revision:
             ls_list = svnclient.list(path, revision=revision, recurse=False)
@@ -266,8 +267,8 @@ def get_dirlisting(req, svnclient, path, revision):
     except pysvn.ClientError, e:
         # Could indicate a serious SVN error, or just that the directory is
         # not under version control (which is perfectly normal).
-        # XXX Unfortunately, the only way to tell is to inspect the message
-        if not str(e).endswith("is not a working copy"):
+        # Error code 155007 is "<dir> is not a working copy"
+        if e[1][0][1] != 155007:
             # This is a serious error -- let it propagate upwards
             raise
         # The directory is not under version control.
