@@ -410,7 +410,7 @@ function clearpage()
 function maybe_save(warning)
 {
     if (warning == null) warning = '';
-    if (current_file.isdir) return true;
+    if (current_file == null || current_file.isdir) return true;
     if (document.getElementById("save_button").disabled) return true;
     return confirm("This file has unsaved changes. " + warning +
                    "\nAre you sure you wish to continue?");
