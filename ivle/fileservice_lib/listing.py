@@ -126,6 +126,10 @@ ignore_dot_files = True
 mime_dirlisting = "text/plain"
 #mime_dirlisting = "application/json"
 
+# Indicates that a directory is unversioned
+class UnversionedDir(Exception):
+    pass
+
 def handle_return(req, return_contents):
     """
     Perform the "return" part of the response.
@@ -264,11 +268,11 @@ def get_dirlisting(req, svnclient, path, revision):
             for status in status_list:
                 filename, attrs = PysvnStatus_to_fileinfo(path, status)
                 listing[filename.decode('utf-8')] = attrs
-    except pysvn.ClientError, e:
+    except (pysvn.ClientError, UnversionedDir), e:
         # Could indicate a serious SVN error, or just that the directory is
         # not under version control (which is perfectly normal).
         # Error code 155007 is "<dir> is not a working copy"
-        if e[1][0][1] != 155007:
+        if isinstance(e, pysvn.ClientError) and e[1][0][1] != 155007:
             # This is a serious error -- let it propagate upwards
             raise
         # The directory is not under version control.
@@ -353,7 +357,7 @@ def PysvnStatus_to_fileinfo(path, status):
         # looking at any interesting files, so throw
         # an exception and default to normal OS-based listing. 
         if status.text_status == pysvn.wc_status_kind.unversioned:
-            raise pysvn.ClientError
+            raise UnversionedDir()
         # We actually want to return "." because we want its
         # subversion status.
         filename = "."
@@ -391,7 +395,7 @@ def PysvnList_to_fileinfo(path, list):
         # looking at any interesting files, so throw
         # an exception and default to normal OS-based listing. 
         #if status.text_status == pysvn.wc_status_kind.unversioned:
-        #    raise pysvn.ClientError
+        #    raise UnversionedDir()
         # We actually want to return "." because we want its
         # subversion status.
         filename = "."
