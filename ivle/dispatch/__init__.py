@@ -205,6 +205,8 @@ def handler(apachereq):
             XHTMLErrorView(req, NotFound(), e[0]).render(req)
 
         return req.OK
+    finally:
+        req.store.close()
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """
