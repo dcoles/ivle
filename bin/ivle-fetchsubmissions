@@ -32,6 +32,7 @@ import codecs
 import optparse
 import zipfile
 import traceback
+import locale
 
 import pysvn
 
@@ -44,6 +45,9 @@ import ivle.database
 import ivle.util
 
 from ivle.database import Project, ProjectSet, Offering, Subject
+
+# Set locale to UTF-8
+locale.setlocale(locale.LC_CTYPE, "en_US.UTF-8")
 
 # Is Python version 2.6 or higher?
 PYTHON26 = map(int, sys.version[:3].split('.')) >= [2, 6]

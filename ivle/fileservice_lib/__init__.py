@@ -79,6 +79,7 @@
 # listing.
 
 import urllib
+import locale
 
 import cjson
 
@@ -90,6 +91,9 @@ import ivle.fileservice_lib.listing
 # debugging because Firefox just tries to download it
 mime_dirlisting = "text/html"
 #mime_dirlisting = "application/json"
+
+# Set locale to UTF-8 (required by PySVN)
+locale.setlocale(locale.LC_CTYPE, "en_US.UTF-8")
 
 def handle(req):
     """Handler for the File Services application."""

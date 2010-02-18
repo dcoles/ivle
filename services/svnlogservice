@@ -26,11 +26,15 @@ by ivle.webapp.filesystem.svnlog.SubversionLogView.
 
 import os
 import sys
+import locale
 
 import cjson
 import pysvn
 
 import ivle.svn
+
+# Set locale to UTF-8
+locale.setlocale(locale.LC_CTYPE, "en_US.UTF-8")
 
 try:
     client = pysvn.Client()
