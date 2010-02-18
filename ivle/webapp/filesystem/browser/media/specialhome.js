@@ -181,7 +181,7 @@ function make_subject_item(path, repopath, name, description)
                 span.appendChild(button);
             }
         }
-        else
+        else if (response.status == 404)
         {
             // Missing: Try to check out or create the repository
             li.appendChild(dom_make_text_elem("span", name, description));
@@ -210,6 +210,19 @@ function make_subject_item(path, repopath, name, description)
             button.setAttribute("type", "button");
             button.setAttribute("value", "Checkout");
             span.appendChild(button);
+        }
+        else
+        {
+            // Error: The directory listing could not be retrieved
+            // Make a link in case the user wants to investigate
+            li.appendChild(dom_make_link_elem("span", name, description,
+                app_path(this_app, username, path, name)));
+            span = dom_make_text_elem("span",
+                  " (error \u2013 contact system administrator)",
+                  "There was an error retrieving information about this "
+                  + "directory.");
+            span.setAttribute("class", "status");
+            li.appendChild(span);
         }
     }
 
