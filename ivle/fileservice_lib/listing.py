@@ -356,7 +356,10 @@ def PysvnStatus_to_fileinfo(path, status):
     needs to display about the filename. Returns a pair mapping filename to
     a dict containing a number of other fields."""
     path = os.path.normcase(path)
-    fullpath = status.path
+    if isinstance(status.path, str):
+        fullpath = status.path
+    else:
+        fullpath = status.path.encode("utf-8")
     # If this is "." (the directory itself)
     if path == os.path.normcase(fullpath):
         # If this directory is unversioned, then we aren't
