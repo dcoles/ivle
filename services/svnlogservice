@@ -42,10 +42,10 @@ try:
     logs = client.log(os.path.join('/home', sys.argv[1]),
                       discover_changed_paths=True)
     print cjson.encode({'logs': [{'revno': log.revision.number,
-                                  'author': log.author,
-                                  'message': log.message,
+                                  'author': log.author.decode('utf-8'),
+                                  'message': log.message.decode('utf-8'),
                                   'date': log.date,
-                                  'paths': [(p.path, p.action)
+                                  'paths': [(p.path.decode('utf-8'), p.action)
                                             for p in log.changed_paths]}
                                  for log in logs]})
 except pysvn.ClientError, e:
