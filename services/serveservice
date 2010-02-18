@@ -139,14 +139,14 @@ if zipmode:
     zipmod.make_zip(zipbasepath, paths, zipfile)
 
     print cjson.encode({'type': zip_mimetype,
-                        'name': zipfilename})
+                        'name': zipfilename.decode('utf-8')})
 
     stream = zipfile
     stream.seek(0)
 else:
 
     print cjson.encode({'type': determine_file_type(filename),
-                        'name': os.path.basename(filename)})
+                        'name': os.path.basename(filename).decode('utf-8')})
     stream = open(filename)
     
 next = stream.read(1024)
