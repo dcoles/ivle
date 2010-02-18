@@ -139,11 +139,14 @@ def execute_cgi(interpreter, uid, jail_dir, working_dir, script_path,
     fixup_environ(req, script_path)
 
     # usage: tramp uid jail_dir working_dir script_path
-    pid = subprocess.Popen(
-        [trampoline, str(uid), req.config['paths']['jails']['mounts'],
+    cmd_line = [trampoline, str(uid), req.config['paths']['jails']['mounts'],
          req.config['paths']['jails']['src'],
          req.config['paths']['jails']['template'],
-         jail_dir, working_dir, interpreter, script_path],
+         jail_dir, working_dir, interpreter, script_path]
+    # Popen doesn't like unicode strings. It hateses them.
+    cmd_line = [(s.encode('utf-8') if isinstance(s, unicode) else s)
+                for s in cmd_line]
+    pid = subprocess.Popen(cmd_line,
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         cwd=tramp_dir)
 
@@ -432,11 +435,14 @@ def execute_raw(config, user, jail_dir, working_dir, binary, args):
     tramp_dir = os.path.split(tramp)[0]
 
     # Fire up trampoline. Vroom, vroom.
-    proc = subprocess.Popen(
-        [tramp, str(user.unixid), config['paths']['jails']['mounts'],
+    cmd_line = [tramp, str(user.unixid), config['paths']['jails']['mounts'],
          config['paths']['jails']['src'],
          config['paths']['jails']['template'],
-         jail_dir, working_dir, binary] + args,
+         jail_dir, working_dir, binary] + args
+    # Popen doesn't like unicode strings. It hateses them.
+    cmd_line = [(s.encode('utf-8') if isinstance(s, unicode) else s)
+                for s in cmd_line]
+    proc = subprocess.Popen(cmd_line,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
 
