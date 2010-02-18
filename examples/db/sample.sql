@@ -98,28 +98,28 @@ SELECT pg_catalog.setval('suite_variable_varid_seq', 2, true);
 -- Name: test_case_part_partid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_case_part_partid_seq', 6, true);
+SELECT pg_catalog.setval('test_case_part_partid_seq', 10, true);
 
 
 --
 -- Name: test_case_testid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_case_testid_seq', 6, true);
+SELECT pg_catalog.setval('test_case_testid_seq', 10, true);
 
 
 --
 -- Name: test_suite_suiteid_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('test_suite_suiteid_seq', 3, true);
+SELECT pg_catalog.setval('test_suite_suiteid_seq', 5, true);
 
 
 --
 -- Name: worksheet_exercise_ws_ex_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('worksheet_exercise_ws_ex_id_seq', 1, true);
+SELECT pg_catalog.setval('worksheet_exercise_ws_ex_id_seq', 2, true);
 
 
 --
@@ -186,6 +186,9 @@ def main():
 def main():
     f = int(raw_input())
     print fac(f)', '', 12);
+INSERT INTO exercise (identifier, name, description, partial, solution, include, num_rows) VALUES ('hello', 'Hello world', 'Write a program which prints out "Hello, world!" when it is run.
+
+Note that if you print anything with the words "Hello world", but with wrong punctuation and capitalization, you will get some positive feedback, but still fail overall. You need to print an exact match.', 'print "..."', 'print "Hello, world!"', 'import re', 4);
 
 
 ALTER TABLE exercise ENABLE TRIGGER ALL;
@@ -383,6 +386,8 @@ INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) 
 INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (5, 3, 'Main worked correctly', 'Main printed something else as well. You should only print out the answer.', 'ignore', 1);
 INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (4, 3, 'Main printout included the correct answer', 'Main didn''t print out the correct answer', 'ignore', 0);
 INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (6, 1, 'Doesn''t use __import__', 'You used __import__, you subversive git!', 'ignore', 2);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (7, 4, 'Prints the correct words', 'Didn''t print the words "Hello world" at all', 'ignore', 0);
+INSERT INTO test_case (testid, suiteid, passmsg, failmsg, test_default, seq_no) VALUES (10, 4, 'Prints "Hello, world!" exactly', 'Did not print "Hello, world!" exactly', 'ignore', 1);
 
 
 ALTER TABLE test_case ENABLE TRIGGER ALL;
@@ -399,6 +404,8 @@ INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename
 INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (5, 5, 'stdout', 'norm', 'lambda x: x.strip() # Allow leading or trailing whitespace', NULL);
 INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (4, 4, 'stdout', 'check', 'lambda solution, attempt: solution.strip() in attempt   # Substring test', NULL);
 INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (6, 6, 'code', 'check', 'lambda solution, attempt: ''__import__'' not in attempt', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (10, 10, 'stdout', 'match', 'lambda solution, attempt: re.match("hello[^a-z]*world[^a-z]*", attempt.lower())', NULL);
+INSERT INTO test_case_part (partid, testid, part_type, test_type, data, filename) VALUES (7, 7, 'stdout', 'check', 'lambda solution, attempt: re.match("hello[^a-z]*world[^a-z]*", attempt.lower())', NULL);
 
 
 ALTER TABLE test_case_part ENABLE TRIGGER ALL;
@@ -413,6 +420,7 @@ INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdi
 INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (1, 'factorial', 'Test fac(4)', 0, 'fac', '');
 INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (3, 'factorial', 'Test main', 2, 'main', '4
 ');
+INSERT INTO test_suite (suiteid, exerciseid, description, seq_no, function, stdin) VALUES (4, 'hello', 'Prints "Hello, world!" exactly', 0, '', '');
 
 
 ALTER TABLE test_suite ENABLE TRIGGER ALL;
@@ -431,9 +439,14 @@ We can use any reStructuredText markup, such as **bold** and `links <http://ivle
 
 Beginning a line with ``.. exercise:: <exercise-name>`` embeds an exercise in a worksheet, like this:
 
-.. exercise:: factorial
+.. exercise:: hello
 
-Now, the student may try out the above exercise, and submit it as many times as (s)he wishes. Once they have it correct, they will receive a point on their assessment.', true, 0, 'rst');
+Now, the student may try out the above exercise, and submit it as many times as (s)he wishes. Once they have it correct, they will receive a point on their assessment.
+
+Here is a second exercise. This one involves writing functions, and has multiple parts. The test suite will test each part individually.
+
+.. exercise:: factorial
+', true, 0, 'rst');
 
 
 ALTER TABLE worksheet ENABLE TRIGGER ALL;
@@ -444,10 +457,13 @@ ALTER TABLE worksheet ENABLE TRIGGER ALL;
 
 ALTER TABLE worksheet_exercise DISABLE TRIGGER ALL;
 
+INSERT INTO worksheet_exercise (ws_ex_id, worksheetid, exerciseid, seq_no, active, optional) VALUES (2, 1, 'hello', 0, true, false);
 INSERT INTO worksheet_exercise (ws_ex_id, worksheetid, exerciseid, seq_no, active, optional) VALUES (1, 1, 'factorial', 0, true, false);
 
 
 ALTER TABLE worksheet_exercise ENABLE TRIGGER ALL;
+
+--
 
 --
 -- PostgreSQL database dump complete
