@@ -148,8 +148,6 @@ def handle_return(req, return_contents):
 
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
-    urlpath = urlparse.urlparse(path)
-    path = urlpath[2]
     json = None
     if path is None:
         req.status = req.HTTP_FORBIDDEN
