@@ -326,9 +326,11 @@ def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
     # So we just write root_dir.
     conf_obj = ivle.config.Config(blank=True)
     conf_obj.filename = conf_path
+    conf_obj['urls'] = {}
     conf_obj['urls']['root'] = sys_config['urls']['root']
     conf_obj['urls']['public_host'] = sys_config['urls']['public_host']
     conf_obj['urls']['svn_addr'] = sys_config['urls']['svn_addr']
+    conf_obj['user_info'] = {}
     conf_obj['user_info']['login'] = username
     conf_obj['user_info']['svn_pass'] = svn_pass
     conf_obj.write()
