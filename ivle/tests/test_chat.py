@@ -16,8 +16,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socket
+import os
+import random
 
-from nose import with_setup
 from nose.tools import assert_equal, raises
 
 import ivle.chat
@@ -62,12 +63,27 @@ class TestChat(object):
         assert_equal(ivle.chat.recv_netstring(self.s2), SIMPLESTRING)
 
     @raises(socket.timeout)
-    def test_short_netstring(self):
+    def test_invalid_short_netstring(self):
         self.s1.sendall("1234:not that long!,")
         assert ivle.chat.recv_netstring(self.s2) is None
 
     @raises(ivle.chat.ProtocolError)
-    def test_long_netstring(self):
+    def test_invalid_long_netstring(self):
         self.s1.sendall("5:not that short!,")
         assert ivle.chat.recv_netstring(self.s2) is None
+
+    def test_long_netstring(self):
+        # XXX: send() may block if this is too big
+        msg = os.urandom(50000)
+        ivle.chat.send_netstring(self.s1, msg)
+        assert ivle.chat.recv_netstring(self.s2) == msg
+
+    def test_multiple_netstrings(self):
+        messages = []
+        for i in range(10):
+            message = os.urandom(random.randint(0,20))
+            messages.append(message)
+            ivle.chat.send_netstring(self.s1, message)
+        for i in range(10):
+            assert_equal(ivle.chat.recv_netstring(self.s2), messages[i])
 
