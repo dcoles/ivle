@@ -860,7 +860,8 @@ function handle_moreactions()
             stat = file_listing[selected_files[0]];
         else
             stat = current_file;
-        path = stat.svnurl.substr(svn_base.length);
+        url = stat.svnurl.substr(svn_base.length);      // URL-encoded
+        path = decodeURIComponent(url);
 
         /* The working copy might not have an up-to-date version of the
          * directory. While submitting like this could yield unexpected
@@ -871,7 +872,7 @@ function handle_moreactions()
             {"action": "svnrepostat", "path": path},
             function(result)
             {
-                window.location = path_join(app_path('+submit'), path) + '?revision=' + result.svnrevision;
+                window.location = path_join(app_path('+submit'), url) + '?revision=' + result.svnrevision;
             },
             "json");
 
