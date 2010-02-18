@@ -199,3 +199,8 @@ Run the following command::
 Then check the diff. You may hand-edit the SQL file, but only for the purpose
 of fixing up unsightly data -- it should be possible to reload from the script
 and re-export with no diff.
+
+If the contents of the Subversion repositories have changed, run this
+command::
+
+    svnadmin dump /var/lib/ivle/svn/repositories/<repo> > examples/userrepos/<dumpfile>
