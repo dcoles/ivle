@@ -218,7 +218,7 @@ def present_exercise(req, identifier, worksheet=None):
         Exercise.id == identifier).one()
 
     if exercise is None:
-        raise ExerciseNotFound(identifier)
+        raise ivle.worksheet.utils.ExerciseNotFound(identifier)
 
     # Read exercise file and present the exercise
     # Note: We do not use the testing framework because it does a lot more
