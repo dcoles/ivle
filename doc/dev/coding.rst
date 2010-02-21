@@ -70,6 +70,26 @@ All associated branches can be found on the `IVLE project page on Launchpad
       A quick introduction to Bazaar's core functionality.
 
 
+Test Suite
+==========
+IVLE has a small (but growing) set of test cases. After making any significant 
+changes to the codebase developers are strongly recommended to run the test 
+suite and, if a test fails, correct their code or fix the test case.
+
+IVLE currently uses `nose 
+<http://somethingaboutorange.com/mrl/projects/nose/>`_ for its test suite. For 
+simple functions the easiest way of writing a test is to use the `doctests
+<http://docs.python.org/library/doctest.html>`_ style of test markup. The 
+``nosetests`` script will automatically detect and run these test cases. For 
+more complex tests, you will probably need to write a test module. Test 
+modules are any module with a name of the form ``test_MODULENAME.py``. Any 
+function with the word 'test' in it's name will be run and should throw an 
+exception or fail an assert if the test case fails.
+
+To run the test suite either run the ``ivle-testsuite`` script from 
+``lp:~ivle-dev/ivle/dev-scripts`` or run ``IVLECONF="." nosetests`` in the top 
+level directory of an IVLE checkout.
+
 License
 =======
 IVLE is licenced under the `GNU General Public License Version 2.0 
