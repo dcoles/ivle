@@ -94,14 +94,6 @@
 #       revision: The revision number to update to. If not provided this
 #               defaults to HEAD.
 #
-# action=svnpublish: Set the "published" flag on a file to True.
-#       path:   The path to the file to be published. Can be specified
-#               multiple times.
-#
-# action=svnunpublish: Set the "published" flag on a file to False.
-#       path:   The path to the file to be unpublished. Can be specified
-#               multiple times.
-#
 # action=svncommit: Commit a file(s) or directory(s) to the repository.
 #       path:   The path to the file or directory to be committed. Can be
 #               specified multiple times. Directories are committed
@@ -580,7 +572,8 @@ def action_svnadd(req, fields):
     Reads fields: 'path' (multiple)
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path), paths)
+    paths = map(lambda path: actionpath_to_local(req, path).decode('utf-8'),
+                paths)
 
     try:
         svnclient.add(paths, recurse=True, force=True)
@@ -593,7 +586,8 @@ def action_svnremove(req, fields):
     Reads fields: 'path' (multiple)
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path), paths)
+    paths = map(lambda path: actionpath_to_local(req, path).decode('utf-8'),
+                paths)
 
     try:
         svnclient.remove(paths, force=True)
@@ -617,7 +611,7 @@ def action_svnupdate(req, fields):
                     int(revision))
         except ValueError, e:
             raise ActionError("Bad revision number: '%s'"%revision,)
-    path = actionpath_to_local(req, path)
+    path = actionpath_to_local(req, path).decode('utf-8')
 
     try:
         svnclient.update(path, recurse=True, revision=revision)
@@ -632,7 +626,7 @@ def action_svnresolved(req, fields):
     path = fields.getfirst('path')
     if path is None:
         raise ActionError("Required field missing")
-    path = actionpath_to_local(req, path)
+    path = actionpath_to_local(req, path).decode('utf-8')
 
     try:
         svnclient.resolved(path, recurse=True)
@@ -645,52 +639,13 @@ def action_svnrevert(req, fields):
     Reads fields: 'path' (multiple)
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path), paths)
+    paths = map(lambda path: actionpath_to_local(req, path).decode('utf-8'),
+                paths)
 
     try:
         svnclient.revert(paths, recurse=True)
     except pysvn.ClientError, e:
         raise ActionError(str(e))
-
-def action_svnpublish(req, fields):
-    """Sets svn property "ivle:published" on each file specified.
-    Should only be called on directories (only effective on directories
-    anyway).
-
-    Reads fields: 'path'
-
-    XXX Currently unused by the client (calls action_publish instead, which
-    has a completely different publishing model).
-    """
-    paths = fields.getlist('path')
-    if len(paths):
-        paths = map(lambda path: actionpath_to_local(req, path), paths)
-    else:
-        paths = [studpath.to_home_path(req.path)]
-
-    try:
-        for path in paths:
-            # Note: Property value doesn't matter
-            svnclient.propset("ivle:published", "", path, recurse=False)
-    except pysvn.ClientError, e:
-        raise ActionError("Directory could not be published")
-
-def action_svnunpublish(req, fields):
-    """Deletes svn property "ivle:published" on each file specified.
-
-    Reads fields: 'path'
-
-    XXX Currently unused by the client (calls action_unpublish instead, which
-    has a completely different publishing model).
-    """
-    paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path), paths)
-
-    try:
-        for path in paths:
-            svnclient.propdel("ivle:published", path, recurse=False)
-    except pysvn.ClientError, e:
-        raise ActionError("Directory could not be unpublished")
 
 def action_svncommit(req, fields):
     """Performs a "svn commit" to each file specified.
@@ -698,8 +653,13 @@ def action_svncommit(req, fields):
     Reads fields: 'path' (multiple), 'logmsg' (optional)
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, str(path)), paths)
-    logmsg = str(fields.getfirst('logmsg', DEFAULT_LOGMESSAGE))
+    if len(paths):
+        paths = map(lambda path:actionpath_to_local(req,path).decode('utf-8'),
+                    paths)
+    else:
+        paths = [studpath.to_home_path(req.path).decode('utf-8')]
+    logmsg = str(fields.getfirst('logmsg',
+                 DEFAULT_LOGMESSAGE)).decode('utf-8')
     if logmsg == '': logmsg = DEFAULT_LOGMESSAGE
 
     try:
@@ -717,6 +677,8 @@ def action_svncheckout(req, fields):
         raise ActionError("usage: svncheckout url local-path")
     url = ivle.conf.svn_addr + "/" + urllib.quote(paths[0])
     local_path = actionpath_to_local(req, str(paths[1]))
+    url = url.decode('utf-8')
+    local_path = local_path.decode('utf-8')
     try:
         svnclient.checkout(url, local_path, recurse=True)
     except pysvn.ClientError, e:
@@ -729,7 +691,7 @@ def action_svnrepomkdir(req, fields):
     """
     path = fields.getfirst('path')
     logmsg = fields.getfirst('logmsg')
-    url = ivle.conf.svn_addr + "/" + urllib.quote(path)
+    url = (ivle.conf.svn_addr + "/" + urllib.quote(path)).decode('utf-8')
     try:
         svnclient.mkdir(url, log_message=logmsg)
     except pysvn.ClientError, e:
@@ -743,7 +705,7 @@ def action_svnrepostat(req, fields):
     Reads fields: 'path'
     """
     path = fields.getfirst('path')
-    url = ivle.conf.svn_addr + "/" + urllib.quote(path)
+    url = (ivle.conf.svn_addr + "/" + urllib.quote(path)).decode('utf-8')
     svnclient.exception_style = 1
 
     try:
@@ -769,7 +731,7 @@ def action_svncleanup(req, fields):
     path = fields.getfirst('path')
     if path is None:
         raise ActionError("Required field missing")
-    path = actionpath_to_local(req, path)
+    path = actionpath_to_local(req, path).decode('utf-8')
 
     try:
         svnclient.cleanup(path)
@@ -795,8 +757,6 @@ actions_table = {
     "svnupdate" : action_svnupdate,
     "svnresolved" : action_svnresolved,
     "svnrevert" : action_svnrevert,
-    "svnpublish" : action_svnpublish,
-    "svnunpublish" : action_svnunpublish,
     "svncommit" : action_svncommit,
     "svncheckout" : action_svncheckout,
     "svnrepomkdir" : action_svnrepomkdir,

@@ -61,10 +61,12 @@ type_icons_path_large = "+media/ivle.webapp.core/images/mime/large";
 /* Mapping SVN status to icons, just the file's basename */
 svn_icons = {
     "unversioned": "unversioned.png",
+    "ignored": null,                    /* Supposed to be innocuous */
     "normal": "normal.png",
     "added": "added.png",
     "missing": "missing.png",
     "deleted": "deleted.png",
+    "replaced": "replaced.png",
     "modified": "modified.png",
     "conflicted": "conflicted.png",
     "revision": "revision.png"
@@ -73,6 +75,7 @@ svn_icons = {
 /* Mapping SVN status to "nice" strings */
 svn_nice = {
     "unversioned": "Temporary file",
+    "ignored": "Temporary file (ignored)",
     "normal": "Permanent file",
     "added": "Temporary file (scheduled to be added)",
     "missing": "Permanent file (missing)",
@@ -244,6 +247,9 @@ function handle_response(path, response, is_action, url_args)
     }
 
     var subjects = null;
+    /* Remove trailing slash (or path==username won't compare properly) */
+    if (path[path.length-1] == "/")
+        path = path.substr(0, path.length-1);
     var top_level_dir = path==username;
     if (top_level_dir)
     {
@@ -310,7 +316,16 @@ function handle_response(path, response, is_action, url_args)
     if (isdir)
     {
         setup_for_listing();
-        home_listing(listing, subjects, path);
+        if (top_level_dir)
+        {
+            /* Top-level dir, with subjects */
+            special_home_listing(listing, subjects, path);
+        }
+        else
+        {
+            /* Not the top-level dir. Do a normal dir listing. */
+            handle_dir_listing(path, listing.listing);
+        }
     }
     else
     {
@@ -410,7 +425,7 @@ function clearpage()
 function maybe_save(warning)
 {
     if (warning == null) warning = '';
-    if (current_file.isdir) return true;
+    if (current_file == null || current_file.isdir) return true;
     if (document.getElementById("save_button").disabled) return true;
     return confirm("This file has unsaved changes. " + warning +
                    "\nAre you sure you wish to continue?");
@@ -513,6 +528,13 @@ function svnstatus_to_string(svnstatus)
         return default_svn_nice;
 }
 
+/** Returns true if a file is versioned (not unversioned or ignored).
+ */
+function svnstatus_versioned(svnstatus)
+{
+    return svnstatus != "unversioned" && svnstatus != "ignored";
+}
+
 /** Displays a download link to the binary file.
  */
 function handle_binary(path)
@@ -521,7 +543,7 @@ function handle_binary(path)
     var div = document.createElement("div");
     files.appendChild(div);
     div.setAttribute("class", "padding");
-    var download_link = app_path(download_app, path);
+    var download_link = app_url(download_app, path);
     var par1 = dom_make_text_elem("p",
         "The file " + path + " is a binary file. To download this file, " +
         "click the following link:");
@@ -567,9 +589,9 @@ function update_actions()
     {
         svn_selection = true;
         for (var i = 0; i < selected_files.length; i++){
-            if (file_listing[selected_files[i]]["svnstatus"] == "unversioned")
+            if (!svnstatus_versioned(file_listing[selected_files[i]].svnstatus))
             {
-                svn_selection = false;        
+                svn_selection = false;
             }
         }
     }
@@ -626,10 +648,10 @@ function update_actions()
               "return maybe_save('The last saved version will be served.')");
         if (numsel == 0)
             serve.setAttribute("href",
-                app_path(serve_app, current_path));
+                app_url(serve_app, current_path));
         else
             serve.setAttribute("href",
-                app_path(serve_app, current_path, filename));
+                app_url(serve_app, current_path, filename));
     }
     else
     {
@@ -685,7 +707,7 @@ function update_actions()
         if (numsel == 0)
         {
             download.setAttribute("href",
-                app_path(download_app, current_path));
+                app_url(download_app, current_path));
             if (file.isdir)
                 download.setAttribute("title",
                     "Download the current directory as a ZIP file");
@@ -696,7 +718,7 @@ function update_actions()
         else
         {
             download.setAttribute("href",
-                app_path(download_app, current_path, filename));
+                app_url(download_app, current_path, filename));
             if (file.isdir)
                 download.setAttribute("title",
                     "Download the selected directory as a ZIP file");
@@ -708,7 +730,7 @@ function update_actions()
     else
     {
         /* Make a query string with all the files to download */
-        var dlpath = urlencode_path(app_path(download_app, current_path)) + "?";
+        var dlpath = app_url(download_app, current_path) + "?";
         for (var i=0; i<numsel; i++)
             dlpath += "path=" + encodeURIComponent(selected_files[i]) + "&";
         dlpath = dlpath.substr(0, dlpath.length-1);
@@ -767,10 +789,14 @@ function update_actions()
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
     set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
-    /* And these are only usefull is ALL the selected files are versioned */
-    set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
-            "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);
-    
+    /* And these are only useful is ALL the selected files are versioned */
+    set_action_state(["svnremove", "svnrevert", "svncopy", "svncut"],
+            numsel >= 1 && current_file.svnstatus && svn_selection);
+    /* Commit is useful if ALL selected files are versioned, or the current
+     * directory is versioned */
+    set_action_state(["svncommit"], current_file.svnstatus &&
+            (numsel >= 1 && svn_selection || numsel == 0));
+
     /* Diff, log and update only support one path at the moment, so we must
      * have 0 or 1 versioned files selected. If 0, the directory must be
      * versioned. */
@@ -778,7 +804,7 @@ function update_actions()
          (
           (numsel == 1 && (svnst = file_listing[selected_files[0]].svnstatus)) ||
           (numsel == 0 && (svnst = current_file.svnstatus))
-         ) && svnst != "unversioned");
+         ) && svnstatus_versioned(svnst));
     set_action_state(["svndiff", "svnupdate"], single_versioned_path);
 
     /* We can resolve if we have a file selected and it is conflicted. */
@@ -794,7 +820,7 @@ function update_actions()
          (
           (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
           (numsel == 0 && (stat = current_file))
-         ) && stat.svnstatus != "unversioned"
+         ) && svnstatus_versioned(stat.svnstatus)
            && stat.svnurl
            && stat.svnurl.substr(0, svn_base.length) == svn_base);
     set_action_state(["submit"], single_ivle_versioned_path);
@@ -853,14 +879,15 @@ function handle_moreactions()
         action_unpublish(selected_files);
         break;
     case "share":
-        window.open(public_app_path("~" + current_path, filename), 'share')
+        window.open(public_app_url("~" + current_path, filename), 'share')
         break;
     case "submit":
         if (selected_files.length == 1)
             stat = file_listing[selected_files[0]];
         else
             stat = current_file;
-        path = stat.svnurl.substr(svn_base.length);
+        url = stat.svnurl.substr(svn_base.length);      // URL-encoded
+        path = decodeURIComponent(url);
 
         /* The working copy might not have an up-to-date version of the
          * directory. While submitting like this could yield unexpected
@@ -871,7 +898,7 @@ function handle_moreactions()
             {"action": "svnrepostat", "path": path},
             function(result)
             {
-                window.location = path_join(app_path('+submit'), path) + '?revision=' + result.svnrevision;
+                window.location = path_join(app_path('+submit'), url) + '?revision=' + result.svnrevision;
             },
             "json");
 
@@ -910,7 +937,7 @@ function handle_moreactions()
         action_revert(selected_files);
         break;
     case "svndiff":
-        window.location = path_join(app_path('diff'), current_path, selected_files[0] || '');
+        window.location = path_join(app_url('diff'), current_path, selected_files[0] || '');
         break;
     case "svnupdate":
         action_update(selected_files);
@@ -922,7 +949,7 @@ function handle_moreactions()
         action_commit(selected_files);
         break;
     case "svnlog":
-        window.location = path_join(app_path('svnlog'), current_path, selected_files[0] || '');
+        window.location = path_join(app_url('svnlog'), current_path, selected_files[0] || '');
         break;
     case "svncopy":
         action_svncopy(selected_files);

@@ -164,8 +164,8 @@ function action_paste()
 
     if (clip_obj.mode == "svnmove" || clip_obj.mode == "svncopy")
     {
-        under_subversion = ("svnstatus" in current_file) && 
-                                (current_file.svnstatus != "unversioned");
+        under_subversion = ("svnstatus" in current_file) &&
+                                (svnstatus_versioned(current_file.svnstatus));
         if (!under_subversion)
         {
             alert("Cannot perform an Subversion Move outside of"
@@ -664,7 +664,8 @@ function handle_dir_listing(path, listing)
     var row_toggle = 1;
     
     /* Is this dir under svn? */
-    var under_subversion = ("svnstatus" in current_file) && (current_file.svnstatus != "unversioned");
+    var under_subversion = ("svnstatus" in current_file) &&
+            (svnstatus_versioned(current_file.svnstatus));
 
     var files = document.getElementById("files");
     var file;

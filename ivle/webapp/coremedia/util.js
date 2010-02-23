@@ -512,12 +512,18 @@ function app_path(app /*,...*/)
     return make_path(path_join.apply(null, arguments));
 }
 
+/** Same as app_path but creates a properly-escaped site-relative URL.
+ */
+function app_url(app /*,...*/)
+{
+    return urlencode_path(app_path.apply(null, arguments));
+}
+
 /** Generates an absolute URL to a public application
  */
-function public_app_path(app /*,...*/)
+function public_app_url(app /*,...*/)
 {
-    return location.protocol + "//" + public_host
-        + make_path(path_join.apply(null, arguments));
+    return "http://" + public_host + app_url.apply(null, arguments);
 }
 
 /** Given a path, gets the "basename" (the last path segment).
@@ -659,7 +665,7 @@ function ajax_call(callback, app, path, args, method, content_type)
     else
     {
         /* POST & PUT & PATCH sends the args in the request body */
-        url = encodeURI(path);
+        url = urlencode_path(path);
         xhr.open(method, url, asyncronous);
         var message;
         if (content_type == "multipart/form-data")

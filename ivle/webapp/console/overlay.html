@@ -3,8 +3,8 @@
       xmlns:py="http://genshi.edgewall.org/" py:strip="">
       
   <body py:strip="">
-    <div id="console_body" py:attrs="start_body_attrs">
-      <div id="console_heading" py:if="windowpane">Python Console
+    <div class="console_body" id="console_body" py:attrs="start_body_attrs">
+      <div class="console_heading" id="console_heading" py:if="windowpane">Python Console
         <span class="console_button minimize">
           <a onclick="console_minimize()"
               title="Minimize the Python console">
@@ -12,15 +12,15 @@
           </a>
         </span>
       </div>
-      <div id="console_body2">
-        <pre id="console_output" class='outputMsg'></pre>
-        <div id="console_input">
+      <div class="console_body2">
+        <pre class="console_output outputMsg" id="console_output"></pre>
+        <div class="console_input">
           <div>
             <div>
-              <label id="console_prompt">&gt;&gt;&gt; </label>
+              <label class="console_prompt" id="console_prompt">&gt;&gt;&gt; </label>
             </div>
-            <div id="console_inputCell">
-              <input id="console_inputText" type="text" 
+            <div class="console_inputCell">
+              <input class="console_inputText" id="console_inputText" type="text" 
                   onkeydown="return catch_input(event.keyCode)" />
             </div>
             <div>

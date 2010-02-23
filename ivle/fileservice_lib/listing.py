@@ -126,6 +126,10 @@ ignore_dot_files = True
 mime_dirlisting = "text/plain"
 #mime_dirlisting = "application/json"
 
+# Indicates that a directory is unversioned
+class UnversionedDir(Exception):
+    pass
+
 def handle_return(req, return_contents):
     """
     Perform the "return" part of the response.
@@ -144,8 +148,6 @@ def handle_return(req, return_contents):
 
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
-    urlpath = urlparse.urlparse(path)
-    path = urlpath[2]
     json = None
     if path is None:
         req.status = req.HTTP_FORBIDDEN
@@ -251,20 +253,31 @@ def get_dirlisting(req, svnclient, path, revision):
     # Start by trying to do an SVN status, so we can report file version
     # status
     listing = {}
+    svnclient.exception_style = 1       # Get rich exceptions
     try:
         if revision:
             ls_list = svnclient.list(path, revision=revision, recurse=False)
             for ls in ls_list:
                 filename, attrs = PysvnList_to_fileinfo(path, ls)
-                listing[filename.decode('utf-8')] = attrs
+                if isinstance(filename, str):   # Expect a unicode from pysvn
+                    filename = filename.decode('utf-8')
+                listing[filename] = attrs
         else:
             status_list = svnclient.status(path, recurse=False, get_all=True,
                         update=False)
             for status in status_list:
                 filename, attrs = PysvnStatus_to_fileinfo(path, status)
-                listing[filename.decode('utf-8')] = attrs
-    except pysvn.ClientError:
-        # Presumably the directory is not under version control.
+                if isinstance(filename, str):   # Expect a unicode from pysvn
+                    filename = filename.decode('utf-8')
+                listing[filename] = attrs
+    except (pysvn.ClientError, UnversionedDir), e:
+        # Could indicate a serious SVN error, or just that the directory is
+        # not under version control (which is perfectly normal).
+        # Error code 155007 is "<dir> is not a working copy"
+        if isinstance(e, pysvn.ClientError) and e[1][0][1] != 155007:
+            # This is a serious error -- let it propagate upwards
+            raise
+        # The directory is not under version control.
         # Fallback to just an OS file listing.
         try:
             for filename in os.listdir(path):
@@ -304,6 +317,8 @@ def get_dirlisting(req, svnclient, path, revision):
     return listing
 
 def _fullpath_stat_fileinfo(fullpath):
+    if isinstance(fullpath, unicode):
+        fullpath = fullpath.encode('utf-8')     # os.stat can't handle unicode
     file_stat = os.stat(fullpath)
     return _stat_fileinfo(fullpath, file_stat)
 
@@ -339,14 +354,17 @@ def PysvnStatus_to_fileinfo(path, status):
     needs to display about the filename. Returns a pair mapping filename to
     a dict containing a number of other fields."""
     path = os.path.normcase(path)
-    fullpath = status.path
+    if isinstance(status.path, str):
+        fullpath = status.path
+    else:
+        fullpath = status.path.encode("utf-8")
     # If this is "." (the directory itself)
     if path == os.path.normcase(fullpath):
         # If this directory is unversioned, then we aren't
         # looking at any interesting files, so throw
         # an exception and default to normal OS-based listing. 
         if status.text_status == pysvn.wc_status_kind.unversioned:
-            raise pysvn.ClientError
+            raise UnversionedDir()
         # We actually want to return "." because we want its
         # subversion status.
         filename = "."
@@ -384,7 +402,7 @@ def PysvnList_to_fileinfo(path, list):
         # looking at any interesting files, so throw
         # an exception and default to normal OS-based listing. 
         #if status.text_status == pysvn.wc_status_kind.unversioned:
-        #    raise pysvn.ClientError
+        #    raise UnversionedDir()
         # We actually want to return "." because we want its
         # subversion status.
         filename = "."

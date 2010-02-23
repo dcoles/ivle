@@ -6,15 +6,20 @@
   <body>
     <h1>Staff and students in ${offering.subject.name}</h1>
     <div id="ivle_padding">
-      <div py:def="userlist(title, role)"
-           py:if="offering.get_members_by_role(unicode(role)).count()">
+      <div class="majorsection" py:def="userlist(title, role)"
+           py:if="offering.get_members_by_role(unicode(role)).count()"
+           py:with="can_edit = ('enrol_' + role) in offering_perms">
         <h2>${title}</h2>
         <table class="pretty_table">
-          <thead><tr><th>Login</th><th>Name</th></tr></thead>
+          <thead><tr><th>Login</th><th>Name</th><th py:if="can_edit">Actions</th></tr></thead>
           <tbody>
             <tr py:for="user in offering.get_members_by_role(unicode(role))">
               <td>${user.login}</td>
               <td>${user.display_name}</td>
+              <td py:if="can_edit">
+                <a href="${req.publisher.generate(offering.get_enrolment(user), EnrolmentEdit)}" title="Edit"><img src="${mediapath + 'interface/pencil.png'}" alt="Edit" /></a>
+                <a href="${req.publisher.generate(offering.get_enrolment(user), EnrolmentDelete)}" title="Remove"><img src="${mediapath + 'interface/delete.png'}" alt="Remove" /></a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -22,6 +27,7 @@
       ${userlist("Lecturers", "lecturer")}
       ${userlist("Tutors", "tutor")}
       ${userlist("Students", "student")}
+      <a class="groupaction" href="${req.publisher.generate(offering, EnrolView)}">Enrol user</a>
     </div>
   </body>
 </html>

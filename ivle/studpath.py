@@ -26,12 +26,8 @@
 
 import os
 import stat
-import pysvn
 
 from ivle import util
-
-# Make a Subversion client object (for published)
-svnclient = pysvn.Client()
 
 def url_to_local(config, urlpath):
     """Given a URL path (part of a URL query string, see below), returns a
@@ -141,18 +137,6 @@ def to_home_path(urlpath):
         return None
 
     return os.path.join('/home', urlpath)
-
-def svnpublished(path):
-    """Given a path on the LOCAL file system, determines whether the path has
-    its "ivle:published" property active (in subversion). Returns True
-    or False."""
-    # Read SVN properties for this path
-    try:
-        props = svnclient.propget("ivle:published", path, recurse=False)
-    except pysvn.ClientError:
-        # Not under version control? Then it isn't published.
-        return False
-    return len(props) > 0
 
 def published(path):
     """Given a path on the LOCAL file system, determines whether the path has a 

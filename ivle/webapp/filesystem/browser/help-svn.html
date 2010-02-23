@@ -1,3 +1,211 @@
 <div class="helpfile">
-TODO: Subversion help
+<p>IVLE's file browser features an integrated <strong>Subversion</strong>
+client. Students are encouraged to place all of their files under <em>revision
+control</em> with Subversion. This provides the following functionality:</p>
+<ul>
+<li>Backup of files (protection from accidental deletion or
+modification),</li>
+<li>Ability to roll back a file to a previous version; sort of a long-term,
+"undo" feature,</li>
+<li>Ability to check the difference between previous versions of a file,</li>
+<li>Sharing files among project group members</li>
+</ul>
+<h2>Subversion in IVLE</h2>
+<p>IVLE automatically creates Subversion repositories and workspaces, so
+Subversion "just works" from the start. All of the default directories you see
+in IVLE are Subversion workspaces by default.</p>
+<p>The home directory in IVLE is <em>not</em> a Subversion directory. Any
+files you create in this directory cannot be committed or reverted, so we
+recommend you don't put any files here (if you do create files here, they will
+appear under the heading "Junk").</p>
+<p>IVLE creates a Subversion workspace for each of the following:</p>
+<ul>
+<li>For each subject you are enrolled in, a workspace called "mywork". This is
+where you should place all of your personal files for the subject, including
+any solo projects.</li>
+<li>For each project group you are enrolled in, a workspace with your group
+name. This workspace is shared among all group members, and you should place
+all group project files here.</li>
+<li>A workspace called "stuff". This is where you should place any work not
+associated with a subject.</li>
+</ul>
+<p>The workspaces are not checked out by default. Therefore, when you first
+log into IVLE, you should see all of the aforementioned workspaces with
+"(missing)" and a "Checkout" button. Press each of the Checkout buttons to
+create the workspaces.</p>
+<h2>Subversion status icons</h2>
+<p>IVLE shows the status of each file as an icon to the left. This shows the
+status of each file in the working directory with respect to its backed up
+state in the repository.</p>
+<p>The statuses are:</p>
+<ul>
+<li><img src="/+media/ivle.webapp.core/images/svn/unversioned.png" />
+  <strong>Temporary file</strong>: The file is not committed to the
+  repository, and Subversion knows nothing about this. You will not be able to
+  restore this file if it is deleted, and group members cannot see it. Use
+  "Add", then "Commit" to fix this. Note that files which aren't part of your
+  project and don't need to be saved, such as ".pyc" files, should be left as
+  temporary files, and not added to the repository.</li>
+<li><strong>Temporary file (ignored)</strong>: A temporary file which is
+  recommended not to be added to the repository. This is automatically
+  selected based on the file extension. For example, ".pyc" files are ignored
+  by default.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/added.png" />
+  <strong>Added</strong>: The file is not committed to the repository, but has
+  been added with the "Add" command. It will be placed under revision control
+  if committed.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/normal.png" />
+  <strong>Permanent file</strong>: The file is committed to the repository and
+  has no local changes. However, it may still be out-of-date with the version
+  in the repository if you have not run "Update".</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/modified.png" />
+  <strong>Modified</strong>: The file is committed, but you have modified it
+  since the last commit. The changes are not backed up and group members
+  cannot see them. Commit the file at regular intervals to synchronise the
+  changes with the repository.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/conflicted.png" />
+  <strong>Conflicted</strong>: Local changes were made, then you ran
+  "Update", and the update included conflicting or incompatible changes. You
+  should edit the file to fix up these conflicts (which should be clearly
+  visible), then run "Resolve" to set the file back to normal "Modified"
+  status.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/missing.png" />
+  <strong>Missing</strong>: The file is in the repository, but not in the
+  workspace. Likely it was deleted without using Subversion commands. You can
+  "Revert" to get it back.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/deleted.png" />
+  <strong>Deleted</strong>: The file is in the repository, but has been
+  deleted using the "Remove" command. This means it has been deleted from the
+  workspace, and will be removed from the repository if committed.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/replaced.png" />
+  <strong>Replaced</strong>: The file has been deleted and then a new file
+  has been added in its place.</li>
+<li><img src="/+media/ivle.webapp.core/images/svn/revision.png" />
+  <strong>Past Permanent file (revision)</strong>: You are browsing the
+  Subversion history &mdash; this reflects the state of the file at some point
+  in the past, not the current file. This happens if you use the history
+  browser under "View Log", or if you verify a project submission.</li>
+</ul>
+<h2>Subversion commands</h2>
+<p>Within each of the workspaces (and their subdirectories, if versioned), the
+Subversion commands will be available. These are available under the "More
+actions" drop-down under the "Subversion" heading. Some are available on the
+current directory, if no files are selected. Others are available on the
+currently selected files.</p>
+<p>This section offers only a brief guide to the Subversion commands. For a
+complete guide to Subversion, see <a
+href="http://svnbook.red-bean.com/">Version Control with Subversion</a>.
+This section is specific to the Subversion integration within IVLE.</p>
+<p>Note that none of the commands have any effect on the repository until the
+<strong>Commit</strong> action is applied.</p>
+<p>The commands are:</p>
+<ul>
+<li><strong>Svn Cut</strong>: This command works similar to the regular file
+action, "Cut". It doesn't execute any commands, but the nominated files will
+be moved to the new location upon performing the regular directory action,
+"Paste". Unlike "Cut", "Svn Cut" will move the files using the <code>svn
+move</code> command, so the file will be moved inside the repository too (once
+committed).  Note that you can't move files between repositories, so you can
+cut and paste between your personal workspaces, but not between your personal
+and group workspaces.</li>
+<li><strong>Svn Copy</strong>: Same as "Svn Cut", but upon pasting, will
+execute <code>svn copy</code> instead of <code>svn move</code>.</li>
+<li><strong>Add</strong>: Schedule a temporary (unversioned) file to be added
+to the repository. This changes the file's status from <img
+src="/+media/ivle.webapp.core/images/svn/unversioned.png" /> "temporary" to
+<img src="/+media/ivle.webapp.core/images/svn/added.png" /> "added".</li>
+<li><strong>Remove</strong>: Delete the file from the workspace, and schedule
+a permanent file to be deleted from the repository. This changes the file's
+status to <img src="/+media/ivle.webapp.core/images/svn/deleted.png" />
+"deleted". You will still be able to browse the past versions of this file; it
+just won't appear in the repository from now on.</li>
+<li><strong>Diff</strong>: Show exactly the lines of the selected files, or
+the files in the current directory, that have been changed since the last
+commit. This is <em>extremely useful</em> before a commit, so you can see
+exactly what you're about to commit.</li>
+<li><strong>Revert</strong>: Undo all changes to the selected file since the
+last commit, and go back to the most recently committed version. Be very
+careful using this command! (Check the "Diff" first, to see what you're going
+to delete). Running this on a missing or deleted file will restore the
+file.</li>
+<li><strong>Update</strong>: Fetch all changes from the repository and
+synchronise them with your workspace. This is only useful when working in a
+group repository &mdash; this updates your workspace with changes made by
+other team members. This can create <img
+src="/+media/ivle.webapp.core/images/svn/conflicted.png" /> conflicts, if you
+both edited the same part of the same file &mdash; see above for advice on
+resolving these.</li>
+<li><strong>Commit</strong>: Send all of your changes to the repository. This
+makes a permanent "snapshot" of the current directory state, and lets your
+team members see your changes. You should commit your work often. You will
+need to enter a log message, which helps if you need to view a past version.
+If you get the error "File or directory is out of date; try updating", it
+means a team member has committed changes since your last update. You can't
+commit until you run "Update" first, to synchronise your workspace with the
+team repository.</li>
+<li><strong>Mark Resolved</strong>: Once you have finished dealing with
+conflicted files, use Mark resolved to set their status back from <img
+src="/+media/ivle.webapp.core/images/svn/conflicted.png" /> "conflicted" to a
+<img src="/+media/ivle.webapp.core/images/svn/modified.png" /> normal status.
+You can't commit while you have conflicted files.</li>
+<li><strong>View Log</strong>: Show a summary of the history of a file or
+directory. This shows all of the log messages from past commits, and lets you
+view the "diff" between any two past revisions.</li>
+<li><strong>Cleanup</strong>: This attempts to fix problems with your
+Subversion workspace. Try this if you are having trouble committing or
+updating due to "working copy locked" errors.</li>
+</ul>
+<h2>Projects and group work</h2>
+<p>You are required to place all of your projects under Subversion in order to
+submit them. See <a href="../Submitting%20a%20project">Submitting a
+project</a> for help on submissions.</p>
+<p>On group projects, it is a little bit trickier, as you don't have any
+shared directories &mdash; only a shared repository. In general, programmers
+find it very difficult to work with others if you are sharing a directory,
+constantly writing over each others files! So instead, you each get your own
+directory, and share files by <strong>committing</strong> (that sends changes
+out to the team) and <strong>updating</strong> (that receives changes from the
+team).</p>
+<p>As stated above, each project group you are in gets one shared repository,
+which you can check out from your home screen. Note that if you do several
+projects with the same group, you will continue using the same repository
+throughout the subject.</p>
+<p>Firstly, you should all agree on a Subversion process, and spend some time
+practicing committing and updating while you are all in the same room. Your
+workflow should go something like this:</p>
+<ol>
+<li>Whenever you start work, run the <strong>Update</strong> command, ensuring
+that your workspace includes all of the latest changes made by team members.
+(You may even wish to <strong>View Log</strong> after updating, to see what
+your team members have been up to.)</li>
+<li>Make your changes <img
+src="/+media/ivle.webapp.core/images/svn/modified.png" />. You should make
+only small changes at a time, and then make sure your programs and documents
+are still valid. Be sure to <img
+src="/+media/ivle.webapp.core/images/svn/added.png" /> add any new files you
+create. Random files which aren't part of your project and don't need to be
+saved, such as ".pyc" files, should not be added.</li>
+<li>Run <strong>Update</strong> again, to make sure nobody has committed
+anything in the meantime. If they have, it will <em>merge</em> those changes
+into your changes, so you end up with the absolute latest version. In very
+rare cases, you may see the dreaded <img
+src="/+media/ivle.webapp.core/images/svn/conflicted.png" /> "conflicted"
+status on some files, meaning that both you and a team mate changed the same
+part of the same file, and you will have to manually resolve it. See above for
+advice on this issue.</li>
+<li>View the <strong>Diff</strong>. This gives you a good overview of the
+changes you have made, so that a) you know you haven't accidentally changed
+something you didn't mean to, and b) you have a good idea of what to write in
+the log message.</li>
+<li>Run <strong>Commit</strong>. Enter a log message which summarises the
+changes, so your team mates can quickly find out what you've changed. If all
+goes well, the files you are committing will go back to <img
+src="/+media/ivle.webapp.core/images/svn/normal.png" /> permanent files, so
+you know that the repository is synchronised with your changes.</li>
+<li>Repeat steps 2-5.</li>
+</ol>
+<p>With a bit of practice, the whole update-diff-commit process can take less
+than one minute. It's important to commit often, and commit small changes with
+useful commit logs, so your team mates can follow the changes you are
+making.</p>
 </div>

@@ -106,10 +106,26 @@ IVLE pulldown menu, choose Subjects and select Intermediate Ivle). There is
 one worksheet, Worksheet Basics. Clicking this takes you to the worksheet,
 where students are challenged by Python questions.
 
-After reading the worksheet, attempt the simple programming question, which is
-to write a factorial program.
+After reading the worksheet, attempt the first simple programming question,
+which is to write the Hello world program.
 
-A sample solution follows::
+First, click Submit without writing any code, and note that the system
+automatically runs a test case, which fails. Now change the code to be "almost
+right" (for example, write "Hello world" instead of "Hello, world!"), and
+press Submit again. It will tell you that you almost got it right. In this
+way, the IVLE test framework can show users that they're on the right track.
+If you get it exactly right and click Submit a third time, you will pass the
+test.
+
+Note that you can also click "Run", and it will execute your solution in the
+Python console. This doesn't cost you an "attempt", nor does it run the test
+cases. It just lets you test it out for yourself before making an official
+submission.
+
+Back on the subject page, you will notice that the exercise appears complete,
+and you have been awarded a mark.
+
+A sample solution to the second exercise follows::
 
  def fac(n):
      if n == 0:
@@ -120,20 +136,6 @@ A sample solution follows::
  def main():
      f = int(raw_input())
      print fac(f)
-
-First, click Submit, and note that the system automatically runs some test
-cases, all of which fail. Now paste the solution to :func:`fac` (but not
-:func:`main`). Clicking Submit again shows some test cases pass, but not all.
-Finally, paste the solution to :func:`main`, and click Submit again. This
-time, you will pass the test.
-
-Note that you can also click "Run", and it will execute your solution in the
-Python console. This doesn't cost you an "attempt", nor does it run the test
-cases. It just lets you test it out for yourself before making an official
-submission.
-
-Back on the subject page, you will notice that the exercise appears complete,
-and you have been awarded some marks.
 
 A lecturer's view
 =================

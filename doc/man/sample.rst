@@ -171,14 +171,20 @@ studenta and studentb enlisted.
 Exercises
 ---------
 
-There is currently a single exercise, ``factorial``, which prompts the user to
+There are two sample exercises, ``hello``, which prompts the user to write
+a simple Hello world program, and ``factorial``, which prompts the user to
 write a factorial function and tests its correctness.
+
+Both exercises have realistic test suites, taking advantage of most of the
+features of the IVLE exercise testing framework. For example, ``hello`` uses a
+regular expression to test whether the user has got it almost right, and gives
+them encouraging feedback.
 
 Worksheets
 ----------
 
 There is currently a single worksheet in the subject ivle-102 (2009 semester
-2). It embeds the exercise ``factorial``.
+2). It embeds the exercises ``hello`` and ``factorial``.
 
 Updating the sample data
 ========================
@@ -193,3 +199,8 @@ Run the following command::
 Then check the diff. You may hand-edit the SQL file, but only for the purpose
 of fixing up unsightly data -- it should be possible to reload from the script
 and re-export with no diff.
+
+If the contents of the Subversion repositories have changed, run this
+command::
+
+    svnadmin dump /var/lib/ivle/svn/repositories/<repo> > examples/userrepos/<dumpfile>

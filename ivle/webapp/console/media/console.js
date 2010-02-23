@@ -133,7 +133,7 @@ function console_init(windowpane)
 function console_minimize()
 {
     if (!windowpane_mode) return;
-    console_body.setAttribute("class", "windowpane minimal");
+    console_body.setAttribute("class", "console_body windowpane minimal");
     console_filler.setAttribute("class", "windowpane minimal");
 }
 
@@ -142,7 +142,7 @@ function console_minimize()
 function console_maximize()
 {
     if (!windowpane_mode) return;
-    console_body.setAttribute("class", "windowpane maximal");
+    console_body.setAttribute("class", "console_body windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
 }
 
@@ -391,10 +391,14 @@ function console_response(inputbox, inputline, responseText)
         // Return early, so we don't re-enable the input box.
         return;
     }
+    else if (res.hasOwnProperty('input'))
+    {
+        set_prompt("+++");
+    }
     else
     {
-        // assert res.hasOwnProperty('input')
-        set_prompt("...");
+        alert("An internal error occurred in the python console.");
+        return;
     }
 
     if (inputbox != null)

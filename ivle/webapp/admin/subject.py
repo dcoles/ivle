@@ -50,10 +50,11 @@ from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             subject_to_offering, offering_to_projectset, offering_to_project,
-            subject_url, semester_url, offering_url, projectset_url,
-            project_url)
+            offering_to_enrolment, subject_url, semester_url, offering_url,
+            projectset_url, project_url, enrolment_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
-            OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb)
+            OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb,
+            EnrolmentBreadcrumb)
 from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.groups import GroupsView
 from ivle.webapp.media import media_url
@@ -284,6 +285,7 @@ class OfferingView(XHTMLView):
         ctx['OfferingEdit'] = OfferingEdit
         ctx['OfferingCloneWorksheets'] = OfferingCloneWorksheets
         ctx['GroupsView'] = GroupsView
+        ctx['EnrolmentsView'] = EnrolmentsView
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)
@@ -546,9 +548,18 @@ class EnrolmentsView(XHTMLView):
     template = 'templates/enrolments.html'
     tab = 'subjects'
     permission = 'edit'
+    breadcrumb_text = 'Enrolments'
 
     def populate(self, req, ctx):
+        ctx['req'] = req
         ctx['offering'] = self.context
+        ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['offering_perms'] = self.context.get_permissions(
+            req.user, req.config)
+        ctx['EnrolView'] = EnrolView
+        ctx['EnrolmentEdit'] = EnrolmentEdit
+        ctx['EnrolmentDelete'] = EnrolmentDelete
+
 
 class EnrolView(XHTMLView):
     """A form to enrol a user in an offering."""
@@ -580,11 +591,66 @@ class EnrolView(XHTMLView):
         ctx['roles_auth'] = self.context.get_permissions(req.user, req.config)
         ctx['errors'] = errors
 
+
+class EnrolmentEditSchema(formencode.Schema):
+    role = formencode.All(formencode.validators.OneOf(
+                                ["lecturer", "tutor", "student"]),
+                          RoleEnrolmentValidator(),
+                          formencode.validators.UnicodeString())
+
+
+class EnrolmentEdit(BaseFormView):
+    """A form to alter an enrolment's role."""
+    template = 'templates/enrolment-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    def populate_state(self, state):
+        state.offering = self.context.offering
+
+    def get_default_data(self, req):
+        return {'role': self.context.role}
+
+    @property
+    def validator(self):
+        return EnrolmentEditSchema()
+
+    def save_object(self, req, data):
+        self.context.role = data['role']
+
+    def get_return_url(self, obj):
+        return self.req.publisher.generate(
+            self.context.offering, EnrolmentsView)
+
+    def populate(self, req, ctx):
+        super(EnrolmentEdit, self).populate(req, ctx)
+        ctx['offering_perms'] = self.context.offering.get_permissions(
+            req.user, req.config)
+
+
+class EnrolmentDelete(XHTMLView):
+    """A form to alter an enrolment's role."""
+    template = 'templates/enrolment-delete.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    def populate(self, req, ctx):
+        # If POSTing, delete delete delete.
+        if req.method == 'POST':
+            self.context.delete()
+            req.store.commit()
+            req.throw_redirect(req.publisher.generate(
+                self.context.offering, EnrolmentsView))
+
+        ctx['enrolment'] = self.context
+
+
 class OfferingProjectsView(XHTMLView):
     """View the projects for an offering."""
     template = 'templates/offering_projects.html'
     permission = 'edit'
     tab = 'subjects'
+    breadcrumb_text = 'Projects'
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
@@ -663,9 +729,11 @@ class ProjectView(XHTMLView):
 
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_subject, root_to_semester, subject_to_offering,
-                      offering_to_project, offering_to_projectset)
+                      offering_to_project, offering_to_projectset,
+                      offering_to_enrolment)
     reverse_routes = (
-        subject_url, semester_url, offering_url, projectset_url, project_url)
+        subject_url, semester_url, offering_url, projectset_url, project_url,
+        enrolment_url)
 
     views = [(ApplicationRoot, ('subjects', '+index'), SubjectsView),
              (ApplicationRoot, ('subjects', '+manage'), SubjectsManage),
@@ -679,6 +747,8 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Offering, '+clone-worksheets', OfferingCloneWorksheets),
              (Offering, ('+enrolments', '+index'), EnrolmentsView),
              (Offering, ('+enrolments', '+new'), EnrolView),
+             (Enrolment, '+edit', EnrolmentEdit),
+             (Enrolment, '+delete', EnrolmentDelete),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
              (Project, '+index', ProjectView),
 
@@ -690,6 +760,7 @@ class Plugin(ViewPlugin, MediaPlugin):
                    Offering: OfferingBreadcrumb,
                    User: UserBreadcrumb,
                    Project: ProjectBreadcrumb,
+                   Enrolment: EnrolmentBreadcrumb,
                    }
 
     tabs = [

@@ -72,7 +72,7 @@ def rebuild_svn_config(store, config):
         f.write("""
 [%(login)s:/]
 %(login)s = rw
-""" % {'login': u.login})
+""" % {'login': u.login.encode('utf-8')})
 
     # Now we need to grant offering tutors and lecturers access to the latest
     # submissions in their offerings. There are much prettier ways to do this,
@@ -110,13 +110,14 @@ def rebuild_svn_config(store, config):
         f.write("""
 # Submission %(id)d
 [%(login)s:%(path)s]
-""" % {'login': login, 'id': psid, 'path': pspath})
+""" % {'login': login.encode('utf-8'), 'id': psid,
+       'path': pspath.encode('utf-8')})
 
         for viewer_login in offering_viewers_cache[offeringid]:
             # We don't want to override the owner's write privilege,
             # so we don't add them to the read-only ACL.
             if login != viewer_login:
-                f.write("%s = r\n" % viewer_login)
+                f.write("%s = r\n" % viewer_login.encode('utf-8'))
 
     f.close()
     os.rename(temp_name, conf_name)
@@ -145,12 +146,12 @@ def rebuild_svn_group_config(store, config):
                              offering.semester.semester,
                              group.name])
 
-        f.write("[%s:/]\n" % reponame)
+        f.write("[%s:/]\n" % reponame.encode('utf-8'))
         if group.id not in group_members_cache:
             group_members_cache[group.id] = set()
         for user in group.members:
             group_members_cache[group.id].add(user.login)
-            f.write("%s = rw\n" % user.login)
+            f.write("%s = rw\n" % user.login.encode('utf-8'))
         f.write("\n")
 
     # Now we need to grant offering tutors and lecturers access to the latest
@@ -194,7 +195,8 @@ def rebuild_svn_group_config(store, config):
         f.write("""
 # Submission %(id)d
 [%(repo)s:%(path)s]
-""" % {'repo': reponame, 'id': psid, 'path': pspath})
+""" % {'repo': reponame.encode('utf-8'), 'id': psid,
+       'path': pspath.encode('utf-8')})
 
         for viewer_login in offering_viewers_cache[offeringid]:
             # Skip existing group members, or they can't write to it any more.
@@ -326,9 +328,11 @@ def make_ivle_conf(username, user_jail_dir, svn_pass, sys_config):
     # So we just write root_dir.
     conf_obj = ivle.config.Config(blank=True)
     conf_obj.filename = conf_path
+    conf_obj['urls'] = {}
     conf_obj['urls']['root'] = sys_config['urls']['root']
     conf_obj['urls']['public_host'] = sys_config['urls']['public_host']
     conf_obj['urls']['svn_addr'] = sys_config['urls']['svn_addr']
+    conf_obj['user_info'] = {}
     conf_obj['user_info']['login'] = username
     conf_obj['user_info']['svn_pass'] = svn_pass
     conf_obj.write()

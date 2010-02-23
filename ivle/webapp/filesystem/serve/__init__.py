@@ -38,6 +38,7 @@ from ivle.webapp import ApplicationRoot
 
 class ServeView(BaseView):
     subpath_allowed = True
+    offsite_posts_allowed = True
 
     def authorize(self, req):
         return req.user is not None
@@ -131,8 +132,9 @@ class ServeView(BaseView):
                                      response['error'])
 
         if download:
-            req.headers_out["Content-Disposition"] = \
-                         "attachment; filename=%s" % response['name']
+            req.headers_out["Content-Disposition"] = (
+                         "attachment; filename=%s" %
+                             response['name'].encode('utf-8'))
         req.content_type = response['type']
         req.write(out)
 

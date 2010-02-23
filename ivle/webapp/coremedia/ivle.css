@@ -16,12 +16,12 @@ html, body {
     font-size: 0.95em;
 }
 
-a:link, a:visited, a:hover, a:active {
+a:link, a:visited, a:hover, a:active, a.fakelink {
     color: #002a8c;
     text-decoration: none;
 }
 
-a:hover {
+a:hover, a.fakelink:hover {
     text-decoration: underline;
 }
 

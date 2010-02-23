@@ -118,6 +118,10 @@ if options.upgrade:
 
     ivle.jailbuilder.debian.apt_clean(build_path)
 
+    # Configure locales to allow en_US.UTF-8 (which IVLE uses)
+    ivle.jailbuilder.debian._execute_in_chroot(build_path,
+        ['locale-gen', 'en_US.UTF-8'])
+
 if conf['jail']['devmode']:
     # Copy all console and operating system files into the jail
     services_path = os.path.join(conf['paths']['share'], 'services')

@@ -36,18 +36,12 @@ from ivle import chat
 
 class ConsoleError(Exception):
     """ The console failed in some way. This is bad. """
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 class ConsoleException(Exception):
     """ The code being exectuted on the console returned an exception. 
     """
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+    pass
 
 class TruncateStringIO(StringIO.StringIO):
     """ A class that wraps around StringIO and truncates the buffer when the 
@@ -213,6 +207,8 @@ class Console(object):
             # Couldn't decode the JSON
             raise ConsoleError(
                 "Could not understand the python console response")
+        except chat.ProtocolError, e:
+            raise ConsoleError(*e.args)
 
         return response
 

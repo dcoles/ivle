@@ -87,12 +87,11 @@ class ConsoleServiceRESTView(JSONRESTView):
 
         msg = {'cmd':kind, 'text':text}
         try:
-            json_response = ivle.chat.chat(host, port, msg, magic,decode=False)
-
-            # Snoop the response from python-console to check that it's valid
             try:
+                json_response = ivle.chat.chat(host, port, msg, magic,decode=False)
+                # Snoop the response from python-console to check that it's valid
                 response = cjson.decode(json_response)
-            except cjson.DecodeError:
+            except (cjson.DecodeError, ivle.chat.ProtocolError):
                 # Could not decode the reply from the python-console server
                 response = {"terminate":
                     "Communication to console process lost"}
