@@ -247,6 +247,9 @@ function handle_response(path, response, is_action, url_args)
     }
 
     var subjects = null;
+    /* Remove trailing slash (or path==username won't compare properly) */
+    if (path[path.length-1] == "/")
+        path = path.substr(0, path.length-1);
     var top_level_dir = path==username;
     if (top_level_dir)
     {
