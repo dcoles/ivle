@@ -51,7 +51,7 @@ class ExercisesRESTView(JSONRESTView):
         if not VALID_URL_NAME.match(identifier):
             raise BadRequest(
                 "Exercise names must consist of an alphanumeric character "
-                "followed by any number of alphanumerics, ., + or -.")
+                "followed by any number of alphanumerics, ., +, - or _.")
 
         if req.store.find(Exercise, id=unicode(identifier)).one():
             raise BadRequest("An exercise with that URL name already exists.")

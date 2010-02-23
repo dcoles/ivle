@@ -106,7 +106,7 @@ class BaseFormView(XHTMLView):
             ctx['error_value'] = errors
 
 
-VALID_URL_NAME = re.compile(r'^[a-z0-9][a-z0-9\+\.\-]*$')
+VALID_URL_NAME = re.compile(r'^[a-z0-9][a-z0-9_\+\.\-]*$')
 
 
 class URLNameValidator(formencode.validators.UnicodeString):
@@ -115,5 +115,5 @@ class URLNameValidator(formencode.validators.UnicodeString):
         if not VALID_URL_NAME.match(value):
             raise formencode.Invalid(
                 'Must consist of an alphanumeric character followed by any '
-                'number of alphanumerics, ., + or -.',
+                'number of alphanumerics, ., +, - or _.',
                 value, state)

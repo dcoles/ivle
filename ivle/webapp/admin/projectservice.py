@@ -45,7 +45,7 @@ class ProjectSetRESTView(XHTMLRESTView):
         if not VALID_URL_NAME.match(short_name):
             raise BadRequest(
                 "Project names must consist of an alphanumeric character "
-                "followed by any number of alphanumerics, ., + or -.")
+                "followed by any number of alphanumerics, ., +, - or _.")
 
         if req.store.find(
             Project,
