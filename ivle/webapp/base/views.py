@@ -23,6 +23,7 @@ class BaseView(object):
     """
 
     subpath_allowed = False
+    offsite_posts_allowed = False
 
     def __init__(self, req, context, subpath=None):
         self.req = req

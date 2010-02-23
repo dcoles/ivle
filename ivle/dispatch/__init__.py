@@ -30,6 +30,7 @@ import sys
 import os
 import os.path
 import urllib
+import urlparse
 import cgi
 import traceback
 import logging
@@ -44,7 +45,7 @@ from ivle.dispatch.request import Request
 import ivle.webapp.security
 from ivle.webapp.base.plugins import ViewPlugin, PublicViewPlugin
 from ivle.webapp.base.xhtml import XHTMLView, XHTMLErrorView
-from ivle.webapp.errors import HTTPError, Unauthorized, NotFound
+from ivle.webapp.errors import BadRequest, HTTPError, NotFound, Unauthorized
 from ivle.webapp.publisher import Publisher, PublishingError
 from ivle.webapp import ApplicationRoot
 
@@ -157,6 +158,18 @@ def handler(apachereq):
                     raise Unauthorized('Unauthorized: %s' % view)
                 else:
                     raise Unauthorized()
+
+            # Non-GET requests from other sites leave us vulnerable to
+            # CSRFs. Block them.
+            referer = req.headers_in.get('Referer')
+            if (referer is None or
+                urlparse.urlparse(req.headers_in.get('Referer')).netloc !=
+                    req.hostname):
+                if req.method != 'GET' and not view.offsite_posts_allowed:
+                    raise BadRequest(
+                        "Non-GET requests from external sites are forbidden "
+                        "for security reasons.")
+
             # Render the output
             view.render(req)
         except HTTPError, e:

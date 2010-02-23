@@ -38,6 +38,7 @@ from ivle.webapp import ApplicationRoot
 
 class ServeView(BaseView):
     subpath_allowed = True
+    offsite_posts_allowed = True
 
     def authorize(self, req):
         return req.user is not None
