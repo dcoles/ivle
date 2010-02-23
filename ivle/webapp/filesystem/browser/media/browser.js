@@ -522,7 +522,7 @@ function handle_binary(path)
     var div = document.createElement("div");
     files.appendChild(div);
     div.setAttribute("class", "padding");
-    var download_link = app_path(download_app, path);
+    var download_link = app_url(download_app, path);
     var par1 = dom_make_text_elem("p",
         "The file " + path + " is a binary file. To download this file, " +
         "click the following link:");
@@ -627,10 +627,10 @@ function update_actions()
               "return maybe_save('The last saved version will be served.')");
         if (numsel == 0)
             serve.setAttribute("href",
-                app_path(serve_app, current_path));
+                app_url(serve_app, current_path));
         else
             serve.setAttribute("href",
-                app_path(serve_app, current_path, filename));
+                app_url(serve_app, current_path, filename));
     }
     else
     {
@@ -686,7 +686,7 @@ function update_actions()
         if (numsel == 0)
         {
             download.setAttribute("href",
-                app_path(download_app, current_path));
+                app_url(download_app, current_path));
             if (file.isdir)
                 download.setAttribute("title",
                     "Download the current directory as a ZIP file");
@@ -697,7 +697,7 @@ function update_actions()
         else
         {
             download.setAttribute("href",
-                app_path(download_app, current_path, filename));
+                app_url(download_app, current_path, filename));
             if (file.isdir)
                 download.setAttribute("title",
                     "Download the selected directory as a ZIP file");
@@ -709,7 +709,7 @@ function update_actions()
     else
     {
         /* Make a query string with all the files to download */
-        var dlpath = urlencode_path(app_path(download_app, current_path)) + "?";
+        var dlpath = app_url(download_app, current_path) + "?";
         for (var i=0; i<numsel; i++)
             dlpath += "path=" + encodeURIComponent(selected_files[i]) + "&";
         dlpath = dlpath.substr(0, dlpath.length-1);
@@ -854,7 +854,7 @@ function handle_moreactions()
         action_unpublish(selected_files);
         break;
     case "share":
-        window.open(public_app_path("~" + current_path, filename), 'share')
+        window.open(public_app_url("~" + current_path, filename), 'share')
         break;
     case "submit":
         if (selected_files.length == 1)
@@ -912,7 +912,7 @@ function handle_moreactions()
         action_revert(selected_files);
         break;
     case "svndiff":
-        window.location = path_join(app_path('diff'), current_path, selected_files[0] || '');
+        window.location = path_join(app_url('diff'), current_path, selected_files[0] || '');
         break;
     case "svnupdate":
         action_update(selected_files);
@@ -924,7 +924,7 @@ function handle_moreactions()
         action_commit(selected_files);
         break;
     case "svnlog":
-        window.location = path_join(app_path('svnlog'), current_path, selected_files[0] || '');
+        window.location = path_join(app_url('svnlog'), current_path, selected_files[0] || '');
         break;
     case "svncopy":
         action_svncopy(selected_files);
