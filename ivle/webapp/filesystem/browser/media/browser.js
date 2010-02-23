@@ -61,6 +61,7 @@ type_icons_path_large = "+media/ivle.webapp.core/images/mime/large";
 /* Mapping SVN status to icons, just the file's basename */
 svn_icons = {
     "unversioned": "unversioned.png",
+    "ignored": null,                    /* Supposed to be innocuous */
     "normal": "normal.png",
     "added": "added.png",
     "missing": "missing.png",
@@ -74,6 +75,7 @@ svn_icons = {
 /* Mapping SVN status to "nice" strings */
 svn_nice = {
     "unversioned": "Temporary file",
+    "ignored": "Temporary file (ignored)",
     "normal": "Permanent file",
     "added": "Temporary file (scheduled to be added)",
     "missing": "Permanent file (missing)",
@@ -518,7 +520,7 @@ function svnstatus_to_string(svnstatus)
  */
 function svnstatus_versioned(svnstatus)
 {
-    return svnstatus != "unversioned";
+    return svnstatus != "unversioned" && svnstatus != "ignored";
 }
 
 /** Displays a download link to the binary file.
