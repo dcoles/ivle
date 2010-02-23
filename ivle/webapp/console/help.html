@@ -40,18 +40,16 @@
     Python Console (example)
   </div>
   <div class="console_help_example_body">
-    <div class="console_output">
-      <code>
-        <span style="color:#800">&gt;&gt;&gt;</span>
-        <span style="color:gray">i</span><br/>
-        <span style="color:red">name 'i' is not defined</span><br/>
-        <span style="color:#800">&gt;&gt;&gt; </span>
-        <span style="color:gray">i=2</span><br/>
-        <span style="color:#800">&gt;&gt;&gt; </span>
-        <span style="color:gray">print i</span><br/>
-        2
-      </code>
-    </div>
+    <pre class="console_output outputMsg">
+<span class="inputPrompt">&gt;&gt;&gt; </span> <span class="inputMsg">i</span>
+<span class="errorMsg">Traceback (most recent call last):
+File "&lt;web session&gt;", line 1, in &lt;module&gt;
+NameError: name 'i' is not defined</span>
+<span class="inputPrompt">&gt;&gt;&gt; </span><span class="inputMsg">i = 2</span>
+<span class="inputPrompt">&gt;&gt;&gt; </span><span class="inputMsg">if i == 2:</span>
+<span class="inputPrompt">... </span><span class="inputMsg">    print i</span>
+<span class="inputPrompt">... </span><span class="inputMsg"></span>
+2</pre>
     <div class="console_input">
       <div>
         <div>
