@@ -28,11 +28,11 @@
   </div>
 </div>
 
-<p>Sometimes Python may expect additional lines of input - for example, after the <code>if</code> or <code>for</code> statements. This condition is indicated by a <code>...</code> prompt next to the input. Complete the command by entering additional lines as required. Press ENTER with an empty line to mark the code block as complete and execute it.</p>
+<p>Sometimes Python may expect additional lines of input &mdash; for example, after the <code>if</code> or <code>for</code> statements. This condition is indicated by a <code>...</code> prompt next to the input. Complete the command by entering additional lines as required. Press ENTER with an empty line to mark the code block as complete and execute it.</p>
 
 <p>Finally, some commands (such as <code>raw_input()</code>) may expect further input from the user. In this case the prompt will be replaced with <code>+++</code> to indicate that input other than Python code is required.</p>
 
-<p>Please note that the console will time out after a period of inactivity. This has a similar result (and thus similar ramifications) to <a href="#restarting">restarting the console manually</a>.</p>
+<p>Please note that the console will time out after a period of inactivity. This has a similar result (and thus similar ramifications) to <a href="#restarting">restarting the console manually</a>. There is also a limit on the amount of CPU power a single console can use. This limit is in place to prevent accidental monopolisation of resources; if you exceed it, just <a href="#restarting">restart the console session</a>.</p>
 
 <h3>Interpreting output</h3>
 <div class="console_help_example">
@@ -68,7 +68,7 @@ NameError: name 'i' is not defined</span>
   </div>
 </div>
 
-<p>Each line that you have entered - as well as any output produced - is shown in the text area above the input. Lines beginning with a normal prompt (<code style="color: #800">&gt;&gt;&gt;</code>) are your input lines, while lines in red (such as <code style="color: red">invalid syntax (&lt;input&gt;, line 1)</code>) are generated errors or exceptions. Other lines are normal output from your code.</p>
+<p>Each line that you have entered &mdash; as well as any output produced &mdash; is shown in the text area above the input. Lines beginning with a normal prompt (<code style="color: #800">&gt;&gt;&gt;</code>) are your input lines, while lines in red (such as <code style="color: red">invalid syntax (&lt;input&gt;, line 1)</code>) are generated errors or exceptions. Other lines are normal output from your code.</p>
 
 <h3>Reviewing history</h3>
 <p>The IVLE console maintains a log of all entered commands in order to allow simple repetition of history. The up and down arrow keys will scroll backwards and forwards through the input history. As with any other line of code, pressing ENTER will execute the line currently in the input.</p>
@@ -78,5 +78,5 @@ NameError: name 'i' is not defined</span>
 <p>It is possible to enter commands that will render the console unusable or take a long time to complete (infinite loops like <code>while True: print "Hello, world!"</code>, for example). You may terminate execution of the current command with the <em>Interrupt</em> button. This should allow you to resume entering of commands.</p>
 
 <h3><a name="restarting">Restarting the console</a></h3>
-<p>If things go really wrong, you can restart the console simply by clicking the <em>Console</em> tab. Be aware that you will lose all state (such as variables and functions) entered into your previous console session.</p>
+<p>If things go really wrong, you can restart the console simply by clicking the <em>Reset</em> button. Be aware that you will lose all state (such as variables and functions) entered into your previous console session.</p>
 </div>
