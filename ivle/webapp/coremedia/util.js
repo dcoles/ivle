@@ -665,7 +665,7 @@ function ajax_call(callback, app, path, args, method, content_type)
     else
     {
         /* POST & PUT & PATCH sends the args in the request body */
-        url = encodeURI(path);
+        url = urlencode_path(path);
         xhr.open(method, url, asyncronous);
         var message;
         if (content_type == "multipart/form-data")
