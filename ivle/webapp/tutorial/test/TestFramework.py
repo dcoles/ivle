@@ -191,7 +191,9 @@ class TestCasePart:
         """
         
         if test_type not in ['norm', 'check', 'match']:
-            raise TestCreationError("Invalid test type in %s" % self._pass_msg)
+            raise TestCreationError(
+                    "Invalid test type '%s' in Test Case '%s'"%
+                    (test_type, self._pass_msg))
         
         if function == '':
             if test_type == 'norm': function = self.ident
