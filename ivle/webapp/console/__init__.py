@@ -26,7 +26,7 @@ class ConsoleView(XHTMLView):
 
     def populate(self, req, ctx):
         ctx['windowpane'] = False
-        ctx['start_body_attrs'] = {}
+        ctx['start_body_attrs'] = {'class': 'console_body'}
 
 class Plugin(ViewPlugin, OverlayPlugin, MediaPlugin):
     views = [(ApplicationRoot, ('console', '+index'), ConsoleView),

@@ -5,12 +5,27 @@
 <h3>Entering Python code</h3>
 <p>Using the console is fairly straightforward. Enter any valid Python code into the input text box located just to the right of the prompt (<code>&gt;&gt;&gt;</code>) at the bottom of the screen. When the line is complete, press ENTER to execute the code.</p>
 
-<div class="example" style="border: solid 1px black; padding: 0.5em">
-    <label id="console_prompt">&gt;&gt;&gt;&nbsp;</label>
-    <input id="console_inputText"
-     type="text" size="80" value="print 'Hello, world!'" readonly="readonly" />
-    <input type='button' value='Interrupt' disabled="disabled" />
-    <input type='button' value='Clear Output' disabled="disabled" />
+<div class="console_help_example">
+  <div class="console_heading">
+    Python Console (example)
+  </div>
+  <div class="console_help_example_body">
+    <div class="console_input" style="padding-top: 0.5em">
+      <div>
+        <div>
+          <label class="console_prompt">&gt;&gt;&gt; </label>
+        </div>
+        <div class="console_inputCell">
+          <input type="text" value="print 'Hello, world!'" class="console_inputText" disabled="disabled" />
+        </div>
+        <div>
+          <input type="button" value="Interrupt" disabled="disabled" />
+          <input type="button" value="Clear Output" disabled="disabled" />
+          <input type="button" value="Reset" disabled="disabled" />
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <p>Sometimes Python may expect additional lines of input - for example, after the <code>if</code> or <code>for</code> statements. This condition is indicated by a <code>...</code> prompt next to the input. Complete the command by entering additional lines as required. Press ENTER with an empty line to mark the code block as complete and execute it.</p>
@@ -20,14 +35,13 @@
 <p>Please note that the console will time out after a period of inactivity. This has a similar result (and thus similar ramifications) to <a href="#restarting">restarting the console manually</a>.</p>
 
 <h3>Interpreting output</h3>
-<div class="example">
-    <div id="console_body">
-        <div style="background-color: gray; border: 2px solid black; padding:       
-        2px; color: black; font-family: monospace; font-weight: bold;">Python 
-        Console</div>
-    </div>
-    <div style="overflow-y: scroll; margin: 0.5em">
-        <code>
+<div class="console_help_example">
+  <div class="console_heading">
+    Python Console (example)
+  </div>
+  <div class="console_help_example_body">
+    <div class="console_output">
+      <code>
         <span style="color:#800">&gt;&gt;&gt;</span>
         <span style="color:gray">i</span><br/>
         <span style="color:red">name 'i' is not defined</span><br/>
@@ -36,15 +50,24 @@
         <span style="color:#800">&gt;&gt;&gt; </span>
         <span style="color:gray">print i</span><br/>
         2
-        </code>
+      </code>
     </div>
-    <div id="console_inputArea">
-        <label id="console_prompt_2">&gt;&gt;&gt;&nbsp;</label>
-        <input id="console_inputText_2" type="text" size="80" value="print i+2" 
-        readonly="readonly" />
-        <input type='button' value='Interrupt' disabled="disabled" />
-        <input type='button' value='Clear Output' disabled="disabled" />
+    <div class="console_input">
+      <div>
+        <div>
+          <label class="console_prompt">&gt;&gt;&gt; </label>
+        </div>
+        <div class="console_inputCell">
+          <input type="text" class="console_inputText" disabled="disabled" />
+        </div>
+        <div>
+          <input type="button" value="Interrupt" disabled="disabled" />
+          <input type="button" value="Clear Output" disabled="disabled" />
+          <input type="button" value="Reset" disabled="disabled" />
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <p>Each line that you have entered - as well as any output produced - is shown in the text area above the input. Lines beginning with a normal prompt (<code style="color: #800">&gt;&gt;&gt;</code>) are your input lines, while lines in red (such as <code style="color: red">invalid syntax (&lt;input&gt;, line 1)</code>) are generated errors or exceptions. Other lines are normal output from your code.</p>

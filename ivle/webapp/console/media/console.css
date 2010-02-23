@@ -1,4 +1,4 @@
-#console_body {
+.console_body {
     background-color: white;
     position: absolute;
     color: black;
@@ -8,7 +8,7 @@
     bottom: 0;
 }
 /* console_body when displayed as a window panel and not the whole app */
-#console_body.windowpane {
+.console_body.windowpane {
     position: fixed;
     top: auto;      /* Do not fix to top */
     bottom: 0;
@@ -16,16 +16,23 @@
     right: 0;
     z-index: 1;     /* Go in front of console_filler */
 }
-#console_body.windowpane.minimal {
+.console_body.windowpane.minimal {
     border-top: 1px solid black;
 }
-#console_body.windowpane #console_body2 {
+.console_body.windowpane .console_body2 {
     /* Need some padding in windowpane mode */
     /* (In full mode, things are positioned absolutely) */
     padding: 0.2em;
 }
+
+.console_help_example_body {
+    border: 1px solid black;
+    border-top: none;
+    padding-bottom: 0.5em;
+}
+
 /* Heading bar */
-#console_heading {
+.console_heading {
     background-color: gray;
     border: 2px solid black;
     padding: 2px;
@@ -34,10 +41,10 @@
     font-weight: bold;
 }
 /* If "minimized", console_heading and console_output are hidden */
-#console_body.minimal #console_heading,
-#console_body.minimal #console_output,
+.console_body.minimal .console_heading,
+.console_body.minimal .console_output,
 /* If "maximized", the maximize button is hidden */
-#console_body.maximal .maximize {
+.console_body.maximal .maximize {
     display: none;
 }
 /* Minimize/maximize button */
@@ -46,7 +53,7 @@
     position: absolute;
     right: 0.5em;
 }
-#console_output {
+.console_output {
     /*height: 20em;*/       /* Might be needed for windowpane mode */
     /*margin-bottom: 0.5em;*/
     position: absolute;
@@ -71,7 +78,7 @@
      */
     font-size: 13px;
 }
-#console_body.windowpane #console_output {
+.console_body.windowpane .console_output {
     /* Don't want this absolutely positioned in windowpane mode */
     position: static;
     /* Make it a bit higher up, because the header is thinner in this mode */
@@ -81,7 +88,14 @@
     margin-bottom: 0.5em;
 }
 
-#console_body.windowpane.maximal, #console_body.windowpane #console_heading {
+.console_help_example .console_output {
+    position: relative;
+    top: 0;
+    height: auto;
+}
+
+.console_body.windowpane.maximal, .console_body.windowpane .console_heading,
+.console_help_example .console_heading {
     -moz-border-radius-topleft: 10px;
     -moz-border-radius-topright: 10px;
     -webkit-border-top-left-radius: 10px;
@@ -90,7 +104,7 @@
     border-top-right-radius: 10px;
 }
 
-#console_input {
+.console_input {
     position: absolute;
     /* Input bar goes along the bottom. Pad all sides */
     bottom: 0.5em;
@@ -100,11 +114,16 @@
     font-size: 13px;
 }
 
-#console_input > div {
+.console_help_example .console_input {
+    position: relative;
+    bottom: 0;
+}
+
+.console_input > div {
     display: table-row;
 }
 
-#console_input > div > * {
+.console_input > div > * {
     display: table-cell;
 
     /* Don't let the buttons wrap onto multiple lines.
@@ -113,27 +132,27 @@
     white-space: nowrap;
 }
 
-#console_input > div > .console_button {
+.console_input > div > .console_button {
     /* If the console button is in a cell, don't float */
     position: static !important;
     padding: 0 0.2em;
 }
 
-#console_inputCell {
+.console_inputCell {
     width: 100%;
     padding-right: 0.5em;
 }
 
-#console_body.windowpane #console_input {
+.console_body.windowpane .console_input {
     /* Don't want this absolutely positioned in windowpane mode */
     position: static;
 }
-#console_prompt {
+.console_prompt {
     font-family: monospace;
     font-weight: bold;
     white-space: pre;
 }
-#console_inputText {
+.console_inputText {
     font-family: monospace;
     width: 100%;
 }
