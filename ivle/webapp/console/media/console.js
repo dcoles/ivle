@@ -391,10 +391,14 @@ function console_response(inputbox, inputline, responseText)
         // Return early, so we don't re-enable the input box.
         return;
     }
+    else if (res.hasOwnProperty('input'))
+    {
+        set_prompt("+++");
+    }
     else
     {
-        // assert res.hasOwnProperty('input')
-        set_prompt("...");
+        alert("An internal error occurred in the python console.");
+        return;
     }
 
     if (inputbox != null)
