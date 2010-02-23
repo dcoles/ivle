@@ -114,6 +114,7 @@ from ivle.rpc.decorators import require_method, require_admin
 from ivle.auth import AuthError, authenticate
 import urllib
 
+from ivle.webapp.base.forms import VALID_URL_NAME
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.plugins import ViewPlugin
 from ivle.webapp.errors import NotFound, BadRequest, Unauthorized
@@ -314,6 +315,7 @@ def handle_create_group(req, fields):
     # Get required fields
     projectsetid = fields.getfirst('projectsetid').value
     groupnm = fields.getfirst('groupnm').value
+
     if projectsetid is None or groupnm is None:
         raise BadRequest("Required: projectsetid, groupnm")
     groupnm = unicode(groupnm)
@@ -321,6 +323,11 @@ def handle_create_group(req, fields):
         projectsetid = int(projectsetid)
     except:
         raise BadRequest("projectsetid must be an integer")
+
+    if not VALID_URL_NAME.match(groupnm):
+        raise BadRequest(
+            "Group names must consist of a lowercase alphanumeric character "
+            "followed by any number of lowercase alphanumerics, ., +, - or _.")
 
     projectset = req.store.get(ivle.database.ProjectSet, projectsetid)
     if projectset is None:

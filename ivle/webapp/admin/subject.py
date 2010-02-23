@@ -35,7 +35,7 @@ from genshi.template import Context, TemplateLoader
 import formencode
 import formencode.validators
 
-from ivle.webapp.base.forms import BaseFormView
+from ivle.webapp.base.forms import BaseFormView, URLNameValidator
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import BadRequest
@@ -125,7 +125,7 @@ class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
 class SubjectSchema(formencode.Schema):
     short_name = formencode.All(
         SubjectShortNameUniquenessValidator(),
-        formencode.validators.UnicodeString(not_empty=True))
+        URLNameValidator(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
     code = formencode.validators.UnicodeString(not_empty=True)
 
@@ -202,8 +202,8 @@ class SemesterUniquenessValidator(formencode.FancyValidator):
 
 
 class SemesterSchema(formencode.Schema):
-    year = formencode.validators.UnicodeString()
-    semester = formencode.validators.UnicodeString()
+    year = URLNameValidator()
+    semester = URLNameValidator()
     state = formencode.All(
         formencode.validators.OneOf(["past", "current", "future"]),
         formencode.validators.UnicodeString())

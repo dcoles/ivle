@@ -21,6 +21,7 @@ import datetime
 import ivle.database
 from ivle.database import ProjectSet, Project, Subject, Semester, Offering
 
+from ivle.webapp.base.forms import VALID_URL_NAME
 from ivle.webapp.base.rest import (XHTMLRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound, BadRequest
@@ -41,6 +42,21 @@ class ProjectSetRESTView(XHTMLRESTView):
     @named_operation('edit')
     def add_project(self, req, name, short_name, deadline, synopsis):
         """Add a Project to this ProjectSet"""
+        if not VALID_URL_NAME.match(short_name):
+            raise BadRequest(
+                "Project names must consist of a lowercase alphanumeric "
+                "character followed by any number of lowercase alphanumerics, "
+                "., +, - or _.")
+
+        if req.store.find(
+            Project,
+            Project.short_name == unicode(short_name),
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.offering == self.context.offering).one():
+            raise BadRequest(
+                "A project with that URL name already exists in this offering."
+                )
+
         new_project = Project()
         new_project.name = unicode(name)
         new_project.short_name = unicode(short_name)

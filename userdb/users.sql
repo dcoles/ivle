@@ -1,9 +1,27 @@
 BEGIN;
+
+-- Check that the provided name is sane for use in URLs.
+CREATE OR REPLACE FUNCTION valid_url_name(name text) RETURNS boolean AS 
+$$
+    BEGIN
+        RETURN name ~ E'^[a-z0-9][a-z0-9_\+\.\-]*$';
+    END;
+$$ LANGUAGE 'plpgsql';
+
+-- Just like valid_url_name, except that @ is permitted (so we can use a
+-- reasonable subset of email addresses as usernames).
+CREATE OR REPLACE FUNCTION valid_login_name(name text) RETURNS boolean AS 
+$$
+    BEGIN
+        RETURN name ~ E'^[a-z0-9][a-z0-9@_\+\.\-]*$';
+    END;
+$$ LANGUAGE 'plpgsql';
+
 CREATE SEQUENCE login_unixid_seq MINVALUE 1000 MAXVALUE 29999 START WITH 5000;
 
 CREATE TABLE login (
     loginid     SERIAL PRIMARY KEY NOT NULL,
-    login       VARCHAR UNIQUE NOT NULL,
+    login       VARCHAR UNIQUE NOT NULL CHECK (valid_login_name(login)),
     passhash    VARCHAR,
     state	VARCHAR NOT NULL CHECK (state in ('no_agreement', 'pending',
                                               'enabled', 'disabled'))
@@ -28,13 +46,13 @@ CREATE TABLE subject (
     subjectid       SERIAL PRIMARY KEY NOT NULL,
     subj_code       VARCHAR UNIQUE NOT NULL,
     subj_name       VARCHAR NOT NULL,
-    subj_short_name VARCHAR UNIQUE NOT NULL
+    subj_short_name VARCHAR UNIQUE NOT NULL CHECK (valid_url_name(subj_short_name))
 );
 
 CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
-    year        CHAR(4) NOT NULL,
-    semester    CHAR(1) NOT NULL,
+    year        CHAR(4) NOT NULL CHECK (valid_url_name(year)),
+    semester    CHAR(1) NOT NULL CHECK (valid_url_name(semester)),
     state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
                                     'current', 'future')) DEFAULT 'current',
     UNIQUE (year, semester)
@@ -62,7 +80,7 @@ CREATE TABLE project_set (
 
 CREATE TABLE project (
     projectid   SERIAL PRIMARY KEY NOT NULL,
-    short_name  TEXT NOT NULL,
+    short_name  TEXT NOT NULL CHECK (valid_url_name(short_name)),
     name        TEXT NOT NULL,
     synopsis    TEXT,
     url         TEXT,
@@ -97,7 +115,7 @@ CREATE TRIGGER check_project_namespacing
     FOR EACH ROW EXECUTE PROCEDURE check_project_namespacing_insertupdate();
 
 CREATE TABLE project_group (
-    groupnm     VARCHAR NOT NULL,
+    groupnm     VARCHAR NOT NULL CHECK (valid_url_name(groupnm)),
     groupid     SERIAL PRIMARY KEY NOT NULL,
     projectsetid  INTEGER REFERENCES project_set (projectsetid) NOT NULL,
     nick        VARCHAR,
@@ -193,7 +211,7 @@ CREATE TABLE project_mark (
 -- Worksheets
 -- ----------
 CREATE TABLE exercise (
-    identifier  TEXT PRIMARY KEY,
+    identifier  TEXT PRIMARY KEY CHECK (valid_url_name(identifier)),
     name        TEXT,
     description TEXT,
     partial     TEXT,
@@ -205,7 +223,7 @@ CREATE TABLE exercise (
 CREATE TABLE worksheet (
     worksheetid SERIAL PRIMARY KEY,
     offeringid  INT4 REFERENCES offering (offeringid) NOT NULL,
-    identifier  TEXT NOT NULL,
+    identifier  TEXT NOT NULL CHECK (valid_url_name(identifier)),
     name        TEXT NOT NULL,
     data        TEXT NOT NULL,
     assessable  BOOLEAN NOT NULL,

@@ -22,10 +22,10 @@
          class="add-project-link addaction">Add a new project</a>
       <form id="new_project_${projectset.id}" class="new_project" method="post" action="${req.publisher.generate(projectset, ProjectSetRESTView)}">
         <div>
-          <label for="new_project_name_${projectset.id}">Name:</label>
+          <label for="new_project_name_${projectset.id}">Display name:</label>
           <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
           <br />
-          <label for="new_project_short_name_${projectset.id}">Short Name:</label>
+          <label for="new_project_short_name_${projectset.id}">URL name:</label>
           <input id="new_project_short_name_${projectset.id}" type="text" name="short_name" value="" />
           <br />
           <label for="new_project_deadline_${projectset.id}">Deadline:</label>

@@ -36,17 +36,18 @@ function add_exercise()
 
     var callback = function(xhr)
     {
-        var testresponse;
-        try
+        if (xhr.status == 200)
         {
-            testresponse = JSON.parse(xhr.responseText);
-            alert('Exercise Created');
-            window.location = '/+exercises';
+            JSON.parse(xhr.responseText);
+            window.location = '/+exercises/' + exercise_id;
         }
-        catch (ex)
+        else if (xhr.status == 400)
         {
-            alert('Error: Could not add exercise');
-            return;
+            alert("Could not create exercise: " + xhr.getResponseHeader("X-IVLE-Error"));
+        }
+        else
+        {
+            alert('Exercise creation failed due to an internal server error.');
         }
     }
     
@@ -64,7 +65,6 @@ function add_exercise()
 function edit_exercise()
 {
 
-    var exercise_id = $('#exercise_id').val();
     var exercise_name = $('#exercise_name').val();
     var exercise_num_rows = $('#exercise_num_rows').val();
     var exercise_desc = $('#exercise_desc').val();

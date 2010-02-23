@@ -245,6 +245,7 @@ class XHTMLErrorView(XHTMLView):
     def populate(self, req, ctx):
         ctx['req'] = req
         ctx['exception'] = self.context
+        req.headers_out['X-IVLE-Error'] = self.context.message
 
 class XHTMLUnauthorizedView(XHTMLErrorView):
     template = 'xhtmlunauthorized.html'

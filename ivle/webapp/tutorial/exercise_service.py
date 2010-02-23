@@ -21,6 +21,7 @@
 import ivle.database
 from ivle.database import Exercise, TestSuite, TestCase, \
                           TestSuiteVar, TestCasePart
+from ivle.webapp.base.forms import VALID_URL_NAME
 from ivle.webapp.base.rest import (JSONRESTView, named_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound, BadRequest
@@ -47,7 +48,15 @@ class ExercisesRESTView(JSONRESTView):
     
     @named_operation('save')
     def add_exercise(self, req, identifier, name, description, partial, solution, include, num_rows):
-    
+        if not VALID_URL_NAME.match(identifier):
+            raise BadRequest(
+                "Exercise names must consist of a lowercase alphanumeric "
+                "character followed by any number of lowercase alphanumerics, "
+                "., +, - or _.")
+
+        if req.store.find(Exercise, id=unicode(identifier)).one():
+            raise BadRequest("An exercise with that URL name already exists.")
+
         new_exercise = Exercise()
         new_exercise.id = unicode(identifier)
         new_exercise.name = unicode(name)

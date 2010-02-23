@@ -42,6 +42,7 @@ from ivle.database import Subject, Offering, Semester, Exercise, \
 from ivle.database import Worksheet
 import ivle.worksheet.utils
 from ivle.webapp import ApplicationRoot
+from ivle.webapp.base.forms import URLNameValidator
 from ivle.webapp.base.views import BaseView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
@@ -307,7 +308,7 @@ class WorksheetIdentifierUniquenessValidator(formencode.FancyValidator):
 class WorksheetSchema(formencode.Schema):
     identifier = formencode.All(
         WorksheetIdentifierUniquenessValidator(),
-        formencode.validators.UnicodeString(not_empty=True))
+        URLNameValidator(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
     assessable = formencode.validators.StringBoolean(if_missing=False)
     data = formencode.validators.UnicodeString(not_empty=True)

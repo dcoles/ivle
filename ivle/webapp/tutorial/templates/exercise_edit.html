@@ -38,7 +38,7 @@
       <div py:with="iw_prefix='exercise'; iw_label_linebreak=True"
            class="stackedform">
         <iw:text name="name" desc="Display name">${exercise.name}</iw:text>
-        <iw:text name="id" desc="URL name">${exercise.id}</iw:text>
+        <div><label for="exercise_id">URL name:</label><br /><span id="exercise_id">${exercise.id}</span></div>
         <iw:text name="num_rows" desc="Predicted code line count">${exercise.num_rows}</iw:text>
         <iw:textarea name="desc" desc="Description (reStructuredText)" cols="80" rows="10">${exercise.description}</iw:textarea>
         <iw:textarea name="solution" desc="Full solution (Python)" cols="80" rows="5">${exercise.solution}</iw:textarea>

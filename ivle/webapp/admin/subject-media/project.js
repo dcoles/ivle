@@ -18,16 +18,21 @@ function serializeForm(form){
 };
 
 function add_project(){
-
-    $(this).slideToggle('fast');
-    
+    var add_project_form = $(this);
     function callback(xhr) {
-        var response = JSON.parse(xhr.responseText);
-        var projectlist = $('#projectslist_' + response.projectset_id);
-        var new_element = response.html.split('\n').slice(1).join('\n');
-        projectlist.children(".list_empty_indicator").remove()
-        add_section = projectlist.children(".add-project");
-        $(add_section).before(new_element).hide().slideDown();
+        if (xhr.status == 200) {
+            add_project_form.slideToggle('fast');
+            var response = JSON.parse(xhr.responseText);
+            var projectlist = $('#projectslist_' + response.projectset_id);
+            var new_element = response.html.split('\n').slice(1).join('\n');
+            projectlist.children(".list_empty_indicator").remove()
+            add_section = projectlist.children(".add-project");
+            $(add_section).before(new_element).hide().slideDown();
+        } else if (xhr.status == 400) {
+            alert("Could not create project: " + xhr.getResponseHeader("X-IVLE-Error"));
+        } else {
+            alert("Project creation failed due to an internal server error.");
+        }
     };
 
     var data = serializeForm($(this));
