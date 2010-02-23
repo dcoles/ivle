@@ -514,6 +514,13 @@ function svnstatus_to_string(svnstatus)
         return default_svn_nice;
 }
 
+/** Returns true if a file is versioned (not unversioned or ignored).
+ */
+function svnstatus_versioned(svnstatus)
+{
+    return svnstatus != "unversioned";
+}
+
 /** Displays a download link to the binary file.
  */
 function handle_binary(path)
@@ -568,9 +575,9 @@ function update_actions()
     {
         svn_selection = true;
         for (var i = 0; i < selected_files.length; i++){
-            if (file_listing[selected_files[i]]["svnstatus"] == "unversioned")
+            if (!svnstatus_versioned(file_listing[selected_files[i]].svnstatus))
             {
-                svn_selection = false;        
+                svn_selection = false;
             }
         }
     }
@@ -779,7 +786,7 @@ function update_actions()
          (
           (numsel == 1 && (svnst = file_listing[selected_files[0]].svnstatus)) ||
           (numsel == 0 && (svnst = current_file.svnstatus))
-         ) && svnst != "unversioned");
+         ) && svnstatus_versioned(svnst));
     set_action_state(["svndiff", "svnupdate"], single_versioned_path);
 
     /* We can resolve if we have a file selected and it is conflicted. */
@@ -795,7 +802,7 @@ function update_actions()
          (
           (numsel == 1 && (stat = file_listing[selected_files[0]])) ||
           (numsel == 0 && (stat = current_file))
-         ) && stat.svnstatus != "unversioned"
+         ) && svnstatus_versioned(stat.svnstatus)
            && stat.svnurl
            && stat.svnurl.substr(0, svn_base.length) == svn_base);
     set_action_state(["submit"], single_ivle_versioned_path);
