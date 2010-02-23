@@ -25,6 +25,7 @@ It also provides miscellaneous utility functions for database interaction.
 
 import hashlib
 import datetime
+import os
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
@@ -607,7 +608,8 @@ class Project(Storm):
 
         a = Assessed.get(Store.of(self), principal, self)
         ps = ProjectSubmission()
-        ps.path = path
+        # Raise SubmissionError if the path is illegal
+        ps.path = ProjectSubmission.test_and_normalise_path(path)
         ps.revision = revision
         ps.date_submitted = datetime.datetime.now()
         ps.assessed = a
@@ -813,6 +815,10 @@ class ProjectExtension(Storm):
     approver = Reference(approver_id, User.id)
     notes = Unicode()
 
+class SubmissionError(Exception):
+    """Denotes a validation error during submission."""
+    pass
+
 class ProjectSubmission(Storm):
     """A submission from a user or group repository to a particular project.
 
@@ -847,6 +853,25 @@ class ProjectSubmission(Storm):
                 submitpath = ''
         return "/files/%s/%s/%s?r=%d" % (user.login,
             self.assessed.checkout_location, submitpath, self.revision)
+
+    @staticmethod
+    def test_and_normalise_path(path):
+        """Test that path is valid, and normalise it. This prevents possible
+        injections using malicious paths.
+        Returns the updated path, if successful.
+        Raises SubmissionError if invalid.
+        """
+        # Ensure the path is absolute to prevent being tacked onto working
+        # directories.
+        # Prevent '\n' because it will break all sorts of things.
+        # Prevent '[' and ']' because they can be used to inject into the
+        # svn.conf.
+        # Normalise to avoid resulting in ".." path segments.
+        if not os.path.isabs(path):
+            raise SubmissionError("Path is not absolute")
+        if any(c in path for c in "\n[]"):
+            raise SubmissionError("Path must not contain '\\n', '[' or ']'")
+        return os.path.normpath(path)
 
 # WORKSHEETS AND EXERCISES #
 

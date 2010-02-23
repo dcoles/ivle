@@ -98,7 +98,7 @@ class SubmitView(XHTMLView):
             try:
                 ctx['submission'] = project.submit(self.context,
                                     unicode(self.path), revision, req.user)
-            except database.DeadlinePassed, e:
+            except (database.DeadlinePassed, database.SubmissionError), e:
                 raise BadRequest(str(e) + ".")
 
             # The Subversion configuration needs to be updated, to grant
