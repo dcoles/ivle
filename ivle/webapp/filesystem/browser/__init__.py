@@ -160,9 +160,9 @@ class Plugin(ViewPlugin, CookiePlugin, MediaPlugin):
 
     cookies = {'clipboard': None}
 
-    help = {'Filesystem': {'Browser': 'help.html',
-                           'Running and Serving': 'help-run-serve.html',
-                           'Subversion': 'help-svn.html',
-                           }}
+    help = {'Files': {'Browser': 'help.html',
+                      'Running and Serving': 'help-run-serve.html',
+                      'Subversion': 'help-svn.html',
+                     }}
 
     media = 'media'
