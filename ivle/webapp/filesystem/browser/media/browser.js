@@ -777,10 +777,14 @@ function update_actions()
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
     set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
-    /* And these are only usefull is ALL the selected files are versioned */
-    set_action_state(["svnremove", "svnrevert", "svncommit", "svncopy", 
-            "svncut"], numsel >= 1 && current_file.svnstatus && svn_selection);
-    
+    /* And these are only useful is ALL the selected files are versioned */
+    set_action_state(["svnremove", "svnrevert", "svncopy", "svncut"],
+            numsel >= 1 && current_file.svnstatus && svn_selection);
+    /* Commit is useful if ALL selected files are versioned, or the current
+     * directory is versioned */
+    set_action_state(["svncommit"], current_file.svnstatus &&
+            (numsel >= 1 && svn_selection || numsel == 0));
+
     /* Diff, log and update only support one path at the moment, so we must
      * have 0 or 1 versioned files selected. If 0, the directory must be
      * versioned. */

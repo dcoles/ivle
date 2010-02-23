@@ -653,8 +653,11 @@ def action_svncommit(req, fields):
     Reads fields: 'path' (multiple), 'logmsg' (optional)
     """
     paths = fields.getlist('path')
-    paths = map(lambda path: actionpath_to_local(req, path).decode('utf-8'),
-                paths)
+    if len(paths):
+        paths = map(lambda path:actionpath_to_local(req,path).decode('utf-8'),
+                    paths)
+    else:
+        paths = [studpath.to_home_path(req.path).decode('utf-8')]
     logmsg = str(fields.getfirst('logmsg',
                  DEFAULT_LOGMESSAGE)).decode('utf-8')
     if logmsg == '': logmsg = DEFAULT_LOGMESSAGE
