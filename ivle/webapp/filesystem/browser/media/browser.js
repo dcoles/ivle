@@ -65,6 +65,7 @@ svn_icons = {
     "added": "added.png",
     "missing": "missing.png",
     "deleted": "deleted.png",
+    "replaced": "replaced.png",
     "modified": "modified.png",
     "conflicted": "conflicted.png",
     "revision": "revision.png"
