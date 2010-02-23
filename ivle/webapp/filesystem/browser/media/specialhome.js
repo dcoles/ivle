@@ -30,9 +30,10 @@ PERSONALDIR="mywork"
 
 /* LAYOUT FUNCTIONS */
 
-/** Present home directory 
+/** Present special home directory. This is only called if in the top level.
+ * Subjects must not be null.
  */
-function home_listing(listing, subjects, path)
+function special_home_listing(listing, subjects, path)
 {
     /* Nav through the top-level of the JSON to the actual listing object. */
     var listing = listing.listing;
@@ -45,87 +46,79 @@ function home_listing(listing, subjects, path)
     var li;
     var div;
 
-    /* Only show special headings if we get subject listings */
-    if (subjects != null)
+    /* Wrap all this "special" stuff in a div, for styling purposes */
+    specialhomediv = document.createElement("div");
+    specialhomediv.setAttribute("id", "specialhome");
+    filetablediv.appendChild(specialhomediv);
+
+    /* SUBJECTS Section
+    /* Create the header row */
+    if (subjects.length > 0)
     {
-        /* Wrap all this "special" stuff in a div, for styling purposes */
-        specialhomediv = document.createElement("div");
-        specialhomediv.setAttribute("id", "specialhome");
-        filetablediv.appendChild(specialhomediv);
-
-        /* SUBJECTS Section
-        /* Create the header row */
-        if (subjects.length > 0)
-        {
-            h2 = dom_make_text_elem("h2", "Subjects");
-            specialhomediv.appendChild(h2);
-        }
-
-        /* Create the contents */
-        for (var i=0; i<subjects.length; i++)
-        {
-            var subject = subjects[i];
-            var subjpath = subject.subj_short_name;
-            // Header, with link to offering home page.
-            h3 = $('<h3><span></span> <span style="font-weight: normal">&ndash; <a class="subjectaction">Subject home</a></span>');
-            h3.find('span:first-child').text(subject.subj_name);
-            h3.find('a').attr('href', subject.url);
-            $(specialhomediv).append(h3);
-        
-            /* Print the file listing */
-            ul = document.createElement("ul");
-            // Stuff
-            ul.appendChild(make_subject_item(subjpath,
-                path_join("users", username, subjpath), PERSONALDIR,
-                "Your own files in this subject"));
-
-            // Groups
-            var groups = subject.groups;
-            for (var j=0; j<subject.groups.length; j++)
-            {
-                var group = subject.groups[j];
-                ul.appendChild(make_subject_item(subjpath,
-                    path_join("groups", subject.subj_short_name + "_" +
-                              subject.year + "_" + subject.semester + "_" +
-                              group.name),
-                    group.name,
-                    "This group's files in this subject"));
-            }
-            
-            specialhomediv.appendChild(ul);
-
-            /* Remove it from listing */
-            if (subject.subj_short_name in listing)
-                delete listing[subject.subj_short_name];
-        }
-
-        /* FIXME: Old Subjects? */
-
-        /* STUFF Section -- For the stuff directory */
-        /* Create the header */
-        h2 = dom_make_text_elem("h2", "Stuff");
+        h2 = dom_make_text_elem("h2", "Subjects");
         specialhomediv.appendChild(h2);
-        /* Create the contents */
-        ul = document.createElement("ul");
-        ul.appendChild(make_subject_item("",
-              path_join("users", username, "stuff"), "stuff",
-              "Your own files not related to a subject"));
-        specialhomediv.appendChild(ul);
-        /* Remove stuff from the listing */
-        if ("stuff" in listing)
-            delete listing["stuff"];
-
-        /* JUNK Section -- All the rest */
-        /* Create the header row */
-        if (obj_length(listing) > 0)
-        {
-            h2 = dom_make_text_elem("h2", "Junk");
-            specialhomediv.appendChild(h2);
-            handle_dir_listing(path, listing);
-        }
     }
-    else
+
+    /* Create the contents */
+    for (var i=0; i<subjects.length; i++)
     {
+        var subject = subjects[i];
+        var subjpath = subject.subj_short_name;
+        // Header, with link to offering home page.
+        h3 = $('<h3><span></span> <span style="font-weight: normal">&ndash; <a class="subjectaction">Subject home</a></span>');
+        h3.find('span:first-child').text(subject.subj_name);
+        h3.find('a').attr('href', subject.url);
+        $(specialhomediv).append(h3);
+    
+        /* Print the file listing */
+        ul = document.createElement("ul");
+        // Stuff
+        ul.appendChild(make_subject_item(subjpath,
+            path_join("users", username, subjpath), PERSONALDIR,
+            "Your own files in this subject"));
+
+        // Groups
+        var groups = subject.groups;
+        for (var j=0; j<subject.groups.length; j++)
+        {
+            var group = subject.groups[j];
+            ul.appendChild(make_subject_item(subjpath,
+                path_join("groups", subject.subj_short_name + "_" +
+                          subject.year + "_" + subject.semester + "_" +
+                          group.name),
+                group.name,
+                "This group's files in this subject"));
+        }
+        
+        specialhomediv.appendChild(ul);
+
+        /* Remove it from listing */
+        if (subject.subj_short_name in listing)
+            delete listing[subject.subj_short_name];
+    }
+
+    /* FIXME: Old Subjects? */
+
+    /* STUFF Section -- For the stuff directory */
+    /* Create the header */
+    h2 = dom_make_text_elem("h2", "Stuff");
+    specialhomediv.appendChild(h2);
+    /* Create the contents */
+    ul = document.createElement("ul");
+    ul.appendChild(make_subject_item("",
+          path_join("users", username, "stuff"), "stuff",
+          "Your own files not related to a subject"));
+    specialhomediv.appendChild(ul);
+    /* Remove stuff from the listing */
+    if ("stuff" in listing)
+        delete listing["stuff"];
+
+    /* JUNK Section -- All the rest */
+    /* Create the header row */
+    if (obj_length(listing) > 0)
+    {
+        h2 = dom_make_text_elem("h2", "Junk");
+        specialhomediv.appendChild(h2);
         handle_dir_listing(path, listing);
     }
 }

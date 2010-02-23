@@ -313,7 +313,16 @@ function handle_response(path, response, is_action, url_args)
     if (isdir)
     {
         setup_for_listing();
-        home_listing(listing, subjects, path);
+        if (top_level_dir)
+        {
+            /* Top-level dir, with subjects */
+            special_home_listing(listing, subjects, path);
+        }
+        else
+        {
+            /* Not the top-level dir. Do a normal dir listing. */
+            handle_dir_listing(path, listing.listing);
+        }
     }
     else
     {
