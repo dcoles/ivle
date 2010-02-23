@@ -13,7 +13,7 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION valid_login_name(name text) RETURNS boolean AS 
 $$
     BEGIN
-        RETURN name ~ E'^[a-z0-9][a-z0-9\+\.\-@]*$';
+        RETURN name ~ E'^[a-z0-9][a-z0-9\+\.\-@_]*$';
     END;
 $$ LANGUAGE 'plpgsql';
 
