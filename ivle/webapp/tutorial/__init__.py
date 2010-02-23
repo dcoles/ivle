@@ -35,6 +35,7 @@ import formencode.validators
 import genshi
 import genshi.input
 from genshi.filters import HTMLFormFiller
+import docutils.utils
 
 import ivle.database
 from ivle.database import Subject, Offering, Semester, Exercise, \
@@ -227,12 +228,14 @@ def present_exercise(req, identifier, worksheet=None):
     # fields from the XML.
 
     curctx['exercise'] = exercise
+    curctx['description'] = None
+    curctx['error'] = None
     if exercise.description is not None:
-        desc = rstfunc(exercise.description)
-        curctx['description'] = genshi.XML('<div id="description">' + desc + 
-                                           '</div>')
-    else:
-        curctx['description'] = None
+        try:
+            desc = rstfunc(exercise.description)
+            curctx['description'] = genshi.XML(desc)
+        except docutils.utils.SystemMessage, e:
+            curctx['error'] = "Error processing reStructuredText: '%s'"%str(e)
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".

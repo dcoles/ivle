@@ -3,7 +3,10 @@
   <div class="exercise" id="${exercise.id}">
     <p><b>Exercise:</b> ${exercise.name}</p>
     <py:if test="description is not None">
-      <div>${description}</div>
+      <div id="description">${description}</div>
+    </py:if>
+    <py:if test="error">
+      <div class="error">${error}</div>
     </py:if>
     <input id="input_resettext_${exercise.id}" type="hidden" value="${exercise.partial}" />
     <textarea id="textarea_${exercise.id}" class="exercisebox"
