@@ -326,8 +326,8 @@ def handle_create_group(req, fields):
 
     if not VALID_URL_NAME.match(groupnm):
         raise BadRequest(
-            "Group names must consist of an alphanumeric character followed "
-            "by any number of alphanumerics, ., +, - or _.")
+            "Group names must consist of a lowercase alphanumeric character "
+            "followed by any number of lowercase alphanumerics, ., +, - or _.")
 
     projectset = req.store.get(ivle.database.ProjectSet, projectsetid)
     if projectset is None:

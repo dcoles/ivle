@@ -50,8 +50,9 @@ class ExercisesRESTView(JSONRESTView):
     def add_exercise(self, req, identifier, name, description, partial, solution, include, num_rows):
         if not VALID_URL_NAME.match(identifier):
             raise BadRequest(
-                "Exercise names must consist of an alphanumeric character "
-                "followed by any number of alphanumerics, ., +, - or _.")
+                "Exercise names must consist of a lowercase alphanumeric "
+                "character followed by any number of lowercase alphanumerics, "
+                "., +, - or _.")
 
         if req.store.find(Exercise, id=unicode(identifier)).one():
             raise BadRequest("An exercise with that URL name already exists.")

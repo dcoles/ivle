@@ -44,8 +44,9 @@ class ProjectSetRESTView(XHTMLRESTView):
         """Add a Project to this ProjectSet"""
         if not VALID_URL_NAME.match(short_name):
             raise BadRequest(
-                "Project names must consist of an alphanumeric character "
-                "followed by any number of alphanumerics, ., +, - or _.")
+                "Project names must consist of a lowercase alphanumeric "
+                "character followed by any number of lowercase alphanumerics, "
+                "., +, - or _.")
 
         if req.store.find(
             Project,

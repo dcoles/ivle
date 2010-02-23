@@ -114,6 +114,6 @@ class URLNameValidator(formencode.validators.UnicodeString):
         super(URLNameValidator, self).validate_python(value, state)
         if not VALID_URL_NAME.match(value):
             raise formencode.Invalid(
-                'Must consist of an alphanumeric character followed by any '
-                'number of alphanumerics, ., +, - or _.',
+                'Must consist of a lowercase alphanumeric character followed '
+                'by any number of lowercase alphanumerics, ., +, - or _.',
                 value, state)
