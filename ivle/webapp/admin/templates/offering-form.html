@@ -11,11 +11,14 @@
           <py:if test="req.user.admin">
           <div>
             <label for="subject">Subject:</label>
-            <select id="subject" name="subject">
-              <option py:for="subject in subjects" value="${subject.short_name}">${subject.name}</option>
-            </select>
-            <span py:if="'subject' in errors" class="form_error">${errors.subject}.</span>
-            <a class="addaction" href="/subjects/+new">Create new subject</a>
+            <span py:if="force_subject">${force_subject.name} <input type="hidden" name="subject" value="${force_subject.short_name}" /></span>
+            <py:if test="force_subject is None">
+              <select id="subject" name="subject">
+                <option py:for="subject in subjects" value="${subject.short_name}">${subject.name}</option>
+              </select>
+              <span py:if="'subject' in errors" class="form_error">${errors.subject}.</span>
+              <a class="addaction" href="/subjects/+new">Create new subject</a>
+            </py:if>
           </div>
           <div>
             <label for="semester">Semester:</label>

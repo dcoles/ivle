@@ -1,0 +1,35 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>${context.name}</title>
+  </head>
+  <body>
+    <h1>${context.name}</h1>
+    <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'edit' in permissions"
+           class="editaction"
+           href="${req.publisher.generate(context, SubjectEdit)}">
+           Change details
+        </a>
+      </div>
+      <py:choose test="len(offerings) > 0">
+        <p py:when="True">This subject is offered in the following semesters:</p>
+        <p py:when="False">There are no offerings associated with this subject.</p>
+      </py:choose>
+      <ul py:if="len(offerings) > 0">
+        <li py:for="offering in offerings"
+            py:attrs="{'class': 'subject_current' if offering.semester.state == u'current' else None}">
+          <py:choose test="user.admin or offering.get_enrolment(user) is not None">
+            <a py:when="True" href="${req.publisher.generate(offering)}">${offering.semester.year}, semester ${offering.semester.semester}</a>
+            <span py:otherwise="">${offering.semester.year}, semester ${offering.semester.semester}</span>
+          </py:choose>
+        </li>
+      </ul>
+      <div class="horizontalactions" py:if="req.user.admin">
+        <a class="addaction" href="${req.publisher.generate(context, SubjectOfferingNew)}">Create new offering</a>
+        <a class="manageaction" href="/subjects/+manage">Manage subjects and semesters</a>
+      </div>
+    </div>
+  </body>
+</html>

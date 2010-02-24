@@ -96,6 +96,7 @@ class SubjectsManage(XHTMLView):
     def populate(self, req, ctx):
         ctx['req'] = req
         ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['SubjectView'] = SubjectView
         ctx['SubjectEdit'] = SubjectEdit
         ctx['SemesterEdit'] = SemesterEdit
 
@@ -143,9 +144,6 @@ class SubjectFormView(BaseFormView):
     @property
     def validator(self):
         return SubjectSchema()
-
-    def get_return_url(self, obj):
-        return '/subjects'
 
 
 class SubjectNew(SubjectFormView):
@@ -265,6 +263,23 @@ class SemesterEdit(SemesterFormView):
         self.context.state = data['state']
 
         return self.context
+
+class SubjectView(XHTMLView):
+    '''The view of the list of offerings in a given subject.'''
+    template = 'templates/subject.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None
+
+    def populate(self, req, ctx):
+        ctx['context'] = self.context
+        ctx['req'] = req
+        ctx['user'] = req.user
+        ctx['offerings'] = list(self.context.offerings)
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
+        ctx['SubjectEdit'] = SubjectEdit
+        ctx['SubjectOfferingNew'] = SubjectOfferingNew
 
 
 class OfferingView(XHTMLView):
@@ -397,6 +412,7 @@ class OfferingEdit(BaseFormView):
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
             Semester.year, Semester.semester)
+        ctx['force_subject'] = None
 
     def populate_state(self, state):
         state.existing_offering = self.context
@@ -436,6 +452,7 @@ class OfferingNew(BaseFormView):
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
             Semester.year, Semester.semester)
+        ctx['force_subject'] = None
 
     def populate_state(self, state):
         state.existing_offering = None
@@ -453,6 +470,13 @@ class OfferingNew(BaseFormView):
         req.store.add(new_offering)
         return new_offering
 
+class SubjectOfferingNew(OfferingNew):
+    """A form to create an offering for a given subject."""
+    # Identical to OfferingNew, except it forces the subject to be the subject
+    # in context
+    def populate(self, req, ctx):
+        super(SubjectOfferingNew, self).populate(req, ctx)
+        ctx['force_subject'] = self.context
 
 class OfferingCloneWorksheetsSchema(formencode.Schema):
     subject = formencode.All(
@@ -740,7 +764,9 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
              (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
              (ApplicationRoot, ('+semesters', '+new'), SemesterNew),
+             (Subject, '+index', SubjectView),
              (Subject, '+edit', SubjectEdit),
+             (Subject, '+new-offering', SubjectOfferingNew),
              (Semester, '+edit', SemesterEdit),
              (Offering, '+index', OfferingView),
              (Offering, '+edit', OfferingEdit),

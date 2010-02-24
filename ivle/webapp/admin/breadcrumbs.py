@@ -50,6 +50,10 @@ class SubjectBreadcrumb(object):
         self.context = context
 
     @property
+    def url(self):
+        return self.req.publisher.generate(self.context)
+
+    @property
     def text(self):
         return self.context.name
 
