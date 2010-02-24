@@ -308,7 +308,7 @@ class OfferingView(XHTMLView):
 
         ctx['worksheets'], problems_total, problems_done = (
             ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
-                req.store, req.user, self.context))
+                req.config, req.store, req.user, self.context))
 
         ctx['exercises_total'] = problems_total
         ctx['exercises_done'] = problems_done
@@ -385,6 +385,8 @@ class OfferingSchema(formencode.Schema):
     description = formencode.validators.UnicodeString(
         if_missing=None, not_empty=False)
     url = formencode.validators.URL(if_missing=None, not_empty=False)
+    show_worksheet_marks = formencode.validators.StringBoolean(
+        if_missing=False)
 
 
 class OfferingAdminSchema(OfferingSchema):
@@ -425,6 +427,7 @@ class OfferingEdit(BaseFormView):
                         self.context.semester.semester,
             'url': self.context.url,
             'description': self.context.description,
+            'show_worksheet_marks': self.context.show_worksheet_marks,
             }
 
     def save_object(self, req, data):
@@ -433,6 +436,7 @@ class OfferingEdit(BaseFormView):
             self.context.semester = data['semester']
         self.context.description = data['description']
         self.context.url = unicode(data['url']) if data['url'] else None
+        self.context.show_worksheet_marks = data['show_worksheet_marks']
         return self.context
 
 
@@ -467,6 +471,7 @@ class OfferingNew(BaseFormView):
         new_offering.semester = data['semester']
         new_offering.description = data['description']
         new_offering.url = unicode(data['url']) if data['url'] else None
+        new_offering.show_worksheet_marks = data['show_worksheet_marks']
 
         req.store.add(new_offering)
         return new_offering

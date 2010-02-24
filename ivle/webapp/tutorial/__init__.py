@@ -314,6 +314,7 @@ class WorksheetSchema(formencode.Schema):
         URLNameValidator(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
     assessable = formencode.validators.StringBoolean(if_missing=False)
+    published = formencode.validators.StringBoolean(if_missing=False)
     data = formencode.validators.UnicodeString(not_empty=True)
     format = formencode.All(
         WorksheetFormatValidator(),
@@ -384,6 +385,7 @@ class WorksheetAddView(WorksheetFormView):
         new_worksheet.identifier = data['identifier']
         new_worksheet.name = data['name']
         new_worksheet.assessable = data['assessable']
+        new_worksheet.published = data['published']
         new_worksheet.data = data['data']
         new_worksheet.format = data['format']
 
@@ -409,6 +411,7 @@ class WorksheetEditView(WorksheetFormView):
             'identifier': self.context.identifier,
             'name': self.context.name,
             'assessable': self.context.assessable,
+            'published': self.context.published,
             'data': self.context.data,
             'format': self.context.format
             }
@@ -417,6 +420,7 @@ class WorksheetEditView(WorksheetFormView):
         self.context.identifier = data['identifier']
         self.context.name = data['name']
         self.context.assessable = data['assessable']
+        self.context.published = data['published']
         self.context.data = data['data']
         self.context.format = data['format']
 

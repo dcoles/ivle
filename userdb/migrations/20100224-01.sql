@@ -1,0 +1,7 @@
+BEGIN;
+
+ALTER TABLE offering ADD COLUMN show_worksheet_marks BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE offering ADD COLUMN worksheet_cutoff TIMESTAMP;
+ALTER TABLE worksheet ADD COLUMN published BOOLEAN NOT NULL DEFAULT true;
+
+COMMIT;

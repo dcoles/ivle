@@ -317,10 +317,11 @@ class FakeWorksheetForMarks:
     
     Do not confuse this with a worksheet in the database. This worksheet
     has extra information for use in the output, such as marks."""
-    def __init__(self, id, name, assessable):
+    def __init__(self, id, name, assessable, published):
         self.id = id
         self.name = name
         self.assessable = assessable
+        self.published = published
         self.complete_class = ''
         self.optional_message = ''
         self.total = 0
@@ -331,7 +332,7 @@ class FakeWorksheetForMarks:
 
 
 # XXX: This really shouldn't be needed.
-def create_list_of_fake_worksheets_and_stats(store, user, offering):
+def create_list_of_fake_worksheets_and_stats(config, store, user, offering):
     """Take an offering's real worksheets, converting them into stats.
 
     The worksheet listing views expect special fake worksheet objects
@@ -345,9 +346,16 @@ def create_list_of_fake_worksheets_and_stats(store, user, offering):
     problems_total = 0
 
     # Offering.worksheets is ordered by the worksheets seq_no
-    for worksheet in offering.worksheets:
+    worksheets = offering.worksheets
+
+    # Unless we can edit worksheets, hide unpublished ones.
+    if 'edit_worksheets' not in offering.get_permissions(user, config):
+        worksheets = worksheets.find(published=True)
+
+    for worksheet in worksheets:
         new_worksheet = FakeWorksheetForMarks(
-            worksheet.identifier, worksheet.name, worksheet.assessable)
+            worksheet.identifier, worksheet.name, worksheet.assessable,
+            worksheet.published)
         if new_worksheet.assessable:
             # Calculate the user's score for this worksheet
             mand_done, mand_total, opt_done, opt_total = (

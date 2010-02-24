@@ -19,6 +19,11 @@
           <span py:if="'assessable' in errors" class="form_error">${errors.assessable}</span>
         </div>
         <div>
+          <label for='worksheet_published'>Published:</label>
+          <input type='checkbox' name='published' id='worksheet_published' />
+          <span py:if="'published' in errors" class="form_error">${errors.published}</span>
+        </div>
+        <div>
           <label for='worksheet_format'>Format:</label>
           <select name='format' id='worksheet_format'>
             <py:for each="(display,name) in formats">
