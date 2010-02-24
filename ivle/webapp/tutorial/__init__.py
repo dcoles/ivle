@@ -360,6 +360,9 @@ class WorksheetFormView(XHTMLView):
         ctx['data'] = data or {}
         ctx['offering'] = self.context
         ctx['errors'] = errors
+        # If all of the fields validated, set the global form error.
+        if isinstance(errors, basestring):
+            ctx['error_value'] = errors
         ctx['formats'] = WORKSHEET_FORMATS
 
 

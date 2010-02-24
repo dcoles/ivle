@@ -43,6 +43,7 @@
           Any exercises referenced in this worksheet must exist before you can save it.
           <a class="manageaction" href="/+exercises">Manage exercises</a>
         </div>
+        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
         <div class="submit">
           <input type="submit" value="${submit_button_label}" />
         </div>
