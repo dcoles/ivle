@@ -18,6 +18,7 @@
         <a class="editaction" href="${offering_url(worksheet.offering)}/+worksheets/${worksheet.identifier}/+edit">Edit this worksheet</a>
       </div>
       <!-- Display the Table Of Contents -->
+      <p py:if="not worksheet.published"><strong>Note:</strong> This worksheet is not yet published &mdash; it is not visible to students.</p>
       <div id="tutorial-toc">
         <h2>Contents</h2>
         <ul>
