@@ -7,7 +7,11 @@
     <h1>Worksheet marks for ${context.subject.name}</h1>
     <div id="ivle_padding">
     <p class="form_error" py:if="error" py:content="error" />
-    <p py:if="cutoff">Showing marks calculated as of ${cutoff.strftime("%Y-%m-%d %H:%M:%S")}.</p>
+    <form action="" method="GET">
+      <p>Showing marks calculated as of <input type="text" size="20"
+        name="cutoff" value="${cutoff.strftime('%Y-%m-%d %H:%M:%S')}" />
+        <input type="submit" value="Change" /> | <a href="?">Current</a></p>
+    </form>
     <table class="pretty_table">
       <tr><th>Student ID</th><th>Login</th><th>Full name</th>
           <th>Last login</th>
