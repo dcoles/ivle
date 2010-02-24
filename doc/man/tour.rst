@@ -267,7 +267,10 @@ Administrator users in IVLE have significant privileges. Note, however, that
 for technical reasons, admins cannot read or write other users' files. This
 requires root access on the machine IVLE is installed on.
 
-Firstly, pull down the IVLE menu (top-left). There is an additional item for
+Administering users
+-------------------
+
+Firstle, pull down the IVLE menu (top-left). There is an additional item for
 admins -- the "Users" page. This lists all users with an account in IVLE.
 Clicking on a username takes you to the user's profile page. Try it with the
 user 'lecturer'.
@@ -286,11 +289,70 @@ course -- that could be bad).
    Use this with care. Making a user an admin gives them complete control over
    the system. They could even revoke *your* admin rights!
 
-Admin users also enjoy the same privileges as lecturers, for all subjects on
-the system. In addition, admins can enrol users in a subject as lecturers
-(this is the only way to become a lecturer), and change or delete a lecturer's
-enrolment. Go to the subject page for "Advanced IVLE" and enrol the user
-"lecturer" as a Lecturer in the subject.
+Administering subjects and offerings
+------------------------------------
+
+Admin users also enjoy the same privileges as lecturers, for all subject
+offerings on the system. In addition, admins can enrol users in an offering as
+lecturers (this is the only way to become a lecturer), and change or delete a
+lecturer's enrolment. Go to the subject page for "Advanced IVLE" and enrol the
+user "lecturer" as a Lecturer in the subject.
+
+Admins can also administer subjects. Here it is important to distinguish
+between a "subject" (a course on a specific topic which is repeated over a
+number of semesters or years) and an "offering" (a particular instance of a
+subject, for one semester). Lecturers can administer *offerings* they are
+enrolled in, but not *subjects*.
+
+As an admin, go to the "Subjects" page. You will see a link "Manage subjects
+and semesters". The list at the top of the page shows all registered
+subjects. Click "Create new subject" to create a brand new subject (i.e., a
+new course). Call it "Introduction to Programming", with the URL name
+"intro-prog" and subject code 200101.
+
+Now we have created a *subject* but not an *offering*, so nobody will be able
+to teach or enrol in this subject. From the "Introduction to Programming"
+page, click "Create new offering". Select the semester in which the subject
+will be first taught. If you wish to create the first offering of a semester
+(e.g., 2011 semester 1), you will have to create a new semester first. Type
+in a subject description. (Note that each offering has an independent
+description.) Once you have created an offering, you can enrol lecturers, and
+they can in turn enrol students.
+
+Lecturers can take over administration duties of an offering (such as editing
+the description and managing projects), however it remains the admin's duty to
+administer the subjects, including creating new offerings each semester and
+enrolling lecturers.
+
+Administering semesters
+-----------------------
+
+An important duty of the administrator is controlling the *state* of each
+semester. Return to the "Manage subjects and semesters" page. Note the
+"Semesters" table contains a list of all known semesters, and whether they are
+"past", "current" or "future".
+
+.. note::
+   IVLE could automatically create and manage semesters based on the system
+   clock, but it presently does not. That is because your institution may have
+   a different concept of a "semester" to ours. (For example, what are the
+   semester start and end dates?) IVLE has therefore been designed to require
+   admins to manually activate new semesters and disable old ones.
+
+In the sample data, 2009 semester 2 is the "current" semester. Let us assume
+that we are moving into the start of 2010. Edit 2009 semester 2 and set its
+state to "Past". Then, edit 2010 semester 1 and set its state to "Current".
+This affects the system in several ways. Mainly, it just changes the UI for
+all users, in terms of which offerings are presented as "current".
+
+.. warning::
+   Marking a semester as anything other than "current" will make it impossible
+   for students enrolled in offerings for that semester to submit projects.
+   Only do this after the semester has fully closed.
+
+It is possible for multiple semesters to be marked as "current", if this is
+desired. Therefore, there is no need to disable one semester before enabling
+another.
 
 Admin scripts
 -------------
