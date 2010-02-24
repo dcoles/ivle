@@ -24,6 +24,7 @@ Displays students' worksheet marks to users with sufficient privileges.
 
 import datetime
 import csv
+import urllib
 
 import ivle.database
 import ivle.worksheet.utils
@@ -40,7 +41,10 @@ class WorksheetsMarksView(XHTMLView):
     def populate(self, req, ctx):
         error = None
         offering = self.context
+        ctx['req'] = req
         ctx['context'] = offering
+        ctx['urllib'] = urllib
+        ctx['WorksheetsMarksCSVView'] = WorksheetsMarksCSVView
 
         # User may supply a "cutoff date" to calculate marks as of that date
         # Default to current time

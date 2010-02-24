@@ -26,6 +26,7 @@
         <td>${int(total_pct*100)}%</td><td py:content="mark" />
       </tr>
     </table>
+    <p><a class="marksaction" href="${req.publisher.generate(context, WorksheetsMarksCSVView)}?${urllib.quote(cutoff.strftime('%Y-%m-%d %H:%M:%S'))}">Download as CSV file</a></p>
     </div>
   </body>
 </html>
