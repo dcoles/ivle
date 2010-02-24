@@ -331,7 +331,7 @@ class FakeWorksheetForMarks:
 
 
 # XXX: This really shouldn't be needed.
-def create_list_of_fake_worksheets_and_stats(store, user, offering):
+def create_list_of_fake_worksheets_and_stats(config, store, user, offering):
     """Take an offering's real worksheets, converting them into stats.
 
     The worksheet listing views expect special fake worksheet objects
@@ -345,7 +345,13 @@ def create_list_of_fake_worksheets_and_stats(store, user, offering):
     problems_total = 0
 
     # Offering.worksheets is ordered by the worksheets seq_no
-    for worksheet in offering.worksheets:
+    worksheets = offering.worksheets
+
+    # Unless we can edit worksheets, hide unpublished ones.
+    if 'edit_worksheets' not in offering.get_permissions(user, config):
+        worksheets = worksheets.find(published=True)
+
+    for worksheet in worksheets:
         new_worksheet = FakeWorksheetForMarks(
             worksheet.identifier, worksheet.name, worksheet.assessable)
         if new_worksheet.assessable:

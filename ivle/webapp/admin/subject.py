@@ -308,7 +308,7 @@ class OfferingView(XHTMLView):
 
         ctx['worksheets'], problems_total, problems_done = (
             ivle.worksheet.utils.create_list_of_fake_worksheets_and_stats(
-                req.store, req.user, self.context))
+                req.config, req.store, req.user, self.context))
 
         ctx['exercises_total'] = problems_total
         ctx['exercises_done'] = problems_done
