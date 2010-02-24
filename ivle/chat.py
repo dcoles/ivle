@@ -89,17 +89,13 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
         (conn, addr) = s.accept()
         conn.settimeout(SOCKETTIMEOUT)
         try:
-            # Grab the input
+            # Grab the input and try to decode
             inp = recv_netstring(conn)
-            env = cjson.decode(inp)
-
-            # Check that the message is 
-            digest = hashlib.md5(env['content'] + magic).hexdigest()
-            if env['digest'] != digest:
+            try:
+                content = decode(inp)
+            except ProtocolError:
                 conn.close()
                 continue
-
-            content = cjson.decode(env['content'])
 
             response = handler(content)
 
@@ -131,10 +127,8 @@ def chat(host, port, msg, magic, decode = True):
     sok = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sok.connect((host, port))
     sok.settimeout(SOCKETTIMEOUT)
-    content = cjson.encode(msg)
-    digest = hashlib.md5(content + magic).hexdigest()
-    env = {'digest':digest,'content':content}
-    json = cjson.encode(env)
+
+    json = encode(msg, magic)
 
     send_netstring(sok, json)
     inp = recv_netstring(sok)
@@ -146,13 +140,46 @@ def chat(host, port, msg, magic, decode = True):
     else:
         return inp
 
+def encode(message, magic):
+    """Converts a message into a JSON serialisation and uses a magic
+    string to attach a HMAC digest.
+    """
+    # XXX: Any reason that we double encode?
+    content = cjson.encode(message)
+
+    digest = hashlib.md5(content + magic).hexdigest()
+    env = {'digest':digest,'content':content}
+    json = cjson.encode(env)
+
+    return json
+
+
+def decode(message, magic):
+    """Takes a message with an attached HMAC digest and validates the message.
+    """
+    msg = cjson.decode(message)
+
+    # Check that the message is valid
+    digest = hashlib.md5(msg['content'] + magic).hexdigest()
+    if msg['digest'] != digest:
+        raise ProtocolError("HMAC digest is invalid")
+    content = cjson.decode(msg['content'])
+
+    return content
+
 
 def send_netstring(sok, data):
+    """ Sends a netstring to a socket
+    """
     netstring = "%d:%s,"%(len(data),data)
     sok.sendall(netstring)
 
 
 def recv_netstring(sok):
+    """ Attempts to recieve a Netstring from a socket.
+    Throws a ProtocolError if the received data violates the Netstring 
+    protocol.
+    """
     # Decode netstring
     size_buffer = []
     c = sok.recv(1)

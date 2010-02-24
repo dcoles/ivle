@@ -19,6 +19,7 @@ import socket
 import os
 import random
 
+import cjson
 from nose.tools import assert_equal, raises
 
 import ivle.chat
@@ -87,3 +88,42 @@ class TestChat(object):
         for i in range(10):
             assert_equal(ivle.chat.recv_netstring(self.s2), messages[i])
 
+    def test_encode(self):
+        """Check that we correctly encode a basic object
+        """
+        MESSAGE = {}
+        MAGIC = "3EE"
+        content = cjson.encode(MESSAGE)
+        # Digest can be formed with `echo -n "${content}${MAGIC}" | md5sum`
+        DIGEST = '2b59b68e1ac0852b87fb7e64946f2658'
+        expected = {'digest': DIGEST,
+                'content': content}
+        encoded = ivle.chat.encode(MESSAGE, MAGIC)
+        assert_equal(cjson.decode(encoded), expected)
+
+    def test_encode_decode(self):
+        """Check that a round trip encoding and decoding works
+        """
+        MESSAGE = {'message': 'Hello, world'}
+        MAGIC = "MagicString"
+        encoded = ivle.chat.encode(MESSAGE, MAGIC)
+        decoded = ivle.chat.decode(encoded, MAGIC)
+        assert_equal(decoded, MESSAGE)
+
+    @raises(ivle.chat.ProtocolError)
+    def test_decode_bad_magic(self):
+        """Check that a bad digest causes a ProtocolError to be raised
+        """
+        CHATMESSAGE = ('{"content": "{\\"a\\": \\"b\\"}", "digest": ' +
+                '"eb860a5fe8fdbef19ffb79e3a5c47113"}')
+        CORRECTMAGIC = "AEIOU"
+        INCORRECTMAGIC = "ABCDE"
+
+        # Check our "correct" string decodes without a ProtocolError
+        try:
+            ivle.chat.decode(CHATMESSAGE, CORRECTMAGIC)
+        except ivle.chat.ProtocolError:
+            raise AssertionError("ProtocolError with 'correct' magic")
+
+        # This should raise the ProtocolError
+        ivle.chat.decode(CHATMESSAGE, INCORRECTMAGIC)
