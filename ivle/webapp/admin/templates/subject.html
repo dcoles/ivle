@@ -6,9 +6,11 @@
   <body>
     <h1>${context.name}</h1>
     <div id="ivle_padding">
-      <p py:if="len(offerings) == 0">You are not currently enrolled in this subject.</p>
-      <p>This subject is offered in the following semesters:</p>
-      <ul>
+      <py:choose test="len(offerings) > 0">
+        <p py:when="True">This subject is offered in the following semesters:</p>
+        <p py:when="False">There are no offerings associated with this subject.</p>
+      </py:choose>
+      <ul py:if="len(offerings) > 0">
         <li py:for="offering in offerings"
             py:attrs="{'class': 'subject_current' if offering.semester.state == u'current' else None}">
           <py:choose test="user.admin or offering.get_enrolment(user) is not None">
