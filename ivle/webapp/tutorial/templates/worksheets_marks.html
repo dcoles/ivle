@@ -8,6 +8,20 @@
     <div id="ivle_padding">
     <p class="form_error" py:if="error" py:content="error" />
     <p py:if="cutoff">Showing marks calculated as of ${cutoff.strftime("%Y-%m-%d %H:%M:%S")}.</p>
+    <table class="pretty_table">
+      <tr><th>Student ID</th><th>Login</th><th>Full name</th>
+          <th>Last login</th>
+          <th py:for="ws in worksheets" py:content="ws" />
+          <th>Total %</th><th>Mark</th>
+      </tr>
+      <tr py:for="(user,worksheet_pcts,total_pct,mark) in students">
+        <td py:content="user.studentid or 'N/A'" />
+        <td py:content="user.login" /><td py:content="user.fullname" />
+        <td py:content="'N/A' if user.last_login is None else user.last_login.strftime('%Y-%m-%d')" />
+        <td py:for="ws in worksheet_pcts">${int(ws*100)}%</td>
+        <td>${int(total_pct*100)}%</td><td py:content="mark" />
+      </tr>
+    </table>
     </div>
   </body>
 </html>
