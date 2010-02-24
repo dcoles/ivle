@@ -280,6 +280,8 @@ class SubjectView(XHTMLView):
         ctx['req'] = req
         ctx['user'] = req.user
         ctx['offerings'] = list(self.context.offerings)
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
+        ctx['SubjectEdit'] = SubjectEdit
 
 
 class OfferingView(XHTMLView):

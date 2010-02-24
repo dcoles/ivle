@@ -6,6 +6,13 @@
   <body>
     <h1>${context.name}</h1>
     <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'edit' in permissions"
+           class="editaction"
+           href="${req.publisher.generate(context, SubjectEdit)}">
+           Change details
+        </a>
+      </div>
       <py:choose test="len(offerings) > 0">
         <p py:when="True">This subject is offered in the following semesters:</p>
         <p py:when="False">There are no offerings associated with this subject.</p>
