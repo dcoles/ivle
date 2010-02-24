@@ -145,9 +145,6 @@ class SubjectFormView(BaseFormView):
     def validator(self):
         return SubjectSchema()
 
-    def get_return_url(self, obj):
-        return '/subjects'
-
 
 class SubjectNew(SubjectFormView):
     """A form to create a subject."""
