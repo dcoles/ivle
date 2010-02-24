@@ -14,8 +14,6 @@ class OfferingRESTView(XHTMLRESTView):
       
     This view allows for added a ProjectSet to an existing subject."""
 
-    template = "subject.html"
-
     @named_operation('edit')
     def add_projectset(self, req, group_size):
         """Add a new ProjectSet"""
