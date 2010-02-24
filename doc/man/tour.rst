@@ -152,9 +152,9 @@ admin can also do, for all subjects in the system.
 Click "Intermediate IVLE - Subject home" (the one which does not display a
 semester -- implying the currently active semester). From here, you will see
 largely the same view as a student, but with more buttons. "Change details"
-allows you to modify the subject properties. "Enrol users" allows you to add
-existing IVLE users as students or tutors of the subject you are teaching
-(this is currently an irreversible action).
+allows you to modify the subject properties. "Administer enrolments" allows
+you to add existing IVLE users as students or tutors of the subject you are
+teaching, change the roles of existing members, and revoke members.
 
 Managing projects
 -----------------
@@ -288,8 +288,9 @@ course -- that could be bad).
 
 Admin users also enjoy the same privileges as lecturers, for all subjects on
 the system. In addition, admins can enrol users in a subject as lecturers
-(this is the only way to become a lecturer). Go to the subject page for
-"Advanced IVLE" and enrol the user "lecturer" as a Lecturer in the subject.
+(this is the only way to become a lecturer), and change or delete a lecturer's
+enrolment. Go to the subject page for "Advanced IVLE" and enrol the user
+"lecturer" as a Lecturer in the subject.
 
 Admin scripts
 -------------
