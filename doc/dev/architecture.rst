@@ -349,6 +349,59 @@ user or group repository settings change.
 Worksheets
 ==========
 
+Worksheets provide a way for users to be able to attempt a set of coding 
+exercises along with accompanying instructions. In the past worksheets were 
+created directly using an XML format, but this has been deprecated in favour 
+of being generated automatically from reStructuredText.
+
+Worksheets are now stored in the database as a :class:`Worksheet` object (see 
+:file:`ivle/database.py`).  This allows them to be treated with the same 
+access permissions available to other objects and lays down the ground work 
+for providing versioned worksheets.
+
+
+Exercises
+---------
+
+When users submit an exercise, the user's solution is tested against a series 
+of test cases which can be used to check if a solution is acceptable. Almost 
+all the behavior for exercises is contained within 
+:file:`ivle/webapp/tutorial/test/TestFramework.py`.
+
+.. note::
+    The TestFramework module is one of the oldest and most complicated in 
+    IVLE, largely taken directly from the IVLE prototype. As such it has a 
+    design that doesn't quite match the current architecture of IVLE, such as 
+    using slightly different terminology and having a few testing facilities 
+    that are untested or untested. It requires a substantial rewrite and 
+    comprehensive test suite to be developed.
+
+At the top level exists the :class:`Exercise` object (known as ``TestSuite`` 
+in :file:`TestFramework.py`). This object encompasses the entire collection of 
+tests for a given exercise and details such as the exercise name, provided 
+solution and any "include code" (Python code available for all test cases, but 
+not the user's submission).
+
+Each exercise may contain one or more :class:`TestSuite` objects (known as 
+``TestCase`` in :file:`TestFramework.py`. A test suite is a collection of 
+tests that run with some sort of common input - be that stdin contents, a 
+virtual file system configuration (presently disabled), inputs to particular 
+function or defining the contents of one or more variables. A test suite will 
+typically run until the first test case fails, but can be configured to 
+continue running test cases even after one has failed. Exceptions raised by 
+submitted code will typically cause the test to fail except if it is marked as 
+an "allowed exception".
+
+Individual units to be tested (something that can pass or fail) are contained 
+within :class:`TestCase` objects (known as ``TestCaseParts`` in 
+:file:`TestFramework.py`). A test case can test the value of source code text, 
+the function return value (Will be ``None`` for scripts), stdout contents, 
+stderr contents, name of any raised exception and contents of the virtual file 
+system (presently disabled) of code submitted by users. These checks are 
+contained in a :class:`TestCasePart`. In addition, a normalisation function or 
+custom comparison function can be used instead of comparing the raw values 
+directly.  By default, the value of each check will be ignored unless 
+overidden by a test case part.
 
 Database
 ========
