@@ -44,6 +44,15 @@ class UserBreadcrumb(object):
         return [UsersBreadcrumb()]
 
 
+class SubjectsBreadcrumb(object):
+    @property
+    def url(self):
+        return '/subjects'
+
+    @property
+    def text(self):
+        return 'Subjects'
+
 class SubjectBreadcrumb(object):
     def __init__(self, req, context):
         self.req = req
@@ -56,6 +65,10 @@ class SubjectBreadcrumb(object):
     @property
     def text(self):
         return self.context.name
+
+    @property
+    def extra_breadcrumbs_before(self):
+        return [SubjectsBreadcrumb()]
 
 
 class OfferingBreadcrumb(object):

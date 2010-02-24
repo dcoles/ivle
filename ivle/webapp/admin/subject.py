@@ -64,6 +64,7 @@ class SubjectsView(XHTMLView):
     '''The view of the list of subjects.'''
     template = 'templates/subjects.html'
     tab = 'subjects'
+    breadcrumb_text = "Subjects"
 
     def authorize(self, req):
         return req.user is not None
