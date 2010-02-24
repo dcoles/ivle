@@ -127,6 +127,10 @@ Populates the offering specified by ``<NEWSUBJECTCODE> <NEWYEAR>
 <NEWSEMESTER>`` with a copy of the worksheets from the offering specified by 
 ``<OLDSUBJECTCODE> <OLDYEAR> <OLDSEMESTER>``.
 
+.. note::
+    Admins may also clone worksheets from the offering administration panel
+    in the web interface.
+
 
 ivle-config
 -----------
@@ -277,6 +281,10 @@ ivle-listusers
 :program:`ivle-listusers [OPTIONS]`
 
 Lists all users in the IVLE database.
+
+.. note::
+    Users may also be listed and administered through the web interface,
+    from the *Users* item in the IVLE menu.
 
 .. cmdoption:: -n, --names
 

@@ -280,20 +280,26 @@ class Publisher(object):
 
                 if view is not None:
                     return (obj, view, tuple(todo[remove:]))
+                # We have just one segment, but no view was found. Try
+                # appending the default view name.
+                elif len(todo) == 1:
+                    # Augment it with the default view name, and look it up.
+                    view = vnames.get((todo[0], self.default))
+                    if view is not None:
+                        return (obj, view, tuple(todo[2:]))
                 # Now we must check for deep views.
                 # A deep view is one that has a name consisting of
                 # multiple segments. It's messier than it could be, because
                 # we also allow omission of the final segment if it is the
                 # default view name.
                 elif len(todo) >= 2:
-                    view = vnames.get(tuple(todo[:2]))
+                    for x in range(2, len(todo) + 1):
+                        view = vnames.get(tuple(todo[:x]))
+                        if view is not None:
+                            return (obj, view, tuple(todo[x:]))
+                    view = vnames.get(tuple(todo + [self.default]))
                     if view is not None:
-                        return (obj, view, tuple(todo[2:]))
-                elif len(todo) == 1:
-                    # Augment it with the default view name, and look it up.
-                    view = vnames.get((todo[0], self.default))
-                    if view is not None:
-                        return (obj, view, tuple(todo[2:]))
+                        return (obj, view, tuple())
 
             # If there are no segments left to use, or there are no routes, we
             # get out.

@@ -394,9 +394,6 @@ class TestCase:
             elif var.var_type == "arg":
                 self.add_arg(var)
             elif var.var_type == "exception":
-                # XXX: wgrant 2010-01-29 bug=514160: Need to restore
-                # support for this.
-                raise AssertionError("Exception variables unsupported.")
                 self.add_exception(var)
         
         for test_case in suite.test_cases:
@@ -447,7 +444,7 @@ class TestCase:
         except:
             raise TestCreationError("Invalid value for function argument: %s" %var.var_value)
 
-    def add_exception(self, exception_name):
+    def add_exception(self, var):
         self._allowed_exceptions.add(var.var_name)
         
     def add_part(self, test_part):
@@ -554,12 +551,13 @@ class TestCase:
         if 'exception' in inspection:
             exception = inspection['exception']
             exception_name = type(exception).__name__
-            raise(exception)
+            if exception_name not in self._allowed_exceptions:
+                raise(exception)
 
         return {'code': string,
                 'result': None,
                 'globals': self._console.globals(),
-                'exception': exception_name, # Hmmm... odd? Is this right?
+                'exception': exception_name,
                 'stdout': self._console.stdout.read(),
                 'stderr': self._console.stderr.read(),
                 'modified_files': None}
