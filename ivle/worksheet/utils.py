@@ -317,10 +317,11 @@ class FakeWorksheetForMarks:
     
     Do not confuse this with a worksheet in the database. This worksheet
     has extra information for use in the output, such as marks."""
-    def __init__(self, id, name, assessable):
+    def __init__(self, id, name, assessable, published):
         self.id = id
         self.name = name
         self.assessable = assessable
+        self.published = published
         self.complete_class = ''
         self.optional_message = ''
         self.total = 0
@@ -353,7 +354,8 @@ def create_list_of_fake_worksheets_and_stats(config, store, user, offering):
 
     for worksheet in worksheets:
         new_worksheet = FakeWorksheetForMarks(
-            worksheet.identifier, worksheet.name, worksheet.assessable)
+            worksheet.identifier, worksheet.name, worksheet.assessable,
+            worksheet.published)
         if new_worksheet.assessable:
             # Calculate the user's score for this worksheet
             mand_done, mand_total, opt_done, opt_total = (

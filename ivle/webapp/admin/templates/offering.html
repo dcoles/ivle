@@ -104,6 +104,7 @@
                 <li>
                   <!-- Can't generate a URL directly to the worksheet, since this is a fake worksheet. -->
                   <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+                  <span py:if="not worksheet.published">(unpublished &mdash; not visible to students)</span>
                   <py:if test="worksheet.assessable">
                     <ul>
                       <li class="${worksheet.complete_class}">
