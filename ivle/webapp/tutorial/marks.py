@@ -61,8 +61,8 @@ class WorksheetsMarksView(XHTMLView):
         ctx['cutoff'] = cutoff
         ctx['error'] = error
 
-        # "worksheets" is a list of (assessable) worksheet names
-        worksheets = offering.worksheets.find(assessable=True)
+        # "worksheets" is a list of (assessable, published) worksheet names
+        worksheets = offering.worksheets.find(assessable=True, published=True)
         ctx['worksheets'] = [ws.name for ws in worksheets]
 
         # "students" is a list of tuples:
@@ -109,8 +109,8 @@ class WorksheetsMarksCSVView(BaseView):
             (offering.subject.short_name, offering.semester.year,
              offering.semester.semester))
 
-        # "worksheets" is a list of (assessable) worksheet names
-        worksheets = offering.worksheets.find(assessable=True)
+        # "worksheets" is a list of (assessable, published) worksheet names
+        worksheets = offering.worksheets.find(assessable=True, published=True)
 
         # Start writing the CSV file - header
         csvfile = csv.writer(req)
