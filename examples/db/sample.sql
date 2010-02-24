@@ -433,9 +433,9 @@ ALTER TABLE worksheet DISABLE TRIGGER ALL;
 
 INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, assessable, seq_no, format) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
 
-Worksheets are reStructuredText (rich text) documents which can present students with information or tutorials, much like a textbook. For example, we might explain that "recursion is when a function calls itself".
+Worksheets are reStructuredText (rich text) documents which can present students with information or tutorials, much like a textbook. For example, we might explain that "the ``print`` statement in Python lets you print text to the screen".
 
-We can use any reStructuredText markup, such as **bold** and `links <http://ivle.org>`_. We can also embed exercises. For example, we might invite students to "try out recursion in the following exercise".
+We can use any reStructuredText markup, such as **bold** and `links <http://ivle.org>`_. We can also embed exercises. For example, we might invite students to "try out the ``print`` statement in the following exercise".
 
 Beginning a line with ``.. exercise:: <exercise-name>`` embeds an exercise in a worksheet, like this:
 
