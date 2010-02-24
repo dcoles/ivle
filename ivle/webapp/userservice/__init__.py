@@ -261,6 +261,7 @@ def handle_get_enrolments(req, fields):
             'subj_short_name': e.offering.subject.short_name,
             'year':            e.offering.semester.year,
             'semester':        e.offering.semester.semester,
+            'state':           e.offering.semester.state,
             'groups':          [{'name': group.name,
                                  'nick': group.nick} for group in e.groups]
         })
