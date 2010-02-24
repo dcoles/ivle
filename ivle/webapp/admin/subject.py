@@ -96,6 +96,7 @@ class SubjectsManage(XHTMLView):
     def populate(self, req, ctx):
         ctx['req'] = req
         ctx['mediapath'] = media_url(req, CorePlugin, 'images/')
+        ctx['SubjectView'] = SubjectView
         ctx['SubjectEdit'] = SubjectEdit
         ctx['SemesterEdit'] = SemesterEdit
 
@@ -265,6 +266,20 @@ class SemesterEdit(SemesterFormView):
         self.context.state = data['state']
 
         return self.context
+
+class SubjectView(XHTMLView):
+    '''The view of the list of offerings in a given subject.'''
+    template = 'templates/subject.html'
+    tab = 'subjects'
+
+    def authorize(self, req):
+        return req.user is not None
+
+    def populate(self, req, ctx):
+        ctx['context'] = self.context
+        ctx['req'] = req
+        ctx['user'] = req.user
+        ctx['offerings'] = list(self.context.offerings)
 
 
 class OfferingView(XHTMLView):
@@ -740,6 +755,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ApplicationRoot, ('subjects', '+new'), SubjectNew),
              (ApplicationRoot, ('subjects', '+new-offering'), OfferingNew),
              (ApplicationRoot, ('+semesters', '+new'), SemesterNew),
+             (Subject, '+index', SubjectView),
              (Subject, '+edit', SubjectEdit),
              (Semester, '+edit', SemesterEdit),
              (Offering, '+index', OfferingView),
