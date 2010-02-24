@@ -291,30 +291,6 @@ Lists all users in the IVLE database.
     Print only each user's login name
 
 
-ivle-marks
-----------
-
-.. program:: ivle-marks
-
-:program:`ivle-marks [OPTIONS] <SUBJECT>`
-
-Reports each student's marks for a given subject offering.
-
-.. cmdoption:: <SUBJECT>
-
-    Subject short (URL) name
-
-.. cmdoption:: -s <SEMESTER>, --semester <SEMESTER>
-
-    Semester of the offering (eg. 2009/1). Defaults to the currently
-    active semester.
-
-.. cmdoption:: -c <CUTOFF>, --cutoff <CUTOFF>
-
-    Cutoff date (calculate the marks as of this date). Should be provided in 
-    the form of ``YYYY-MM-DD H:M:S``.
-
-
 ivle-mountallusers
 ------------------
 
