@@ -27,7 +27,7 @@ from ivle.webapp.media import media_url
 
 class WorksheetsMarksView(XHTMLView):
     """View for presenting all students' individual marks for worksheets."""
-    permission = 'edit_worksheets'
+    permission = 'view_worksheet_marks'
     template = 'templates/worksheets_marks.html'
     tab = 'subjects'
 
