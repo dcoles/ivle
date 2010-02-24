@@ -103,6 +103,7 @@ In addition to the abilities of tutors, lecturers have the ability to:
 * Create and edit exercises *for any offering* (as exercises are not
   offering-specific),
 * Edit the details of the offering (such as description and URL),
+* View individual students' worksheet marks for the offering,
 * Create and edit projects and project sets for the offering,
 * Create project groups, and add/remove students from them.
 

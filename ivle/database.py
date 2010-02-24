@@ -395,6 +395,7 @@ class Offering(Storm):
                 perms.add('view_project_submissions')
                 perms.add('admin_groups')
                 perms.add('edit_worksheets')
+                perms.add('view_worksheet_marks')
                 perms.add('edit')           # Can edit projects & details
                 perms.add('enrol')          # Can see enrolment screen at all
                 perms.add('enrol_student')  # Can enrol students

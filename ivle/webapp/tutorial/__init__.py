@@ -65,6 +65,8 @@ from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
             WorksheetBreadcrumb)
 from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
     subject_to_media)
+from ivle.webapp.tutorial.marks import (WorksheetsMarksView,
+            WorksheetsMarksCSVView)
 
 
 class WorksheetView(XHTMLView):
@@ -88,6 +90,10 @@ class WorksheetView(XHTMLView):
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
         ctx['user'] = req.user
         ctx['config'] = req.config
+
+        ctx['show_exercise_stats'] = \
+            'edit' in self.context.get_permissions(req.user,
+                                                   req.config)
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -267,10 +273,18 @@ def present_exercise(req, identifier, worksheet=None):
     tmpl = loader.load(os.path.join(os.path.dirname(__file__),
         "templates/exercise_fragment.html"))
     ex_stream = tmpl.generate(curctx)
+    # Store exercise statistics
+    if (worksheet is not None and
+        'edit' in worksheet.get_permissions(req.user, req.config)):
+        exercise_stats = ivle.worksheet.utils.get_exercise_statistics(
+            req.store, worksheet_exercise)
+    else:
+        exercise_stats = None
     return {'name': exercise.name,
             'complete': curctx['complete_class'],
             'stream': ex_stream,
-            'exid': exercise.id}
+            'exid': exercise.id,
+            'stats': exercise_stats}
 
 
 # The first element is the default format
@@ -577,6 +591,10 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
+             (Offering, ('+worksheets', '+marks', '+index'),
+              WorksheetsMarksView),
+             (Offering, ('+worksheets', '+marks', 'marks.csv'),
+              WorksheetsMarksCSVView),
              (Worksheet, '+index', WorksheetView),
              (Worksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),

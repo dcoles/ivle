@@ -30,10 +30,11 @@ import genshi
 
 import ivle.database
 from ivle.database import ExerciseAttempt, ExerciseSave, Worksheet, \
-                          WorksheetExercise, Exercise
+                          WorksheetExercise, Exercise, User
 import ivle.webapp.tutorial.test
 
 __all__ = ['ExerciseNotFound', 'get_exercise_status',
+           'get_exercise_statistics',
            'get_exercise_stored_text', 'get_exercise_attempts',
            'get_exercise_attempt', 'test_exercise_submission',
           ]
@@ -81,6 +82,19 @@ def get_exercise_status(store, user, worksheet_exercise, as_of=None):
         num_attempts = store.find(ExerciseAttempt, is_relevant).count()
 
     return first_success is not None, num_attempts
+
+def get_exercise_statistics(store, worksheet_exercise):
+    """Return statistics about an exercise (with respect to a given
+    worksheet).
+    (number of students completed, number of students attempted)."""
+    # Count the set of Users whose ID matches an attempt in this worksheet
+    num_completed = store.find(User, User.id == ExerciseAttempt.user_id,
+        ExerciseAttempt.ws_ex_id == worksheet_exercise.id,
+        ExerciseAttempt.complete == True).config(distinct=True).count()
+    num_attempted = store.find(User, User.id == ExerciseAttempt.user_id,
+        ExerciseAttempt.ws_ex_id == worksheet_exercise.id,
+        ).config(distinct=True).count()
+    return num_completed, num_attempted
 
 def get_exercise_stored_text(store, user, worksheet_exercise):
     """Given a storm.store, User and WorksheetExercise, returns an

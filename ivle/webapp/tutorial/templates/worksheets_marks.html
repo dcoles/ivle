@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Worksheet marks for ${context.subject.name} (${context.semester.year} semester ${context.semester.semester})</title>
+  </head>
+  <body>
+    <h1>Worksheet marks for ${context.subject.name}</h1>
+    <div id="ivle_padding">
+    <p class="form_error" py:if="error" py:content="error" />
+    <form action="" method="GET">
+      <p>Showing marks calculated as of <input type="text" size="20"
+        name="cutoff" value="${cutoff.strftime('%Y-%m-%d %H:%M:%S')}" />
+        <input type="submit" value="Change" /> | <a href="?">Current</a></p>
+    </form>
+    <table class="pretty_table">
+      <tr><th>Student ID</th><th>Login</th><th>Full name</th>
+          <th>Last login</th>
+          <th py:for="ws in worksheets" py:content="ws" />
+          <th>Total %</th><th>Mark</th>
+      </tr>
+      <tr py:for="(user,worksheet_pcts,total_pct,mark) in students">
+        <td py:content="user.studentid or 'N/A'" />
+        <td py:content="user.login" /><td py:content="user.fullname" />
+        <td py:content="'N/A' if user.last_login is None else user.last_login.strftime('%Y-%m-%d')" />
+        <td py:for="ws in worksheet_pcts">${int(ws*100)}%</td>
+        <td>${int(total_pct*100)}%</td><td py:content="mark" />
+      </tr>
+    </table>
+    <p><a class="marksaction" href="${req.publisher.generate(context, WorksheetsMarksCSVView)}?${urllib.quote(cutoff.strftime('%Y-%m-%d %H:%M:%S'))}">Download as CSV file</a></p>
+    </div>
+  </body>
+</html>
