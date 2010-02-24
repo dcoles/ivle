@@ -149,11 +149,12 @@ certain subjects. All of your special powers are under the subject home for
 the subjects you are a tutor in. Note that everything a lecturer can do, an
 admin can also do, for all subjects in the system.
 
-Click "Intermediate IVLE - Subject home". From here, you will see largely the
-same view as a student, but with more buttons. "Change details" allows you to
-modify the subject properties. "Enrol users" allows you to add existing IVLE
-users as students or tutors of the subject you are teaching (this is currently
-an irreversible action).
+Click "Intermediate IVLE - Subject home" (the one which does not display a
+semester -- implying the currently active semester). From here, you will see
+largely the same view as a student, but with more buttons. "Change details"
+allows you to modify the subject properties. "Enrol users" allows you to add
+existing IVLE users as students or tutors of the subject you are teaching
+(this is currently an irreversible action).
 
 Managing projects
 -----------------
