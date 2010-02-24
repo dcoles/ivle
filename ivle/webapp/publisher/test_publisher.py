@@ -94,6 +94,15 @@ class OfferingProjects(View):
 class OfferingAddProject(View):
     pass
 
+class OfferingWorksheets(View):
+    pass
+
+class OfferingWorksheetMarks(View):
+    pass
+
+class OfferingWorksheetCSVMarks(View):
+    pass
+
 def root_to_subject_or_user(root, name):
     if name.startswith('~'):
         return root.users.get(name[1:])
@@ -184,6 +193,12 @@ class TestResolution(BaseTest):
                           viewset='browser')
         self.rtr.add_view(Offering, ('+projects', '+index'), OfferingProjects,
                           viewset='browser')
+        self.rtr.add_view(Offering, ('+worksheets', '+index'),
+                          OfferingWorksheets, viewset='browser')
+        self.rtr.add_view(Offering, ('+worksheets', '+marks', '+index'),
+                          OfferingWorksheetMarks, viewset='browser')
+        self.rtr.add_view(Offering, ('+worksheets', '+marks', 'marks.csv'),
+                          OfferingWorksheetCSVMarks, viewset='browser')
 
     def testOneRoute(self):
         assert_equal(self.rtr.resolve('/info1'),
@@ -309,6 +324,25 @@ class TestResolution(BaseTest):
         assert_equal(self.rtr.resolve('/info1/2009/1/+projects'),
              (self.r.subjects['info1'].offerings[(2009, 1)],
               OfferingProjects, ())
+             )
+
+    def testAnotherDefaultDeepView(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1/+worksheets'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingWorksheets, ())
+             )
+
+    def testReallyDeepView(self):
+        assert_equal(
+             self.rtr.resolve('/info1/2009/1/+worksheets/+marks/marks.csv'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingWorksheetCSVMarks, ())
+             )
+
+    def testDefaultReallyDeepView(self):
+        assert_equal(self.rtr.resolve('/info1/2009/1/+worksheets/+marks'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingWorksheetMarks, ())
              )
 
     def testNamedRouteWithDeepView(self):

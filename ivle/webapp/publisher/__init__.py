@@ -286,9 +286,15 @@ class Publisher(object):
                 # we also allow omission of the final segment if it is the
                 # default view name.
                 elif len(todo) >= 2:
-                    view = vnames.get(tuple(todo[:2]))
+                    for x in range(2, len(todo) + 1):
+                        view = vnames.get(tuple(todo[:x]))
+                        if view is not None:
+                            return (obj, view, tuple(todo[x:]))
+                    view = vnames.get(tuple(todo + [self.default]))
                     if view is not None:
-                        return (obj, view, tuple(todo[2:]))
+                        return (obj, view, tuple())
+                # We have just one segment, but no view was found. Try
+                # adding the default view.
                 elif len(todo) == 1:
                     # Augment it with the default view name, and look it up.
                     view = vnames.get((todo[0], self.default))
