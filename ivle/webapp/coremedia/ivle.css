@@ -290,6 +290,7 @@ form.verticalform.thin div.submit {
 .manageaction,
 .groupaction,
 .subjectaction,
+.marksaction,
 .verifyaction,
 .helpaction,
 .webaction {
@@ -324,6 +325,10 @@ form.verticalform.thin div.submit {
 
 .subjectaction {
   background-image: url(../ivle.webapp.tutorial/tutorial-small.png);
+}
+
+.marksaction {
+  background-image: url(../ivle.webapp.tutorial/images/table.png);
 }
 
 .verifyaction {

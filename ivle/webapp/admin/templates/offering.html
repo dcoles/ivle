@@ -128,6 +128,9 @@
               <a class="manageaction" href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}"> Manage worksheets</a>
               <a class="manageaction" href="/+exercises">Manage exercises</a>
             </div>
+            <div class="horizontalactions" py:if="'view_worksheet_marks' in permissions">
+              <a class="marksaction" href="${req.publisher.generate(context, None, ('+worksheets', '+marks'))}">View worksheet marks</a>
+            </div>
           </div>
         </py:choose>
       </div>
