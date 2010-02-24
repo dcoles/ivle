@@ -19,6 +19,7 @@
           <span py:if="'user' in errors" class="form_error">${errors.user}.</span>
           <span py:if="'role' in errors" class="form_error">${errors.role}.</span>
           <br />
+          <div class="form_error" py:if="defined('error_value')" py:content="error_value" />
           <input type="submit" value="Enrol" />
         </p>
       </form>

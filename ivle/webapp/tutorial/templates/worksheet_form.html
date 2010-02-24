@@ -19,6 +19,11 @@
           <span py:if="'assessable' in errors" class="form_error">${errors.assessable}</span>
         </div>
         <div>
+          <label for='worksheet_published'>Published:</label>
+          <input type='checkbox' name='published' id='worksheet_published' />
+          <span py:if="'published' in errors" class="form_error">${errors.published}</span>
+        </div>
+        <div>
           <label for='worksheet_format'>Format:</label>
           <select name='format' id='worksheet_format'>
             <py:for each="(display,name) in formats">
@@ -38,6 +43,7 @@
           Any exercises referenced in this worksheet must exist before you can save it.
           <a class="manageaction" href="/+exercises">Manage exercises</a>
         </div>
+        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
         <div class="submit">
           <input type="submit" value="${submit_button_label}" />
         </div>

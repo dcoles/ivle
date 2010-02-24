@@ -325,6 +325,8 @@ class Offering(Storm):
     semester = Reference(semester_id, Semester.id)
     description = Unicode()
     url = Unicode()
+    show_worksheet_marks = Bool()
+    worksheet_cutoff = DateTime()
     groups_student_permissions = Unicode()
 
     enrolments = ReferenceSet(id, 'Enrolment.offering_id')
@@ -436,6 +438,7 @@ class Offering(Storm):
             newws.identifier = worksheet.identifier
             newws.name = worksheet.name
             newws.assessable = worksheet.assessable
+            newws.published = worksheet.published
             newws.data = worksheet.data
             newws.format = worksheet.format
             newws.offering = self
@@ -959,6 +962,7 @@ class Worksheet(Storm):
     identifier = Unicode()
     name = Unicode()
     assessable = Bool()
+    published = Bool()
     data = Unicode()
     seq_no = Int()
     format = Unicode()
@@ -996,14 +1000,20 @@ class Worksheet(Storm):
             WorksheetExercise.worksheet == self).remove()
 
     def get_permissions(self, user, config):
-        # Almost the same permissions as for the offering itself
-        perms = self.offering.get_permissions(user, config)
-        # However, "edit" permission is derived from the "edit_worksheets"
-        # permission of the offering
-        if 'edit_worksheets' in perms:
+        offering_perms = self.offering.get_permissions(user, config)
+
+        perms = set()
+
+        # Anybody who can view an offering can view a published
+        # worksheet.
+        if 'view' in offering_perms and self.published:
+            perms.add('view')
+
+        # Any worksheet editors can both view and edit.
+        if 'edit_worksheets' in offering_perms:
+            perms.add('view')
             perms.add('edit')
-        else:
-            perms.discard('edit')
+
         return perms
 
     def get_xml(self):
@@ -1081,7 +1091,8 @@ class ExerciseSave(Storm):
 
     def __repr__(self):
         return "<%s %s by %s at %s>" % (type(self).__name__,
-            self.exercise.name, self.user.login, self.date.strftime("%c"))
+            self.worksheet_exercise.exercise.name, self.user.login,
+            self.date.strftime("%c"))
 
 class ExerciseAttempt(ExerciseSave):
     """An attempt at solving an exercise.

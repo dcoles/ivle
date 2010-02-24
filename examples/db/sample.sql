@@ -256,12 +256,12 @@ ALTER TABLE login ENABLE TRIGGER ALL;
 
 ALTER TABLE offering DISABLE TRIGGER ALL;
 
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (1, 1, 1, 'This subject will introduce you to the basics of IVLE.', 'http://www.ivle.org/example/101', 'none');
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (2, 2, 2, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge.', 'http://www.ivle.org/example/102', 'none');
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (3, 1, 3, 'This subject will introduce you to the basics of IVLE, again.', 'http://www.ivle.org/example/101', 'none');
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (4, 3, 3, 'This subject will provide you with a working knowledge of advanced IVLE concepts.', 'http://www.ivle.org/example/201', 'none');
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (5, 2, 4, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge, again.', 'http://www.ivle.org/example/102', 'none');
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions) VALUES (6, 4, 4, 'After undertaking this subject, you should be a master of all things IVLEy.', 'http://www.ivle.org/example/202', 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (1, 1, 1, 'This subject will introduce you to the basics of IVLE.', 'http://www.ivle.org/example/101', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (2, 2, 2, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge.', 'http://www.ivle.org/example/102', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (3, 1, 3, 'This subject will introduce you to the basics of IVLE, again.', 'http://www.ivle.org/example/101', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (4, 3, 3, 'This subject will provide you with a working knowledge of advanced IVLE concepts.', 'http://www.ivle.org/example/201', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (5, 2, 4, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge, again.', 'http://www.ivle.org/example/102', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (6, 4, 4, 'After undertaking this subject, you should be a master of all things IVLEy.', 'http://www.ivle.org/example/202', 'none', false, NULL);
 
 
 ALTER TABLE offering ENABLE TRIGGER ALL;
@@ -431,7 +431,7 @@ ALTER TABLE test_suite ENABLE TRIGGER ALL;
 
 ALTER TABLE worksheet DISABLE TRIGGER ALL;
 
-INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, assessable, seq_no, format) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
+INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, assessable, seq_no, format, published) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
 
 Worksheets are reStructuredText (rich text) documents which can present students with information or tutorials, much like a textbook. For example, we might explain that "the ``print`` statement in Python lets you print text to the screen".
 
@@ -446,7 +446,7 @@ Now, the student may try out the above exercise, and submit it as many times as 
 Here is a second exercise. This one involves writing functions, and has multiple parts. The test suite will test each part individually.
 
 .. exercise:: factorial
-', true, 0, 'rst');
+', true, 0, 'rst', true);
 
 
 ALTER TABLE worksheet ENABLE TRIGGER ALL;
@@ -462,8 +462,6 @@ INSERT INTO worksheet_exercise (ws_ex_id, worksheetid, exerciseid, seq_no, activ
 
 
 ALTER TABLE worksheet_exercise ENABLE TRIGGER ALL;
-
---
 
 --
 -- PostgreSQL database dump complete

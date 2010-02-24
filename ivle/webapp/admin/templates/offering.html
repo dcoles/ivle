@@ -90,10 +90,10 @@
         </a>
       </div>
 
-      <div py:if="'edit_worksheets' in permissions or context.worksheets.count() > 0"
+      <div py:if="'edit_worksheets' in permissions or len(worksheets) > 0"
            class="majorsection">
         <h2>Worksheets</h2>
-        <py:choose test="context.worksheets.count()">
+        <py:choose test="len(worksheets)">
           <p py:when="0">
             There are no worksheets for this offering.
             <a class="addaction" href="${req.publisher.generate(context, None, ('+worksheets', '+new'))}">Create one now</a>
@@ -104,6 +104,7 @@
                 <li>
                   <!-- Can't generate a URL directly to the worksheet, since this is a fake worksheet. -->
                   <a href="${req.publisher.generate(context)}/+worksheets/${worksheet.id}">${worksheet.name}</a>
+                  <span py:if="not worksheet.published">(unpublished &mdash; not visible to students)</span>
                   <py:if test="worksheet.assessable">
                     <ul>
                       <li class="${worksheet.complete_class}">
@@ -120,7 +121,7 @@
                   Total exercises completed: ${exercises_done}/${exercises_total} (${exercises_pct}%)
                 </li>
               </ul> 
-              <p>
+              <p py:if="context.show_worksheet_marks">
                 <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
               </p>
             </py:if>
