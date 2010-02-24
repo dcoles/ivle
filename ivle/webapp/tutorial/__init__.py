@@ -92,8 +92,8 @@ class WorksheetView(XHTMLView):
         ctx['config'] = req.config
 
         ctx['show_exercise_stats'] = \
-            'edit_worksheets' in self.context.get_permissions(req.user,
-                                                              req.config)
+            'edit' in self.context.get_permissions(req.user,
+                                                   req.config)
 
         generate_worksheet_data(ctx, req, self.context)
 
@@ -275,7 +275,7 @@ def present_exercise(req, identifier, worksheet=None):
     ex_stream = tmpl.generate(curctx)
     # Store exercise statistics
     if (worksheet is not None and
-        'edit_worksheets' in worksheet.get_permissions(req.user, req.config)):
+        'edit' in worksheet.get_permissions(req.user, req.config)):
         exercise_stats = ivle.worksheet.utils.get_exercise_statistics(
             req.store, worksheet_exercise)
     else:
