@@ -27,7 +27,7 @@
         </li>
       </ul>
       <div class="horizontalactions" py:if="req.user.admin">
-        <a class="addaction" href="/subjects/+new-offering">Create new offering</a>
+        <a class="addaction" href="${req.publisher.generate(context, SubjectOfferingNew)}">Create new offering</a>
         <a class="manageaction" href="/subjects/+manage">Manage subjects and semesters</a>
       </div>
     </div>
