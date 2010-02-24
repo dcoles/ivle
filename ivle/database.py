@@ -325,6 +325,8 @@ class Offering(Storm):
     semester = Reference(semester_id, Semester.id)
     description = Unicode()
     url = Unicode()
+    show_worksheet_marks = Bool()
+    worksheet_cutoff = DateTime()
     groups_student_permissions = Unicode()
 
     enrolments = ReferenceSet(id, 'Enrolment.offering_id')
@@ -435,6 +437,7 @@ class Offering(Storm):
             newws.identifier = worksheet.identifier
             newws.name = worksheet.name
             newws.assessable = worksheet.assessable
+            newws.published = worksheet.published
             newws.data = worksheet.data
             newws.format = worksheet.format
             newws.offering = self
@@ -958,6 +961,7 @@ class Worksheet(Storm):
     identifier = Unicode()
     name = Unicode()
     assessable = Bool()
+    published = Bool()
     data = Unicode()
     seq_no = Int()
     format = Unicode()
