@@ -1,21 +1,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Edit profile - ${user.nick}</title>
+    <title>Edit profile - ${context.nick}</title>
   </head>
   <body>
-    <h1>Edit profile of ${user.nick}</h1>
+    <h1>Edit profile of ${context.nick}</h1>
     <div id="ivle_padding">
       <div class="contextactions">
-        <a py:if="req.user.admin" class="manageaction" href="/~${user.login}/+admin">Administer user</a>
-        <a py:if="user.passhash" class="keyaction" href="/~${user.login}/+changepassword">Change password</a>
-        <a py:if="req.user.admin" class="keyaction" href="/~${user.login}/+resetpassword">Reset password</a>
+        <a py:if="req.user.admin" class="manageaction" href="/~${context.login}/+admin">Administer user</a>
+        <a py:if="context.passhash" class="keyaction" href="/~${context.login}/+changepassword">Change password</a>
+        <a py:if="req.user.admin" class="keyaction" href="/~${context.login}/+resetpassword">Reset password</a>
       </div>
       <p>
-        ${user.fullname} (<b>${user.login}</b><py:if test="user.studentid"> / ${user.studentid}</py:if>)
+        ${context.fullname} (<b>${context.login}</b><py:if test="context.studentid"> / ${context.studentid}</py:if>)
       </p>
     
-      <p py:if="user.admin">Privilege: <strong>IVLE administrator</strong></p>
+      <p py:if="context.admin">Privilege: <strong>IVLE administrator</strong></p>
 
       <form class="verticalform" action="" method="post">
         <div>
@@ -28,19 +28,20 @@
           <input type="text" name="email" id="email" size="40" />
           <span py:if="'email' in errors" class="form_error">${errors.email}</span>
         </div>
-        <p><input type="submit" value="Save Changes" /></p>
+        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
+        <div class="submit"><input type="submit" value="Save" /></div>
       </form>
 
-      <h3 py:if="user.pass_exp or user.acct_exp">Notices</h3>
-      <p py:if="user.pass_exp">
+      <h3 py:if="context.pass_exp or context.acct_exp">Notices</h3>
+      <p py:if="context.pass_exp">
         Your password will expire
-        <span title="${format_datetime(user.pass_exp)}">${format_datetime_short(user.pass_exp)}</span>.
+        <span title="${format_datetime(context.pass_exp)}">${format_datetime_short(context.pass_exp)}</span>.
         You should change it before then to avoid having your account
         disabled.
       </p>
-      <p py:if="user.acct_exp">
+      <p py:if="context.acct_exp">
         Your IVLE account will expire
-        <span title="${format_datetime(user.acct_exp)}">${format_datetime_short(user.acct_exp)}</span>.
+        <span title="${format_datetime(context.acct_exp)}">${format_datetime_short(context.acct_exp)}</span>.
       </p>
     </div>
   </body>

@@ -49,41 +49,32 @@ class UserEditSchema(formencode.Schema):
     email = formencode.validators.Email(not_empty=False,
                                         if_missing=None)
 
-class UserEditView(XHTMLView):
+class UserEditView(BaseFormView):
     """A form to change a user's details."""
     template = 'templates/user-edit.html'
     tab = 'users'
     permission = 'edit'
 
-    def filter(self, stream, ctx):
-        return stream | HTMLFormFiller(data=ctx['data'])
+    @property
+    def validator(self):
+        return UserEditSchema()
+
+    def get_default_data(self, req):
+        return {'nick': self.context.nick,
+                'email': self.context.email
+                }
+
+    def save_object(self, req, data):
+        self.context.nick = data['nick']
+        self.context.email = unicode(data['email']) if data['email'] \
+                             else None
+        return self.context
 
     def populate(self, req, ctx):
-        if req.method == 'POST':
-            data = dict(req.get_fieldstorage())
-            try:
-                validator = UserEditSchema()
-                data = validator.to_python(data, state=req)
-                self.context.nick = data['nick']
-                self.context.email = unicode(data['email']) if data['email'] \
-                                     else None
-                req.store.commit()
-                req.throw_redirect(req.uri)
-            except formencode.Invalid, e:
-                errors = e.unpack_errors()
-        else:
-            data = {'nick': self.context.nick,
-                    'email': self.context.email
-                   }
-            errors = {}
-
+        super(UserEditView, self).populate(req, ctx)
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
-        ctx['req'] = req
-        ctx['user'] = self.context
-        ctx['data'] = data
-        ctx['errors'] = errors
 
 class UserAdminSchema(formencode.Schema):
     admin = formencode.validators.StringBoolean(if_missing=False)
@@ -128,7 +119,6 @@ class UserAdminView(BaseFormView):
         self.context.studentid = data['studentid'] \
                                  if data['studentid'] else None
         return self.context
-
 
     def populate(self, req, ctx):
         super(UserAdminView, self).populate(req, ctx)
