@@ -1080,7 +1080,8 @@ class ExerciseSave(Storm):
 
     def __repr__(self):
         return "<%s %s by %s at %s>" % (type(self).__name__,
-            self.exercise.name, self.user.login, self.date.strftime("%c"))
+            self.worksheet_exercise.exercise.name, self.user.login,
+            self.date.strftime("%c"))
 
 class ExerciseAttempt(ExerciseSave):
     """An attempt at solving an exercise.
