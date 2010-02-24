@@ -1,26 +1,26 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Administer - ${user.nick}</title>
+    <title>Administer - ${context.nick}</title>
   </head>
   <body>
-    <h1>Administer ${user.nick}</h1>
+    <h1>Administer ${context.nick}</h1>
     <div id="ivle_padding">
       <form class="verticalform" action="" method="post">
         <div>
           <label for="field_login">Login:</label>
-          <span id="field_login">${user.login}</span>
+          <span id="field_login">${context.login}</span>
         </div>
         <div>
           <label for="field_unixid">UID:</label>
-          <span id="field_unixid">${user.unixid}</span>
+          <span id="field_unixid">${context.unixid}</span>
         </div>
         <div>
           <label for="field_disabled">Disabled:</label>
-          <input py:if="user.state in (u'enabled', u'disabled')"
+          <input py:if="context.state in (u'enabled', u'disabled')"
               py:attrs="{'disabled': 'disabled'} if disable_admin else {}"
               type="checkbox" name="disabled" id="field_disabled" />
-          <span py:if="user.state not in (u'enabled', u'disabled')">
+          <span py:if="context.state not in (u'enabled', u'disabled')">
             Has not accepted agreement
           </span>
         </div>
@@ -40,7 +40,8 @@
           <input type="text" name="studentid" id="field_studentid" size="40" />
           <span py:if="'studentid' in errors" class="form_error">${errors.studentid}</span>
         </div>
-        <p><input type="submit" value="Save Changes" /></p>
+        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
+        <div class="submit"><input type="submit" value="Save" /></div>
       </form>
     </div>
   </body>

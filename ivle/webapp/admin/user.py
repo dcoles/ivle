@@ -22,6 +22,7 @@ import formencode.validators
 from genshi.filters import HTMLFormFiller
 
 from ivle.webapp import ApplicationRoot
+from ivle.webapp.base.forms import BaseFormView
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.admin.publishing import root_to_user, user_url
@@ -92,7 +93,7 @@ class UserAdminSchema(formencode.Schema):
                                                     if_missing=None
                                                     )
 
-class UserAdminView(XHTMLView):
+class UserAdminView(BaseFormView):
     """A form for admins to change more of a user's details."""
     template = 'templates/user-admin.html'
     tab = 'users'
@@ -101,47 +102,39 @@ class UserAdminView(XHTMLView):
         """Only allow access if the requesting user is an admin."""
         return req.user and req.user.admin
 
-    def filter(self, stream, ctx):
-        return stream | HTMLFormFiller(data=ctx['data'])
+    @property
+    def validator(self):
+        return UserAdminSchema()
+
+    def get_default_data(self, req):
+        return {'admin': self.context.admin,
+                'disabled': self.context.state == u'disabled',
+                'fullname': self.context.fullname,
+                'studentid': self.context.studentid,
+                }
+
+    def save_object(self, req, data):
+        if self.context is req.user:
+            # Admin checkbox is disabled -- assume unchanged
+            data['admin'] = self.context.admin
+            data['disabled'] = self.context.state == u'disabled'
+        else:
+            self.context.admin = data['admin']
+            if self.context.state in (u'enabled', u'disabled'):
+                self.context.state = (u'disabled' if data['disabled']
+                        else u'enabled')
+        self.context.fullname = data['fullname'] \
+                                if data['fullname'] else None
+        self.context.studentid = data['studentid'] \
+                                 if data['studentid'] else None
+        return self.context
+
 
     def populate(self, req, ctx):
-        if req.method == 'POST':
-            data = dict(req.get_fieldstorage())
-            try:
-                validator = UserAdminSchema()
-                data = validator.to_python(data, state=req)
+        super(UserAdminView, self).populate(req, ctx)
 
-                if self.context is req.user:
-                    # Admin checkbox is disabled -- assume unchanged
-                    data['admin'] = self.context.admin
-                    data['disabled'] = self.context.state == u'disabled'
-                else:
-                    self.context.admin = data['admin']
-                    if self.context.state in (u'enabled', u'disabled'):
-                        self.context.state = (u'disabled' if data['disabled']
-                                else u'enabled')
-                self.context.fullname = data['fullname'] \
-                                        if data['fullname'] else None
-                self.context.studentid = data['studentid'] \
-                                         if data['studentid'] else None
-                req.store.commit()
-                req.throw_redirect(req.uri)
-            except formencode.Invalid, e:
-                errors = e.unpack_errors()
-        else:
-            data = {'admin': self.context.admin,
-                    'disabled': self.context.state == u'disabled',
-                    'fullname': self.context.fullname,
-                    'studentid': self.context.studentid,
-                   }
-            errors = {}
-
-        ctx['req'] = req
-        ctx['user'] = self.context
-        # Disable the Admin checkbox if editing oneself
+        # Disable the admin checkbox if editing oneself
         ctx['disable_admin'] = self.context is req.user
-        ctx['data'] = data
-        ctx['errors'] = errors
 
 class PasswordChangeView(XHTMLView):
     """A form to change a user's password, with knowledge of the old one."""
