@@ -64,6 +64,8 @@ CREATE TABLE offering (
     semesterid  INTEGER REFERENCES semester (semesterid) NOT NULL,
     description VARCHAR,
     url         VARCHAR,
+    show_worksheet_marks BOOLEAN NOT NULL DEFAULT false,
+    worksheet_cutoff TIMESTAMP,
     groups_student_permissions  VARCHAR NOT NULL DEFAULT 'none',
     CHECK (groups_student_permissions in ('none', 'invite', 'create')),
     UNIQUE (subject, semesterid)
@@ -227,6 +229,7 @@ CREATE TABLE worksheet (
     name        TEXT NOT NULL,
     data        TEXT NOT NULL,
     assessable  BOOLEAN NOT NULL,
+    published   BOOLEAN NOT NULL DEFAULT true,
     seq_no      INT4 NOT NULL,
     format      TEXT NOT NUll,
     UNIQUE (offeringid, identifier)
