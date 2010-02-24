@@ -6,6 +6,8 @@
   <body>
     <h1>Worksheet marks for ${context.subject.name}</h1>
     <div id="ivle_padding">
+    <p class="form_error" py:if="error" py:content="error" />
+    <p py:if="cutoff">Showing marks calculated as of ${cutoff}.</p>
     </div>
   </body>
 </html>

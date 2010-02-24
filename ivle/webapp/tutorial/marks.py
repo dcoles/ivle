@@ -22,6 +22,8 @@
 Displays students' worksheet marks to users with sufficient privileges.
 """
 
+import datetime
+
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.media import media_url
 
@@ -32,4 +34,20 @@ class WorksheetsMarksView(XHTMLView):
     tab = 'subjects'
 
     def populate(self, req, ctx):
+        error = None
         ctx['context'] = self.context
+
+        # User may supply a "cutoff date" to calculate marks as of that date
+        # Default to current time
+        cutoff = datetime.datetime.now()
+        data = dict(req.get_fieldstorage())
+        if data.get('cutoff') is not None:
+            try:
+                cutoff = datetime.datetime.strptime(data.get('cutoff'),
+                                                    "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                error = (
+                    "Invalid date format: '%s' (must be YYYY-MM-DD H:M:S)."
+                        % data.get('cutoff'))
+        ctx['cutoff'] = datetime.datetime.strftime(cutoff,"%Y-%m-%d %H:%M:%S")
+        ctx['error'] = error
