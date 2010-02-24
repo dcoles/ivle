@@ -159,9 +159,9 @@ def csv_get_userdata(user):
     will be part of the output for this user.
     (This is not marks, it's other user data).
     """
-    last_login = ("N/A" if user.last_login is None else
+    last_login = ("" if user.last_login is None else
                     user.last_login.strftime("%Y-%m-%d"))
-    return [user.studentid or "N/A", user.login, user.fullname, last_login]
+    return [user.studentid or "", user.login, user.fullname, last_login]
 
 csv_userdata_header = ["Student ID", "Login", "Full name", "Last login"]
 def csv_get_header(worksheets):
