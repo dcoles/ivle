@@ -620,6 +620,9 @@ class EnrolView(XHTMLView):
         ctx['offering'] = self.context
         ctx['roles_auth'] = self.context.get_permissions(req.user, req.config)
         ctx['errors'] = errors
+        # If all of the fields validated, set the global form error.
+        if isinstance(errors, basestring):
+            ctx['error_value'] = errors
 
 
 class EnrolmentEditSchema(formencode.Schema):
