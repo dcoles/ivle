@@ -65,6 +65,7 @@ from ivle.webapp.tutorial.breadcrumbs import (ExerciseBreadcrumb,
             WorksheetBreadcrumb)
 from ivle.webapp.tutorial.media import (SubjectMediaFile, SubjectMediaView,
     subject_to_media)
+from ivle.webapp.tutorial.marks import (WorksheetsMarksView)
 
 
 class WorksheetView(XHTMLView):
@@ -572,6 +573,7 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
+             (Offering, ('+worksheets', '+marks'), WorksheetsMarksView),
              (Worksheet, '+index', WorksheetView),
              (Worksheet, '+edit', WorksheetEditView),
              (ApplicationRoot, ('+exercises', '+index'), ExercisesView),
