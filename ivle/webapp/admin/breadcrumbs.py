@@ -37,7 +37,13 @@ class UserBreadcrumb(object):
 
     @property
     def text(self):
-        return self.context.nick
+        perms = self.context.get_permissions(self.req.user, self.req.config)
+        # Show nickname iff current user has permission to view this user
+        # (Else, show just the login name)
+        if 'view' in perms:
+            return self.context.nick
+        else:
+            return self.context.login
 
     @property
     def extra_breadcrumbs_before(self):
