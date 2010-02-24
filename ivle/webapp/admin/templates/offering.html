@@ -120,7 +120,7 @@
                   Total exercises completed: ${exercises_done}/${exercises_total} (${exercises_pct}%)
                 </li>
               </ul> 
-              <p>
+              <p py:if="context.show_worksheet_marks">
                 <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
               </p>
             </py:if>
