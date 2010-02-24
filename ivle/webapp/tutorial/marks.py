@@ -49,5 +49,5 @@ class WorksheetsMarksView(XHTMLView):
                 error = (
                     "Invalid date format: '%s' (must be YYYY-MM-DD H:M:S)."
                         % data.get('cutoff'))
-        ctx['cutoff'] = datetime.datetime.strftime(cutoff,"%Y-%m-%d %H:%M:%S")
+        ctx['cutoff'] = cutoff
         ctx['error'] = error
