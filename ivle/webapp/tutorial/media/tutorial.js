@@ -344,6 +344,15 @@ function handle_testresponse(exercisediv, exerciseid, testresponse)
             + exerciseid);
         toc_li.setAttribute("class",
             (testresponse.completed ? "complete" : "incomplete"));
+        /* If it is a table row, also set the image */
+        if (toc_li.tagName.toLowerCase() == "tr")
+        {
+            toc_li_img = toc_li.getElementsByTagName("img")[0];
+            toc_li_img.setAttribute("src", "/+media/ivle.webapp.tutorial/"
+                + "images/tiny/"
+                + (testresponse.completed ? "complete" : "incomplete")
+                + ".png");
+        }
         summaryli.setAttribute("class",
             (testresponse.completed ? "complete" : "incomplete"));
         summarycomplete.removeChild(summarycomplete.lastChild);

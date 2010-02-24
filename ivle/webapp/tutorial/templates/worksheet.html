@@ -20,6 +20,27 @@
       <!-- Display the Table Of Contents -->
       <div id="tutorial-toc">
         <h2>Contents</h2>
+        <py:if test="show_exercise_stats">
+        <table class="pretty_table">
+          <tr><th></th><th>Exercise</th><th># completed</th>
+              <th># attempted</th><th>% complete</th>
+          </tr>
+          <py:for each="exercise in exercises">
+            <tr class="${exercise['complete']}" id="toc_li_${exercise['exid']}">
+              <td><img
+              src="/+media/ivle.webapp.tutorial/images/tiny/${'complete' if exercise['complete'] == 'complete' else 'incomplete'}.png" /></td>
+              <td><a href="#${exercise['exid']}">${exercise.name}</a></td>
+              <td py:content="exercise.stats[0]" />
+              <td py:content="exercise.stats[1]" />
+              <td py:if="exercise.stats[1] > 0">${int((100.0 * exercise.stats[0]) / exercise.stats[1])}%</td>
+              <td py:if="exercise.stats[1] == 0">N/A</td>
+            </tr>
+          </py:for>
+        </table>
+        <p>Note: The above statistics show the completion and attempt rate on
+        each exercise, for all students enrolled in the subject.</p>
+        </py:if>
+        <py:if test="not show_exercise_stats">
         <ul>
           <py:for each="exercise in exercises">
             <li class="${exercise['complete']}" id="toc_li_${exercise['exid']}">
@@ -29,6 +50,7 @@
             </li>
           </py:for>
         </ul>
+        </py:if>
       </div>
       ${worksheetstream}
     </div>

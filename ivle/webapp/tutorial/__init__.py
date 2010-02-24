@@ -91,6 +91,10 @@ class WorksheetView(XHTMLView):
         ctx['user'] = req.user
         ctx['config'] = req.config
 
+        ctx['show_exercise_stats'] = \
+            'edit_worksheets' in self.context.get_permissions(req.user,
+                                                              req.config)
+
         generate_worksheet_data(ctx, req, self.context)
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
@@ -269,10 +273,18 @@ def present_exercise(req, identifier, worksheet=None):
     tmpl = loader.load(os.path.join(os.path.dirname(__file__),
         "templates/exercise_fragment.html"))
     ex_stream = tmpl.generate(curctx)
+    # Store exercise statistics
+    if (worksheet is not None and
+        'edit_worksheets' in worksheet.get_permissions(req.user, req.config)):
+        exercise_stats = ivle.worksheet.utils.get_exercise_statistics(
+            req.store, worksheet_exercise)
+    else:
+        exercise_stats = None
     return {'name': exercise.name,
             'complete': curctx['complete_class'],
             'stream': ex_stream,
-            'exid': exercise.id}
+            'exid': exercise.id,
+            'stats': exercise_stats}
 
 
 # The first element is the default format
