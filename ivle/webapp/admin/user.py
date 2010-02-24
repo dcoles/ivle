@@ -22,14 +22,11 @@ import formencode.validators
 from genshi.filters import HTMLFormFiller
 
 from ivle.webapp import ApplicationRoot
-from ivle.webapp.base.rest import JSONRESTView, require_permission
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.admin.publishing import root_to_user, user_url
 from ivle.database import User
-import ivle.database
 import ivle.date
-import ivle.util
 
 
 class UsersView(XHTMLView):
@@ -45,31 +42,6 @@ class UsersView(XHTMLView):
         ctx['req'] = req
         ctx['users'] = req.store.find(User).order_by(User.login)
 
-
-# List of fields returned as part of the user JSON dictionary
-# (as returned by the get_user action)
-user_fields_list = (
-    "login", "state", "unixid", "email", "nick", "fullname",
-    "admin", "studentid", "acct_exp", "pass_exp", "last_login",
-    "svn_pass"
-)
-
-class UserRESTView(JSONRESTView):
-    """
-    A REST interface to the user object.
-    """
-
-    @require_permission('view')
-    def GET(self, req):
-        # XXX Check Caps
-        user = ivle.util.object_to_dict(user_fields_list, self.context)
-        # Convert time stamps to nice strings
-        for k in 'pass_exp', 'acct_exp', 'last_login':
-            if user[k] is not None:
-                user[k] = unicode(user[k])
-
-        user['local_password'] = self.context.passhash is not None
-        return user
 
 class UserEditSchema(formencode.Schema):
     nick = formencode.validators.UnicodeString(not_empty=True)
@@ -238,11 +210,10 @@ class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_user,)
     reverse_routes = (user_url,)
     views = [(ApplicationRoot, 'users', UsersView),
-             (ivle.database.User, '+index', UserEditView),
-             (ivle.database.User, '+admin', UserAdminView),
-             (ivle.database.User, '+changepassword', PasswordChangeView),
-             (ivle.database.User, '+resetpassword', PasswordResetView),
-             (ivle.database.User, '+index', UserRESTView, 'api'),
+             (User, '+index', UserEditView),
+             (User, '+admin', UserAdminView),
+             (User, '+changepassword', PasswordChangeView),
+             (User, '+resetpassword', PasswordResetView),
              ]
 
     tabs = [
