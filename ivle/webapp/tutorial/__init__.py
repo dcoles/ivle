@@ -366,6 +366,9 @@ class WorksheetFormView(XHTMLView):
                 errors = {'data': 'Could not parse XML: %s' % e.message}
             except ivle.worksheet.utils.ExerciseNotFound, e:
                 errors = {'data': 'Could not find exercise "%s"' % e.message}
+            except docutils.utils.SystemMessage, e:
+                errors = {'data': 'Could not parse reStructuredText: %s'%(
+                        e.message)}
         else:
             data = self.get_default_data(req)
             errors = {}
