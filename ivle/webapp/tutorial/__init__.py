@@ -572,8 +572,9 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     views = [(Offering, ('+worksheets', '+new'), WorksheetAddView),
              (Offering, ('+worksheets', '+edit'), WorksheetsEditView),
-             (Offering, ('+worksheets', '+marks'), WorksheetsMarksView),
-             (Offering, ('+worksheets', '+marks.csv'),
+             (Offering, ('+worksheets', '+marks', '+index'),
+              WorksheetsMarksView),
+             (Offering, ('+worksheets', '+marks', 'marks.csv'),
               WorksheetsMarksCSVView),
              (Worksheet, '+index', WorksheetView),
              (Worksheet, '+edit', WorksheetEditView),
