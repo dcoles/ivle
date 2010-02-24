@@ -258,6 +258,22 @@ existing ``factorial`` exercise.
 If you are game enough, create a new worksheet from scratch. If you are
 *really* game, create a new exercise for your worksheet.
 
+Viewing worksheet marks
+-----------------------
+
+You will probably have already noticed that the lecturer's worksheet view is
+not quite like the student's. It has a table at the top which shows some
+statistics about how students in this subject are going with each exercise.
+(Depending on settings, tutors may also be able to access these stats.)
+
+Lecturers (not tutors) can also get more specific feedback on individual
+students by selecting "View worksheet marks" at the bottom of the subject
+page. This shows the marks in each worksheet, and in the subject overall, for
+each student, and can be used to calculate each student's final grade.
+
+The "Download as CSV file" link provides these same statistics in CSV format,
+which can be easily parsed.
+
 An administrator's view
 =======================
 
