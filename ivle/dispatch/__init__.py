@@ -126,18 +126,8 @@ def handler(apachereq):
     # Make the request object into an IVLE request which can be given to views
     req = Request(apachereq, config)
 
-    # Hack? Try and get the user login early just in case we throw an error
-    # (most likely 404) to stop us seeing not logged in even when we are.
-    if not req.publicmode:
-        user = ivle.webapp.security.get_user_details(req)
-
-        # Don't set the user if it is disabled or hasn't accepted the ToS.
-        if user and user.valid:
-            req.user = user
-
     req.publisher = generate_publisher(
-        config.plugin_index[ViewPlugin],
-        ApplicationRoot(req.config, req.store, req.user),
+        config.plugin_index[ViewPlugin], ApplicationRoot(req),
         publicmode=req.publicmode)
 
     try:
@@ -201,7 +191,8 @@ def handler(apachereq):
             handle_unknown_exception(req, *sys.exc_info())
             return req.OK
         else:
-            req.store.commit()
+            # Commit the transaction if we have a store open.
+            req.commit()
             return req.OK
     except Unauthorized, e:
         # Resolution failed due to a permission check. Display a pretty
@@ -219,7 +210,8 @@ def handler(apachereq):
 
         return req.OK
     finally:
-        req.store.close()
+        # Make sure we close the store.
+        req.cleanup()
 
 def handle_unknown_exception(req, exc_type, exc_value, exc_traceback):
     """
