@@ -94,7 +94,8 @@ class MediaFile(object):
             return os.path.join(plugindir, mediadir, self.path)
 
 class MediaFileView(BaseView):
-    permission = None
+    def authorize(self, req):
+        return True
 
     def render(self, req):
         # If it begins with ".." or separator, it's illegal. Die.
@@ -129,9 +130,6 @@ class MediaFileView(BaseView):
 
     def get_filename(self, req):
         return self.context.filename
-
-    def get_permissions(self, user, config):
-        return set()
 
 def root_to_media(root, *segments):
     if segments[0].startswith('+'):
