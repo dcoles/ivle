@@ -301,6 +301,7 @@ class OfferingView(XHTMLView):
         ctx['OfferingCloneWorksheets'] = OfferingCloneWorksheets
         ctx['GroupsView'] = GroupsView
         ctx['EnrolmentsView'] = EnrolmentsView
+        ctx['Project'] = ivle.database.Project
 
         # As we go, calculate the total score for this subject
         # (Assessable worksheets only, mandatory problems only)

@@ -38,7 +38,7 @@
           </p>
           <py:otherwise>
             <ul class="paddedlist">
-              <li py:for="project in context.projects"
+              <li py:for="project in context.projects.order_by(Project.deadline)"
                   py:attrs="{'class': 'project closed'}
                             if project.has_deadline_passed(req.user)
                             else {'class': 'project'}"
