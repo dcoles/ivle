@@ -48,7 +48,7 @@ class WorksheetsMarksView(XHTMLView):
 
         # User may supply a "cutoff date" to calculate marks as of that date
         # Default to current time
-        cutoff = datetime.datetime.now()
+        cutoff = offering.worksheet_cutoff or datetime.datetime.now()
         data = dict(req.get_fieldstorage())
         if data.get('cutoff') is not None:
             try:
@@ -91,7 +91,7 @@ class WorksheetsMarksCSVView(BaseView):
 
         # User may supply a "cutoff date" to calculate marks as of that date
         # Default to current time
-        cutoff = datetime.datetime.now()
+        cutoff = offering.worksheet_cutoff or datetime.datetime.now()
         data = dict(req.get_fieldstorage())
         if data.get('cutoff') is not None:
             try:
