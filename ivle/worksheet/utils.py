@@ -258,7 +258,7 @@ def update_exerciselist(worksheet):
     exercises = []
     # Turns the worksheet into an xml stream, and then finds all the 
     # exercise nodes in the stream.
-    worksheetdata = genshi.XML(worksheet.get_xml())
+    worksheetdata = genshi.XML(worksheet.data_xhtml)
     for kind, data, pos in worksheetdata:
         if kind is genshi.core.START:
             # Data is a tuple of tag name and a list of name->value tuples

@@ -60,7 +60,7 @@ class ExercisesRESTView(JSONRESTView):
         new_exercise = Exercise()
         new_exercise.id = unicode(identifier)
         new_exercise.name = unicode(name)
-        new_exercise.description = unicode(description)
+        new_exercise.set_description(unicode(description))
         new_exercise.partial = unicode(partial)
         new_exercise.solution = unicode(solution)
         new_exercise.include = unicode(include)
@@ -80,7 +80,7 @@ class ExerciseRESTView(JSONRESTView):
                       solution, include, num_rows):
         
         self.context.name = unicode(name)
-        self.context.description = unicode(description)
+        self.context.set_description(unicode(description))
         self.context.partial = unicode(partial)
         self.context.solution = unicode(solution)
         self.context.include = unicode(include)

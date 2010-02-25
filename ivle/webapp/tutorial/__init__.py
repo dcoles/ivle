@@ -49,7 +49,6 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import media_url
 from ivle.webapp.errors import NotFound
-from ivle.worksheet.rst import rst as rstfunc
 
 from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
             WorksheetExerciseRESTView, WorksheetsRESTView)
@@ -87,7 +86,7 @@ class WorksheetView(XHTMLView):
         ctx['semester'] = self.context.offering.semester.semester
         ctx['year'] = self.context.offering.semester.year
 
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data_xhtml)))
         ctx['user'] = req.user
         ctx['config'] = req.config
 
@@ -237,12 +236,14 @@ def present_exercise(req, loader, identifier, worksheet=None):
     curctx['exercise'] = exercise
     curctx['description'] = None
     curctx['error'] = None
-    if exercise.description is not None:
-        try:
-            desc = rstfunc(exercise.description)
-            curctx['description'] = genshi.XML(desc)
-        except docutils.utils.SystemMessage, e:
-            curctx['error'] = "Error processing reStructuredText: '%s'"%str(e)
+    try:
+        desc_xhtml = exercise.description_xhtml
+        if desc_xhtml:
+            curctx['description'] = genshi.XML(desc_xhtml)
+        else:
+            curctx['description'] = None
+    except docutils.utils.SystemMessage, e:
+        curctx['error'] = "Error processing reStructuredText: '%s'" % str(e)
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
@@ -403,7 +404,7 @@ class WorksheetAddView(WorksheetFormView):
         new_worksheet.name = data['name']
         new_worksheet.assessable = data['assessable']
         new_worksheet.published = data['published']
-        new_worksheet.data = data['data']
+        new_worksheet.set_data(data['data'])
         new_worksheet.format = data['format']
 
         req.store.add(new_worksheet)
@@ -438,7 +439,7 @@ class WorksheetEditView(WorksheetFormView):
         self.context.name = data['name']
         self.context.assessable = data['assessable']
         self.context.published = data['published']
-        self.context.data = data['data']
+        self.context.set_data(data['data'])
         self.context.format = data['format']
 
         return self.context
