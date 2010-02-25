@@ -766,12 +766,12 @@ class ProjectUniquenessValidator(formencode.FancyValidator):
     hold that short_name. If any other project holds it, the input is rejected.
     """
     def _to_python(self, value, state):
-        # TODO: Allow short_name to be equal to existing_project
-        if state.store.find(
+        if (state.store.find(
             Project,
             Project.short_name == unicode(value),
             Project.project_set_id == ProjectSet.id,
-            ProjectSet.offering == state.offering).one():
+            ProjectSet.offering == state.offering).one() not in
+            (None, state.existing_project)):
             raise formencode.Invalid(
                 "A project with that URL name already exists in this offering."
                 , value, state)
