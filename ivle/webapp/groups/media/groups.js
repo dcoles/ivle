@@ -91,12 +91,12 @@ function list_projectgroup_contents(offeringid, groupid, elemnm)
             var member = groupmembers[i];
 
             var li = dom_make_text_elem("li", member.fullname + " (" +
-                                              member.login + ")");
+                                              member.login + ") ");
             var rmbutton = document.createElement("input");
             rmbutton.value = "Remove";
             rmbutton.type = "image";
             /* XXX: There must be a better way to do this! */
-            rmbutton.src = "/+media/ivle.webapp.groups/cross.png";
+            rmbutton.src = "/+media/ivle.webapp.core/images/interface/delete.png";
 
             $(rmbutton).click(function(offeringid, login, groupid, elemnm)
             {
