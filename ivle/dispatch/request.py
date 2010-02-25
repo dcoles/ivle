@@ -29,6 +29,7 @@ try:
     import mod_python.Session
     import mod_python.Cookie
     import mod_python.util
+    import mod_python.apache
 except ImportError:
     # This needs to be importable from outside Apache.
     pass
@@ -39,6 +40,22 @@ import ivle.util
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
 import ivle.webapp.security
+
+
+class PotentiallySecureFileSession(mod_python.Session.FileSession):
+    """A mod_python FileSession that sets secure cookie when appropriate.
+
+    A secure cookie will be set if the request itself is over HTTPS, or if
+    a proxy in front has set X-Forwarded-Proto: https. Otherwise the cookie
+    will be insecure.
+    """
+    def make_cookie(self):
+        cookie = super(PotentiallySecureFileSession, self).make_cookie()
+        if (self._req.is_https() or
+            self._req.headers_in.get('X-Forwarded-Proto') == 'https'):
+            cookie.secure = True
+        return cookie
+
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -255,8 +272,8 @@ class Request:
         """
         # Cache the session object and set the timeout to 24 hours.
         if not hasattr(self, 'session'):
-            self.session = mod_python.Session.FileSession(self.apache_req,
-                                               timeout = 60 * 60 * 24)
+            self.session = PotentiallySecureFileSession(
+                self.apache_req, timeout = 60 * 60 * 24)
         return self.session
 
     def get_fieldstorage(self):
