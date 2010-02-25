@@ -45,6 +45,6 @@ class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the group admin plugin.
     """
-    views = [(ProjectSet, '+groups', GroupsView)]
+    views = [(ProjectSet, '+index', GroupsView)]
 
     media = 'media'
