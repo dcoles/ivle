@@ -814,7 +814,7 @@ class ProjectNew(BaseFormView):
         new_project.name = data['name']
         new_project.short_name = data['short_name']
         new_project.deadline = data['deadline']
-        new_project.url = data['url']
+        new_project.url = unicode(data['url']) if data['url'] else None
         new_project.synopsis = data['synopsis']
         req.store.add(new_project)
         return new_project
