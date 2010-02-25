@@ -43,6 +43,7 @@
           <label for="deadline">Worksheets cutoff:</label>
           <input type="text" id="worksheet_cutoff" name="worksheet_cutoff" title="Timestamp in YYYY-MM-DD HH:MM:SS format" />
           <span py:if="'worksheet_cutoff' in errors" class="form_error">${errors.worksheet_cutoff}</span>
+          <span py:if="'worksheet_cutoff' not in errors">Leave blank to allow worksheet submissions to be counted indefinitely.</span>
         </div>
         <div>
           <label for="show_worksheet_marks">Show worksheet marks:</label>
