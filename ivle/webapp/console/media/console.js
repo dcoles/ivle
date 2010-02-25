@@ -108,6 +108,9 @@ function start_server(callback)
             }
         }
 
+    $("#console_output").append(
+        '<span class="console_message">IVLE console starting up...</span>\n');
+    console_maximize(true);
     ajax_call(
         callback1, "console", "service",
         {"ivle.op": "start", "cwd": get_console_start_directory()}, 
@@ -122,8 +125,6 @@ function start_server_early()
 {
     var inputbox = document.getElementById("console_inputText");
     inputbox.setAttribute("disabled", "disabled");
-    $("#console_output").append(
-        '<span class="console_message">IVLE console starting up...</span>\n');
     var callback = function(xhr)
     {
         inputbox.removeAttribute("disabled")
@@ -164,10 +165,10 @@ function console_minimize()
 
 /** Show the main console panel, so it enlarges out to its full size.
  */
-function console_maximize()
+function console_maximize(do_not_start)
 {
     if (!windowpane_mode) return;
-    if (!server_started) start_server_early();
+    if (!do_not_start && !server_started) start_server_early();
     console_body.setAttribute("class", "console_body windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
 }
@@ -294,6 +295,9 @@ function console_enter_line(inputbox, which)
 {
     interrupted = false;
 
+    // Open up the console so we can see the output
+    console_maximize();
+
     if (typeof(inputbox) == "string")
     {
         var inputline = inputbox + "\n";
@@ -373,7 +377,8 @@ function console_response(inputbox, inputline, responseText)
 
         // Print a reason to explain why we'd do such a horrible thing
         // (console timeout, server error etc.)
-        print_error("Console Restart: " + res.restart);
+        print_error(
+            "IVLE console restarted: " + res.restart, "console_message");
         
         // set the prompt to >>>
         set_prompt(">>>");
@@ -408,7 +413,6 @@ function console_response(inputbox, inputline, responseText)
         ajax_call(callback, "console", "service", args, "POST");
 
         // Open up the console so we can see the output
-        // FIXME: do we need to maximize here?
         console_maximize();
 
         /* Auto-scrolling */
@@ -434,8 +438,6 @@ function console_response(inputbox, inputline, responseText)
         interrupted = false;
     }
 
-    /* Open up the console so we can see the output */
-    console_maximize();
     /* Auto-scrolling */
     divScroll.activeScroll();
 
@@ -531,13 +533,16 @@ function console_reset()
 }
 
 /** Prints an error line in the console **/
-function print_error(error)
+function print_error(error, class)
 { 
+    if (!class)
+        class = "errorMsg";
+
     var output = document.getElementById("console_output");
   
     // Create text block
     var span = document.createElement("span");
-    span.setAttribute("class", "errorMsg");
+    span.setAttribute("class", class);
     span.appendChild(document.createTextNode(error + "\n"));
     output.appendChild(span);
 
