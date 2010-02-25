@@ -429,6 +429,15 @@ class Offering(Storm):
         # XXX: Respect extensions.
         return self.projects.find(Project.deadline > datetime.datetime.now())
 
+    def has_worksheet_cutoff_passed(self, user):
+        """Check whether the worksheet cutoff has passed.
+        A user is required, in case we support extensions.
+        """
+        if self.worksheet_cutoff is None:
+            return False
+        else:
+            return self.worksheet_cutoff < datetime.datetime.now()
+
     def clone_worksheets(self, source):
         """Clone all worksheets from the specified source to this offering."""
         import ivle.worksheet.utils

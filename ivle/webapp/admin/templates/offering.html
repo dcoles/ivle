@@ -125,6 +125,15 @@
                 <span style="font-weight: bold;">Mark:</span> ${worksheet_mark}/${worksheet_max_mark}
               </p>
             </py:if>
+            <span py:if="context.worksheet_cutoff is not None"
+              title="${'Closed' if context.has_worksheet_cutoff_passed(req.user) else 'Due'}: ${format_datetime(context.worksheet_cutoff)}">
+              Worksheet submissions ${'closed' if context.has_worksheet_cutoff_passed(req.user) else 'are due'} ${format_datetime_short(context.worksheet_cutoff)}.
+              <br />
+              <py:choose test="context.has_worksheet_cutoff_passed(req.user)">
+              <py:when test="True">You can still submit, but it will not count towards your mark.</py:when>
+              <py:when test="False">After this time, you can still submit, but it will not count towards your mark.</py:when>
+              </py:choose>
+            </span>
             <div class="horizontalactions" py:if="'edit_worksheets' in permissions">
               <a class="manageaction" href="${req.publisher.generate(context, None, ('+worksheets', '+edit'))}"> Manage worksheets</a>
               <a class="manageaction" href="/+exercises">Manage exercises</a>
