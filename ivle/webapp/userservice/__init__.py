@@ -333,6 +333,8 @@ def handle_create_group(req, fields):
     projectset = req.store.get(ivle.database.ProjectSet, projectsetid)
     if projectset is None:
         raise BadRequest("Invalid projectsetid")
+    if not projectset.is_group:
+        raise BadRequest("Not a group project set")
     if 'admin_groups' not in projectset.offering.get_permissions(
         req.user, req.config):
         raise Unauthorized()
