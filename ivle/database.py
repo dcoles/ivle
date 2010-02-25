@@ -940,7 +940,10 @@ class Exercise(Storm):
     @property
     def description_xhtml(self):
         """The XHTML exercise description, converted from reStructuredText."""
-        return rst(self.description)
+        if self.description:
+            return rst(self.description)
+        else:
+            return None
 
     def delete(self):
         """Deletes the exercise, providing it has no associated worksheets."""

@@ -237,7 +237,11 @@ def present_exercise(req, loader, identifier, worksheet=None):
     curctx['description'] = None
     curctx['error'] = None
     try:
-        curctx['description'] = genshi.XML(exercise.description_xhtml)
+        desc_xhtml = exercise.description_xhtml
+        if desc_xhtml:
+            curctx['description'] = genshi.XML(desc_xhtml)
+        else:
+            curctx['description'] = None
     except docutils.utils.SystemMessage, e:
         curctx['error'] = "Error processing reStructuredText: '%s'" % str(e)
 
