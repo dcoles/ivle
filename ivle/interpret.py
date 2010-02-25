@@ -73,7 +73,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     # (Note that paths "relative" to the jail actually begin with a '/' as
     # they are absolute in the jailspace)
 
-    return interpreter(owner.unixid, jail_dir, working_dir, filename_abs, req,
+    return interpreter(owner, jail_dir, working_dir, filename_abs, req,
                        gentle)
 
 class CGIFlags:
@@ -88,12 +88,12 @@ class CGIFlags:
         self.linebuf = ""
         self.headers = {}       # Header names : values
 
-def execute_cgi(interpreter, uid, jail_dir, working_dir, script_path,
+def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
                 req, gentle):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
-    uid: User ID of the owner of the file.
+    owner: User object of the owner of the file.
     jail_dir: Absolute path of owner's jail directory.
     working_dir: Directory containing the script file relative to owner's
         jail.
@@ -136,13 +136,14 @@ def execute_cgi(interpreter, uid, jail_dir, working_dir, script_path,
         del os.environ[k]
     for (k,v) in req.get_cgi_environ().items():
         os.environ[k] = v
-    fixup_environ(req, script_path)
+    fixup_environ(req, script_path, owner)
 
     # usage: tramp uid jail_dir working_dir script_path
-    cmd_line = [trampoline, str(uid), req.config['paths']['jails']['mounts'],
-         req.config['paths']['jails']['src'],
-         req.config['paths']['jails']['template'],
-         jail_dir, working_dir, interpreter, script_path]
+    cmd_line = [trampoline, str(owner.unixid),
+            req.config['paths']['jails']['mounts'],
+            req.config['paths']['jails']['src'],
+            req.config['paths']['jails']['template'],
+            jail_dir, working_dir, interpreter, script_path]
     # Popen doesn't like unicode strings. It hateses them.
     cmd_line = [(s.encode('utf-8') if isinstance(s, unicode) else s)
                 for s in cmd_line]
@@ -361,7 +362,7 @@ interpreter_objects = {
     # python-server-page
 }
 
-def fixup_environ(req, script_path):
+def fixup_environ(req, script_path, user):
     """Assuming os.environ has been written with the CGI variables from
     apache, make a few changes for security and correctness.
 
@@ -418,7 +419,7 @@ def fixup_environ(req, script_path):
     env['SERVER_SOFTWARE'] = "IVLE/" + ivle.__version__
 
     # Additional environment variables
-    username = split_path(req.path)[0]
+    username = user.login
     env['HOME'] = os.path.join('/home', username)
 
 class ExecutionError(Exception):
