@@ -95,7 +95,7 @@ class WorksheetView(XHTMLView):
             'edit' in self.context.get_permissions(req.user,
                                                    req.config)
 
-        generate_worksheet_data(ctx, req, self.context)
+        generate_worksheet_data(ctx, req, self._loader, self.context)
 
         ctx['worksheetstream'] = add_exercises(ctx['worksheetstream'], ctx, req)
 
@@ -154,7 +154,7 @@ def add_exercises(stream, ctx, req):
 
 # This function runs through the worksheet, to get data on the exercises to
 # build a Table of Contents, as well as fill in details in ctx
-def generate_worksheet_data(ctx, req, worksheet):
+def generate_worksheet_data(ctx, req, loader, worksheet):
     """Runs through the worksheetstream, generating the exericises"""
     ctx['exercises'] = []
     ctx['exerciselist'] = []
@@ -170,7 +170,8 @@ def generate_worksheet_data(ctx, req, worksheet):
                         optional = attr[1] == 'true'
                 # Each item in toc is of type (name, complete, stream)
                 if src != "":
-                    ctx['exercises'].append(present_exercise(req, src, worksheet))
+                    ctx['exercises'].append(
+                        present_exercise(req, loader, src, worksheet))
                     ctx['exerciselist'].append((src, optional))
             elif data[0] == 'worksheet':
                 ctx['worksheetname'] = 'bob'
@@ -201,7 +202,7 @@ def getTextData(element):
 
     return data.strip()
 
-def present_exercise(req, identifier, worksheet=None):
+def present_exercise(req, loader, identifier, worksheet=None):
     """Render an HTML representation of an exercise.
 
     identifier: The exercise identifier (URL name).
@@ -269,7 +270,6 @@ def present_exercise(req, identifier, worksheet=None):
 
     #Save the exercise details to the Table of Contents
 
-    loader = genshi.template.TemplateLoader(".", auto_reload=True)
     tmpl = loader.load(os.path.join(os.path.dirname(__file__),
         "templates/exercise_fragment.html"))
     ex_stream = tmpl.generate(curctx)
@@ -481,7 +481,7 @@ class ExerciseView(XHTMLView):
         ctx['mediapath'] = media_url(req, Plugin, 'images/')
         ctx['exercise'] = self.context
         ctx['exercise_fragment'] = present_exercise(
-            req, self.context.id)['stream']
+            req, self._loader, self.context.id)['stream']
         ctx['ExerciseEditView'] = ExerciseEditView
         ctx['ExerciseDeleteView'] = ExerciseDeleteView
 

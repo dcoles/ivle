@@ -26,6 +26,7 @@ import cjson
 import genshi.template
 
 from ivle.webapp.base.views import BaseView
+from ivle.webapp.base.xhtml import GenshiLoaderMixin
 from ivle.webapp.errors import BadRequest, MethodNotAllowed, Unauthorized
 
 class RESTView(BaseView):
@@ -149,7 +150,7 @@ class JSONRESTView(RESTView):
             req.write("\n")
 
 
-class XHTMLRESTView(JSONRESTView):
+class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
     """A special type of RESTView which takes enhances the standard JSON
     with genshi XHTML functions.
     
@@ -164,8 +165,7 @@ class XHTMLRESTView(JSONRESTView):
 
         rest_template = os.path.join(os.path.dirname(
                 inspect.getmodule(self).__file__), self.template)
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-        tmpl = loader.load(rest_template)
+        tmpl = self._loader.load(rest_template)
 
         return tmpl.generate(self.ctx).render('xhtml', doctype='xhtml')
     

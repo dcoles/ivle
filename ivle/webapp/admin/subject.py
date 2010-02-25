@@ -31,7 +31,7 @@ import cgi
 from storm.locals import Desc, Store
 import genshi
 from genshi.filters import HTMLFormFiller
-from genshi.template import Context, TemplateLoader
+from genshi.template import Context
 import formencode
 import formencode.validators
 
@@ -693,16 +693,14 @@ class OfferingProjectsView(XHTMLView):
 
         #Open the projectset Fragment, and render it for inclusion
         #into the ProjectSets page
-        #XXX: This could be a lot cleaner
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-
         set_fragment = os.path.join(os.path.dirname(__file__),
                 "templates/projectset_fragment.html")
         project_fragment = os.path.join(os.path.dirname(__file__),
                 "templates/project_fragment.html")
 
-        for projectset in self.context.project_sets:
-            settmpl = loader.load(set_fragment)
+        for projectset in \
+            self.context.project_sets.order_by(ivle.database.ProjectSet.id):
+            settmpl = self._loader.load(set_fragment)
             setCtx = Context()
             setCtx['req'] = req
             setCtx['projectset'] = projectset
@@ -711,8 +709,9 @@ class OfferingProjectsView(XHTMLView):
             setCtx['ProjectSetEdit'] = ProjectSetEdit
             setCtx['ProjectSetRESTView'] = ProjectSetRESTView
 
-            for project in projectset.projects:
-                projecttmpl = loader.load(project_fragment)
+            for project in \
+                projectset.projects.order_by(ivle.database.Project.deadline):
+                projecttmpl = self._loader.load(project_fragment)
                 projectCtx = Context()
                 projectCtx['req'] = req
                 projectCtx['project'] = project
@@ -753,6 +752,7 @@ class ProjectView(XHTMLView):
         ctx['req'] = req
         ctx['GroupsView'] = GroupsView
         ctx['EnrolView'] = EnrolView
+        ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
         ctx['build_subversion_url'] = self.build_subversion_url
         ctx['svn_addr'] = req.config['urls']['svn_addr']

@@ -31,7 +31,28 @@ from ivle.webapp.errors import HTTPError, Unauthorized
 from ivle.webapp.publisher import NoPath
 from ivle.webapp.breadcrumbs import Breadcrumber
 
-class XHTMLView(BaseView):
+
+class GenshiLoaderMixin(object):
+    """Mixin for classes which need to render Genshi templates.
+
+    A TemplateLoader is shared between all instances, so templates are
+    cached across multiple instances and therefore also requests.
+    """
+    _loader = None
+
+    def __init__(self, *args, **kwargs):
+        super(GenshiLoaderMixin, self).__init__(*args, **kwargs)
+
+        # We use a single loader for all views, so we can cache the
+        # parsed templates. auto_reload is convenient and has a minimal
+        # performance penalty, so we'll leave it on.
+        if GenshiLoaderMixin._loader is None:
+            GenshiLoaderMixin._loader = genshi.template.TemplateLoader(
+                ".", auto_reload=True,
+                max_cache_size=100)
+
+
+class XHTMLView(GenshiLoaderMixin, BaseView):
     """
     A view which provides a base class for views which need to return XHTML
     It is expected that apps which use this view will be written using Genshi
@@ -41,18 +62,9 @@ class XHTMLView(BaseView):
     template = 'template.html'
     allow_overlays = True
     breadcrumb_text = None
-    _loader = None
 
     def __init__(self, *args, **kwargs):
         super(XHTMLView, self).__init__(*args, **kwargs)
-
-        # We use a single loader for all views, so we can cache the
-        # parsed templates. auto_reload is convenient and has a minimal
-        # performance penalty, so we'll leave it on.
-        if self.__class__._loader is None:
-            self.__class__._loader = genshi.template.TemplateLoader(
-                ".", auto_reload=True,
-                max_cache_size=100)
 
         self.overlay_blacklist = []
 

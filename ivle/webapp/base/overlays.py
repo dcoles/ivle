@@ -22,6 +22,9 @@ import inspect
 
 import genshi
 
+from ivle.webapp.base.xhtml import GenshiLoaderMixin
+
+
 class BaseOverlay(object):
     """Abstract base class for all overlays."""
     plugin_scripts = {}
@@ -32,29 +35,29 @@ class BaseOverlay(object):
 
     def render(self, req):
         raise NotImplementedError()
-        
-class XHTMLOverlay(BaseOverlay):
+
+
+class XHTMLOverlay(GenshiLoaderMixin, BaseOverlay):
     """Abstract base class for XHTML overlays.
-    
+
     An overlay which provides a base class for overlays which need to return 
     XHTML. It is expected that apps which use this overlay will be written using
     Genshi templates.
     """
-    
+
     template = 'template.html'
-    
+
     def render(self, req):
         """Renders an XML stream from the template for this overlay."""
         ctx = genshi.template.Context()
         # This is where the sub-class is actually called
         self.populate(req, ctx)
-        
+
         # Renders out the template.
         template_path = os.path.join(os.path.dirname(
                         inspect.getmodule(self).__file__), self.template)
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-        tmpl = loader.load(template_path)
+        tmpl = self._loader.load(template_path)
         return tmpl.generate(ctx)
-        
+
     def populate(self, req, ctx):
         raise NotImplementedError()
