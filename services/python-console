@@ -203,9 +203,9 @@ class PythonRunner(Thread):
     def handle_splash(self, params):
         # Initial console splash screen
         python_version = '.'.join(str(v) for v in sys.version_info[:3])
-        splash_text = ("""IVLE Python Console (Python %s)
+        splash_text = ("""IVLE %s Python Console (Python %s)
 Type "help", "copyright", "credits" or "license" for more information.
-""" % python_version)
+""" % (ivle.__version__, python_version))
         return {'output': splash_text}
 
     def handle_chat(self, params):
