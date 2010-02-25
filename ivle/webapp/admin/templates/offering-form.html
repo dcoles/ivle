@@ -40,6 +40,11 @@
             <span py:if="'url' in errors" class="form_error">${errors.url}.</span>
           </div>
         <div>
+          <label for="deadline">Worksheets cutoff:</label>
+          <input type="text" id="worksheet_cutoff" name="worksheet_cutoff" title="Timestamp in YYYY-MM-DD HH:MM:SS format" />
+          <span py:if="'worksheet_cutoff' in errors" class="form_error">${errors.worksheet_cutoff}</span>
+        </div>
+        <div>
           <label for="show_worksheet_marks">Show worksheet marks:</label>
           <input type="checkbox" name="show_worksheet_marks" id="show_worksheet_marks" />
           <span py:if="'show_worksheet_marks' in errors" class="form_error">${errors.show_worksheet_marks}</span>

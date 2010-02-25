@@ -385,6 +385,7 @@ class OfferingSchema(formencode.Schema):
     description = formencode.validators.UnicodeString(
         if_missing=None, not_empty=False)
     url = formencode.validators.URL(if_missing=None, not_empty=False)
+    worksheet_cutoff = DateTimeValidator(not_empty=True)
     show_worksheet_marks = formencode.validators.StringBoolean(
         if_missing=False)
 
@@ -427,6 +428,7 @@ class OfferingEdit(BaseFormView):
                         self.context.semester.semester,
             'url': self.context.url,
             'description': self.context.description,
+            'worksheet_cutoff': self.context.worksheet_cutoff,
             'show_worksheet_marks': self.context.show_worksheet_marks,
             }
 
@@ -436,6 +438,7 @@ class OfferingEdit(BaseFormView):
             self.context.semester = data['semester']
         self.context.description = data['description']
         self.context.url = unicode(data['url']) if data['url'] else None
+        self.context.worksheet_cutoff = data['worksheet_cutoff']
         self.context.show_worksheet_marks = data['show_worksheet_marks']
         return self.context
 
@@ -471,6 +474,7 @@ class OfferingNew(BaseFormView):
         new_offering.semester = data['semester']
         new_offering.description = data['description']
         new_offering.url = unicode(data['url']) if data['url'] else None
+        new_offering.worksheet_cutoff = data['worksheet_cutoff']
         new_offering.show_worksheet_marks = data['show_worksheet_marks']
 
         req.store.add(new_offering)
