@@ -92,7 +92,7 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
             # Grab the input and try to decode
             inp = recv_netstring(conn)
             try:
-                content = decode(inp)
+                content = decode(inp, magic)
             except ProtocolError:
                 conn.close()
                 continue
