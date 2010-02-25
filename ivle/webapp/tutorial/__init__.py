@@ -233,6 +233,7 @@ def present_exercise(req, loader, identifier, worksheet=None):
     # work than we need. We just need to get the exercise name and a few other
     # fields from the XML.
 
+    curctx['req'] = req
     curctx['exercise'] = exercise
     curctx['description'] = None
     curctx['error'] = None

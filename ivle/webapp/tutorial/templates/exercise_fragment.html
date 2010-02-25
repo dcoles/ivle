@@ -32,6 +32,9 @@
               onclick="submitexercise(&quot;${exercise.id}&quot;, '${exercise.id}')"
               title="Submit this solution for evaluation" />
     </div>
+    <p class="form_error" py:if="worksheet is not None and worksheet.offering.has_worksheet_cutoff_passed(req.user)">
+      <strong>Note:</strong> The worksheets for this subject have closed.
+      Future submissions will not count towards your marks.</p>
     <div class="testoutput">
     </div>
     <div py:if="worksheet" class="problem_summary">
