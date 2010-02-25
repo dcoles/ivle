@@ -38,6 +38,7 @@ import os.path
 import ivle.util
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
+import ivle.webapp.security
 
 class Request:
     """An IVLE request object. This is presented to the IVLE apps as a way of
@@ -94,6 +95,8 @@ class Request:
     HTTP_NOT_FOUND                    = 404
     HTTP_INTERNAL_SERVER_ERROR        = 500
 
+    _store = None
+
     def __init__(self, req, config):
         """Create an IVLE request from a mod_python one.
 
@@ -119,14 +122,9 @@ class Request:
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
         (self.app, self.path) = (ivle.util.split_path(req.uri))
-        self.user = None
         self.hostname = req.hostname
         self.headers_in = req.headers_in
         self.headers_out = req.headers_out
-
-        # Open a database connection and transaction, keep it around for users
-        # of the Request object to use
-        self.store = ivle.database.get_store(config)
 
         # Default values for the output members
         self.status = Request.HTTP_OK
@@ -138,8 +136,18 @@ class Request:
         self.got_common_vars = False
 
     def __del__(self):
+        self.cleanup()
+
+    def cleanup(self):
         """Cleanup."""
-        self.store.close()
+        if self._store is not None:
+            self._store.close()
+            self._store = None
+
+    def commit(self):
+        """Cleanup."""
+        if self._store is not None:
+            self._store.commit()
 
     def __writeheaders(self):
         """Writes out the HTTP and HTML headers before any real data is
@@ -268,4 +276,30 @@ class Request:
             self.apache_req.add_common_vars()
             self.got_common_vars = True
         return self.apache_req.subprocess_env
+
+    @property
+    def store(self):
+        # Open a database connection and transaction, keep it around for users
+        # of the Request object to use.
+        if self._store is None:
+            self._store = ivle.database.get_store(self.config)
+        return self._store
+
+    @property
+    def user(self):
+        # Get and cache the request user, or None if it's not valid.
+        # This is a property so that we don't create a store unless
+        # some code actually requests the user.
+        try:
+            return self._user
+        except AttributeError:
+            if self.publicmode:
+                self._user = None
+            else:
+                temp_user = ivle.webapp.security.get_user_details(self)
+                if temp_user and temp_user.valid:
+                    self._user = temp_user
+                else:
+                    self._user = None
+            return self._user
 
