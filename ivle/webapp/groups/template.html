@@ -7,7 +7,10 @@
     <h1>Project set for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
       <py:if test="not projectset.is_group">
-      <p>This set contains solo projects</p>
+      <p>Non-group projects.</p>
+      </py:if>
+      <py:if test="projectset.is_group">
+      <p>Groups of maximum size ${projectset.max_students_per_group}.</p>
       </py:if>
       <p>Projects in this set:</p>
       <table class="pretty_table">
