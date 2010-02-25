@@ -937,8 +937,9 @@ class Exercise(Storm):
 
         return perms
 
-    def get_description(self):
-        """Return the description interpreted as reStructuredText."""
+    @property
+    def description_xhtml(self):
+        """The XHTML exercise description, converted from reStructuredText."""
         return rst(self.description)
 
     def delete(self):
@@ -1016,8 +1017,9 @@ class Worksheet(Storm):
 
         return perms
 
-    def get_xml(self):
-        """Returns the xml of this worksheet, converts from rst if required."""
+    @property
+    def data_xhtml(self):
+        """The XHTML of this worksheet, converted from rST if required."""
         if self.format == u'rst':
             ws_xml = rst(self.data)
             return ws_xml

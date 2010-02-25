@@ -49,7 +49,6 @@ from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.media import media_url
 from ivle.webapp.errors import NotFound
-from ivle.worksheet.rst import rst as rstfunc
 
 from ivle.webapp.tutorial.service import (AttemptsRESTView, AttemptRESTView,
             WorksheetExerciseRESTView, WorksheetsRESTView)
@@ -87,7 +86,7 @@ class WorksheetView(XHTMLView):
         ctx['semester'] = self.context.offering.semester.semester
         ctx['year'] = self.context.offering.semester.year
 
-        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.get_xml())))
+        ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data_xhtml)))
         ctx['user'] = req.user
         ctx['config'] = req.config
 
@@ -237,12 +236,10 @@ def present_exercise(req, loader, identifier, worksheet=None):
     curctx['exercise'] = exercise
     curctx['description'] = None
     curctx['error'] = None
-    if exercise.description is not None:
-        try:
-            desc = rstfunc(exercise.description)
-            curctx['description'] = genshi.XML(desc)
-        except docutils.utils.SystemMessage, e:
-            curctx['error'] = "Error processing reStructuredText: '%s'"%str(e)
+    try:
+        curctx['description'] = genshi.XML(exercise.description_xhtml)
+    except docutils.utils.SystemMessage, e:
+        curctx['error'] = "Error processing reStructuredText: '%s'" % str(e)
 
     # If the user has already saved some text for this problem, or submitted
     # an attempt, then use that text instead of the supplied "partial".
