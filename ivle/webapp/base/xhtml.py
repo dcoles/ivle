@@ -41,9 +41,18 @@ class XHTMLView(BaseView):
     template = 'template.html'
     allow_overlays = True
     breadcrumb_text = None
+    _loader = None
 
     def __init__(self, *args, **kwargs):
         super(XHTMLView, self).__init__(*args, **kwargs)
+
+        # We use a single loader for all views, so we can cache the
+        # parsed templates. auto_reload is convenient and has a minimal
+        # performance penalty, so we'll leave it on.
+        if self.__class__._loader is None:
+            self.__class__._loader = genshi.template.TemplateLoader(
+                ".", auto_reload=True,
+                max_cache_size=100)
 
         self.overlay_blacklist = []
 
@@ -71,8 +80,7 @@ class XHTMLView(BaseView):
         # view.
         app_template = os.path.join(os.path.dirname(
                         inspect.getmodule(self).__file__), self.template) 
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-        tmpl = loader.load(app_template)
+        tmpl = self._loader.load(app_template)
         app = self.filter(tmpl.generate(viewctx), viewctx)
 
         view_scripts = []
@@ -133,7 +141,7 @@ class XHTMLView(BaseView):
             ctx['breadcrumbs'].extend(self.extra_breadcrumbs)
 
         self.populate_headings(req, ctx)
-        tmpl = loader.load(os.path.join(os.path.dirname(__file__), 
+        tmpl = self._loader.load(os.path.join(os.path.dirname(__file__), 
                                                         'ivle-headings.html'))
         req.write(tmpl.generate(ctx).render('xhtml', doctype='xhtml'))
         
