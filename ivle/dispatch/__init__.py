@@ -37,6 +37,11 @@ import logging
 import socket
 import time
 
+# We want to use the Storm C extensions if at all possible.
+# Since we can't use SetEnv in Apache, do this here. It *must* appear
+# before storm is imported for the first time.
+os.environ['STORM_CEXTENSIONS'] = '1'
+
 import mod_python
 
 from ivle import util
