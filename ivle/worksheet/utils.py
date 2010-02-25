@@ -346,7 +346,8 @@ class FakeWorksheetForMarks:
 
 
 # XXX: This really shouldn't be needed.
-def create_list_of_fake_worksheets_and_stats(config, store, user, offering):
+def create_list_of_fake_worksheets_and_stats(config, store, user, offering,
+    as_of=None):
     """Take an offering's real worksheets, converting them into stats.
 
     The worksheet listing views expect special fake worksheet objects
@@ -373,7 +374,8 @@ def create_list_of_fake_worksheets_and_stats(config, store, user, offering):
         if new_worksheet.assessable:
             # Calculate the user's score for this worksheet
             mand_done, mand_total, opt_done, opt_total = (
-                ivle.worksheet.utils.calculate_score(store, user, worksheet))
+                ivle.worksheet.utils.calculate_score(store, user, worksheet,
+                                                     as_of=as_of))
             if opt_total > 0:
                 optional_message = " (excluding optional exercises)"
             else:
