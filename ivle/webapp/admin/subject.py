@@ -786,6 +786,41 @@ class ProjectSchema(formencode.Schema):
     url = formencode.validators.URL(if_missing=None, not_empty=False)
     synopsis = formencode.validators.UnicodeString(not_empty=True)
 
+class ProjectEdit(BaseFormView):
+    """A form to edit a project."""
+    template = 'templates/project-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectEdit, self).populate(req, ctx)
+        ctx['projectset'] = self.context.project_set
+
+    def populate_state(self, state):
+        state.offering = self.context.project_set.offering
+        state.existing_project = self.context
+
+    def get_default_data(self, req):
+        return {
+            'name':         self.context.name,
+            'short_name':   self.context.short_name,
+            'deadline':     self.context.deadline,
+            'url':          self.context.url,
+            'synopsis':     self.context.synopsis,
+            }
+
+    def save_object(self, req, data):
+        self.context.name = data['name']
+        self.context.short_name = data['short_name']
+        self.context.deadline = data['deadline']
+        self.context.url = unicode(data['url']) if data['url'] else None
+        self.context.synopsis = data['synopsis']
+        return self.context
+
 class ProjectNew(BaseFormView):
     """A form to create a new project."""
     template = 'templates/project-new.html'
@@ -896,6 +931,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ProjectSet, '+edit', ProjectSetEdit),
              (ProjectSet, '+new', ProjectNew),
              (Project, '+index', ProjectView),
+             (Project, '+edit', ProjectEdit),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
