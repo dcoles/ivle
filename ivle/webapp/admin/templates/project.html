@@ -6,6 +6,8 @@
   <body>
     <h1>${project.name} for ${project.project_set.offering.subject.name}</h1>
     <div id="ivle_padding">
+      <a py:if="project.url not in (None, '')" href="${project.url}">${project.url}</a>
+      <p>Deadline: ${format_datetime(project.deadline)}</p>
       <p>${project.synopsis}</p>
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
 

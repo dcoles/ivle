@@ -756,6 +756,7 @@ class ProjectView(XHTMLView):
         ctx['req'] = req
         ctx['GroupsView'] = GroupsView
         ctx['EnrolView'] = EnrolView
+        ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
         ctx['build_subversion_url'] = self.build_subversion_url
         ctx['svn_addr'] = req.config['urls']['svn_addr']
