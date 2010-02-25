@@ -53,7 +53,7 @@ from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             projectset_url, project_url, enrolment_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb,
-            EnrolmentBreadcrumb)
+            ProjectsBreadcrumb, EnrolmentBreadcrumb)
 from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.groups import GroupsView
 from ivle.webapp.media import media_url
@@ -708,6 +708,7 @@ class OfferingProjectsView(XHTMLView):
             setCtx['projectset'] = projectset
             setCtx['projects'] = []
             setCtx['GroupsView'] = GroupsView
+            setCtx['ProjectSetEdit'] = ProjectSetEdit
             setCtx['ProjectSetRESTView'] = ProjectSetRESTView
 
             for project in projectset.projects:
@@ -761,6 +762,28 @@ class ProjectView(XHTMLView):
 class ProjectSetSchema(formencode.Schema):
     group_size = formencode.validators.Int(if_missing=None, not_empty=False)
 
+class ProjectSetEdit(BaseFormView):
+    """A form to edit a project set."""
+    template = 'templates/projectset-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSetSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectSetEdit, self).populate(req, ctx)
+
+    def get_default_data(self, req):
+        return {
+            'group_size': self.context.max_students_per_group,
+            }
+
+    def save_object(self, req, data):
+        self.context.max_students_per_group = data['group_size']
+        return self.context
+
 class ProjectSetNew(BaseFormView):
     """A form to create a new project set."""
     template = 'templates/projectset-new.html'
@@ -811,6 +834,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Enrolment, '+delete', EnrolmentDelete),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
              (Offering, ('+projects', '+new-set'), ProjectSetNew),
+             (ProjectSet, '+edit', ProjectSetEdit),
              (Project, '+index', ProjectView),
 
              (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),

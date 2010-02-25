@@ -6,6 +6,13 @@
   <body>
     <h1>Project set for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'edit' in permissions"
+           class="editaction"
+           href="${req.publisher.generate(projectset, ProjectSetEdit)}">
+           Change details
+        </a>
+      </div>
       <py:if test="not projectset.is_group">
       <p>Non-group projects.</p>
       </py:if>

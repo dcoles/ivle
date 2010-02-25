@@ -37,11 +37,14 @@ class GroupsView(XHTMLView):
     permission = 'admin_groups'
 
     def populate(self, req, ctx):
+        from ivle.webapp.admin.subject import ProjectSetEdit
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
 
         ctx['req'] = req
         ctx['projectset'] = self.context
+        ctx['ProjectSetEdit'] = ProjectSetEdit
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
 
 class Plugin(ViewPlugin, MediaPlugin):
     """

@@ -1,0 +1,15 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+  <head>
+    <title>Edit project set</title>
+  </head>
+  <body>
+    <h1>Edit project set</h1>
+    <div py:with="submit_button_label = 'Save'"
+         id="ivle_padding">
+      <p>Projects in this set: ${', '.join(p.name for p in context.projects) or 'None'}</p>
+      <xi:include href="projectset-form.html" />
+    </div>
+  </body>
+</html>
