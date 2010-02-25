@@ -378,12 +378,12 @@ def sig_handler(signum, frame):
     """Handles response from signals"""
     global terminate
     if signum == signal.SIGXCPU:
-        terminate = "CPU Time Limit Exceeded"
+        terminate = "CPU time limit exceeded"
 
 def dispatch_msg(msg):
     global terminate
     if msg['cmd'] == 'terminate':
-        terminate = "User requested console be terminated"
+        terminate = "User requested restart"
     if terminate:
         raise ivle.chat.Terminate({"terminate":terminate})
     expiry.ping()

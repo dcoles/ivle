@@ -94,7 +94,7 @@ class ConsoleServiceRESTView(JSONRESTView):
             except (cjson.DecodeError, ivle.chat.ProtocolError):
                 # Could not decode the reply from the python-console server
                 response = {"terminate":
-                    "Communication to console process lost"}
+                    "Communication lost"}
             if "terminate" in response:
                 response = restart_console(req.config, uid, jail_path,
                     working_dir, response["terminate"])
@@ -103,12 +103,12 @@ class ConsoleServiceRESTView(JSONRESTView):
                 # Timeout: Restart the session
                 response = restart_console(req.config, uid, jail_path,
                     working_dir,
-                    "The IVLE console has timed out due to inactivity")
+                    "Timed out due to inactivity")
             elif enumber == errno.ECONNRESET:
                 # Communication issue: Restart the session
                 response = restart_console(req.config, uid, jail_path,
                     working_dir,
-                    "Connection with the console has been reset")
+                    "Connection reset")
             else:
                 # Some other error - probably serious
                 raise socket.error, (enumber, estring)
