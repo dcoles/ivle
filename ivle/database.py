@@ -945,6 +945,9 @@ class Exercise(Storm):
         else:
             return None
 
+    def set_description(self, description):
+        self.description = description
+
     def delete(self):
         """Deletes the exercise, providing it has no associated worksheets."""
         if (self.worksheet_exercises.count() > 0):
@@ -1028,6 +1031,9 @@ class Worksheet(Storm):
             return ws_xml
         else:
             return self.data
+
+    def set_data(self, data):
+        self.data = data
 
     def delete(self):
         """Deletes the worksheet, provided it has no attempts on any exercises.

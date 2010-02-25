@@ -404,7 +404,7 @@ class WorksheetAddView(WorksheetFormView):
         new_worksheet.name = data['name']
         new_worksheet.assessable = data['assessable']
         new_worksheet.published = data['published']
-        new_worksheet.data = data['data']
+        new_worksheet.set_data(data['data'])
         new_worksheet.format = data['format']
 
         req.store.add(new_worksheet)
@@ -439,7 +439,7 @@ class WorksheetEditView(WorksheetFormView):
         self.context.name = data['name']
         self.context.assessable = data['assessable']
         self.context.published = data['published']
-        self.context.data = data['data']
+        self.context.set_data(data['data'])
         self.context.format = data['format']
 
         return self.context
