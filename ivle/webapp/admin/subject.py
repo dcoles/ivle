@@ -703,7 +703,8 @@ class OfferingProjectsView(XHTMLView):
         project_fragment = os.path.join(os.path.dirname(__file__),
                 "templates/project_fragment.html")
 
-        for projectset in self.context.project_sets:
+        for projectset in \
+            self.context.project_sets.order_by(ivle.database.ProjectSet.id):
             settmpl = loader.load(set_fragment)
             setCtx = Context()
             setCtx['req'] = req
@@ -712,7 +713,8 @@ class OfferingProjectsView(XHTMLView):
             setCtx['GroupsView'] = GroupsView
             setCtx['ProjectSetRESTView'] = ProjectSetRESTView
 
-            for project in projectset.projects:
+            for project in \
+                projectset.projects.order_by(ivle.database.Project.deadline):
                 projecttmpl = loader.load(project_fragment)
                 projectCtx = Context()
                 projectCtx['req'] = req
