@@ -114,6 +114,23 @@ function start_server(callback)
         "POST");
 }
 
+/** Start up the console backend before the user has entered text.
+ * This will disable the text input, start a backend, and enable the input
+ * again.
+ */
+function start_server_early()
+{
+    var inputbox = document.getElementById("console_inputText");
+    inputbox.setAttribute("disabled", "disabled");
+    $("#console_output").append(
+        '<span class="console_message">IVLE console starting up...</span>\n');
+    var callback = function(xhr)
+    {
+        inputbox.removeAttribute("disabled")
+    }
+    start_server(callback);
+}
+
 /** Initialises the console. All apps which import console are required to
  * call this function.
  * Optional "windowpane" (bool), if true, will cause the console to go into
@@ -150,6 +167,7 @@ function console_minimize()
 function console_maximize()
 {
     if (!windowpane_mode) return;
+    if (!server_started) start_server_early();
     console_body.setAttribute("class", "console_body windowpane maximal");
     console_filler.setAttribute("class", "windowpane maximal");
 }

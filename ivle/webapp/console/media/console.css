@@ -184,6 +184,11 @@
     /* Trial and error is useful to work this out. */
     height: 2em;
 }
+
+.console_message {
+    color: gray;
+}
+
 *.errorMsg {
     color: red;
     margin-top: 0em;

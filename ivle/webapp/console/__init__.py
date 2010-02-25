@@ -16,7 +16,7 @@ class ConsoleView(XHTMLView):
 
         self.plugin_scripts = {'ivle.webapp.console': ['console.js']}
         self.plugin_styles  = {'ivle.webapp.console': ['console.css']}
-        self.plugin_scripts_init = ['console_init']
+        self.scripts_init = ['start_server_early']
 
         # Don't load the console overlay when we already have a console.
         self.overlay_blacklist = [ConsoleOverlay]
