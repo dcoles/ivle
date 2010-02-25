@@ -26,6 +26,7 @@ from ivle.database import ProjectSet
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
+from ivle.webapp.admin.breadcrumbs import ProjectsBreadcrumb
 
 class GroupsView(XHTMLView):
     """
@@ -47,5 +48,7 @@ class Plugin(ViewPlugin, MediaPlugin):
     The Plugin class for the group admin plugin.
     """
     views = [(ProjectSet, '+index', GroupsView)]
+
+    breadcrumbs = {ProjectSet: ProjectsBreadcrumb}
 
     media = 'media'
