@@ -10,25 +10,28 @@
       <p>This set contains solo projects</p>
       </py:if>
       <p>Projects in this set:</p>
-      <ul>
-        <li py:for="project in projectset.projects">
-          <a href="${req.publisher.generate(project)}">${project.name}</a>
-        </li>
-      </ul>
+      <table class="pretty_table">
+        <tr><th>Name</th><th>Actions</th></tr>
+        <tr py:for="project in projectset.projects">
+          <td><a href="${req.publisher.generate(project)}">${project.name}</a></td>
+          <td></td>
+        </tr>
+      </table>
       <py:if test="projectset.is_group">
       <p>Groups in this set:</p>
-      <ul>
-        <li py:for="group in projectset.project_groups"
+      <table class="pretty_table">
+        <tr><th>Name</th><th>Actions</th></tr>
+        <tr py:for="group in projectset.project_groups"
             id="project_group_${group.id}">
-          ${group.name}
-          <a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
+          <td>${group.name}</td>
+          <td><a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
              class="choice"
              id="project_group_${group.id}_button">
             (manage)
-          </a>
-        </li>
-        <li><input value="New" type="button" onclick="create_new_group(${projectset.id})" /></li>
-      </ul>
+          </a></td>
+        </tr>
+      </table>
+      <p><input value="New" type="button" onclick="create_new_group(${projectset.id})" /></p>
       </py:if>
     </div>
   </body>
