@@ -538,7 +538,7 @@ class ExerciseDeleteView(XHTMLView):
 
         # If get, display a delete confirmation page
         else:
-            if self.context.worksheet_exercises.count() is not 0:
+            if self.context.worksheet_exercises.count() != 0:
                 self.template = 'templates/exercise_undeletable.html'
 
         # Variables for the template
