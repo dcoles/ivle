@@ -1,0 +1,13 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Project deleted ${project.name} from ${project.project_set.offering.subject.name}</title>
+  </head>
+  <body>
+    <h1>Project deleted</h1>
+    <div id="ivle_padding">
+      <p>Project ${project.name} has been deleted.</p>
+      <a class="manageaction" href="${req.publisher.generate(project.project_set.offering, OfferingProjectsView)}">Manage projects</a>
+    </div>
+  </body>
+</html>

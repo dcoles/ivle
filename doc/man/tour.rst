@@ -165,9 +165,6 @@ individual student) and "Group projects". Try adding a new Solo project, by
 clicking on *Add a new project* within that box. The fields should be fairly
 self-explanatory.
 
-.. warning::
-   You can't currently edit or delete a project after it has been created.
-
 Group projects are complicated by what we call "project sets". A "project set"
 is a set of group projects where the student groups are the same throughout.
 For instance, you will see Phase 2 and Phase 3 inside the same project set
@@ -182,6 +179,10 @@ project in the new set. Each student must get into a new group for each
 project *set*. Note also that the groups will share a Subversion repository
 for all projects in a set, but if you create a new set, the students will have
 to start using a new repository.
+
+.. warning::
+   You can't delete a project set after it has been created (this could cause
+   problems for groups and their repositories).
 
 Usually, the hassle of getting into new groups and creating new repositories
 means that you will want to create just two project sets for a subject: one

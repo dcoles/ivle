@@ -6,6 +6,13 @@
   <body>
     <h1>Project set for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
+      <div class="contextactions">
+        <a py:if="'edit' in permissions"
+           class="editaction"
+           href="${req.publisher.generate(projectset, ProjectSetEdit)}">
+           Change details
+        </a>
+      </div>
       <py:if test="not projectset.is_group">
       <p>Non-group projects.</p>
       </py:if>
@@ -19,10 +26,17 @@
           <tbody>
             <tr py:for="project in projectset.projects">
               <td><a href="${req.publisher.generate(project)}">${project.name}</a></td>
-              <td></td>
+            <td><a href='${req.publisher.generate(project, ProjectEdit)}'><img
+                  src='/+media/ivle.webapp.core/images/interface/pencil.png'
+                  alt="Edit" title="Edit project" /></a>
+                <a href='${req.publisher.generate(project, ProjectDelete)}'><img
+                  src='/+media/ivle.webapp.core/images/interface/delete.png'
+                  alt="Delete" title="Delete project" /></a>
+            </td>
             </tr>
           </tbody>
         </table>
+        <p><a class="addaction" href="${req.publisher.generate(projectset, ProjectNew)}">Add a new project</a></p>
       </div>
       <div py:if="projectset.is_group" class="majorsection">
         <h2>Groups</h2>

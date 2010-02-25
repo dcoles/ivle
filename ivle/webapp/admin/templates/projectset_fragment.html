@@ -1,15 +1,16 @@
 <li xmlns="http://www.w3.org/1999/xhtml"
     xmlns:py="http://genshi.edgewall.org/"
-    id='projectset_${projectset.id}'
-    style="display: none;">
+    id='projectset_${projectset.id}'>
   <py:choose test="projectset.max_students_per_group">
     <h3 py:when="None">
       Solo projects
+      <a class="editaction" href="${req.publisher.generate(projectset, ProjectSetEdit)}">Edit</a>
     </h3>
     <h3 py:otherwise="">
       Group projects
       <span py:if="projectset.max_students_per_group != 0"> - up to ${projectset.max_students_per_group} students per group</span>
       <a class="groupaction" href="${req.publisher.generate(projectset, GroupsView)}">Manage groups</a>
+      <a class="editaction" href="${req.publisher.generate(projectset, ProjectSetEdit)}">Edit</a>
     </h3>
   </py:choose>
   <ul id="projectslist_${projectset.id}">
@@ -18,29 +19,8 @@
       ${project}
     </py:for>
     <li class="add-project">
-      <a href="#" id="add_new_project_${projectset.id}"
-         class="add-project-link addaction">Add a new project</a>
-      <form id="new_project_${projectset.id}" class="new_project" method="post" action="${req.publisher.generate(projectset, ProjectSetRESTView)}">
-        <div>
-          <label for="new_project_name_${projectset.id}">Display name:</label>
-          <input id="new_project_name_${projectset.id}" type="text" name="name" value="" />
-          <br />
-          <label for="new_project_short_name_${projectset.id}">URL name:</label>
-          <input id="new_project_short_name_${projectset.id}" type="text" name="short_name" value="" />
-          <br />
-          <label for="new_project_deadline_${projectset.id}">Deadline:</label>
-          <input id="new_project_deadline_${projectset.id}" type="text" name="deadline" value="YYYY-MM-DD HH:mm:ss" />
-          <br />
-          <label for="new_project_url_${projectset.id}">External URL:</label>
-          <input id="new_project_url_${projectset.id}" type="text" name="url" value="" />
-          <br />
-          <label for="new_project_syn_${projectset.id}">Synopsis:</label>
-          <textarea id="new_project_syn_${projectset.id}" name="synopsis" rows="6"></textarea>
-          <br />
-          <input type="hidden" name="ivle.op" value="add_project" />
-          <input type="submit" value="Create" id="submit_project_${projectset.id}" class="submit-project" />
-        </div>
-      </form>
+      <a href="${req.publisher.generate(projectset, ProjectNew)}"
+         class="addaction">Add a new project</a>
     </li>
   </ul>
 </li>

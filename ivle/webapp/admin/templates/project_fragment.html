@@ -3,9 +3,12 @@
     id='project_${project.id}'>
   <div class='project-title'>
     <a href="${req.publisher.generate(project)}"><strong>${project.name}</strong></a>
-    <!--<a href='#'><img
-    src='/+media/ivle.webapp.core/images/interface/cross.png' alt="Delete"
-    title="Delete project" /></a> -->
+    <a href='${req.publisher.generate(project, ProjectEdit)}'><img
+      src='/+media/ivle.webapp.core/images/interface/pencil.png' alt="Edit"
+      title="Edit project" /></a>
+    <a href='${req.publisher.generate(project, ProjectDelete)}'><img
+      src='/+media/ivle.webapp.core/images/interface/delete.png' alt="Delete"
+      title="Delete project" /></a>
   </div>
   <pre class='project-synopsis'>${project.synopsis}</pre>
 </li>

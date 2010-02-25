@@ -12,19 +12,8 @@
         </py:for>
       </ul>
       <div class="add-projectset">
-        <a href="#" id="add_new_projectset"
-           class="add-projectset-link addaction">Add a new project set</a>
-        <form id="new_projectset_form" class="new_projectset"
-              method="PUT" name="new_projectset_form"
-              action="${req.publisher.generate(offering, OfferingRESTView)}">
-          <div id="new_projectset_div">
-            <label for="group_size">Group Size:</label>
-            <input type="text" name="group_size" id="group_size"></input> Leave blank for individual projects. Enter 0 for unlimited membership.
-            <br />
-            <input type="submit" id="submit_new_projectset" name="Bob"
-                   value="Create"/>
-          </div>
-        </form>
+        <a href="${req.publisher.generate(offering)}/+projects/+new-set"
+            class="addaction">Add a new project set</a>
       </div>
     </div>
   </body>

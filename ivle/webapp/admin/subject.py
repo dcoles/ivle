@@ -35,7 +35,8 @@ from genshi.template import Context
 import formencode
 import formencode.validators
 
-from ivle.webapp.base.forms import BaseFormView, URLNameValidator
+from ivle.webapp.base.forms import (BaseFormView, URLNameValidator,
+                                    DateTimeValidator)
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import BadRequest
@@ -46,15 +47,13 @@ from ivle.database import Subject, Semester, Offering, Enrolment, User,\
 from ivle import util
 import ivle.date
 
-from ivle.webapp.admin.projectservice import ProjectSetRESTView
-from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             subject_to_offering, offering_to_projectset, offering_to_project,
             offering_to_enrolment, subject_url, semester_url, offering_url,
             projectset_url, project_url, enrolment_url)
 from ivle.webapp.admin.breadcrumbs import (SubjectBreadcrumb,
             OfferingBreadcrumb, UserBreadcrumb, ProjectBreadcrumb,
-            EnrolmentBreadcrumb)
+            ProjectsBreadcrumb, EnrolmentBreadcrumb)
 from ivle.webapp.core import Plugin as CorePlugin
 from ivle.webapp.groups import GroupsView
 from ivle.webapp.media import media_url
@@ -688,11 +687,9 @@ class OfferingProjectsView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
-        self.plugin_scripts[Plugin] = ["project.js"]
         ctx['req'] = req
         ctx['offering'] = self.context
         ctx['projectsets'] = []
-        ctx['OfferingRESTView'] = OfferingRESTView
 
         #Open the projectset Fragment, and render it for inclusion
         #into the ProjectSets page
@@ -709,7 +706,8 @@ class OfferingProjectsView(XHTMLView):
             setCtx['projectset'] = projectset
             setCtx['projects'] = []
             setCtx['GroupsView'] = GroupsView
-            setCtx['ProjectSetRESTView'] = ProjectSetRESTView
+            setCtx['ProjectSetEdit'] = ProjectSetEdit
+            setCtx['ProjectNew'] = ProjectNew
 
             for project in \
                 projectset.projects.order_by(ivle.database.Project.deadline):
@@ -717,6 +715,8 @@ class OfferingProjectsView(XHTMLView):
                 projectCtx = Context()
                 projectCtx['req'] = req
                 projectCtx['project'] = project
+                projectCtx['ProjectEdit'] = ProjectEdit
+                projectCtx['ProjectDelete'] = ProjectDelete
 
                 setCtx['projects'].append(
                         projecttmpl.generate(projectCtx))
@@ -752,6 +752,7 @@ class ProjectView(XHTMLView):
         self.plugin_styles[Plugin] = ["project.css"]
 
         ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
         ctx['GroupsView'] = GroupsView
         ctx['EnrolView'] = EnrolView
         ctx['format_datetime'] = ivle.date.make_date_nice
@@ -760,6 +761,176 @@ class ProjectView(XHTMLView):
         ctx['svn_addr'] = req.config['urls']['svn_addr']
         ctx['project'] = self.context
         ctx['user'] = req.user
+        ctx['ProjectEdit'] = ProjectEdit
+        ctx['ProjectDelete'] = ProjectDelete
+
+class ProjectUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a project short_name is unique
+    in a given offering.
+
+    The project referenced by state.existing_project is permitted to
+    hold that short_name. If any other project holds it, the input is rejected.
+    """
+    def _to_python(self, value, state):
+        if (state.store.find(
+            Project,
+            Project.short_name == unicode(value),
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.offering == state.offering).one() not in
+            (None, state.existing_project)):
+            raise formencode.Invalid(
+                "A project with that URL name already exists in this offering."
+                , value, state)
+        return value
+
+class ProjectSchema(formencode.Schema):
+    name = formencode.validators.UnicodeString(not_empty=True)
+    short_name = formencode.All(
+        URLNameValidator(not_empty=True),
+        ProjectUniquenessValidator())
+    deadline = DateTimeValidator(not_empty=True)
+    url = formencode.validators.URL(if_missing=None, not_empty=False)
+    synopsis = formencode.validators.UnicodeString(not_empty=True)
+
+class ProjectEdit(BaseFormView):
+    """A form to edit a project."""
+    template = 'templates/project-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectEdit, self).populate(req, ctx)
+        ctx['projectset'] = self.context.project_set
+
+    def populate_state(self, state):
+        state.offering = self.context.project_set.offering
+        state.existing_project = self.context
+
+    def get_default_data(self, req):
+        return {
+            'name':         self.context.name,
+            'short_name':   self.context.short_name,
+            'deadline':     self.context.deadline,
+            'url':          self.context.url,
+            'synopsis':     self.context.synopsis,
+            }
+
+    def save_object(self, req, data):
+        self.context.name = data['name']
+        self.context.short_name = data['short_name']
+        self.context.deadline = data['deadline']
+        self.context.url = unicode(data['url']) if data['url'] else None
+        self.context.synopsis = data['synopsis']
+        return self.context
+
+class ProjectNew(BaseFormView):
+    """A form to create a new project."""
+    template = 'templates/project-new.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectNew, self).populate(req, ctx)
+        ctx['projectset'] = self.context
+
+    def populate_state(self, state):
+        state.offering = self.context.offering
+        state.existing_project = None
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_project = Project()
+        new_project.project_set = self.context
+        new_project.name = data['name']
+        new_project.short_name = data['short_name']
+        new_project.deadline = data['deadline']
+        new_project.url = unicode(data['url']) if data['url'] else None
+        new_project.synopsis = data['synopsis']
+        req.store.add(new_project)
+        return new_project
+
+class ProjectDelete(XHTMLView):
+    """A form to delete a project."""
+    template = 'templates/project-delete.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    def populate(self, req, ctx):
+        # If post, delete the project, or display a message explaining that
+        # the project cannot be deleted
+        if self.context.can_delete:
+            if req.method == 'POST':
+                self.context.delete()
+                self.template = 'templates/project-deleted.html'
+        else:
+            # Can't delete
+            self.template = 'templates/project-undeletable.html'
+
+        # If get and can delete, display a delete confirmation page
+
+        # Variables for the template
+        ctx['req'] = req
+        ctx['project'] = self.context
+        ctx['OfferingProjectsView'] = OfferingProjectsView
+
+class ProjectSetSchema(formencode.Schema):
+    group_size = formencode.validators.Int(if_missing=None, not_empty=False)
+
+class ProjectSetEdit(BaseFormView):
+    """A form to edit a project set."""
+    template = 'templates/projectset-edit.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSetSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectSetEdit, self).populate(req, ctx)
+
+    def get_default_data(self, req):
+        return {
+            'group_size': self.context.max_students_per_group,
+            }
+
+    def save_object(self, req, data):
+        self.context.max_students_per_group = data['group_size']
+        return self.context
+
+class ProjectSetNew(BaseFormView):
+    """A form to create a new project set."""
+    template = 'templates/projectset-new.html'
+    tab = 'subjects'
+    permission = 'edit'
+    breadcrumb_text = "Projects"
+
+    @property
+    def validator(self):
+        return ProjectSetSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectSetNew, self).populate(req, ctx)
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_set = ProjectSet()
+        new_set.offering = self.context
+        new_set.max_students_per_group = data['group_size']
+        req.store.add(new_set)
+        return new_set
 
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_subject, root_to_semester, subject_to_offering,
@@ -786,10 +957,12 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Enrolment, '+edit', EnrolmentEdit),
              (Enrolment, '+delete', EnrolmentDelete),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
+             (Offering, ('+projects', '+new-set'), ProjectSetNew),
+             (ProjectSet, '+edit', ProjectSetEdit),
+             (ProjectSet, '+new', ProjectNew),
              (Project, '+index', ProjectView),
-
-             (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
-             (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
+             (Project, '+edit', ProjectEdit),
+             (Project, '+delete', ProjectDelete),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,

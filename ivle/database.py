@@ -649,7 +649,18 @@ class Project(Storm):
             return
         return assessed.submissions
 
+    @property
+    def can_delete(self):
+        """Can only delete if there are no submissions."""
+        return self.submissions.count() == 0
 
+    def delete(self):
+        """Delete the project. Fails if can_delete is False."""
+        if not self.can_delete:
+            raise IntegrityError()
+        for assessed in self.assesseds:
+            assessed.delete()
+        Store.of(self).remove(self)
 
 class ProjectGroup(Storm):
     """A group of students working together on a project."""
@@ -802,6 +813,14 @@ class Assessed(Storm):
 
         return a
 
+    def delete(self):
+        """Delete the assessed. Fails if there are any submissions. Deletes
+        extensions."""
+        if self.submissions.count() > 0:
+            raise IntegrityError()
+        for extension in self.extensions:
+            extension.delete()
+        Store.of(self).remove(self)
 
 class ProjectExtension(Storm):
     """An extension granted to a user or group on a particular project.
@@ -818,6 +837,10 @@ class ProjectExtension(Storm):
     approver_id = Int(name="approver")
     approver = Reference(approver_id, User.id)
     notes = Unicode()
+
+    def delete(self):
+        """Delete the extension."""
+        Store.of(self).remove(self)
 
 class SubmissionError(Exception):
     """Denotes a validation error during submission."""
