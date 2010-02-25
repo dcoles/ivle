@@ -6,12 +6,16 @@
   <body>
     <h1>Project set for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
+      <py:if test="not projectset.is_group">
+      <p>This set contains solo projects</p>
+      </py:if>
       <p>Projects in this set:</p>
       <ul>
         <li py:for="project in projectset.projects">
           <a href="${req.publisher.generate(project)}">${project.name}</a>
         </li>
       </ul>
+      <py:if test="projectset.is_group">
       <p>Groups in this set:</p>
       <ul>
         <li py:for="group in projectset.project_groups"
@@ -25,6 +29,7 @@
         </li>
         <li><input value="New" type="button" onclick="create_new_group(${projectset.id})" /></li>
       </ul>
+      </py:if>
     </div>
   </body>
 </html>
