@@ -127,7 +127,6 @@ class DateTimeValidator(formencode.validators.FancyValidator):
         try:
             return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
         except ValueError, e:
-            raise formencode.Invalid(str(e) + " -> " + repr(value), value, state)
             raise formencode.Invalid("Must be a timestamp in "
                 "YYYY-MM-DD HH:MM:SS format", value, state)
     def _from_python(self, value, state):
