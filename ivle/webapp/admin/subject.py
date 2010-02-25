@@ -686,7 +686,6 @@ class OfferingProjectsView(XHTMLView):
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
-        self.plugin_scripts[Plugin] = ["project.js"]
         ctx['req'] = req
         ctx['offering'] = self.context
         ctx['projectsets'] = []
