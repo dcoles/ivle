@@ -856,6 +856,30 @@ class ProjectNew(BaseFormView):
         req.store.add(new_project)
         return new_project
 
+class ProjectDelete(XHTMLView):
+    """A form to delete a project."""
+    template = 'templates/project-delete.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    def populate(self, req, ctx):
+        # If post, delete the project, or display a message explaining that
+        # the project cannot be deleted
+        if self.context.can_delete:
+            if req.method == 'POST':
+                self.context.delete()
+                self.template = 'templates/project-deleted.html'
+        else:
+            # Can't delete
+            self.template = 'templates/project-undeletable.html'
+
+        # If get and can delete, display a delete confirmation page
+
+        # Variables for the template
+        ctx['req'] = req
+        ctx['project'] = self.context
+        ctx['OfferingProjectsView'] = OfferingProjectsView
+
 class ProjectSetSchema(formencode.Schema):
     group_size = formencode.validators.Int(if_missing=None, not_empty=False)
 
@@ -935,6 +959,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ProjectSet, '+new', ProjectNew),
              (Project, '+index', ProjectView),
              (Project, '+edit', ProjectEdit),
+             (Project, '+delete', ProjectDelete),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
