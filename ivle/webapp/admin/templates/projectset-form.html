@@ -4,7 +4,7 @@
   <body py:strip="">
       <form class="verticalform thin" method="post" action="">
         <div>
-          <label for="group_size">Group Size:</label>
+          <label for="group_size">Group size:</label>
           <input type="text" id="group_size" name="group_size" />
           Leave blank for individual projects. Enter 0 for unlimited membership.
           <span py:if="'group_size' in errors" class="form_error">${errors.group_size}</span>
