@@ -385,7 +385,7 @@ class OfferingSchema(formencode.Schema):
     description = formencode.validators.UnicodeString(
         if_missing=None, not_empty=False)
     url = formencode.validators.URL(if_missing=None, not_empty=False)
-    worksheet_cutoff = DateTimeValidator(not_empty=True)
+    worksheet_cutoff = DateTimeValidator(if_missing=None, not_empty=False)
     show_worksheet_marks = formencode.validators.StringBoolean(
         if_missing=False)
 
