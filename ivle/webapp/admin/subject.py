@@ -798,6 +798,7 @@ class ProjectNew(BaseFormView):
 
     def populate(self, req, ctx):
         super(ProjectNew, self).populate(req, ctx)
+        ctx['projectset'] = self.context
 
     def populate_state(self, state):
         state.offering = self.context.offering

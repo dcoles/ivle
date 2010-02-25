@@ -5,7 +5,7 @@
       <form class="verticalform" method="post" action="">
         <div>
           <label>Group size:</label>
-            ${context.max_students_per_group if context.max_students_per_group is not None else 'Solo'}
+            ${projectset.max_students_per_group if projectset.max_students_per_group is not None else 'Solo'}
         </div>
         <div>
           <label for="name">Display name:</label>
