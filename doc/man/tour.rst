@@ -272,6 +272,13 @@ students by selecting "View worksheet marks" at the bottom of the subject
 page. This shows the marks in each worksheet, and in the subject overall, for
 each student, and can be used to calculate each student's final grade.
 
+.. note::
+   The marks are calculated from the current time, by default. However,
+   normally, there is a cutoff time after which students cannot gain any
+   additional marks for worksheets. You can set this cutoff in the offering
+   edit page. Once set, the marks will be calculated based on submissions up
+   until that date, and students will be notified of the cutoff time.
+
 The "Download as CSV file" link provides these same statistics in CSV format,
 which can be easily parsed.
 
