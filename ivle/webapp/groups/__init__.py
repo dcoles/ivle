@@ -39,6 +39,7 @@ class GroupsView(XHTMLView):
         self.plugin_styles[Plugin] = ['groups.css']
         self.plugin_scripts[Plugin] = ['groups.js']
 
+        ctx['req'] = req
         ctx['projectset'] = self.context
 
 class Plugin(ViewPlugin, MediaPlugin):

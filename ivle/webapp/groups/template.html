@@ -1,11 +1,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://genshi.edgewall.org/">
   <head>
-    <title>Groups for ${projectset.offering.subject.name}</title>
+    <title>Project set for ${projectset.offering.subject.name}</title>
   </head>
   <body>
-    <h1>Groups for ${projectset.offering.subject.name}</h1>
+    <h1>Project set for ${projectset.offering.subject.name}</h1>
     <div id="ivle_padding">
+      <p>Projects in this set:</p>
+      <ul>
+        <li py:for="project in projectset.projects">
+          <a href="${req.publisher.generate(project)}">${project.name}</a>
+        </li>
+      </ul>
+      <p>Groups in this set:</p>
       <ul>
         <li py:for="group in projectset.project_groups"
             id="project_group_${group.id}">
