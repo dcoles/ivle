@@ -47,7 +47,6 @@ from ivle.database import Subject, Semester, Offering, Enrolment, User,\
 from ivle import util
 import ivle.date
 
-from ivle.webapp.admin.projectservice import ProjectSetRESTView
 from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             subject_to_offering, offering_to_projectset, offering_to_project,
             offering_to_enrolment, subject_url, semester_url, offering_url,
@@ -708,7 +707,7 @@ class OfferingProjectsView(XHTMLView):
             setCtx['projects'] = []
             setCtx['GroupsView'] = GroupsView
             setCtx['ProjectSetEdit'] = ProjectSetEdit
-            setCtx['ProjectSetRESTView'] = ProjectSetRESTView
+            setCtx['ProjectNew'] = ProjectNew
 
             for project in \
                 projectset.projects.order_by(ivle.database.Project.deadline):
@@ -897,8 +896,6 @@ class Plugin(ViewPlugin, MediaPlugin):
              (ProjectSet, '+edit', ProjectSetEdit),
              (ProjectSet, '+new', ProjectNew),
              (Project, '+index', ProjectView),
-
-             (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
