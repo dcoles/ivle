@@ -31,7 +31,7 @@ import cgi
 from storm.locals import Desc, Store
 import genshi
 from genshi.filters import HTMLFormFiller
-from genshi.template import Context, TemplateLoader
+from genshi.template import Context
 import formencode
 import formencode.validators
 
@@ -695,9 +695,6 @@ class OfferingProjectsView(XHTMLView):
 
         #Open the projectset Fragment, and render it for inclusion
         #into the ProjectSets page
-        #XXX: This could be a lot cleaner
-        loader = genshi.template.TemplateLoader(".", auto_reload=True)
-
         set_fragment = os.path.join(os.path.dirname(__file__),
                 "templates/projectset_fragment.html")
         project_fragment = os.path.join(os.path.dirname(__file__),
@@ -705,7 +702,7 @@ class OfferingProjectsView(XHTMLView):
 
         for projectset in \
             self.context.project_sets.order_by(ivle.database.ProjectSet.id):
-            settmpl = loader.load(set_fragment)
+            settmpl = self._loader.load(set_fragment)
             setCtx = Context()
             setCtx['req'] = req
             setCtx['projectset'] = projectset
@@ -715,7 +712,7 @@ class OfferingProjectsView(XHTMLView):
 
             for project in \
                 projectset.projects.order_by(ivle.database.Project.deadline):
-                projecttmpl = loader.load(project_fragment)
+                projecttmpl = self._loader.load(project_fragment)
                 projectCtx = Context()
                 projectCtx['req'] = req
                 projectCtx['project'] = project
