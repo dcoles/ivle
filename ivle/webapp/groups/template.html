@@ -27,11 +27,13 @@
           <td><a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
              class="choice"
              id="project_group_${group.id}_button">
-            (manage)
+            <img src="/+media/ivle.webapp.core/images/interface/group.png" alt="Manage" title="Manage" />
           </a></td>
         </tr>
       </table>
-      <p><input value="New" type="button" onclick="create_new_group(${projectset.id})" /></p>
+      <p><span class="addaction">
+        <input value="Add a new group" type="button" onclick="create_new_group(${projectset.id})" />
+      </span></p>
       </py:if>
     </div>
   </body>
