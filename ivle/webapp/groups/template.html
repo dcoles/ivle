@@ -12,32 +12,34 @@
       <py:if test="projectset.is_group">
       <p>Groups of maximum size ${projectset.max_students_per_group}.</p>
       </py:if>
-      <p>Projects in this set:</p>
-      <table class="pretty_table">
-        <tr><th>Name</th><th>Actions</th></tr>
-        <tr py:for="project in projectset.projects">
-          <td><a href="${req.publisher.generate(project)}">${project.name}</a></td>
-          <td></td>
-        </tr>
-      </table>
-      <py:if test="projectset.is_group">
-      <p>Groups in this set:</p>
-      <table class="pretty_table">
-        <tr><th>Name</th><th>Actions</th></tr>
-        <tr py:for="group in projectset.project_groups"
-            id="project_group_${group.id}">
-          <td>${group.name}</td>
-          <td><a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
-             class="choice"
-             id="project_group_${group.id}_button">
-            <img src="/+media/ivle.webapp.core/images/interface/group.png" alt="Manage" title="Manage" />
-          </a></td>
-        </tr>
-      </table>
-      <p><span class="addaction">
-        <input value="Add a new group" type="button" onclick="create_new_group(${projectset.id})" />
-      </span></p>
-      </py:if>
+      <div class="majorsection">
+        <h2>Projects</h2>
+        <table class="pretty_table">
+          <tr><th>Name</th><th>Actions</th></tr>
+          <tr py:for="project in projectset.projects">
+            <td><a href="${req.publisher.generate(project)}">${project.name}</a></td>
+            <td></td>
+          </tr>
+        </table>
+      </div>
+      <div py:if="projectset.is_group" class="majorsection">
+        <h2>Groups</h2>
+        <table class="pretty_table">
+          <tr><th>Name</th><th>Actions</th></tr>
+          <tr py:for="group in projectset.project_groups"
+              id="project_group_${group.id}">
+            <td>${group.name}</td>
+            <td><a onclick="manage_group(${projectset.offering.id}, ${group.id} ,'project_group_${group.id}')"
+               class="choice"
+               id="project_group_${group.id}_button">
+              <img src="/+media/ivle.webapp.core/images/interface/group.png" alt="Manage" title="Manage" />
+            </a></td>
+          </tr>
+        </table>
+        <p><span class="addaction">
+          <input value="Add a new group" type="button" onclick="create_new_group(${projectset.id})" />
+        </span></p>
+      </div>
     </div>
   </body>
 </html>
