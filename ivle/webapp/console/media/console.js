@@ -89,8 +89,16 @@ function start_server(callback)
             {
                 server_key = JSON.parse(json_text).key;
                 server_started = true;
-                if (callback != null)
-                    callback();
+                var args = {
+                    "ivle.op": "chat", "kind": "splash", "key": server_key
+                };
+                var callback2 = function(xhr)
+                {
+                    console_response(null, null, xhr.responseText);
+                    if (callback != null)
+                        callback();
+                };
+                ajax_call(callback2, "console", "service", args, "POST");
             }
             catch (e)
             {

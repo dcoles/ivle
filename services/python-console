@@ -181,6 +181,7 @@ class PythonRunner(Thread):
 
         # Handlers for each action
         actions = {
+            'splash': self.handle_splash,
             'chat': self.handle_chat,
             'block': self.handle_block,
             'globals': self.handle_globals,
@@ -198,7 +199,15 @@ class PythonRunner(Thread):
                 response = {'error': repr(e)}
             finally:
                 self.cmdQ.put(response)
-                   
+
+    def handle_splash(self, params):
+        # Initial console splash screen
+        python_version = '.'.join(str(v) for v in sys.version_info[:3])
+        splash_text = ("""IVLE Python Console (Python %s)
+Type "help", "copyright", "credits" or "license" for more information.
+""" % python_version)
+        return {'output': splash_text}
+
     def handle_chat(self, params):
         # Set up the partial cmd buffer
         if self.curr_cmd == '':
