@@ -760,6 +760,33 @@ class ProjectView(XHTMLView):
         ctx['project'] = self.context
         ctx['user'] = req.user
 
+class ProjectSetSchema(formencode.Schema):
+    group_size = formencode.validators.Int(if_missing=None, not_empty=False)
+
+class ProjectSetNew(BaseFormView):
+    """A form to create a new project set."""
+    template = 'templates/projectset-new.html'
+    tab = 'subjects'
+    permission = 'edit'
+    breadcrumb_text = "Projects"
+
+    @property
+    def validator(self):
+        return ProjectSetSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectSetNew, self).populate(req, ctx)
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_set = ProjectSet()
+        new_set.offering = self.context
+        new_set.max_students_per_group = data['group_size']
+        req.store.add(new_set)
+        return new_set
+
 class Plugin(ViewPlugin, MediaPlugin):
     forward_routes = (root_to_subject, root_to_semester, subject_to_offering,
                       offering_to_project, offering_to_projectset,
@@ -785,6 +812,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Enrolment, '+edit', EnrolmentEdit),
              (Enrolment, '+delete', EnrolmentDelete),
              (Offering, ('+projects', '+index'), OfferingProjectsView),
+             (Offering, ('+projects', '+new-set'), ProjectSetNew),
              (Project, '+index', ProjectView),
 
              (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
