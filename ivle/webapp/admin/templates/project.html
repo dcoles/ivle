@@ -12,6 +12,11 @@
            href="${req.publisher.generate(project, ProjectEdit)}">
            Change details
         </a>
+        <a py:if="'edit' in permissions"
+           class="deleteaction"
+           href="${req.publisher.generate(project, ProjectDelete)}">
+           Delete project
+        </a>
       </div>
       <a py:if="project.url not in (None, '')" href="${project.url}">${project.url}</a>
       <p>Deadline: ${format_datetime(project.deadline)}</p>

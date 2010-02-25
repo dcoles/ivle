@@ -25,8 +25,12 @@
         <tr py:for="project in projectset.projects">
           <td><a href="${req.publisher.generate(project)}">${project.name}</a></td>
           <td><a href='${req.publisher.generate(project, ProjectEdit)}'><img
-            src='/+media/ivle.webapp.core/images/interface/pencil.png' alt="Edit"
-            title="Edit project" /></a></td>
+                src='/+media/ivle.webapp.core/images/interface/pencil.png'
+                alt="Edit" title="Edit project" /></a>
+              <a href='${req.publisher.generate(project, ProjectDelete)}'><img
+                src='/+media/ivle.webapp.core/images/interface/delete.png'
+                alt="Delete" title="Delete project" /></a>
+          </td>
         </tr>
       </table>
       <p><a class="addaction" href="${req.publisher.generate(projectset, ProjectNew)}">Add a new project</a></p>

@@ -715,6 +715,7 @@ class OfferingProjectsView(XHTMLView):
                 projectCtx['req'] = req
                 projectCtx['project'] = project
                 projectCtx['ProjectEdit'] = ProjectEdit
+                projectCtx['ProjectDelete'] = ProjectDelete
 
                 setCtx['projects'].append(
                         projecttmpl.generate(projectCtx))
@@ -760,6 +761,7 @@ class ProjectView(XHTMLView):
         ctx['project'] = self.context
         ctx['user'] = req.user
         ctx['ProjectEdit'] = ProjectEdit
+        ctx['ProjectDelete'] = ProjectDelete
 
 class ProjectUniquenessValidator(formencode.FancyValidator):
     """A FormEncode validator that checks that a project short_name is unique
