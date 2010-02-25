@@ -714,6 +714,7 @@ class OfferingProjectsView(XHTMLView):
                 projectCtx = Context()
                 projectCtx['req'] = req
                 projectCtx['project'] = project
+                projectCtx['ProjectEdit'] = ProjectEdit
 
                 setCtx['projects'].append(
                         projecttmpl.generate(projectCtx))
@@ -749,6 +750,7 @@ class ProjectView(XHTMLView):
         self.plugin_styles[Plugin] = ["project.css"]
 
         ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
         ctx['GroupsView'] = GroupsView
         ctx['EnrolView'] = EnrolView
         ctx['format_datetime'] = ivle.date.make_date_nice
@@ -757,6 +759,7 @@ class ProjectView(XHTMLView):
         ctx['svn_addr'] = req.config['urls']['svn_addr']
         ctx['project'] = self.context
         ctx['user'] = req.user
+        ctx['ProjectEdit'] = ProjectEdit
 
 class ProjectUniquenessValidator(formencode.FancyValidator):
     """A FormEncode validator that checks that a project short_name is unique
