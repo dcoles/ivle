@@ -199,6 +199,7 @@ ul#ivle_breadcrumbs > li.crumbmenu > a {
 
 #ivle_padding .majorsection > h2:first-child {
     margin-left: 0;
+    margin-bottom: 0.3em;
 }
 
 p.userhello {
