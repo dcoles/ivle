@@ -5,6 +5,7 @@
   <py:choose test="projectset.max_students_per_group">
     <h3 py:when="None">
       Solo projects
+      <a class="editaction" href="${req.publisher.generate(projectset, ProjectSetEdit)}">Edit</a>
     </h3>
     <h3 py:otherwise="">
       Group projects
