@@ -47,7 +47,6 @@ from ivle import util
 import ivle.date
 
 from ivle.webapp.admin.projectservice import ProjectSetRESTView
-from ivle.webapp.admin.offeringservice import OfferingRESTView
 from ivle.webapp.admin.publishing import (root_to_subject, root_to_semester,
             subject_to_offering, offering_to_projectset, offering_to_project,
             offering_to_enrolment, subject_url, semester_url, offering_url,
@@ -691,7 +690,6 @@ class OfferingProjectsView(XHTMLView):
         ctx['req'] = req
         ctx['offering'] = self.context
         ctx['projectsets'] = []
-        ctx['OfferingRESTView'] = OfferingRESTView
 
         #Open the projectset Fragment, and render it for inclusion
         #into the ProjectSets page
@@ -815,7 +813,6 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Offering, ('+projects', '+new-set'), ProjectSetNew),
              (Project, '+index', ProjectView),
 
-             (Offering, ('+projectsets', '+new'), OfferingRESTView, 'api'),
              (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
              ]
 
