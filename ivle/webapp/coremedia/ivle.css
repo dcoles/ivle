@@ -286,6 +286,7 @@ form.verticalform.thin div.submit {
 .addaction,
 .deleteaction,
 .editaction,
+.erroraction,
 .keyaction,
 .manageaction,
 .groupaction,
@@ -309,6 +310,10 @@ form.verticalform.thin div.submit {
 
 .editaction {
   background-image: url(images/interface/pencil.png);
+}
+
+.erroraction {
+  background-image: url(images/interface/error.png);
 }
 
 .keyaction {

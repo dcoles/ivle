@@ -43,6 +43,18 @@ class LoginView(XHTMLView):
         fields = req.get_fieldstorage()
         nexturl = fields.getfirst('url')
 
+        # XXX Warning that Internet Explorer is unsupported
+        # Test if the user is in Internet Explorer
+        try:
+            useragent = req.headers_in['User-Agent']
+            # A bit of very basic UA string detection
+            ctx['msie'] = ('MSIE' in useragent
+                           and 'AppleWebKit' not in useragent
+                           and 'Gecko' not in useragent
+                           and 'Opera' not in useragent)
+        except KeyError:
+            ctx['msie'] = False
+
         if nexturl is None:
             nexturl = '/'
 
