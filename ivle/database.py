@@ -889,6 +889,7 @@ class Exercise(Storm):
     id = Unicode(primary=True, name="identifier")
     name = Unicode()
     description = Unicode()
+    _description_xhtml_cache = Unicode(name='description_xhtml_cache')
     partial = Unicode()
     solution = Unicode()
     include = Unicode()
@@ -937,16 +938,25 @@ class Exercise(Storm):
 
         return perms
 
+    def _cache_description_xhtml(self, invalidate=False):
+        # Don't regenerate an existing cache unless forced.
+        if self._description_xhtml_cache is not None and not invalidate:
+            return
+
+        if self.description:
+            self._description_xhtml_cache = rst(self.description)
+        else:
+            self._description_xhtml_cache = None
+
     @property
     def description_xhtml(self):
         """The XHTML exercise description, converted from reStructuredText."""
-        if self.description:
-            return rst(self.description)
-        else:
-            return None
+        self._cache_description_xhtml()
+        return self._description_xhtml_cache
 
     def set_description(self, description):
         self.description = description
+        self._cache_description_xhtml(invalidate=True)
 
     def delete(self):
         """Deletes the exercise, providing it has no associated worksheets."""
@@ -971,6 +981,7 @@ class Worksheet(Storm):
     assessable = Bool()
     published = Bool()
     data = Unicode()
+    _data_xhtml_cache = Unicode(name='data_xhtml_cache')
     seq_no = Int()
     format = Unicode()
 
@@ -1023,17 +1034,30 @@ class Worksheet(Storm):
 
         return perms
 
+    def _cache_data_xhtml(self, invalidate=False):
+        # Don't regenerate an existing cache unless forced.
+        if self._data_xhtml_cache is not None and not invalidate:
+            return
+
+        if self.format == u'rst':
+            self._data_xhtml_cache = rst(self.data)
+        else:
+            self._data_xhtml_cache = None
+
     @property
     def data_xhtml(self):
         """The XHTML of this worksheet, converted from rST if required."""
+        # Update the rST -> XHTML cache, if required.
+        self._cache_data_xhtml()
+
         if self.format == u'rst':
-            ws_xml = rst(self.data)
-            return ws_xml
+            return self._data_xhtml_cache
         else:
             return self.data
 
     def set_data(self, data):
         self.data = data
+        self._cache_data_xhtml(invalidate=True)
 
     def delete(self):
         """Deletes the worksheet, provided it has no attempts on any exercises.
