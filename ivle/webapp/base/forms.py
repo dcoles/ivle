@@ -16,6 +16,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
+import datetime
 
 import formencode
 import formencode.validators
@@ -117,3 +118,20 @@ class URLNameValidator(formencode.validators.UnicodeString):
                 'Must consist of a lowercase alphanumeric character followed '
                 'by any number of lowercase alphanumerics, ., +, - or _.',
                 value, state)
+
+class DateTimeValidator(formencode.validators.FancyValidator):
+    """Accepts a date/time in YYYY-MM-DD HH:MM:SS format. Converts to a
+    datetime.datetime object."""
+    def _to_python(self, value, state):
+        """Validate and convert."""
+        try:
+            return datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        except ValueError, e:
+            raise formencode.Invalid(str(e) + " -> " + repr(value), value, state)
+            raise formencode.Invalid("Must be a timestamp in "
+                "YYYY-MM-DD HH:MM:SS format", value, state)
+    def _from_python(self, value, state):
+        try:
+            return value.strftime("%Y-%m-%d %H:%M:%S")
+        except AttributeError:
+            raise formencode.Invalid("Must be a datetime.datetime object")
