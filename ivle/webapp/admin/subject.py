@@ -35,7 +35,8 @@ from genshi.template import Context
 import formencode
 import formencode.validators
 
-from ivle.webapp.base.forms import BaseFormView, URLNameValidator
+from ivle.webapp.base.forms import (BaseFormView, URLNameValidator,
+                                    DateTimeValidator)
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import BadRequest
@@ -759,6 +760,65 @@ class ProjectView(XHTMLView):
         ctx['project'] = self.context
         ctx['user'] = req.user
 
+class ProjectUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a project short_name is unique
+    in a given offering.
+
+    The project referenced by state.existing_project is permitted to
+    hold that short_name. If any other project holds it, the input is rejected.
+    """
+    def _to_python(self, value, state):
+        # TODO: Allow short_name to be equal to existing_project
+        if state.store.find(
+            Project,
+            Project.short_name == unicode(value),
+            Project.project_set_id == ProjectSet.id,
+            ProjectSet.offering == state.offering).one():
+            raise formencode.Invalid(
+                "A project with that URL name already exists in this offering."
+                , value, state)
+        return value
+
+class ProjectSchema(formencode.Schema):
+    name = formencode.validators.UnicodeString(not_empty=True)
+    short_name = formencode.All(
+        URLNameValidator(not_empty=True),
+        ProjectUniquenessValidator())
+    deadline = DateTimeValidator(not_empty=True)
+    url = formencode.validators.URL(if_missing=None, not_empty=False)
+    synopsis = formencode.validators.UnicodeString(not_empty=True)
+
+class ProjectNew(BaseFormView):
+    """A form to create a new project."""
+    template = 'templates/project-new.html'
+    tab = 'subjects'
+    permission = 'edit'
+
+    @property
+    def validator(self):
+        return ProjectSchema()
+
+    def populate(self, req, ctx):
+        super(ProjectNew, self).populate(req, ctx)
+
+    def populate_state(self, state):
+        state.offering = self.context.offering
+        state.existing_project = None
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        new_project = Project()
+        new_project.project_set = self.context
+        new_project.name = data['name']
+        new_project.short_name = data['short_name']
+        new_project.deadline = data['deadline']
+        new_project.url = data['url']
+        new_project.synopsis = data['synopsis']
+        req.store.add(new_project)
+        return new_project
+
 class ProjectSetSchema(formencode.Schema):
     group_size = formencode.validators.Int(if_missing=None, not_empty=False)
 
@@ -835,6 +895,7 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Offering, ('+projects', '+index'), OfferingProjectsView),
              (Offering, ('+projects', '+new-set'), ProjectSetNew),
              (ProjectSet, '+edit', ProjectSetEdit),
+             (ProjectSet, '+new', ProjectNew),
              (Project, '+index', ProjectView),
 
              (ProjectSet, ('+projects', '+new'), ProjectSetRESTView, 'api'),
