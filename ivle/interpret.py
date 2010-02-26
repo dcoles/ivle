@@ -444,7 +444,11 @@ def execute_raw(config, user, jail_dir, working_dir, binary, args):
                 for s in cmd_line]
     proc = subprocess.Popen(cmd_line,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True)
+        stderr=subprocess.PIPE, cwd=tramp_dir, close_fds=True,
+        env={'HOME': os.path.join('/home', user.login),
+             'PATH': os.environ['PATH'],
+             'USER': user.login,
+             'LOGNAME': user.login})
 
     (stdout, stderr) = proc.communicate()
     exitcode = proc.returncode
