@@ -68,13 +68,8 @@ application, which also starts console host processes. Each slave makes use
 of the shared services on the master.
 
 For a small instance a slave may be run on the same machine as the master.
-This is the setup described on this page.
-
-
-Installing from a Debian package
-================================
-
-.. _database-setup:
+This is the setup described in the source installation section, while the
+Ubuntu package installation section describes a multi-node configuration.
 
 
 Installing from source
@@ -226,7 +221,6 @@ Add to it: ::
    devmode = True
    suite = jaunty # Replace this with the codename of your Ubuntu release.
    mirror = http://url.to.archive/mirror # Replace with a fast Ubuntu mirror.
-   extra_packages = python-configobj, python-svn, python-cjson
 
 .. TODO: Move this around a bit, as the config options required differ for
    the packaged version.
@@ -305,3 +299,169 @@ working IVLE environment (not for production use). See :ref:`sample-data`.
 .. note::
    For more advanced configuration, see :ref:`Configuring IVLE
    <ref-configuring-ivle>`.
+
+
+
+Installing from an Ubuntu package
+=================================
+
+IVLE is packaged in `a Launchpad PPA <https://launchpad.net/~unimelb-ivle/+archive/production>`_,
+providing a more managed installation and upgrade mechanism than a source
+installation.
+
+These instructions document the process to install a production-ready
+multi-node IVLE cluster. They expect that you have three domain names:
+one for the main IVLE web UI, one for the Subversion service, and one
+for serving user files publicly.
+
+.. warning::
+   By design the public domain may have arbitrary user-generated content
+   served. Because of this, it should not have any domain with sensitive
+   cookies as a suffix, including the main IVLE web UI. Be very careful
+   with your choice here.
+
+
+Shared setup
+------------
+
+All master and slave nodes need to have access to the IVLE PPA.
+`Visit it <https://launchpad.net/~unimelb-ivle/+archive/production>`_ and
+follow the installation instructions on all involved systems.
+
+
+Master setup
+------------
+
+Setting up the database server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The master server runs the central IVLE PostgreSQL database. ::
+
+   sudo apt-get install postgresql
+
+Ubuntu's default PostgreSQL configuration doesn't permit remote access,
+so we need to tweak it to allow password access from our slave. In
+``/etc/postgresql/8.3/main/postgresql.conf``, find the ``listen_addresses``
+option, and ensure it is set to ``*``. In
+``/etc/postgresql/8.3/main/pg_hba.conf`` add a line like the following to the
+end. This example will allow any host in the ``1.2.3.4/24`` subnet to
+authenticate with a password as the ``ivle`` user to the ``ivle`` database. ::
+
+   host    ivle        ivle        1.2.3.4/24      md5
+
+Then restart PostgreSQL, and the slaves should be able to see the database. ::
+
+   sudo /etc/init.d/postgresql-8.3 restart
+
+
+Installing and configuring IVLE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can now install IVLE. The installation process will ask you a few questons.
+Answer that this host is a **master**, let it generate a random usrmgt-server
+secret, elect to manage the database with ``dbconfig-common``, and use a
+random password. ::
+
+   sudo apt-get install ivle
+
+Once that's done, we have a couple of additional configuration items to set:
+the URLs discussed earlier. Open up ``/etc/ivle/ivle.conf``, 
+and replace ``public.ivle.localhost`` and ``svn.ivle.localhost`` with the
+correct domain names.
+
+Make sure you restart the ``usrmgt-server`` afterwards, or newly created users
+may inherit the old domain names. ::
+
+   sudo /etc/init.d/usrmgt-server restart
+
+
+Sharing data between the servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As well as its relational database, IVLE has a data hierarchy on the
+fileystem. Two part of this (``/var/lib/ivle/jails`` and
+``/var/lib/ivle/sessions``) must be shared between the master and all of the
+slaves. It doesn't matter how you achieve this, but a reasonable method is
+described here: exporting over NFS from the master.
+
+We'll first create a tree (``/export/ivle`` in this example, but it can be
+whatever you want) to be exported to the slaves, move the existing data
+directories into it, and symlink them back into place. ::
+
+   sudo mkdir /export/ivle
+   sudo mv /var/lib/ivle/{sessions,jails} /export/ivle
+   sudo ln -s /export/ivle/{sessions,jails} /var/lib/ivle
+
+Next install an NFS server. ::
+
+   sudo apt-get install nfs-kernel-server
+
+Now we can export the directory we created earlier across the network.
+Add something like the following line to ``/etc/exports``. ``someslave``
+should be replaced with the hostname, IP address, or subnet of your
+slave(s). ::
+
+   /export/ivle		someslave(rw,sync)
+
+Make sure you inform the kernel of the new export. ::
+
+   sudo exportfs -a
+
+
+Configuring Apache
+~~~~~~~~~~~~~~~~~~
+
+The master serves Subversion repositories through Apache on the Subversion
+domain name that was discussed above. ::
+
+   sudo cp /usr/share/doc/ivle/apache-svn.conf /etc/apache2/sites-available/ivle-svn
+   sudo a2ensite ivle-svn
+
+Edit ``/etc/apache2/sites-available/ivle-svn``, ensuring that the
+``ServerName`` matches your chosen domain name. Then reload Apache's
+configuration. ::
+
+   sudo /etc/init.d/apache2 reload
+
+
+Setting up a jail environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+IVLE requires that a base jail be provided, on top of which all of the
+individual user jails are constructed in order to safely execute user code.
+
+We need to change some configuration options before we can build a working
+jail. First set the mirror and Ubuntu release -- make sure you replace the
+URL and release code name with an Ubuntu mirror and your Ubuntu release. ::
+
+   sudo ivle-config --jail/mirror http://url.to.mirror/ubuntu --jail/suite hardy
+
+Now comes the ugly bit: we need to tell the jail builder where to get the
+IVLE code that must be present in the jail. If you're using the production
+PPA, the following ``/etc/ivle/ivle.conf`` snippet will work. If you're not,
+you'll have to replace the ``extra_keys`` and ``extra_sources`` values ::
+
+   [jail]
+   extra_keys = '''
+   -----BEGIN PGP PUBLIC KEY BLOCK-----
+   Version: SKS 1.0.10
+   
+   mI0ES2pQKAEEANiscebT7+SFnvpN8nABcwT5nEV6psUOF8CcIIrz3iv6b6wA3lYd0DzbD7RD
+   fs1MNriEHHgqPF6EUhGrkk1165Oqi+lULdjgL0Fzi3GFvLV9F8+BtL3wt3+MM7YC+aTS1nhF
+   dQcPpnhNAJagW5gR4dIc4w87sNquxgCdJeJn/N3XABEBAAG0KkxhdW5jaHBhZCBVbml2ZXJz
+   aXR5IG9mIE1lbGJvdXJuZSBJVkxFIFBQQYi2BBMBAgAgBQJLalAoAhsDBgsJCAcDAgQVAggD
+   BBYCAwECHgECF4AACgkQVwp7ATtnautCMgP8C6PbLNyx9akgbiwhakFfGaEbxGFCo1EAUE7v
+   FgdelJSEkeQLAn4WoANpixuojNi++PEDis22S4tz+ZC6G0dRU9Pcc1bb4xUgphR83QTcufH7
+   5EagfTf5lLIWaLdg5f/NeuHHrKvwKvPVkNJ3ShQejFB/xWGpqe2Rr7Rscm9lT0Q=
+   =TJYw
+   -----END PGP PUBLIC KEY BLOCK-----
+   '''
+   extra_packages = ivle-services,
+   extra_sources = deb http://ppa.launchpad.net/unimelb-ivle/production/ubuntu hardy main,
+
+Now we can build the jail. This will download lots of packages, and install
+a minimal Ubuntu system in ``/var/lib/ivle/jails/__base__``. ::
+
+   sudo ivle-buildjail -r
+
+You should now have a functional master.
