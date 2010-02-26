@@ -73,6 +73,7 @@ as "tutor" by a lecturer or admin.
 
 In addition to the abilities of students, tutors have the ability to:
 
+* Create project groups, and add/remove students from them,
 * View submissions to projects in the offering,
 * Check out (with an external Subversion client) the part of a student or
   group's Subversion repository which was submitted to a project in the
@@ -99,13 +100,12 @@ offering as "lecturer" by an admin.
 In addition to the abilities of tutors, lecturers have the ability to:
 
 * Enrol a user in the offering, as a student or tutor,
-* Create and edit worksheets for the offering
+* Create and edit worksheets for the offering,
 * Create and edit exercises *for any offering* (as exercises are not
   offering-specific),
 * Edit the details of the offering (such as description and URL),
 * View individual students' worksheet marks for the offering,
-* Create and edit projects and project sets for the offering,
-* Create project groups, and add/remove students from them.
+* Create and edit projects and project sets for the offering.
 
 Admins
 ------
@@ -121,6 +121,7 @@ Admins have the ability to:
 * See a list of all users in the system,
 * View and edit all details for all users, including "fixed" fields such as
   full name, and change any user's password without knowing the old one,
+* Create new users,
 * Enrol a user as a lecturer in any offering,
 * Upgrade any user to admin status, or revoke admin status,
 * Disable (ban) any user from accessing the system at all, or enable a user,
