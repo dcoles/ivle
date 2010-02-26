@@ -455,6 +455,6 @@ def execute_raw(config, user, jail_dir, working_dir, binary, args):
     exitcode = proc.returncode
 
     if exitcode != 0:
-        raise ExecutionError('subprocess ended with code %d, stderr %s' %
-                             (exitcode, proc.stderr.read()))
+        raise ExecutionError('subprocess ended with code %d, stderr: "%s"' %
+                             (exitcode, stderr))
     return (stdout, stderr)
