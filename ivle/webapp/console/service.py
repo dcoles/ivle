@@ -79,7 +79,6 @@ class ConsoleServiceRESTView(JSONRESTView):
                                  req.user.login)
         # Within Jail
         working_dir = os.path.join("/home", req.user.login, cwd)
-        uid = req.user.unixid
 
         # XXX: JSONRESTView should do this for us.
         text = text.decode('utf-8')
@@ -100,12 +99,12 @@ class ConsoleServiceRESTView(JSONRESTView):
         except socket.error, (enumber, estring):
             if enumber == errno.ECONNREFUSED:
                 # Timeout: Restart the session
-                response = restart_console(req.config, uid, jail_path,
+                response = restart_console(req.config, req.user, jail_path,
                     working_dir,
                     "Timed out due to inactivity")
             elif enumber == errno.ECONNRESET:
                 # Communication issue: Restart the session
-                response = restart_console(req.config, uid, jail_path,
+                response = restart_console(req.config, req.user, jail_path,
                     working_dir,
                     "Connection reset")
             else:
