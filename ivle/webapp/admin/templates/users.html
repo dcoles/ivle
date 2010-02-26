@@ -6,16 +6,24 @@
   <body>
     <h1>User list</h1>
     <div id="ivle_padding">
-      <table class="pretty_table">
-        <thead><tr><th>Login</th><th>Name</th><th>Admin</th></tr></thead>
-        <tbody>
-          <tr py:for="user in users">
-            <td><a href="${req.publisher.generate(user)}">${user.login}</a></td>
-            <td>${user.display_name}</td>
-            <td><py:if test="user.admin">yes</py:if></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="majorsection" py:def="userlist(title, admin)"
+           py:if="users.find(admin=admin).count()"
+           py:with="these_users = users.find(admin=admin)">
+        <h2>${title}</h2>
+        <table class="pretty_table">
+          <thead><tr><th>Login</th><th>Name</th></tr></thead>
+          <tbody>
+            <tr py:for="user in these_users">
+              <td py:attrs="{'class': 'disabled_user'} if user.state == u'disabled' else {}">
+                <a href="${req.publisher.generate(user)}">${user.login}</a>
+              </td>
+              <td>${user.display_name}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ${userlist("Admins", True)}
+      ${userlist("Users", False)}
       <div class="horizontalactions">
         <a class="addaction" href="/users/+new">Create new user</a>
       </div>

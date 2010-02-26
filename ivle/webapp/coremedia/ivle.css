@@ -373,3 +373,7 @@ form.verticalform.thin div.submit {
 .horizontalactions * {
     margin-right: 0.5em;
 }
+
+.disabled_user {
+    text-decoration: line-through;
+}
