@@ -86,6 +86,10 @@ In addition to the abilities of students, tutors have the ability to:
   allowed it (see ``tutors_can_edit_worksheets`` under
   :ref:`policy configuration <ref-configuration-policy>`). This is **enabled**
   by default,
+* View completion statistics for exercises in worksheets for the offering,
+  if the system administrator has allowed it (see
+  ``tutors_can_edit_worksheets`` under :ref:`policy configuration
+  <ref-configuration-policy>`). This is **enabled** by default.
 * Create and edit exercises *for any offering* (as exercises are not
   offering-specific), if the system administrator has allowed it (see
   ``tutors_can_edit_worksheets`` under :ref:`policy configuration
@@ -97,7 +101,8 @@ Lecturers
 The role of "lecturer" is offering-specific. Users may be enrolled in an
 offering as "lecturer" by an admin.
 
-In addition to the abilities of tutors, lecturers have the ability to:
+In addition to the abilities of tutors (including any of their policy-specific
+abilities, regardless of the policy setting), lecturers have the ability to:
 
 * Enrol a user in the offering, as a student or tutor,
 * Create and edit worksheets for the offering,
