@@ -21,13 +21,14 @@ import formencode
 import formencode.validators
 from genshi.filters import HTMLFormFiller
 
+from ivle.database import User
+import ivle.date
+from ivle.pulldown_subj import enrol_user
 from ivle.webapp import ApplicationRoot
-from ivle.webapp.base.forms import BaseFormView
+from ivle.webapp.base.forms import BaseFormView, URLNameValidator
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.admin.publishing import root_to_user, user_url
-from ivle.database import User
-import ivle.date
 
 
 class UsersView(XHTMLView):
@@ -185,6 +186,44 @@ class PasswordResetView(XHTMLView):
         ctx['user'] = self.context
         ctx['error'] = error
 
+
+class UserNewSchema(formencode.Schema):
+    login = URLNameValidator() # XXX: Validate uniqueness.
+    admin = formencode.validators.StringBoolean(if_missing=False)
+    fullname = formencode.validators.UnicodeString(not_empty=True)
+    studentid = formencode.validators.UnicodeString(not_empty=False,
+                                                    if_missing=None
+                                                    )
+    email = formencode.validators.Email(not_empty=False,
+                                        if_missing=None)
+
+
+class UserNewView(BaseFormView):
+    """A form for admins to create new users."""
+    template = 'templates/user-new.html'
+    tab = 'users'
+
+    def authorize(self, req):
+        """Only allow access if the requesting user is an admin."""
+        return req.user and req.user.admin
+
+    @property
+    def validator(self):
+        return UserNewSchema()
+
+    def get_default_data(self, req):
+        return {}
+
+    def save_object(self, req, data):
+        data['nick'] = data['fullname']
+        data['email'] = unicode(data['email']) if data['email'] else None
+        userobj = User(**data)
+        req.store.add(userobj)
+        enrol_user(req.config, req.store, userobj)
+
+        return userobj
+
+
 class Plugin(ViewPlugin, MediaPlugin):
     """
     The Plugin class for the user plugin.
@@ -192,7 +231,8 @@ class Plugin(ViewPlugin, MediaPlugin):
 
     forward_routes = (root_to_user,)
     reverse_routes = (user_url,)
-    views = [(ApplicationRoot, 'users', UsersView),
+    views = [(ApplicationRoot, ('users', '+index'), UsersView),
+             (ApplicationRoot, ('users', '+new'), UserNewView),
              (User, '+index', UserEditView),
              (User, '+admin', UserAdminView),
              (User, '+changepassword', PasswordChangeView),
