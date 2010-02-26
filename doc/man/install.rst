@@ -82,13 +82,18 @@ Installing from source
 
 When setting up a development IVLE environment on Ubuntu 9.04 or later,
 there are scripts to automate most of the process. First get and extract
-a release, or check out the latest code from the bzr branch: ::
+`a release tarball <https://launchpad.net/ivle/+download>`, or check out
+the latest code from the Bazaar branch: ::
 
    bzr get lp:ivle
 
 This will create a new directory, ``ivle``, containing a pristine
 source tree. The remaining steps assume that you are in this new
 directory.
+
+
+Automated setup
+---------------
 
 The ``ivle-dev-setup`` script will configure PostgreSQL, Apache, IVLE
 and the filesystem to cooperate, getting you most of the way to a
@@ -166,24 +171,15 @@ If you want to grab all of the required packages in one command, use::
     python-formencode python-genshi python-psycopg2 python-svn python-storm \
     libjs-jquery postgresql subversion debootstrap rsync build-essential
 
-While installing from a distribution package is often a better idea for
-users, developers will need to install from a plain source tree.
-
-To get the tree, either grab and extract a release tarball, or get the
-very latest code using bzr: ::
-
-   bzr get lp:ivle
-
-You should then change into the new source directory.
-
 As IVLE needs to compile some binaries, you must first build, then
-install it: ::
+install it. From the source directory created earlier: ::
 
    ./setup.py build
    sudo ./setup.py install
 
-Unlike the package, you will have to manually set up the database and
-configuration.
+
+Setting up the database
+~~~~~~~~~~~~~~~~~~~~~~~
 
 First, it is recommended that you create a separate database user for IVLE.
 You may use any name for the user. ::
@@ -208,11 +204,8 @@ carefully, run: ::
    sudo ivle-config
 
 
-Basic configuration
-===================
-
-.. Note: Place here only the configuration required to get the system
-   installed and running. Any further configuration should go in config.rst.
+Creating the data tree
+~~~~~~~~~~~~~~~~~~~~~~
 
 IVLE needs a directory hierarchy in which to store filesystem data, which
 by default lives in ``/var/lib/ivle``. Create it now. ::
@@ -221,7 +214,7 @@ by default lives in ``/var/lib/ivle``. Create it now. ::
 
 
 Configuring the jail environment
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You will require a self-contained jail environment in which to safely
 execute student code. 
@@ -244,8 +237,9 @@ Note that this could download a couple of hundred megabytes. ::
 
    sudo ivle-buildjail -r
 
+
 Configuring Apache
-------------------
+~~~~~~~~~~~~~~~~~~
 
 IVLE makes use of two Apache virtual hosts: one for the application itself,
 and one for the Subversion services. There are example configuration files
@@ -262,7 +256,7 @@ On a Debian or Ubuntu system, just copy those two files into
 
 
 Configuring hostname resolution
---------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 All of IVLE's hostnames need to be resolvable from the local system. For a
 production environment, this would be done in DNS. For a development system,
@@ -281,7 +275,7 @@ Then refresh the active copy of the jail: ::
 
 
 Configuring the user management server
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You need to have the IVLE user management server (``usrmgt-server``) running
 for many parts of IVLE to operate properly, so it should be configured to
@@ -295,7 +289,7 @@ automatically: ::
 
 
 Creating the initial user
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The final step in getting a usable IVLE set up is creating a user. You'll
 probably want admin privileges - if not, drop the ``--admin``. ::
