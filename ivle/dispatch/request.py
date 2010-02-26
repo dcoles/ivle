@@ -30,6 +30,20 @@ try:
     import mod_python.Cookie
     import mod_python.util
     import mod_python.apache
+
+    class PotentiallySecureFileSession(mod_python.Session.FileSession):
+        """A mod_python FileSession that sets secure cookie when appropriate.
+
+        A secure cookie will be set if the request itself is over HTTPS, or if
+        a proxy in front has set X-Forwarded-Proto: https. Otherwise the cookie
+        will be insecure.
+        """
+        def make_cookie(self):
+            cookie = super(PotentiallySecureFileSession, self).make_cookie()
+            if (self._req.is_https() or
+                self._req.headers_in.get('X-Forwarded-Proto') == 'https'):
+                cookie.secure = True
+            return cookie
 except ImportError:
     # This needs to be importable from outside Apache.
     pass
@@ -40,21 +54,6 @@ import ivle.util
 import ivle.database
 from ivle.webapp.base.plugins import CookiePlugin
 import ivle.webapp.security
-
-
-class PotentiallySecureFileSession(mod_python.Session.FileSession):
-    """A mod_python FileSession that sets secure cookie when appropriate.
-
-    A secure cookie will be set if the request itself is over HTTPS, or if
-    a proxy in front has set X-Forwarded-Proto: https. Otherwise the cookie
-    will be insecure.
-    """
-    def make_cookie(self):
-        cookie = super(PotentiallySecureFileSession, self).make_cookie()
-        if (self._req.is_https() or
-            self._req.headers_in.get('X-Forwarded-Proto') == 'https'):
-            cookie.secure = True
-        return cookie
 
 
 class Request:
