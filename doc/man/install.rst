@@ -465,3 +465,76 @@ a minimal Ubuntu system in ``/var/lib/ivle/jails/__base__``. ::
    sudo ivle-buildjail -r
 
 You should now have a functional master.
+
+
+Slave setup
+-----------
+
+Installing and configuring IVLE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We need to tell the database configuration assistant that we want to connect
+to a remote database. The second command will also ask you whether you want to
+store administrative passwords: say no here. ::
+
+   sudo apt-get install dbconfig-common
+   sudo dpkg-reconfigure dbconfig-common
+
+We are going to need some details from the master for authentication purposes.
+Grab the ``password`` value from the ``database`` section, and the ``magic``
+value from the ``usrmgt`` section of the master's ``/etc/ivle/ivle.conf``.
+
+Now we can install IVLE. Advise the installer that this machine is not a
+master, and use the details retrieved from the master to answer the rest of
+the questions. ::
+
+   sudo apt-get install ivle
+
+Once the installation has completed, make the same configuration changes as on
+the master: set the domain names in ``ivle.conf`` to real values.
+
+For maximum performance, you should also set the ``version`` value in the
+``media`` section. The exact string is not important, as long as the value is
+identical on every slave, and changed on each upgrade. It is used to make
+static file URLs unique, so clients can cache them indefinitely. The IVLE
+version is conventionally used as this string.
+
+
+Getting access to the shared data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We need to mount the shared components of the IVLE data hierarchy from the
+master. If you've used the suggested method, follow these instructions.
+Otherwise you'll have to work it out for yourself.
+
+First install the NFS common utilities, required for NFS mounts. ::
+
+   sudo apt-get install nfs-common
+
+Now we can add the mount to ``/etc/fstab``. Something like this should do: ::
+
+  themaster:/export/ivle /export/ivle nfs defaults 0 0
+
+Then mount the filesystem, and link the shared directories into the
+hierarchy. ::
+
+   mount -a
+   ivle-createdatadirs
+   rmdir /var/lib/ivle/{sessions,jails}
+   ln -s /export/ivle/{sessions,jails} /var/lib/ivle
+
+
+Configuring Apache
+~~~~~~~~~~~~~~~~~~
+
+The slaves use Apache to serve the main IVLE web UI and public user files.
+Let's activate the configuration now. ::
+
+   sudo cp /usr/share/doc/ivle/apache.conf /etc/apache2/sites-available/ivle
+   sudo a2ensite ivle
+
+Now edit ``/etc/apache2/sites-available/ivle``, and ensure that the
+``ServerName`` matches your chosen IVLE web UI domain name, and
+``ServerAlias`` your public name. Then reload Apache's configuration. ::
+
+   sudo /etc/init.d/apache2 reload
