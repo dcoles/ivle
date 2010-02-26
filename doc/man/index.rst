@@ -30,6 +30,7 @@ within the system itself (accessible from the Help tab).
 
    install.rst
    config.rst
+   upgrade.rst
    sample.rst
    tour.rst
    roles.rst
