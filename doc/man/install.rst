@@ -172,6 +172,7 @@ install it. From the source directory created earlier: ::
    ./setup.py build
    sudo ./setup.py install
 
+.. _database-setup:
 
 Setting up the database
 ~~~~~~~~~~~~~~~~~~~~~~~
