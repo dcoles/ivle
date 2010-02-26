@@ -324,6 +324,7 @@ function console_enter_line(inputbox, which)
         span.setAttribute("class", "inputMsg");
         span.appendChild(document.createTextNode(inputline));
         output.appendChild(span);
+        divScroll.activeScroll();
     }
     var args = {
         "ivle.op": "chat", "kind": which, "key": server_key,
@@ -355,6 +356,7 @@ function console_response(inputbox, inputline, responseText)
         {
             output.appendChild(document.createTextNode(res.okay + "\n"));
             output.appendChild(span);
+            divScroll.activeScroll();
         }
         // set the prompt to >>>
         set_prompt(">>>");
@@ -393,6 +395,7 @@ function console_response(inputbox, inputline, responseText)
         if (res.output.length > 0)
         {
             output.appendChild(document.createTextNode(res.output));
+            divScroll.activeScroll();
         }
         var callback = function(xhr)
             {
@@ -414,9 +417,6 @@ function console_response(inputbox, inputline, responseText)
 
         // Open up the console so we can see the output
         console_maximize();
-
-        /* Auto-scrolling */
-        divScroll.activeScroll();
 
         // Return early, so we don't re-enable the input box.
         return;
