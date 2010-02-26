@@ -1,0 +1,40 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Create user</title>
+  </head>
+  <body>
+    <h1>Create user</h1>
+    <div id="ivle_padding">
+      <form class="verticalform" action="" method="post">
+        <div>
+          <label for="field_login">Login:</label>
+          <input type="text" name="login" id="field_login" size="15" />
+          <span py:if="'login' in errors" class="form_error">${errors.login}</span>
+        </div>
+        <div>
+          <label for="field_admin">Administrator:</label>
+          <input type="checkbox" name="admin" id="field_admin" />
+          <span py:if="'admin' in errors" class="form_error">${errors.admin}</span>
+        </div>
+        <div>
+          <label for="field_fullname">Full name:</label>
+          <input type="text" name="fullname" id="field_fullname" size="40" />
+          <span py:if="'fullname' in errors" class="form_error">${errors.fullname}</span>
+        </div>
+        <div>
+          <label for="field_studentid">Student ID:</label>
+          <input type="text" name="studentid" id="field_studentid" size="40" />
+          <span py:if="'studentid' in errors" class="form_error">${errors.studentid}</span>
+        </div>
+        <div>
+          <label for="email">Email address:</label>
+          <input type="text" name="email" id="email" size="40" />
+          <span py:if="'email' in errors" class="form_error">${errors.email}</span>
+        </div>
+        <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
+        <div class="submit"><input type="submit" value="Create" /></div>
+      </form>
+    </div>
+  </body>
+</html>
