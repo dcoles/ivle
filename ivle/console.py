@@ -32,7 +32,7 @@ import uuid
 
 import cjson
 
-from ivle import chat
+from ivle import chat, interpret
 
 class ConsoleError(Exception):
     """ The console failed in some way. This is bad. """
@@ -108,14 +108,14 @@ class TruncateStringIO(StringIO.StringIO):
 class Console(object):
     """ Provides a nice python interface to the console
     """
-    def __init__(self, config, uid, jail_path, working_dir):
+    def __init__(self, config, user, jail_path, working_dir):
         """Starts up a console service for user uid, inside chroot jail 
         jail_path with work directory of working_dir
         """
         super(Console, self).__init__()
 
         self.config = config
-        self.uid = uid
+        self.user = user
         self.jail_path = jail_path
         self.working_dir = working_dir
 
@@ -152,41 +152,28 @@ class Console(object):
         # is (k / N) ** t (e.g. 3.2*10e-9).
 
         tries = 0
+        error = None
         while tries < 5:
             self.port = int(random.uniform(3000, 8000))
 
-            trampoline_path = os.path.join(self.config['paths']['lib'],
-                                           "trampoline")
+            python_console = os.path.join(self.config['paths']['share'],
+                        'services/python-console')
+            args = [python_console, str(self.port), str(self.magic)]
 
-            # Start the console server (port, magic)
-            # trampoline usage: tramp uid jail_dir working_dir script_path args
-            # console usage:    python-console port magic
-            res = os.spawnv(os.P_WAIT, trampoline_path, [
-                trampoline_path,
-                str(self.uid),
-                self.config['paths']['jails']['mounts'],
-                self.config['paths']['jails']['src'],
-                self.config['paths']['jails']['template'],
-                self.jail_path,
-                os.path.join(self.config['paths']['share'], 'services'),
-                "/usr/bin/python",
-                os.path.join(self.config['paths']['share'],
-                             'services/python-console'),
-                str(self.port),
-                str(self.magic),
-                self.working_dir
-                ])
-
-            if res == 0:
+            try:
+                interpret.execute_raw(self.config, self.user, self.jail_path,
+                        self.working_dir, "/usr/bin/python", args)
                 # success
-                break;
+                break
+            except interpret.ExecutionError, e:
+                tries += 1
+                error = e.message
 
-            tries += 1
-
-        # If we can't start the console after 5 attemps (can't find a free port 
-        # during random probing, syntax errors, segfaults) throw an exception.
+        # If we can't start the console after 5 attemps (can't find a free 
+        # port during random probing, syntax errors, segfaults) throw an 
+        # exception.
         if tries == 5:
-            raise ConsoleError("Unable to start console service!")
+            raise ConsoleError('Unable to start console service: %s'%error)
 
     def __chat(self, cmd, args):
         """ A wrapper around chat.chat to comunicate directly with the 

@@ -308,7 +308,7 @@ def test_exercise_submission(config, user, exercise, code):
     jail_path = os.path.join(config['paths']['jails']['mounts'],
                              user.login)
     working_dir = os.path.join("/home", user.login)
-    cons = ivle.console.Console(config, user.unixid, jail_path,
+    cons = ivle.console.Console(config, user, jail_path,
                                 working_dir)
 
     # Parse the file into a exercise object using the test suite
