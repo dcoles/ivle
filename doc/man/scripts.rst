@@ -53,9 +53,8 @@ ivle-adduser
 Creates a new user in the database. On-disk structures (jails and
 Subversion repositories) will be created upon first login.
 
-.. FIXME: "This can also be done through the administration interface."
-    (Not yet!)
-
+.. note::
+    Admins may create users from the Users page of the web interface.
 
 .. cmdoption:: <LOGIN>
 

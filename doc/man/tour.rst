@@ -295,9 +295,9 @@ Administering users
 -------------------
 
 Firstly, pull down the IVLE menu (top-left). There is an additional item for
-admins -- the *Users* page. This lists all users with an account in IVLE.
-Clicking on a username takes you to the user's profile page. Try it with the
-user ``lecturer``.
+admins -- the *Users* page. This lists all users with an account in IVLE, and
+lets you create new ones. Clicking on a username takes you to the user's
+profile page. Try it with the user ``lecturer``.
 
 The profile page is exactly the same as the user himself would see it, but
 with a few more buttons on the side. *Change password* is the same as the
