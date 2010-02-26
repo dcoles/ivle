@@ -31,13 +31,15 @@ import locale
 import cjson
 import pysvn
 
+import ivle.conf
 import ivle.svn
 
 # Set locale to UTF-8
 locale.setlocale(locale.LC_CTYPE, "en_US.UTF-8")
 
 try:
-    client = pysvn.Client()
+    client = ivle.svn.create_auth_svn_client(username=ivle.conf.login,
+                                             password=ivle.conf.svn_pass)
     client.exception_style = 1
     logs = client.log(os.path.join('/home', sys.argv[1].decode('utf-8')),
                       discover_changed_paths=True)

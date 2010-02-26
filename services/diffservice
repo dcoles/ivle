@@ -31,6 +31,7 @@ import locale
 import cjson
 import pysvn
 
+import ivle.conf
 import ivle.svn
 
 # Set locale to UTF-8
@@ -48,7 +49,8 @@ for ri in range(len(sys.argv[2:4])):
 
 # Attempt to get the diff for these revisons
 try:
-    svnclient = pysvn.Client()
+    svnclient = ivle.svn.create_auth_svn_client(username=ivle.conf.login,
+                                                password=ivle.conf.svn_pass)
     svnclient.exception_style = 1
     diff = svnclient.diff
 
