@@ -77,7 +77,7 @@ Installing from source
 
 When setting up a development IVLE environment on Ubuntu 9.04 or later,
 there are scripts to automate most of the process. First get and extract
-`a release tarball <https://launchpad.net/ivle/+download>`, or check out
+`a release tarball <https://launchpad.net/ivle/+download>`_, or check out
 the latest code from the Bazaar branch: ::
 
    bzr get lp:ivle
