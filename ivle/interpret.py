@@ -130,14 +130,7 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
         f.seek(0)       # Rewind, for reading
 
     # Set up the environment
-    # This automatically asks mod_python to load up the CGI variables into the
-    # environment (which is a good first approximation)
-    old_env = os.environ.copy()
-    for k in os.environ.keys():
-        del os.environ[k]
-    for (k,v) in req.get_cgi_environ().items():
-        os.environ[k] = v
-    fixup_environ(req, script_path, owner)
+    environ = cgi_environ(req, script_path, owner)
 
     # usage: tramp uid jail_dir working_dir script_path
     cmd_line = [trampoline, str(owner.unixid),
@@ -150,13 +143,7 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
                 for s in cmd_line]
     pid = subprocess.Popen(cmd_line,
         stdin=f, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        cwd=tramp_dir)
-
-    # Restore the environment
-    for k in os.environ.keys():
-        del os.environ[k]
-    for (k,v) in old_env.items():
-        os.environ[k] = v
+        cwd=tramp_dir, env=environ)
 
     # We don't want any output! Bail out after the process terminates.
     if noop:
@@ -363,15 +350,20 @@ interpreter_objects = {
     # python-server-page
 }
 
-def fixup_environ(req, script_path, user):
-    """Assuming os.environ has been written with the CGI variables from
-    apache, make a few changes for security and correctness.
+def cgi_environ(req, script_path, user):
+    """Gets CGI variables from apache and makes a few changes for security and 
+    correctness.
 
     Does not modify req, only reads it.
     """
-    env = os.environ
+    env = {}
     # Comments here are on the heavy side, explained carefully for security
     # reasons. Please read carefully before making changes.
+    
+    # This automatically asks mod_python to load up the CGI variables into the
+    # environment (which is a good first approximation)
+    for (k,v) in req.get_cgi_environ().items():
+        env[k] = v
 
     # Remove DOCUMENT_ROOT and SCRIPT_FILENAME. Not part of CGI spec and
     # exposes unnecessary details about server.
@@ -422,6 +414,8 @@ def fixup_environ(req, script_path, user):
     # Additional environment variables
     username = user.login
     env['HOME'] = os.path.join('/home', username)
+
+    return env
 
 class ExecutionError(Exception):
     pass
