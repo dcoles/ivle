@@ -241,9 +241,6 @@ class CGIRequest:
             return sys.stdin.read(len)
 
     def handle_unknown_exception(self, exc_type, exc_value, exc_tb):
-        if exc_type is ivle.util.IVLEError:
-            self.headers_out['X-IVLE-Error-Code'] = exc_value.httpcode
-
         self.headers_out['X-IVLE-Error-Type'] = exc_type.__name__
 
         try:

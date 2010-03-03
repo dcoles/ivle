@@ -25,20 +25,6 @@ import os
 import sys
 import stat
 
-class IVLEError(Exception):
-    """Legacy general IVLE exception.
-
-    This is the old "standard" exception class for IVLE errors. It is only
-    used in fileservice, and should not be used in any new code.
-    """
-
-    message = None
-
-    def __init__(self, httpcode, message=None):
-        self.httpcode = httpcode
-        self.message = message
-        self.args = (httpcode, message)
-
 class IVLEJailError(Exception):
     """Exception proxying an in-jail error.
 

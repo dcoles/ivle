@@ -23,7 +23,7 @@
 
 import ivle
 from ivle import studpath
-from ivle.util import IVLEError, IVLEJailError, split_path
+from ivle.util import IVLEJailError, split_path
 
 import functools
 
@@ -218,17 +218,12 @@ def process_cgi_output(req, data, cgiflags):
         # Is this an internal IVLE error condition?
         hs = cgiflags.headers
         if 'X-IVLE-Error-Type' in hs:
-            t = hs['X-IVLE-Error-Type']
-            if t == IVLEError.__name__:
-                raise IVLEError(int(hs['X-IVLE-Error-Code']),
-                                hs['X-IVLE-Error-Message'])
-            else:
-                try:
-                    raise IVLEJailError(hs['X-IVLE-Error-Type'],
-                                        hs['X-IVLE-Error-Message'],
-                                        hs['X-IVLE-Error-Info'])
-                except KeyError:
-                    raise IVLEError(500, 'bad error headers written by CGI')
+            try:
+                raise IVLEJailError(hs['X-IVLE-Error-Type'],
+                                    hs['X-IVLE-Error-Message'],
+                                    hs['X-IVLE-Error-Info'])
+            except KeyError:
+                raise AssertionError("Bad error headers written by CGI.")
 
         # Check to make sure the required headers were written
         if cgiflags.wrote_html_warning or not cgiflags.gentle:
