@@ -215,15 +215,18 @@ def process_cgi_output(req, data, cgiflags):
             if len(split) == 1:
                 split = headers.split('\n', 1)
 
-        # Is this an internal IVLE error condition?
-        hs = cgiflags.headers
-        if 'X-IVLE-Error-Type' in hs:
-            try:
-                raise IVLEJailError(hs['X-IVLE-Error-Type'],
-                                    hs['X-IVLE-Error-Message'],
-                                    hs['X-IVLE-Error-Info'])
-            except KeyError:
-                raise AssertionError("Bad error headers written by CGI.")
+        # If not executing in gentle mode (which presents CGI violations
+        # to users nicely), check if this an internal IVLE error
+        # condition.
+        if not cgiflags.gentle:
+            hs = cgiflags.headers
+            if 'X-IVLE-Error-Type' in hs:
+                try:
+                    raise IVLEJailError(hs['X-IVLE-Error-Type'],
+                                        hs['X-IVLE-Error-Message'],
+                                        hs['X-IVLE-Error-Info'])
+                except KeyError:
+                    raise AssertionError("Bad error headers written by CGI.")
 
         # Check to make sure the required headers were written
         if cgiflags.wrote_html_warning or not cgiflags.gentle:
