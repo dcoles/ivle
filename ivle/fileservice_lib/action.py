@@ -718,7 +718,8 @@ def action_svnrepostat(req, fields):
     except pysvn.ClientError, e:
         # Error code 170000 means ENOENT in this revision.
         if e[1][0][1] == 170000:
-            raise util.IVLEError(404, 'The specified repository path does not exist')
+            req.status = 404
+            raise ActionError('The specified repository path does not exist')
         else:
             raise ActionError(str(e[0]))
 
