@@ -29,6 +29,10 @@
           <span py:if="'email' in errors" class="form_error">${errors.email}</span>
         </div>
         <div>
+          <label for="svn_pass">Subversion URL:</label>
+          ${svn_url}
+        </div>
+        <div>
           <label for="svn_pass">Subversion password:</label>
           <!-- Hidden from view for security reasons -->
           <span id="svn_pass" style="display: none">${svn_pass}</span>
