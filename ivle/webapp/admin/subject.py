@@ -738,20 +738,10 @@ class ProjectView(XHTMLView):
     def build_subversion_url(self, config, submission):
         princ = submission.assessed.principal
 
-        if isinstance(princ, User):
-            path = 'users/%s' % princ.login
-        else:
-            path = 'groups/%s_%s_%s_%s' % (
-                    princ.project_set.offering.subject.short_name,
-                    princ.project_set.offering.semester.year,
-                    princ.project_set.offering.semester.semester,
-                    princ.name
-                    )
-        return urlparse.urljoin(
-                    config['urls']['svn_addr'],
-                    os.path.join(path, submission.path[1:] if
-                                       submission.path.startswith(os.sep) else
-                                       submission.path))
+        return os.path.join(princ.get_svn_url(config),
+                            submission.path[1:] if
+                                submission.path.startswith(os.sep) else
+                                submission.path)
 
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
