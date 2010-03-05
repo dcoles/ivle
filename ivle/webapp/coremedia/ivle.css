@@ -25,6 +25,10 @@ a:hover, a.fakelink:hover {
     text-decoration: underline;
 }
 
+a.fakelink {
+    cursor: pointer;
+}
+
 a img {
     border: none;
 }
