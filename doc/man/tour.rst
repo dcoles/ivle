@@ -208,10 +208,8 @@ Paste this line into a command-line (or, if you use a GUI Subversion client,
 use the username, revision and URL given). Subversion will likely prompt for a
 password. For the sample data, this password is ``password``, but in general, it
 will **not** be your normal IVLE password. You can learn your Subversion
-password by opening a Console in IVLE and typing::
-
- import ivle.config
- ivle.config.Config()['user_info']['svn_pass']
+password by going to your user settings page (it is hidden by default, for
+security reasons).
 
 This will check out the student's work into the current directory, to inspect.
 

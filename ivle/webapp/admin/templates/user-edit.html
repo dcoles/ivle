@@ -28,6 +28,15 @@
           <input type="text" name="email" id="email" size="40" />
           <span py:if="'email' in errors" class="form_error">${errors.email}</span>
         </div>
+        <div>
+          <label for="svn_pass">Subversion password:</label>
+          <!-- Hidden from view for security reasons -->
+          <span id="svn_pass" style="display: none">${svn_pass}</span>
+          <a id="svn_pass_show" class="fakelink"
+              onclick="$('#svn_pass').show(); $('#svn_pass_show').hide(); $('#svn_pass_hide').show()">(show)</a>
+          <a id="svn_pass_hide" class="fakelink" style="display: none"
+              onclick="$('#svn_pass').hide(); $('#svn_pass_show').show(); $('#svn_pass_hide').hide()">(hide)</a>
+        </div>
         <div class="submit form_error" py:if="defined('error_value')" py:content="error_value" />
         <div class="submit"><input type="submit" value="Save" /></div>
       </form>
