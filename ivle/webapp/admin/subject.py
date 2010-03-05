@@ -735,7 +735,7 @@ class ProjectView(XHTMLView):
     permission = "view_project_submissions"
     tab = 'subjects'
 
-    def build_subversion_url(self, svnroot, submission):
+    def build_subversion_url(self, config, submission):
         princ = submission.assessed.principal
 
         if isinstance(princ, User):
@@ -748,7 +748,7 @@ class ProjectView(XHTMLView):
                     princ.name
                     )
         return urlparse.urljoin(
-                    svnroot,
+                    config['urls']['svn_addr'],
                     os.path.join(path, submission.path[1:] if
                                        submission.path.startswith(os.sep) else
                                        submission.path))
@@ -763,7 +763,6 @@ class ProjectView(XHTMLView):
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
         ctx['build_subversion_url'] = self.build_subversion_url
-        ctx['svn_addr'] = req.config['urls']['svn_addr']
         ctx['project'] = self.context
         ctx['user'] = req.user
         ctx['ProjectEdit'] = ProjectEdit
