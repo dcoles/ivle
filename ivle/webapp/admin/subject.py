@@ -735,10 +735,10 @@ class ProjectView(XHTMLView):
     permission = "view_project_submissions"
     tab = 'subjects'
 
-    def build_subversion_url(self, config, submission):
+    def build_subversion_url(self, req, submission):
         princ = submission.assessed.principal
 
-        return os.path.join(princ.get_svn_url(config),
+        return os.path.join(princ.get_svn_url(req.config, req),
                             submission.path[1:] if
                                 submission.path.startswith(os.sep) else
                                 submission.path)

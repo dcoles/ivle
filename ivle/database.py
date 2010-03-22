@@ -230,10 +230,13 @@ class User(Storm):
         """Find a user in a store by login name."""
         return store.find(cls, cls.login == unicode(login)).one()
 
-    def get_svn_url(self, config):
+    def get_svn_url(self, config, req):
         """Get the subversion repository URL for this user or group."""
+        login = req.user.login
+        url = urlparse.urlsplit(config['urls']['svn_addr'])
+        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
         path = 'users/%s' % self.login
-        return urlparse.urljoin(config['urls']['svn_addr'], path)
+        return urlparse.urljoin(url, path)
 
     def get_permissions(self, user, config):
         """Determine privileges held by a user over this object.
@@ -731,15 +734,18 @@ class ProjectGroup(Storm):
             Semester.id == Offering.semester_id,
             (not active_only) or (Semester.state == u'current'))
 
-    def get_svn_url(self, config):
+    def get_svn_url(self, config, req):
         """Get the subversion repository URL for this user or group."""
+        login = req.user.login
+        url = urlparse.urlsplit(config['urls']['svn_addr'])
+        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
         path = 'groups/%s_%s_%s_%s' % (
                 self.project_set.offering.subject.short_name,
                 self.project_set.offering.semester.year,
                 self.project_set.offering.semester.semester,
                 self.name
                 )
-        return urlparse.urljoin(config['urls']['svn_addr'], path)
+        return urlparse.urljoin(url, path)
 
     def get_permissions(self, user, config):
         if user.admin or user in self.members:
