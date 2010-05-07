@@ -183,6 +183,10 @@ CREATE TABLE assessed (
         OR (loginid IS NULL AND groupid IS NOT NULL))
 );
 
+-- We must use conditional constraints here -- NULL != NULL.
+CREATE UNIQUE INDEX assessed_loginid_key ON assessed(loginid, projectid) WHERE loginid IS NOT NULL;
+CREATE UNIQUE INDEX assessed_groupid_key ON assessed(groupid, projectid) WHERE groupid IS NOT NULL;
+
 CREATE TABLE project_extension (
     extensionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
