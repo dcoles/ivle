@@ -76,7 +76,7 @@ function present_editorhead(elem, path, handler_type)
 
 function highlighting_changed(select)
 {
-    editbox.edit(editbox.getCode(), select.value);
+    codemirror_language(select.value);
 }
 
 /** Presents the text editor.
@@ -124,24 +124,52 @@ function handle_text(path, text, handler_type)
         using_codemirror = true;
         codemirror = new CodeMirror.fromTextArea(txt_elem, {
             path: mediapath+"codemirror/",
-            stylesheet:
-                    mediapath+"/codemirror/contrib/python/css/pythoncolors.css",
+            stylesheet: [mediapath +
+                        "/codemirror/contrib/python/css/pythoncolors.css",
+                    mediapath+"/codemirror/css/xmlcolors.css",
+                    mediapath+"/codemirror/css/jscolors.css",
+                    mediapath+"/codemirror/css/csscolors.css"
+                    ],
             basefiles: ["js/util.js",
                     "js/stringstream.js",
                     "js/select.js",
                     "js/undo.js",
                     "js/editor.js",
-                    "js/tokenize.js"],
-            parserfile: ["contrib/python/js/parsepython.js"],
+                    "js/tokenize.js"
+                    ],
+            parserfile: ["contrib/python/js/parsepython.js",
+                    "js/parsexml.js",
+                    "js/parsecss.js",
+                    "js/tokenizejavascript.js",
+                    "js/parsejavascript.js",
+                    "js/parsehtmlmixed.js",
+                    "js/parsedummy.js"
+                    ],
             onChange: edit_text,
             indentUnit: 4,
-            tabMode: "spaces"
+            tabMode: "spaces",
+            lineNumbers: true,
+            initCallback: function() {
+                codemirror_language(language);
+            }
         });
+
     }
 
     /* Not using CodePress, so we can already disable the Save button. */
     disable_save();
 
+}
+
+function codemirror_language(lang)
+{
+    if(lang == 'python') {
+        codemirror.setParser("PythonParser")
+    } else if(lang == 'html') {
+        codemirror.setParser("HTMLMixedParser")
+    } else {
+        codemirror.setParser("DummyParser")
+    }
 }
 
 function language_from_mime(mime)
