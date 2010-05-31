@@ -398,8 +398,9 @@ function upload_callback()
         /* Browsers will turn the raw returned JSON into an HTML document. We
          * need to get the <pre> from inside the <body>, and look at its text.
          */
-        data = myFrame.firstChild.getElementsByTagName(
-            'body')[0].firstChild.firstChild.nodeValue;
+        var pre = myFrame.firstChild.getElementsByTagName(
+            'body')[0].firstChild;
+        var data = pre.innerText || pre.textContent;
         data = JSON.parse(data);
         if ('Error' in data)
             alert("Error: " + decodeURIComponent(data['Error']));
