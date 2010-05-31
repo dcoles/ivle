@@ -167,6 +167,10 @@ function codemirror_language(lang)
         codemirror.setParser("PythonParser")
     } else if(lang == 'html') {
         codemirror.setParser("HTMLMixedParser")
+    } else if(lang == 'css') {
+        codemirror.setParser("CSSParser")
+    } else if(lang == 'javascript') {
+        codemirror.setParser("JSParser")
     } else {
         codemirror.setParser("DummyParser")
     }
