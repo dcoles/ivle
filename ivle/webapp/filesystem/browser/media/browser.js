@@ -31,6 +31,7 @@ download_app = "download";
  * "text" : When navigating to a text file, the text editor is opened.
  * "image" : When navigating to an image, the image is displayed (rather than
  *              going to the text editor).
+ * "video" : When navigation to a video file, a "play" button is presented.
  * "audio" : When navigating to an audio file, a "play" button is presented.
  * "binary" : When navigating to a binary file, offer it as a download through
  *              "serve".
@@ -43,7 +44,8 @@ type_handlers = {
     "application/x-javascript" : "text",
     "application/javascript" : "text",
     "application/json" : "text",
-    "application/xml" : "text"
+    "application/xml" : "text",
+    "application/ogg" : "video"
 };
 
 /* Mapping MIME types to icons, just the file's basename */
@@ -193,7 +195,8 @@ function refresh()
 }
 
 /** Determines the "handler type" from a MIME type.
- * The handler type is a string, either "text", "image", "audio" or "binary".
+ * The handler type is a string, either "text", "image", "video", "audio" or 
+ * "binary".
  */
 function get_handler_type(content_type)
 {
@@ -205,7 +208,7 @@ function get_handler_type(content_type)
     {   /* Based on the first part of the MIME type */
         var handler_type = content_type.split('/')[0];
         if (handler_type != "text" && handler_type != "image" &&
-            handler_type != "audio")
+            handler_type != "video" && handler_type != "audio")
             handler_type = "binary";
         return handler_type;
     }
@@ -355,7 +358,7 @@ function handle_contents_response(path, response)
     var handler_type = get_handler_type(content_type);
     would_be_handler_type = handler_type;
     /* handler_type should now be set to either
-     * "text", "image", "audio" or "binary". */
+     * "text", "image", "video", "audio" or "binary". */
     switch (handler_type)
     {
     case "text":
@@ -363,12 +366,13 @@ function handle_contents_response(path, response)
             would_be_handler_type);
         break;
     case "image":
-        /* TODO: Custom image handler */
-        handle_binary(path, response.responseText);
+        handle_image(path);
+        break;
+    case "video":
+        handle_video(path, content_type);
         break;
     case "audio":
-        /* TODO: Custom audio handler */
-        handle_binary(path, response.responseText);
+        handle_audio(path, content_type);
         break;
     case "binary":
         handle_binary(path);
@@ -552,6 +556,52 @@ function handle_binary(path)
         "Download " + path, "Download " + path, download_link);
     div.appendChild(par1);
     div.appendChild(par2);
+}
+
+/** Displays an image file.
+ */
+function handle_image(path)
+{
+    var url = app_url(download_app, path);
+    $("#filesbody").append('<div class="padding" >' +
+            '<h1>Image Preview</h1>' +
+            '<img alt="' + path + '" src="' + url + '" />' +
+        '</div>'
+    );
+}
+
+/** Displays a video.
+ */
+function handle_video(path, type)
+{
+    var url = app_url(download_app, path);
+    $("#filesbody").append('<div class="padding" >' +
+            '<h1>Video Preview</h1>' +
+            '<video src="' + url + '" controls="true" autoplay="true" >' +
+                '<object type="' + type + '" data="' + url + '">' +
+                    'Could not display video in browser. ' +
+                    '<a href="' + url + '" >Download ' + path + '</a>' +
+                '</object>' +
+            '</video>' +
+        '</div>'
+    );
+}
+
+/** Display audio content
+ */
+function handle_audio(path, type)
+{
+    var url = app_url(download_app, path);
+    $("#filesbody").append('<div class="padding" >' +
+            '<h1>Audio Preview</h1>' +
+            '<audio src="' + url + '" controls="true" autoplay="true" >' +
+                '<object type="' + type + '" data="' + url + '">' +
+                    'Could not display audio in browser.' +
+                    '<a href="' + url + '" >Download ' + path + '</a>' +
+                '</object>' +
+            '</audio>' +
+        '</div>'
+    );
 }
 
 /* Enable or disable actions1 moreactions actions. Takes either a single
