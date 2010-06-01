@@ -34,7 +34,7 @@ import ivle.mimetypes
 def determine_file_type(filename):
     filetype = mimetypes.guess_type(filename)[0]
     if filetype is None:
-         filetype = ivle.mimetypes.DEFAULT_MIMETYPE
+        filetype = ivle.mimetypes.DEFAULT_MIMETYPE
     return filetype
 
 def throw_error(message, extra={}):
@@ -139,14 +139,19 @@ if zipmode:
     zipmod.make_zip(zipbasepath, paths, zipfile)
 
     print cjson.encode({'type': zip_mimetype,
-                        'name': zipfilename.decode('utf-8')})
+                        'name': zipfilename.decode('utf-8'),
+                        'size': len(zipfile.getvalue()),
+                        })
 
     stream = zipfile
     stream.seek(0)
 else:
 
-    print cjson.encode({'type': determine_file_type(filename),
-                        'name': os.path.basename(filename).decode('utf-8')})
+    print cjson.encode({
+                        'type': determine_file_type(filename),
+                        'name': os.path.basename(filename).decode('utf-8'),
+                        'size': os.path.getsize(filename),
+                        })
     stream = open(filename)
     
 next = stream.read(1024)
