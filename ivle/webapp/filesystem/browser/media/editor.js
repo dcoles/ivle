@@ -172,6 +172,9 @@ function handle_text(path, text, handler_type)
         /* Not using CodePress, so we can already disable the Save button. */
         disable_save_if_safe();
     }
+
+    // Show actions bar
+    $("#actions2_file").show();
 }
 
 function language_from_mime(mime)

@@ -544,6 +544,11 @@ function svnstatus_versioned(svnstatus)
  */
 function handle_binary(path)
 {
+    // Disable save button
+    using_codepress = false;
+    disable_save_if_safe();
+
+    // Show download link
     var files = document.getElementById("filesbody");
     var div = document.createElement("div");
     files.appendChild(div);
@@ -562,6 +567,11 @@ function handle_binary(path)
  */
 function handle_image(path)
 {
+    // Disable save button
+    using_codepress = false;
+    disable_save_if_safe();
+
+    // Show Preview
     var url = app_url(download_app, path);
     $("#filesbody").append('<div class="padding" >' +
             '<h1>Image Preview</h1>' +
@@ -574,6 +584,11 @@ function handle_image(path)
  */
 function handle_video(path, type)
 {
+    // Disable save button and hide the save panel
+    using_codepress = false;
+    disable_save_if_safe();
+
+    // Show Preview
     var url = app_url(download_app, path);
     $("#filesbody").append('<div class="padding" >' +
             '<h1>Video Preview</h1>' +
@@ -591,6 +606,11 @@ function handle_video(path, type)
  */
 function handle_audio(path, type)
 {
+    // Disable save button and hide the save panel
+    using_codepress = false;
+    disable_save_if_safe();
+
+    // Show Preview
     var url = app_url(download_app, path);
     $("#filesbody").append('<div class="padding" >' +
             '<h1>Audio Preview</h1>' +
@@ -889,11 +909,6 @@ function update_actions()
         actions2_directory.setAttribute("style", "display: inline;");
         var moreactions = document.getElementById("moreactions_area");
         moreactions.setAttribute("style", "display: inline;");
-    }
-    else
-    {
-        var actions2_file = document.getElementById("actions2_file");
-        actions2_file.setAttribute("style", "display: inline;");
     }
 
     return;
