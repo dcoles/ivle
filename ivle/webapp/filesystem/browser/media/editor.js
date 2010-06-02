@@ -22,6 +22,9 @@ function save_file(filename)
     else
         data = document.getElementById("editbox").value;
 
+    /* Convert newlines to a single LF (mainly for IE's CRLFs) */
+    data = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     /* Do NOT refresh the page contents (causes problems for editarea and is
      * unnecessary). */
     if (current_file.svnstatus != "revision" ||
