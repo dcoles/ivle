@@ -567,61 +567,101 @@ function handle_binary(path)
  */
 function handle_image(path)
 {
-    // Disable save button
+    /* Disable save button */
     using_codepress = false;
     disable_save_if_safe();
 
-    // Show Preview
+    /* URL */
     var url = app_url(download_app, path);
-    $("#filesbody").append('<div class="padding" >' +
-            '<h1>Image Preview</h1>' +
-            '<img alt="' + path + '" src="' + url + '" />' +
-        '</div>'
-    );
+
+    /* Image Preview */
+    var img = $("<img />");
+    img.attr("alt", path);
+    img.attr("src", url);
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Image Preview</h1>');
+    div.append(img);
+    $("#filesbody").append(div);
 }
 
 /** Displays a video.
  */
 function handle_video(path, type)
 {
-    // Disable save button and hide the save panel
+    /* Disable save button and hide the save panel */
     using_codepress = false;
     disable_save_if_safe();
 
-    // Show Preview
+    /* URL */
     var url = app_url(download_app, path);
-    $("#filesbody").append('<div class="padding" >' +
-            '<h1>Video Preview</h1>' +
-            '<video src="' + url + '" controls="true" autoplay="true" >' +
-                '<object type="' + type + '" data="' + url + '">' +
-                    'Could not display video in browser. ' +
-                    '<a href="' + url + '" >Download ' + path + '</a>' +
-                '</object>' +
-            '</video>' +
-        '</div>'
-    );
+
+    /* Fallback Download Link */
+    var link = $('<p>Could not display video in browser.<p><p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", url);
+    a.text("Download " + path);
+
+    /* Fallback Object Tag */
+    var obj = $('<object />');
+    obj.attr("type", type);
+    obj.attr("data", url);
+    obj.append(link);
+
+    /* HTML 5 Video Tag */
+    var video = $('<video controls="true" autoplay="true" />');
+    video.attr("src", url);
+    var support = video[0].canPlayType && video[0].canPlayType(type);
+    if (support != "probably" && support != "maybe") {
+        // Use Fallback
+        video = obj;
+    }
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Video Preview</h1>');
+    div.append(video);
+    $("#filesbody").append(div);
 }
 
 /** Display audio content
  */
 function handle_audio(path, type)
 {
-    // Disable save button and hide the save panel
+    /* Disable save button and hide the save panel */
     using_codepress = false;
     disable_save_if_safe();
 
-    // Show Preview
+    /* URL */
     var url = app_url(download_app, path);
-    $("#filesbody").append('<div class="padding" >' +
-            '<h1>Audio Preview</h1>' +
-            '<audio src="' + url + '" controls="true" autoplay="true" >' +
-                '<object type="' + type + '" data="' + url + '">' +
-                    'Could not display audio in browser.' +
-                    '<a href="' + url + '" >Download ' + path + '</a>' +
-                '</object>' +
-            '</audio>' +
-        '</div>'
-    );
+
+    /* Fallback Download Link */
+    var link = $('<p>Could not display audio in browser.<p><p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", url);
+    a.text("Download " + path);
+
+    /* Fallback Object Tag */
+    var obj = $('<object />');
+    obj.attr("type", type);
+    obj.attr("data", url);
+    obj.append(link);
+
+    /* HTML 5 Audio Tag */
+    var audio = $('<audio controls="true" autoplay="true" />');
+    audio.attr("src", url);
+    var support = audio[0].canPlayType && audio[0].canPlayType(type);
+    if (support != "probably" && support != "maybe") {
+        // Use Fallback
+        audio = obj;
+    }
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Audio Preview</h1>');
+    div.append(audio);
+    $("#filesbody").append(div);
 }
 
 /* Enable or disable actions1 moreactions actions. Takes either a single
