@@ -149,9 +149,8 @@ function handle_text(path, text, handler_type)
             indentUnit: 4,
             tabMode: "spaces",
             lineNumbers: true,
-            initCallback: function() {
-                codemirror_language(language);
-            }
+            initCallback: function() {codemirror_language(language);},
+            saveFunction: function() {document.getElementById("save_button").click();}
         });
 
     }
