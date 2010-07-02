@@ -44,8 +44,8 @@ subprocess.check_call([
     "libapache2-svn", "python2.6", "python-cjson", "python-configobj",
     "python-docutils", "python-epydoc", "python-formencode",
     "python-genshi", "python-psycopg2", "python-svn", "python-storm",
-    "libjs-jquery", "postgresql", "subversion", "debootstrap", "rsync",
-    "build-essential"])
+    "libjs-jquery", "libjs-codemirror", "postgresql", "subversion",
+    "debootstrap", "rsync", "build-essential"])
 
 logging.info("Building.")
 subprocess.check_call(["./setup.py", "build"])

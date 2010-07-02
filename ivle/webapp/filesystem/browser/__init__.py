@@ -65,8 +65,8 @@ class BrowserView(XHTMLView):
         self.plugin_scripts[Plugin] = ['browser.js',
                                        'listing.js',
                                        'editor.js',
-                                       'specialhome.js',
-                                       'codemirror/js/codemirror.js']
+                                       'specialhome.js']
+        self.plugin_scripts['+external/codemirror'] = ['js/codemirror.js']
         self.scripts_init = ["browser_init"]
 
         # Start writing data
@@ -98,6 +98,7 @@ class BrowserView(XHTMLView):
 
         # Media URL for CodeMirror
         ctx['mediapath'] = media_url(req, Plugin, '')
+        ctx['codemirrorpath'] = media_url(req, '+external/codemirror', '')
 
     @property
     def path(self):

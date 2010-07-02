@@ -46,6 +46,7 @@ software.
    + pysvn (``python-svn``)
    + Storm (``python-storm``)
 * jQuery (``libjs-jquery``)
+* CodeMirror (``libjs-codemirror``)
 * PostgreSQL 8.3 or later (``postgresql``)
 * Subversion (``subversion``)
 * debootstrap (``debootstrap``)

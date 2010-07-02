@@ -123,12 +123,12 @@ function handle_text(path, text, handler_type)
         /* CodeMirror */
         using_codemirror = true;
         codemirror = new CodeMirror.fromTextArea(txt_elem, {
-            path: mediapath+"codemirror/",
-            stylesheet: [mediapath +
-                        "/codemirror/contrib/python/css/pythoncolors.css",
-                    mediapath+"/codemirror/css/xmlcolors.css",
-                    mediapath+"/codemirror/css/jscolors.css",
-                    mediapath+"/codemirror/css/csscolors.css"
+            path: codemirrorpath,
+            stylesheet: [
+                    codemirrorpath + "/contrib/python/css/pythoncolors.css",
+                    codemirrorpath + "/css/xmlcolors.css",
+                    codemirrorpath + "/css/jscolors.css",
+                    codemirrorpath + "/css/csscolors.css"
                     ],
             basefiles: ["js/util.js",
                     "js/stringstream.js",
