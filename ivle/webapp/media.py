@@ -70,7 +70,8 @@ class MediaFile(object):
                 return None
 
             # Unless it's a whitelisted path, we don't want to hear about it.
-            if self.path not in extern[1]:
+            # If the whitelist is None (not []), we allow all.
+            if extern[1] is not None and self.path not in extern[1]:
                 return None
 
             # Grab the admin-configured path for this particular external dep.
