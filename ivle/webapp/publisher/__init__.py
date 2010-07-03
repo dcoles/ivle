@@ -47,18 +47,22 @@ def _segment_path(path):
        >>> _segment_path('/path/to/something')
        ['path', 'to', 'something']
        >>> _segment_path('/path/to/something/')
-       ['path', 'to', 'something']
+       ['path', 'to', 'something', '']
        >>> _segment_path('/')
-       []
+       ['']
     """
 
-    segments = os.path.normpath(path).split('/')
+    segments = os.path.normpath(path).split(os.sep)
 
-    # Remove empty segments caused by leading and trailing seperators.
+    # Remove empty segment caused by a leading seperator.
     if segments[0] == '':
         segments.pop(0)
-    if segments[-1] == '':
-        segments.pop()
+
+    # normpath removes trailing separators. But trailing seperators are
+    # meaningful to browsers, so we add an empty segment.
+    if path.endswith(os.sep) and len(segments) > 0 and segments[-1] != '':
+        segments.append('')
+
     return segments
 
 class Publisher(object):
@@ -266,16 +270,21 @@ class Publisher(object):
             # Attempt views first, then routes.
             if type(obj) in self.vmap and \
                viewset in self.vmap[type(obj)]:
-                # If there are no segments left, attempt the default view.
-                # Otherwise, look for a view with the name in the first
-                # remaining path segment.
                 vnames = self.vmap[type(obj)][viewset]
+                # If there is a view with no name, it overrides
+                # everything. Regardless of what comes after, we take it
+                # and use all remaining segments as the subpath.
                 if None in vnames:
                     view = vnames[None]
                     remove = 0
+                # If there are no segments or only the empty segment left,
+                # attempt the default view. Otherwise, look for a view with
+                # the name in the first remaining path segment.
                 else:
-                    view = vnames.get(
-                        self.default if len(todo) == 0 else todo[0])
+                    if todo in ([], ['']):
+                        view = vnames.get(self.default)
+                    else:
+                        view = vnames.get(todo[0])
                     remove = 1
 
                 if view is not None:
@@ -297,7 +306,14 @@ class Publisher(object):
                         view = vnames.get(tuple(todo[:x]))
                         if view is not None:
                             return (obj, view, tuple(todo[x:]))
-                    view = vnames.get(tuple(todo + [self.default]))
+                    # If we have an empty final segment (indicating a
+                    # trailing slash), replace it with the default view.
+                    # Otherwise try just adding the default view name.
+                    prefix = list(todo)
+                    if prefix[-1] == '':
+                        prefix.pop()
+
+                    view = vnames.get(tuple(prefix + [self.default]))
                     if view is not None:
                         return (obj, view, tuple())
 
