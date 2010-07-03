@@ -48,7 +48,14 @@ def make_path_breadcrumbs(req, pathsegments, revno=None, suffix=None):
     """Return breadcrumbs for the segments of the given path."""
 
     crumbs = []
-    for i in range(1, len(pathsegments)):
-        crumbs.append(FileBreadcrumb(req, pathsegments[:i], revno))
-    crumbs.append(FileBreadcrumb(req, pathsegments, revno, True, suffix))
+
+    crumbable = tuple(pathsegments)
+    if len(crumbable) > 0:
+        # If the path has a trailing slash, the last segment will be
+        # empty. We don't want a breadcrumb for that.
+        if crumbable[-1] == '':
+            crumbable = crumbable[:-1]
+        for i in range(1, len(crumbable)):
+            crumbs.append(FileBreadcrumb(req, crumbable[:i], revno))
+        crumbs.append(FileBreadcrumb(req, crumbable, revno, True, suffix))
     return crumbs
