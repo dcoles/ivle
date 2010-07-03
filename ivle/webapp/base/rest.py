@@ -98,47 +98,7 @@ class JSONRESTView(RESTView):
             # TODO: Check Content-Type and implement multipart/form-data.
             data = req.read()
             opargs = dict(cgi.parse_qsl(data, keep_blank_values=1))
-            try:
-                opname = opargs['ivle.op']
-                del opargs['ivle.op']
-            except KeyError:
-                raise BadRequest('No named operation specified.')
-
-            try:
-                op = getattr(self, opname)
-            except AttributeError:
-                raise BadRequest('Invalid named operation.')
-
-            if not hasattr(op, '_rest_api_callable') or \
-               not op._rest_api_callable:
-                raise BadRequest('Invalid named operation.')
-
-            self.authorize_method(req, op)
-
-            # Find any missing arguments, except for the first two (self, req)
-            (args, vaargs, varkw, defaults) = inspect.getargspec(op)
-            args = args[2:]
-
-            # To find missing arguments, we eliminate the provided arguments
-            # from the set of remaining function signature arguments. If the
-            # remaining signature arguments are in the args[-len(defaults):],
-            # we are OK.
-            unspec = set(args) - set(opargs.keys())
-            if unspec and not defaults:
-                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
-
-            unspec = [k for k in unspec if k not in args[-len(defaults):]]
-
-            if unspec:
-                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
-
-            # We have extra arguments if the are no match args in the function
-            # signature, AND there is no **.
-            extra = set(opargs.keys()) - set(args)
-            if extra and not varkw:
-                raise BadRequest('Extra arguments: ' + ', '.join(extra))
-
-            outjson = op(req, **opargs)
+            outjson = self._named_operation(req, opargs)
 
         req.content_type = self.content_type
         self.write_json(req, outjson)
@@ -148,6 +108,49 @@ class JSONRESTView(RESTView):
         if outjson is not None:
             req.write(cjson.encode(outjson))
             req.write("\n")
+
+    def _named_operation(self, req, opargs):
+        try:
+            opname = opargs['ivle.op']
+            del opargs['ivle.op']
+        except KeyError:
+            raise BadRequest('No named operation specified.')
+
+        try:
+            op = getattr(self, opname)
+        except AttributeError:
+            raise BadRequest('Invalid named operation.')
+
+        if not hasattr(op, '_rest_api_callable') or \
+           not op._rest_api_callable:
+            raise BadRequest('Invalid named operation.')
+
+        self.authorize_method(req, op)
+
+        # Find any missing arguments, except for the first two (self, req)
+        (args, vaargs, varkw, defaults) = inspect.getargspec(op)
+        args = args[2:]
+
+        # To find missing arguments, we eliminate the provided arguments
+        # from the set of remaining function signature arguments. If the
+        # remaining signature arguments are in the args[-len(defaults):],
+        # we are OK.
+        unspec = set(args) - set(opargs.keys())
+        if unspec and not defaults:
+            raise BadRequest('Missing arguments: ' + ', '.join(unspec))
+
+        unspec = [k for k in unspec if k not in args[-len(defaults):]]
+
+        if unspec:
+            raise BadRequest('Missing arguments: ' + ', '.join(unspec))
+
+        # We have extra arguments if the are no match args in the function
+        # signature, AND there is no **.
+        extra = set(opargs.keys()) - set(args)
+        if extra and not varkw:
+            raise BadRequest('Extra arguments: ' + ', '.join(extra))
+
+        return op(req, **opargs)
 
 
 class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
