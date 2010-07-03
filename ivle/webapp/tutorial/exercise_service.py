@@ -22,7 +22,7 @@ import ivle.database
 from ivle.database import Exercise, TestSuite, TestCase, \
                           TestSuiteVar, TestCasePart
 from ivle.webapp.base.forms import VALID_URL_NAME
-from ivle.webapp.base.rest import (JSONRESTView, named_operation,
+from ivle.webapp.base.rest import (JSONRESTView, write_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound, BadRequest
 from ivle.webapp.tutorial.test.TestFramework import (
@@ -46,7 +46,7 @@ class ExercisesRESTView(JSONRESTView):
         else:
             return set()
     
-    @named_operation('save')
+    @write_operation('save')
     def add_exercise(self, req, identifier, name, description, partial, solution, include, num_rows):
         if not VALID_URL_NAME.match(identifier):
             raise BadRequest(
@@ -75,7 +75,7 @@ class ExercisesRESTView(JSONRESTView):
 class ExerciseRESTView(JSONRESTView):
     """View for updating Exercises"""
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def edit_exercise(self, req, name, description, partial, 
                       solution, include, num_rows):
         
@@ -87,13 +87,13 @@ class ExerciseRESTView(JSONRESTView):
         self.context.num_rows = int(num_rows)
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def delete_exercise(self, req, id):
         
         self.context.delete()
         return {'result': 'ok'}
 
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def add_suite(self, req, description, function, stdin):
         
         new_suite = TestSuite()
@@ -107,7 +107,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
         
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def edit_suite(self, req, suiteid, description, function, stdin):
         
         suite = req.store.find(TestSuite,
@@ -123,7 +123,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def delete_suite(self, req, suiteid):
         
         suite = req.store.find(TestSuite,
@@ -136,7 +136,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
       
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def add_var(self, req, suiteid, var_type, var_name, var_val, argno):
 
         suite = req.store.find(TestSuite,
@@ -157,7 +157,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
 
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def edit_var(self, req, suiteid, varid, var_type, var_name, var_val, argno):
         var = req.store.find(TestSuiteVar,
             TestSuiteVar.varid == int(varid),
@@ -174,7 +174,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def delete_var(self, req, suiteid, varid):
         var = req.store.find(TestSuiteVar,
             TestSuiteVar.varid == int(varid),
@@ -186,7 +186,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
         
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def add_testcase(self, req, suiteid, passmsg, failmsg):
         
         suite = req.store.find(TestSuite,
@@ -210,7 +210,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def edit_testcase(self, req, suiteid, testid, passmsg, failmsg):
         
         suite = req.store.find(TestSuite,
@@ -230,7 +230,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def delete_testcase(self, req, suiteid, testid):
         
         suite = req.store.find(TestSuite,
@@ -249,7 +249,7 @@ class ExerciseRESTView(JSONRESTView):
 
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def edit_testpart(self, req, suiteid, testid, partid, part_type, test_type, 
                       data):
     
@@ -277,7 +277,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def add_testpart(self, req, suiteid, testid, part_type, test_type, 
                       data):
     
@@ -302,7 +302,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
     
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def delete_testpart(self, req, suiteid, testid, partid):
         suite = req.store.find(TestSuite,
             TestSuite.suiteid == int(suiteid),
@@ -326,7 +326,7 @@ class ExerciseRESTView(JSONRESTView):
         
         return {'result': 'ok'}
 
-    @named_operation(u'edit')
+    @write_operation(u'edit')
     def test(self, req, code):
         from ivle.worksheet.utils import test_exercise_submission
         try:

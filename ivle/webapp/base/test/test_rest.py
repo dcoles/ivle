@@ -1,7 +1,9 @@
 import urllib
 
-from ivle.webapp.base.rest import (JSONRESTView, named_operation,
-                                   require_permission)
+from nose.tools import assert_equal
+
+from ivle.webapp.base.rest import (JSONRESTView, read_operation,
+                                   require_permission, write_operation)
 from ivle.webapp.errors import BadRequest, MethodNotAllowed, Unauthorized
 from ivle.webapp.testing import FakeUser, FakeRequest
 
@@ -23,19 +25,19 @@ class JSONRESTViewTestWithoutPUT(JSONRESTView):
         return {'method': 'patch',
                 'result': data['result'], 'test': data['test']}
 
-    @named_operation('view')
+    @write_operation('view')
     def do_stuff(self, req, what):
         return {'result': 'Did %s!' % what}
 
-    @named_operation('edit')
+    @read_operation('edit')
     def say_something(self, req, thing='nothing'):
         return {'result': 'Said %s!' % thing}
 
-    @named_operation('edit')
+    @write_operation('edit')
     def do_say_something(self, req, what, thing='nothing'):
         return {'result': 'Said %s and %s!' % (what, thing)}
 
-    @named_operation('view')
+    @read_operation('view')
     def get_req_method(self, req):
         return {'method': req.method}
 
@@ -232,6 +234,28 @@ class TestJSONRESTView:
         view.render(req)
         assert req.content_type == 'application/json'
         assert req.response_body == '{"method": "POST"}\n'
+
+    def testGETNamedOperation(self):
+        req = FakeRequest()
+        req.method = 'GET'
+        req.uri = '/foo?' + urllib.urlencode({'ivle.op': 'say_something'})
+        view = JSONRESTViewTest(req, None)
+        view.render(req)
+        assert req.content_type == 'application/json'
+        assert req.response_body == '{"result": "Said nothing!"}\n'
+
+    def testGETNamedOperationDoesNotFindWriteOperation(self):
+        req = FakeRequest()
+        req.method = 'GET'
+        req.uri = '/foo?' + urllib.urlencode(
+            {'ivle.op': 'do_stuff', 'what': 'something'})
+        view = JSONRESTViewTest(req, None)
+        try:
+            view.render(req)
+        except BadRequest, e:
+            assert e.message == 'POST required for write operation.'
+        else:
+            raise AssertionError("did not raise BadRequest")
 
     def testInvalidPOSTData(self):
         req = FakeRequest()

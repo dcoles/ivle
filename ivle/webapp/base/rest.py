@@ -17,10 +17,11 @@
 
 # Author: Matt Giuca, Will Grant, Nick Chadwick
 
-import os
 import cgi
-import urlparse
+import functools
 import inspect
+import os
+import urlparse
 
 import cjson
 import genshi.template
@@ -73,8 +74,13 @@ class JSONRESTView(RESTView):
             raise MethodNotAllowed(allowed=self._allowed_methods)
 
         if req.method == 'GET':
-            self.authorize_method(req, self.GET)
-            outjson = self.GET(req)
+            qargs = dict(cgi.parse_qsl(
+                urlparse.urlparse(req.uri).query, keep_blank_values=1))
+            if 'ivle.op' in qargs:
+                outjson = self._named_operation(req, qargs, readonly=True)
+            else:
+                self.authorize_method(req, self.GET)
+                outjson = self.GET(req)
         # Since PATCH isn't yet an official HTTP method, we allow users to
         # turn a PUT into a PATCH by supplying a special header.
         elif req.method == 'PATCH' or (req.method == 'PUT' and
@@ -109,7 +115,7 @@ class JSONRESTView(RESTView):
             req.write(cjson.encode(outjson))
             req.write("\n")
 
-    def _named_operation(self, req, opargs):
+    def _named_operation(self, req, opargs, readonly=False):
         try:
             opname = opargs['ivle.op']
             del opargs['ivle.op']
@@ -124,6 +130,9 @@ class JSONRESTView(RESTView):
         if not hasattr(op, '_rest_api_callable') or \
            not op._rest_api_callable:
             raise BadRequest('Invalid named operation.')
+
+        if readonly and op._rest_api_write_operation:
+            raise BadRequest('POST required for write operation.')
 
         self.authorize_method(req, op)
 
@@ -178,16 +187,21 @@ class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
         req.write(cjson.encode(outjson))
         req.write("\n")
 
-class named_operation(object):
+class _named_operation(object):
     '''Declare a function to be accessible to HTTP users via the REST API.
     '''
-    def __init__(self, permission):
+    def __init__(self, write_operation, permission):
+        self.write_operation = write_operation
         self.permission = permission
 
     def __call__(self, func):
         func._rest_api_callable = True
+        func._rest_api_write_operation = self.write_operation
         func._rest_api_permission = self.permission
         return func
+
+write_operation = functools.partial(_named_operation, True)
+read_operation = functools.partial(_named_operation, False)
 
 class require_permission(object):
     '''Declare the permission required for use of a method via the REST API.

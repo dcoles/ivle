@@ -31,7 +31,7 @@ import errno
 
 import ivle.console
 import ivle.chat
-from ivle.webapp.base.rest import JSONRESTView, named_operation
+from ivle.webapp.base.rest import JSONRESTView, write_operation
 from ivle.webapp.errors import BadRequest
 
 # XXX: Should be RPC view, with actions in URL?
@@ -43,7 +43,7 @@ class ConsoleServiceRESTView(JSONRESTView):
         else:
             return set()
 
-    @named_operation('use')
+    @write_operation('use')
     def start(self, req, cwd=''):
         working_dir = os.path.join("/home", req.user.login, cwd)
 
@@ -58,7 +58,7 @@ class ConsoleServiceRESTView(JSONRESTView):
                                      "port": cons.port,
                                      "magic": cons.magic}).encode('hex')}
 
-    @named_operation('use')
+    @write_operation('use')
     def chat(self, req, key, text='', cwd='', kind="chat"):
         # The request *should* have the following four fields:
         # key: Hex JSON dict of host and port where the console server lives,
