@@ -65,6 +65,8 @@ class Request:
             String. The request method (eg. 'GET', 'POST', etc)
         uri (read)
             String. The path portion of the URI.
+        unparsed_uri (read)
+            String. The path portion of the URI, unparsed with query string.
         app (read)
             String. Name of the application specified in the URL, or None.
         path (read)
@@ -135,6 +137,7 @@ class Request:
         # Inherit values for the input members
         self.method = req.method
         self.uri = req.uri
+        self.unparsed_uri = req.unparsed_uri
         # Split the given path into the app (top-level dir) and sub-path
         # (after first stripping away the root directory)
         (self.app, self.path) = (ivle.util.split_path(req.uri))

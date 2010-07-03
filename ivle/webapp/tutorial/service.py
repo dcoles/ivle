@@ -28,7 +28,7 @@ import ivle.database
 from ivle.database import Exercise, ExerciseAttempt, ExerciseSave, Worksheet, \
                           Offering, Subject, Semester, User, WorksheetExercise
 import ivle.worksheet.utils
-from ivle.webapp.base.rest import (JSONRESTView, named_operation,
+from ivle.webapp.base.rest import (JSONRESTView, write_operation,
                                    require_permission)
 from ivle.webapp.errors import NotFound
 
@@ -91,7 +91,7 @@ class AttemptRESTView(JSONRESTView):
 class WorksheetExerciseRESTView(JSONRESTView):
     '''REST view of a worksheet exercise.'''
 
-    @named_operation('view')
+    @write_operation('view')
     def save(self, req, text):
         # Find the appropriate WorksheetExercise to save to. If its not found,
         # the user is submitting against a non-existant worksheet/exercise
@@ -118,7 +118,7 @@ class WorksheetExerciseRESTView(JSONRESTView):
 class WorksheetsRESTView(JSONRESTView):
     """View used to update and create Worksheets."""
 
-    @named_operation('edit_worksheets')
+    @write_operation('edit_worksheets')
     def move_up(self, req, worksheetid):
         """Takes a list of worksheet-seq_no pairs and updates their 
         corresponding Worksheet objects to match."""
@@ -139,7 +139,7 @@ class WorksheetsRESTView(JSONRESTView):
         
         return {'result': 'ok'}
 
-    @named_operation('edit_worksheets')
+    @write_operation('edit_worksheets')
     def move_down(self, req, worksheetid):
         """Takes a list of worksheet-seq_no pairs and updates their 
         corresponding Worksheet objects to match."""
