@@ -32,6 +32,7 @@ class FakeRequest(Request):
         self.publicmode = False
         self.method = 'GET'
         self.uri = '/'
+        self.unparsed_uri = '/'
         self.user = FakeUser()
         self.hostname = 'fakehost'
         self.headers_in = {}

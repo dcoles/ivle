@@ -238,7 +238,8 @@ class TestJSONRESTView:
     def testGETNamedOperation(self):
         req = FakeRequest()
         req.method = 'GET'
-        req.uri = '/foo?' + urllib.urlencode({'ivle.op': 'say_something'})
+        req.unparsed_uri = '/?' + urllib.urlencode(
+            {'ivle.op': 'say_something'})
         view = JSONRESTViewTest(req, None)
         view.render(req)
         assert req.content_type == 'application/json'
@@ -247,7 +248,7 @@ class TestJSONRESTView:
     def testGETNamedOperationDoesNotFindWriteOperation(self):
         req = FakeRequest()
         req.method = 'GET'
-        req.uri = '/foo?' + urllib.urlencode(
+        req.unparsed_uri = '/?' + urllib.urlencode(
             {'ivle.op': 'do_stuff', 'what': 'something'})
         view = JSONRESTViewTest(req, None)
         try:

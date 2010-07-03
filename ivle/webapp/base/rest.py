@@ -75,7 +75,8 @@ class JSONRESTView(RESTView):
 
         if req.method == 'GET':
             qargs = dict(cgi.parse_qsl(
-                urlparse.urlparse(req.uri).query, keep_blank_values=1))
+                urlparse.urlparse(req.unparsed_uri).query,
+                keep_blank_values=1))
             if 'ivle.op' in qargs:
                 outjson = self._named_operation(req, qargs, readonly=True)
             else:
