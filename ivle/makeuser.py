@@ -87,7 +87,7 @@ def rebuild_svn_config(store, config):
             User.id == Assessed.user_id,
             Project.id == Assessed.project_id,
             ProjectSet.id == Project.project_set_id,
-            Offering.id == ProjectSet.id,
+            Offering.id == ProjectSet.offering_id,
             ProjectSubmission.date_submitted == Select(
                     Max(ProjectSubmission.date_submitted),
                     ProjectSubmission.assessed_id == Assessed.id,
