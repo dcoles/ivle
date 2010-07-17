@@ -286,6 +286,26 @@ a blank line after the headers, before writing the page contents."""
         process_cgi_output(req, line + '\n', cgiflags)
         return
 
+    # Check if CGI field-name is valid
+    CGI_SEPERATORS = set(['(', ')', '<', '>', '@', ',', ';', ':', '\\', '"',
+            '/', '[', ']', '?', '=', '{', '}', ' ', '\t'])
+    if any((char in CGI_SEPERATORS for char in name)):
+        warning = "Warning"
+        if not cgiflags.gentle:
+            message = """An unexpected server error has occured."""
+            warning = "Error"
+        else:
+            # Header contained illegal characters
+            message = """You printed an invalid CGI header. CGI header
+            field-names can not contain any of the following characters: 
+            <code>( ) &lt; &gt; @ , ; : \\ " / [ ] ? = { } <em>SPACE 
+            TAB</em></code>."""
+        write_html_warning(req, message, warning=warning)
+        cgiflags.wrote_html_warning = True
+        # Handle the rest of this line as normal data
+        process_cgi_output(req, line + '\n', cgiflags)
+        return
+
     # Read CGI headers
     value = value.strip()
     if name == "Content-Type":
