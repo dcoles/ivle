@@ -79,6 +79,16 @@ if options.recreate:
     if options.apt_mirror is not None:
         os.environ['MIRROR'] = options.apt_mirror
 
+    # Print a final warning to the user that this is a potentially-expensive
+    # operation
+    recreating = "Re-creating" if os.path.exists(build_path) else "Creating"
+    print_mirror = options.apt_mirror or 'http://archive.ubuntu.com/ubuntu'
+    print """%s jail from %s
+Be warned, this may download hundreds of megabytes!
+If this is the wrong source, please cancel now (note that it is too late to
+save the existing jail; you will have to rebuild the jail from scratch now).\
+""" % (recreating, print_mirror)
+
     os.system('rm -rf --one-file-system ' + build_path)
     ivle.jailbuilder.debian.debootstrap_create_jail(conf['jail']['suite'],
               build_path, mirror=options.apt_mirror)
