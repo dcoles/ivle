@@ -27,6 +27,7 @@ import os.path
 import urllib
 import urlparse
 import cgi
+import datetime
 
 from storm.locals import Desc, Store
 import genshi
@@ -39,6 +40,7 @@ from ivle.webapp.base.forms import (BaseFormView, URLNameValidator,
                                     DateTimeValidator)
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.base.text import TextView
 from ivle.webapp.errors import BadRequest
 from ivle.webapp import ApplicationRoot
 
@@ -748,6 +750,24 @@ class ProjectView(XHTMLView):
         ctx['user'] = req.user
         ctx['ProjectEdit'] = ProjectEdit
         ctx['ProjectDelete'] = ProjectDelete
+        ctx['ProjectExport'] = ProjectBashExportView
+
+class ProjectBashExportView(TextView):
+    """Produce a Bash script for exporting projects"""
+    template = "templates/project-export.sh"
+    content_type = "text/x-sh"
+    permission = "view_project_submissions"
+
+    def populate(self, req, ctx):
+        ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['project'] = self.context
+        ctx['user'] = req.user
+        ctx['now'] = datetime.datetime.now()
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
 class ProjectUniquenessValidator(formencode.FancyValidator):
     """A FormEncode validator that checks that a project short_name is unique
@@ -948,6 +968,8 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Project, '+index', ProjectView),
              (Project, '+edit', ProjectEdit),
              (Project, '+delete', ProjectDelete),
+             (Project, ('+export', 'project-export.sh'),
+                ProjectBashExportView),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,
