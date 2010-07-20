@@ -231,11 +231,9 @@ class User(Storm):
         """Find a user in a store by login name."""
         return store.find(cls, cls.login == unicode(login)).one()
 
-    def get_svn_url(self, config, req):
+    def get_svn_url(self, config):
         """Get the subversion repository URL for this user or group."""
-        login = req.user.login
-        url = urlparse.urlsplit(config['urls']['svn_addr'])
-        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
+        url = config['urls']['svn_addr']
         path = 'users/%s' % self.login
         return urlparse.urljoin(url, path)
 
@@ -735,11 +733,9 @@ class ProjectGroup(Storm):
             Semester.id == Offering.semester_id,
             (not active_only) or (Semester.state == u'current'))
 
-    def get_svn_url(self, config, req):
+    def get_svn_url(self, config):
         """Get the subversion repository URL for this user or group."""
-        login = req.user.login
-        url = urlparse.urlsplit(config['urls']['svn_addr'])
-        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
+        url = config['urls']['svn_addr']
         path = 'groups/%s_%s_%s_%s' % (
                 self.project_set.offering.subject.short_name,
                 self.project_set.offering.semester.year,
@@ -912,19 +908,24 @@ class ProjectSubmission(Storm):
         return "/files/%s/%s/%s?r=%d" % (user.login,
             self.assessed.checkout_location, submitpath, self.revision)
 
-    def get_svn_url(self, req):
+    def get_svn_url(self, config):
         """Get subversion URL for this submission"""
         princ = self.assessed.principal
-        base = princ.get_svn_url(req.config, req)
+        base = princ.get_svn_url(config)
         if self.path.startswith(os.sep):
             return os.path.join(base,
                     urllib.quote(self.path[1:].encode('utf-8')))
         else:
             return os.path.join(base, urllib.quote(self.path.encode('utf-8')))
 
-    def get_svn_checkout_command(self, req):
-        svn_url = self.get_svn_url(req)
-        return "svn export -r%d '%s'"%(self.revision, svn_url)
+    def get_svn_export_command(self, req):
+        """Returns a Unix shell command to export a submission"""
+        svn_url = self.get_svn_url(req.config)
+        username = (req.user.login if req.user.login.isalnum() else
+                "'%s'"%req.user.login)
+        export_dir = self.assessed.principal.short_name
+        return "svn export --username %s -r%d '%s' %s"%(req.user.login,
+                self.revision, svn_url, export_dir)
 
     @staticmethod
     def test_and_normalise_path(path):
