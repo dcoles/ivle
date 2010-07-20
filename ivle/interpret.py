@@ -31,6 +31,7 @@ import os
 import pwd
 import subprocess
 import cgi
+import StringIO
 
 # TODO: Make progressive output work
 # Question: Will having a large buffer size stop progressive output from
@@ -483,3 +484,56 @@ def execute_raw(config, user, jail_dir, working_dir, binary, args):
         raise ExecutionError('subprocess ended with code %d, stderr: "%s"' %
                              (exitcode, stderr))
     return (stdout, stderr)
+
+def jail_call(req, cgi_script, script_name, query_string=None,
+    request_method="GET", extra_overrides=None):
+    """
+    Makes a call to a CGI script inside the jail from outside the jail.
+    This can be used to allow Python scripts to access jail-only functions and
+    data without having to perform a full API request.
+
+    req: A Request object (will not be written to or attributes modified).
+    cgi_script: Path to cgi script outside of jail.
+        eg: os.path.join(req.config['paths']['share'],
+                         'services/fileservice')
+    script_name: Name to set as SCRIPT_NAME for the CGI environment.
+        eg: "/fileservice/"
+    query_string: Query string to set as QUERY_STRING for the CGI environment.
+        eg: "action=svnrepostat&path=/users/studenta/"
+    request_method: Method to set as REQUEST_METHOD for the CGI environment.
+        eg: "POST". Defaults to "GET".
+    extra_overrides: A dict mapping env var names to strings, to override
+        arbitrary environment variables in the resulting CGI environent.
+
+    Returns a triple (status_code, content_type, contents).
+    """
+    interp_object = interpreter_objects["cgi-python"]
+    user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                 req.user.login)
+    overrides = {
+        "SCRIPT_NAME": script_name,
+        "QUERY_STRING": query_string,
+        "REQUEST_URI": "%s%s%s" % (script_name, "?" if query_string else "",
+                                   query_string),
+        "REQUEST_METHOD": request_method,
+    }
+    if extra_overrides is not None:
+        overrides.update(extra_overrides)
+    result = DummyReq(req)
+    interpret_file(result, req.user, user_jail_dir, cgi_script, interp_object,
+                   gentle=False, overrides=overrides)
+    return result.status, result.content_type, result.getvalue()
+
+class DummyReq(StringIO.StringIO):
+    """A dummy request object, built from a real request object, which can be
+    used like a req but doesn't mutate the existing request.
+    (Used for reading CGI responses as strings rather than forwarding their
+    output to the current request.)
+    """
+    def __init__(self, req):
+        StringIO.StringIO.__init__(self)
+        self._real_req = req
+    def get_cgi_environ(self):
+        return self._real_req.get_cgi_environ()
+    def __getattr__(self, name):
+        return getattr(self._real_req, name)
