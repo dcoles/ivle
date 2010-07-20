@@ -160,6 +160,10 @@ class UserSubmitView(SubmitView):
             Subject.short_name == self.path.split('/')[1],
             ).one()
 
+    @property
+    def fullpath(self):
+        """Get the original path of this request, after the +submit."""
+        return os.path.join('/users/', *self.subpath)
 
 class GroupSubmitView(SubmitView):
     def get_repository_owner(self, store, name):
@@ -183,6 +187,11 @@ class GroupSubmitView(SubmitView):
 
     def get_offering(self):
         return self.context.project_set.offering
+
+    @property
+    def fullpath(self):
+        """Get the original path of this request, after the +submit."""
+        return os.path.join('/groups/', *self.subpath)
 
 
 class Plugin(ViewPlugin):
