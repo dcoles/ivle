@@ -39,7 +39,8 @@ import cgi
 CGI_BLOCK_SIZE = 65535
 PATH = "/usr/local/bin:/usr/bin:/bin"
 
-def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
+def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True,
+    overrides=None):
     """Serves a file by interpreting it using one of IVLE's builtin
     interpreters. All interpreters are intended to run in the user's jail. The
     jail location is provided as an argument to the interpreter but it is up
@@ -50,6 +51,9 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     jail_dir: Absolute path to the user's jail.
     filename: Absolute filename within the user's jail.
     interpreter: A function object to call.
+    gentle: ?
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
     """
     # We can't test here whether or not the target file actually exists,
     # because the apache user may not have permission. Instead we have to
@@ -75,7 +79,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     # they are absolute in the jailspace)
 
     return interpreter(owner, jail_dir, working_dir, filename_abs, req,
-                       gentle)
+                       gentle, overrides=overrides)
 
 class CGIFlags:
     """Stores flags regarding the state of reading CGI output.
@@ -90,7 +94,7 @@ class CGIFlags:
         self.headers = {}       # Header names : values
 
 def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
-                req, gentle):
+                req, gentle, overrides=None):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
@@ -100,6 +104,9 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
         jail.
     script_path: CGI script relative to the owner's jail.
     req: IVLE request object.
+    gentle: ?
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
 
     The called CGI wrapper application shall be called using popen and receive
     the HTTP body on stdin. It shall receive the CGI environment variables to
@@ -130,7 +137,7 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
         f.seek(0)       # Rewind, for reading
 
     # Set up the environment
-    environ = cgi_environ(req, script_path, owner)
+    environ = cgi_environ(req, script_path, owner, overrides=overrides)
 
     # usage: tramp uid jail_dir working_dir script_path
     cmd_line = [trampoline, str(owner.unixid),
@@ -368,11 +375,14 @@ interpreter_objects = {
     # python-server-page
 }
 
-def cgi_environ(req, script_path, user):
+def cgi_environ(req, script_path, user, overrides=None):
     """Gets CGI variables from apache and makes a few changes for security and 
     correctness.
 
     Does not modify req, only reads it.
+
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
     """
     env = {}
     # Comments here are on the heavy side, explained carefully for security
@@ -433,6 +443,8 @@ def cgi_environ(req, script_path, user):
     username = user.login
     env['HOME'] = os.path.join('/home', username)
 
+    if overrides is not None:
+        env.update(overrides)
     return env
 
 class ExecutionError(Exception):
