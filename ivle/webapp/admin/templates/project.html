@@ -46,7 +46,7 @@
           </py:choose>
             <td><span title="${submission.submitter.display_name}">${submission.submitter.short_name}</span></td>
             <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
-            <td>svn co -r${submission.revision} ${build_subversion_url(req, submission)}</td>
+            <td>${submission.get_svn_checkout_command(req)}</td>
           </tr>
         </py:for>
         </tbody>

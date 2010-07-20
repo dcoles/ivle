@@ -27,6 +27,7 @@ import hashlib
 import datetime
 import os
 import urlparse
+import urllib
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
@@ -910,6 +911,20 @@ class ProjectSubmission(Storm):
                 submitpath = ''
         return "/files/%s/%s/%s?r=%d" % (user.login,
             self.assessed.checkout_location, submitpath, self.revision)
+
+    def get_svn_url(self, req):
+        """Get subversion URL for this submission"""
+        princ = self.assessed.principal
+        base = princ.get_svn_url(req.config, req)
+        if self.path.startswith(os.sep):
+            return os.path.join(base,
+                    urllib.quote(self.path[1:].encode('utf-8')))
+        else:
+            return os.path.join(base, urllib.quote(self.path.encode('utf-8')))
+
+    def get_svn_checkout_command(self, req):
+        svn_url = self.get_svn_url(req)
+        return "svn export -r%d '%s'"%(self.revision, svn_url)
 
     @staticmethod
     def test_and_normalise_path(path):

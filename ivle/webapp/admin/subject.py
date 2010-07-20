@@ -735,14 +735,6 @@ class ProjectView(XHTMLView):
     permission = "view_project_submissions"
     tab = 'subjects'
 
-    def build_subversion_url(self, req, submission):
-        princ = submission.assessed.principal
-
-        return os.path.join(princ.get_svn_url(req.config, req),
-                            submission.path[1:] if
-                                submission.path.startswith(os.sep) else
-                                submission.path)
-
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
 
@@ -752,7 +744,6 @@ class ProjectView(XHTMLView):
         ctx['EnrolView'] = EnrolView
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
-        ctx['build_subversion_url'] = self.build_subversion_url
         ctx['project'] = self.context
         ctx['user'] = req.user
         ctx['ProjectEdit'] = ProjectEdit
