@@ -951,6 +951,12 @@ class ProjectSubmission(Storm):
             raise SubmissionError("Path must not contain '\\n', '[' or ']'")
         return os.path.normpath(path)
 
+    @property
+    def late(self):
+        """True if the project was submitted late."""
+        # XXX: Need to respect extensions.
+        return self.date_submitted > self.assessed.project.deadline
+
 # WORKSHEETS AND EXERCISES #
 
 class Exercise(Storm):
