@@ -317,7 +317,11 @@ def action_move(req, fields):
     """
     frompath = fields.getfirst('from')
     topath = fields.getfirst('to')
-    movefile(req, frompath, topath)
+    svn = fields.getfirst('svn')
+    if svn:
+        svn_movefile(req, frompath, topath)
+    else:
+        movefile(req, frompath, topath)
 
 def action_mkdir(req, fields):
     """Creates a directory with the given path.

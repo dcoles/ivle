@@ -789,6 +789,7 @@ function update_actions()
     /* Subversion actions */
     /* These are only useful if we are in a versioned directory and have some
      * files selected. */
+    set_action_state(["svnrename"], numsel == 1 && current_file.svnstatus);
     set_action_state(["svnadd"], numsel >= 1 && current_file.svnstatus);
     /* And these are only useful is ALL the selected files are versioned */
     set_action_state(["svnremove", "svnrevert", "svncopy", "svncut"],
@@ -932,7 +933,10 @@ function handle_moreactions()
         action_add(selected_files);
         break;
     case "svnremove":
-        action_remove(selected_files);
+        action_svnremove(selected_files);
+        break;
+    case "svnrename":
+        action_svnrename(selected_files);
         break;
     case "svnrevert":
         action_revert(selected_files);

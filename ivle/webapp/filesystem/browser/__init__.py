@@ -128,6 +128,7 @@ class BrowserView(XHTMLView):
           ('Subversion', True, [
             ('svncut',      ['Svn Cut',      'Prepare to move the selected files to another directory, maintaining history']),
             ('svncopy',     ['Svn Copy',     'Prepare to copy the selected files to another directory, maintaining history']),
+            ('svnrename',   ['Rename',         'Schedule the selected permanent files to be renamed']),
             ('svnadd',      ['Add',            'Schedule the selected temporary files to be added permanently']),
             ('svnremove',   ['Remove',         'Schedule the selected permanent files to be removed']),
             ('svndiff',     ['Diff',           'View any changes to the selected file since its last committed state']),

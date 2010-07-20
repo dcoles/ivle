@@ -205,6 +205,15 @@ function action_remove(files)
     return false;
 }
 
+function action_svnrename(fromfilename)
+{
+    var tofilename = prompt("Rename file \"" + fromfilename + "\" to?",
+        fromfilename);
+    if (tofilename == null) return;
+    do_act("move", {"from":fromfilename, "to":tofilename, "svn": true});
+    return false;
+}
+
 function action_revert(files)
 {
     do_act("svnrevert", {"path":files});
