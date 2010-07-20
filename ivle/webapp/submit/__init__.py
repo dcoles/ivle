@@ -85,6 +85,9 @@ class SubmitView(XHTMLView):
             except ValueError:
                 raise BadRequest('Project must be an integer.')
 
+            # True, if the user has confirmed to submit late
+            late = 'late' in data and data['late'] == "yes"
+
             project = req.store.find(Project, Project.id == projectid).one()
 
             # This view's offering will be the sole offering for which the
@@ -97,39 +100,46 @@ class SubmitView(XHTMLView):
 
             try:
                 ctx['submission'] = project.submit(self.context,
-                                    unicode(self.path), revision, req.user)
-            except (database.DeadlinePassed, database.SubmissionError), e:
+                                    unicode(self.path), revision, req.user,
+                                    late=late)
+            except database.DeadlinePassed:
+                # Show late submission page
+                self.template = 'submit-late.html'
+                ctx['project'] = project
+            except database.SubmissionError, e:
                 raise BadRequest(str(e) + ".")
+            else:
+                # The Subversion configuration needs to be updated, to grant
+                # tutors and lecturers access to this submission. We have to 
+                # commit early so usrmgt-server can see the new submission.
+                req.store.commit()
 
-            # The Subversion configuration needs to be updated, to grant
-            # tutors and lecturers access to this submission. We have to 
-            # commit early so usrmgt-server can see the new submission.
-            req.store.commit()
+                # Instruct usrmgt-server to rebuild the SVN group authz file.
+                msg = {'rebuild_svn_group_config': {}}
+                usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
+                                        req.config['usrmgt']['port'],
+                                        msg,
+                                        req.config['usrmgt']['magic'],
+                                        )
 
-            # Instruct usrmgt-server to rebuild the SVN group authz file.
-            msg = {'rebuild_svn_group_config': {}}
-            usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
-                                    req.config['usrmgt']['port'],
-                                    msg,
-                                    req.config['usrmgt']['magic'],
-                                    )
+                if usrmgt.get('response') in (None, 'failure'):
+                    raise Exception("Failure creating repository: "
+                                    + str(usrmgt))
 
-            if usrmgt.get('response') in (None, 'failure'):
-                raise Exception("Failure creating repository: " + str(usrmgt))
+                # Instruct usrmgt-server to rebuild the SVN user authz file.
+                msg = {'rebuild_svn_config': {}}
+                usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
+                                        req.config['usrmgt']['port'],
+                                        msg,
+                                        req.config['usrmgt']['magic'],
+                                        )
 
-            # Instruct usrmgt-server to rebuild the SVN user authz file.
-            msg = {'rebuild_svn_config': {}}
-            usrmgt = ivle.chat.chat(req.config['usrmgt']['host'],
-                                    req.config['usrmgt']['port'],
-                                    msg,
-                                    req.config['usrmgt']['magic'],
-                                    )
+                if usrmgt.get('response') in (None, 'failure'):
+                    raise Exception("Failure creating repository: "
+                                    + str(usrmgt))
 
-            if usrmgt.get('response') in (None, 'failure'):
-                raise Exception("Failure creating repository: " + str(usrmgt))
-
-            self.template = 'submitted.html'
-            ctx['project'] = project
+                self.template = 'submitted.html'
+                ctx['project'] = project
 
         ctx['req'] = req
         ctx['principal'] = self.context
