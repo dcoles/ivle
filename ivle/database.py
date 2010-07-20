@@ -954,8 +954,15 @@ class ProjectSubmission(Storm):
     @property
     def late(self):
         """True if the project was submitted late."""
+        return self.days_late > 0
+
+    @property
+    def days_late(self):
+        """The number of days the project was submitted late (rounded up), or
+        0 if on-time."""
         # XXX: Need to respect extensions.
-        return self.date_submitted > self.assessed.project.deadline
+        return max(0,
+            (self.date_submitted - self.assessed.project.deadline).days + 1)
 
 # WORKSHEETS AND EXERCISES #
 
