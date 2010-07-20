@@ -23,7 +23,11 @@ import os
 import re
 import cgi
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import genshi
 
 import ivle.interpret
@@ -62,7 +66,7 @@ class DiffView(XHTMLView):
                             )
         assert not err
 
-        response = cjson.decode(out)
+        response = json.loads(out)
         if 'error' in response:
             if response['error'] == 'notfound':
                 raise NotFound()

@@ -28,7 +28,11 @@ import os
 import sys
 import locale
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import pysvn
 
 import ivle.conf
@@ -43,13 +47,13 @@ try:
     client.exception_style = 1
     logs = client.log(os.path.join('/home', sys.argv[1].decode('utf-8')),
                       discover_changed_paths=True)
-    print cjson.encode({'logs': [{'revno': log.revision.number,
-                                  'author': log.author.decode('utf-8'),
-                                  'message': log.message.decode('utf-8'),
-                                  'date': log.date,
-                                  'paths': [(p.path.decode('utf-8'), p.action)
-                                            for p in log.changed_paths]}
-                                 for log in logs]})
+    print json.dumps({'logs': [{'revno': log.revision.number,
+                                'author': log.author.decode('utf-8'),
+                                'message': log.message.decode('utf-8'),
+                                'date': log.date,
+                                'paths': [(p.path.decode('utf-8'), p.action)
+                                          for p in log.changed_paths]}
+                               for log in logs]})
 except pysvn.ClientError, e:
     error = e[0]
 
@@ -68,4 +72,4 @@ except pysvn.ClientError, e:
     except IndexError:
         pass
 
-    print cjson.encode({'error': error})
+    print json.dumps({'error': error})

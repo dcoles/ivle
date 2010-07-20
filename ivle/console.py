@@ -30,8 +30,6 @@ import socket
 import StringIO
 import uuid
 
-import cjson
-
 from ivle import chat, interpret
 
 class ConsoleError(Exception):
@@ -190,7 +188,7 @@ class Console(object):
             else:
                 # Some other error - probably serious
                 raise socket.error, (enumber, estring)
-        except cjson.DecodeError:
+        except ValueError:
             # Couldn't decode the JSON
             raise ConsoleError(
                 "Could not understand the python console response")

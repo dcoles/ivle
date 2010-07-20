@@ -25,7 +25,10 @@ import sys
 import StringIO
 from optparse import OptionParser
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from ivle import zip as zipmod
 import ivle.conf.app.server
@@ -40,7 +43,7 @@ def determine_file_type(filename):
 def throw_error(message, extra={}):
     error = {'error': message}
     error.update(extra)
-    print cjson.encode(error)
+    print json.dumps(error)
     sys.exit(0)
 
 parser = OptionParser()
@@ -138,17 +141,17 @@ if zipmode:
     zipfile = StringIO.StringIO()
     zipmod.make_zip(zipbasepath, paths, zipfile)
 
-    print cjson.encode({'type': zip_mimetype,
-                        'name': zipfilename.decode('utf-8')})
+    print json.dumps({'type': zip_mimetype,
+                      'name': zipfilename.decode('utf-8')})
 
     stream = zipfile
     stream.seek(0)
 else:
 
-    print cjson.encode({'type': determine_file_type(filename),
-                        'name': os.path.basename(filename).decode('utf-8')})
+    print json.dumps({'type': determine_file_type(filename),
+                      'name': os.path.basename(filename).decode('utf-8')})
     stream = open(filename)
-    
+
 next = stream.read(1024)
 while next:
     sys.stdout.write(next)
