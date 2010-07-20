@@ -370,6 +370,10 @@ form.verticalform.thin div.submit {
     color: darkred;
 }
 
+.late_submission {
+    font-style: italic;
+}
+
 .form_error {
     color: darkred;
 }
