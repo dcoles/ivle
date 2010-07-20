@@ -199,7 +199,7 @@ function action_add(files)
     return false;
 }
 
-function action_remove(files)
+function action_svnremove(files)
 {
     do_act("svnremove", {"path":files});
     return false;
