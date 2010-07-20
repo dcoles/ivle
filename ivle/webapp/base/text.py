@@ -35,9 +35,6 @@ class TextView(GenshiLoaderMixin, BaseView):
     template = 'template.txt'
     content_type = 'text/plain'
 
-    def __init__(self, *args, **kwargs):
-        super(TextView, self).__init__(*args, **kwargs)
-
     def get_context_ancestry(self, req):
         return req.publisher.get_ancestors(self.context)
 
