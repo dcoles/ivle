@@ -27,10 +27,9 @@
           <form action="" method="post">
             <table>
               <tr py:for="project in principal.get_projects(offering=offering)"
-                  py:with="attrs = {'disabled': 'disabled'} if project.has_deadline_passed(req.user) else {}"
                   py:attrs="{'class': 'project closed'} if project.has_deadline_passed(req.user) else {'class': 'project'}">
                 <td style="vertical-align: top">
-                  <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
+                  <input type="radio" name="project" id="project_${project.id}" value="${project.id}" />
                 </td>
                 <td>
                   <label for="project_${project.id}">
@@ -60,6 +59,9 @@
                     </py:if>
                     <br />
                     ${project.synopsis}
+                    <py:if test="project.has_deadline_passed(req.user)"><br />
+                      <em>Note: The deadline has passed. You may still submit late, but a penalty may be incurred.</em>
+                    </py:if>
                   </label>
                 </td>
               </tr>
