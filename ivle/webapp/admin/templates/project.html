@@ -24,6 +24,15 @@
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
 
       <h2>Latest submissions</h2>
+      <p>Check these out with your IVLE username and Subversion password, as
+      documented under <a class="helpaction"
+      href="/+help/Files/Subversion#external">External Subversion
+      access</a>.<br />
+      <a class="marksaction"
+           href="${req.publisher.generate(project, ProjectExport)}">
+           Bash script for exporting submitted projects
+        </a>
+      </p>
       <div py:if="project.latest_submissions.count() == 0">
         There are no submissions.
       </div>
@@ -51,15 +60,6 @@
         </py:for>
         </tbody>
       </table>
-      <p>Check these out with your IVLE username and Subversion password, as
-      documented under <a class="helpaction"
-      href="/+help/Files/Subversion#external">External Subversion
-      access</a>.<br />
-      <a class="marksaction"
-           href="${req.publisher.generate(project, ProjectExport)}">
-           Bash script for exporting submitted projects
-        </a>
-      </p>
 
       <h2>Assigned submitters</h2>
       <div py:if="project.project_set.assigned.count() == 0"
