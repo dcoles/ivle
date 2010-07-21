@@ -93,10 +93,15 @@ submitted version). You should verify after each submission -- you can verify
 any submitted project from the subject page.
 
 If you go into the *Intermediate IVLE ‣ group1* directory, you will be able
-to make a group submission to Phase 2 (which is a group project). Note that
-the Phase 3 submission has already closed.
-Also note that the file here (``phase2.html``) was edited by studenta and
+to make a group submission to Phase 2 (which is a group project). Also note
+that the file here (``phase2.html``) was edited by studenta and
 studentb collaboratively, as you can see in the project's revision log.
+
+Note that the Phase 3 submission has already closed. You can still make a
+"late submission" to a project that has closed, but there is an extra
+confirmation step. Lecturers are given details on late submissions and may
+deduct marks accordingly.
+
 
 Worksheets
 ----------
@@ -212,6 +217,12 @@ password by going to your user settings page (it is hidden by default, for
 security reasons).
 
 This will download the student's work into the current directory, to inspect.
+
+.. note::
+   This page shows late submissions in italics, with a "*", and the number of
+   days late, rounded upwards. Therefore, a submission which is 1 second late
+   is shown with a "(1)", while a submission that is 24 hours and 1 second
+   late is shown with a "(2)".
 
 You can also try to check out the group submission from Phase 2.
 
