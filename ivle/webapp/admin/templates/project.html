@@ -61,7 +61,7 @@
         </tbody>
       </table>
 
-      <h2>Assigned submitters</h2>
+      <h2>Expected submitters</h2>
       <div py:if="project.project_set.assigned.count() == 0"
            py:choose="project.project_set.is_group">
         <py:when test="True">There are no groups assigned to submit this project. Do you want to <a href="${req.publisher.generate(project.project_set, GroupsView)}">create some</a>?</py:when>
@@ -69,7 +69,7 @@
       </div>
       <table id="project_assigneds" class="pretty_table"
              py:if="project.project_set.assigned.count() > 0">
-        <thead><tr><th>Assigned</th></tr></thead>
+        <thead><tr><th>Name</th></tr></thead>
         <tbody>
         <py:for each="assignee in project.project_set.assigned">
           <tr>
