@@ -75,7 +75,7 @@ class UserEditView(BaseFormView):
         super(UserEditView, self).populate(req, ctx)
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
-        ctx['svn_url'] = req.user.get_svn_url(req.config, req)
+        ctx['svn_url'] = req.user.get_svn_url(req.config)
         ctx['svn_pass'] = req.user.svn_pass
 
 
