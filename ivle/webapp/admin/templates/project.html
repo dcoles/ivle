@@ -24,6 +24,16 @@
       <p>Submissions: ${project.latest_submissions.count()}/${project.project_set.assigned.count()}</p>
 
       <h2>Latest submissions</h2>
+      <p>Check these out with your IVLE username and Subversion password, as
+      documented under <a class="helpaction"
+      href="/+help/Files/Subversion#external">External Subversion
+      access</a>.<br />
+      <a class="marksaction"
+           href="${req.publisher.generate(project, ProjectExport)}">
+           Bash script for exporting submitted projects
+        </a>
+      </p>
+      <p class="late_submission">* Late submissions (number of days late)</p>
       <div py:if="project.latest_submissions.count() == 0">
         There are no submissions.
       </div>
@@ -52,18 +62,8 @@
         </py:for>
         </tbody>
       </table>
-      <p class="late_submission">* Late submissions (number of days late)</p>
-      <p>Check these out with your IVLE username and Subversion password, as
-      documented under <a class="helpaction"
-      href="/+help/Files/Subversion#external">External Subversion
-      access</a>.<br />
-      <a class="marksaction"
-           href="${req.publisher.generate(project, ProjectExport)}">
-           Bash script for exporting submitted projects
-        </a>
-      </p>
 
-      <h2>Assigned submitters</h2>
+      <h2>Expected submitters</h2>
       <div py:if="project.project_set.assigned.count() == 0"
            py:choose="project.project_set.is_group">
         <py:when test="True">There are no groups assigned to submit this project. Do you want to <a href="${req.publisher.generate(project.project_set, GroupsView)}">create some</a>?</py:when>
@@ -71,7 +71,7 @@
       </div>
       <table id="project_assigneds" class="pretty_table"
              py:if="project.project_set.assigned.count() > 0">
-        <thead><tr><th>Assigned</th></tr></thead>
+        <thead><tr><th>Name</th></tr></thead>
         <tbody>
         <py:for each="assignee in project.project_set.assigned">
           <tr>

@@ -200,9 +200,9 @@ From the offering page, click *View submissions* under the project of interest.
 This takes you to a page which lists the latest submissions from every student
 (presumably you will just see the submission made by ``studenta`` earlier in
 this tour). Next to each submission is a command line, beginning with
-``svn co``. For instance, you might see the line::
+``svn export``. For instance, you might see the line::
 
- svn co --username lecturer -r7 http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html
+ svn export --username lecturer -r7 'http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html' studenta.html
 
 Paste this line into a command-line (or, if you use a GUI Subversion client,
 use the username, revision and URL given). Subversion will likely prompt for a
@@ -211,14 +211,9 @@ will **not** be your normal IVLE password. You can learn your Subversion
 password by going to your user settings page (it is hidden by default, for
 security reasons).
 
-This will check out the student's work into the current directory, to inspect.
+This will download the student's work into the current directory, to inspect.
 
 You can also try to check out the group submission from Phase 2.
-
-.. warning::
-   It is currently not possible to check out a single file (not a directory)
-   submission using the instructions given. Instead, run ``svn cat``, and
-   redirect the output into a file.
 
 Managing worksheets and exercises
 ---------------------------------
