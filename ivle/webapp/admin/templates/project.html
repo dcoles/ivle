@@ -55,8 +55,7 @@
             <td py:otherwise=""><span title="${submission.assessed.principal.display_name}">${submission.assessed.principal.short_name}</span></td>
           </py:choose>
             <td><span title="${submission.submitter.display_name}">${submission.submitter.short_name}</span></td>
-            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}
-                <py:if test="submission.late">* (${submission.days_late})</py:if></td>
+            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}<py:if test="submission.late">* (${submission.days_late})</py:if></td>
             <td>${submission.get_svn_export_command(req)}</td>
           </tr>
         </py:for>

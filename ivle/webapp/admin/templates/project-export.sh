@@ -23,7 +23,7 @@
 # * Late submissions (number of days late)
 
 {% if project.latest_submissions.count() == 0 %}# There are no submissions.{% end %}{% if project.latest_submissions.count() > 0 %}# Group		Submitter		Date
-{% for submission in project.latest_submissions %}# {% choose submission.assessed.principal is submission.submitter %}{% when True %}-{% end %}{% otherwise %}${submission.assessed.principal.short_name}{% end %}{% end %}		${submission.submitter.short_name}		${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}{% if submission.late %} * (${submission.days_late}){% end %}
+{% for submission in project.latest_submissions %}# {% choose submission.assessed.principal is submission.submitter %}{% when True %}-{% end %}{% otherwise %}${submission.assessed.principal.short_name}{% end %}{% end %}		${submission.submitter.short_name}		${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}{% if submission.late %}* (${submission.days_late}){% end %}
 ${submission.get_svn_export_command(req)}
 {% end %}
 {% end %}
