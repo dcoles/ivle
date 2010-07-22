@@ -610,11 +610,14 @@ class Project(Storm):
         return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
 
-    def can_submit(self, principal, user):
+    def can_submit(self, principal, user, late=False):
+        """
+        @param late: If True, does not take the deadline into account.
+        """
         return (self in principal.get_projects() and
-                not self.has_deadline_passed(user))
+                (late or not self.has_deadline_passed(user)))
 
-    def submit(self, principal, path, revision, who):
+    def submit(self, principal, path, revision, who, late=False):
         """Submit a Subversion path and revision to a project.
 
         @param principal: The owner of the Subversion repository, and the
@@ -622,9 +625,11 @@ class Project(Storm):
         @param path: A path within that repository to submit.
         @param revision: The revision of that path to submit.
         @param who: The user who is actually making the submission.
+        @param late: If True, will not raise a DeadlinePassed exception even
+            after the deadline. (Default False.)
         """
 
-        if not self.can_submit(principal, who):
+        if not self.can_submit(principal, who, late=late):
             raise DeadlinePassed()
 
         a = Assessed.get(Store.of(self), principal, self)
@@ -945,6 +950,19 @@ class ProjectSubmission(Storm):
         if any(c in path for c in "\n[]"):
             raise SubmissionError("Path must not contain '\\n', '[' or ']'")
         return os.path.normpath(path)
+
+    @property
+    def late(self):
+        """True if the project was submitted late."""
+        return self.days_late > 0
+
+    @property
+    def days_late(self):
+        """The number of days the project was submitted late (rounded up), or
+        0 if on-time."""
+        # XXX: Need to respect extensions.
+        return max(0,
+            (self.date_submitted - self.assessed.project.deadline).days + 1)
 
 # WORKSHEETS AND EXERCISES #
 

@@ -33,6 +33,7 @@
            Bash script for exporting submitted projects
         </a>
       </p>
+      <p class="late_submission">* Late submissions (number of days late)</p>
       <div py:if="project.latest_submissions.count() == 0">
         There are no submissions.
       </div>
@@ -48,13 +49,13 @@
         </thead>
         <tbody>
         <py:for each="submission in project.latest_submissions">
-          <tr>
+          <tr py:attrs="{'class': 'late_submission'} if submission.late else {}">
           <py:choose test="submission.assessed.principal is submission.submitter">
             <td py:when="True">-</td>
             <td py:otherwise=""><span title="${submission.assessed.principal.display_name}">${submission.assessed.principal.short_name}</span></td>
           </py:choose>
             <td><span title="${submission.submitter.display_name}">${submission.submitter.short_name}</span></td>
-            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}</td>
+            <td>${submission.date_submitted.strftime("%Y-%m-%d %H:%M:%S")}<py:if test="submission.late">* (${submission.days_late})</py:if></td>
             <td>${submission.get_svn_export_command(req)}</td>
           </tr>
         </py:for>

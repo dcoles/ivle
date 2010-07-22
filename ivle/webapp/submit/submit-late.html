@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/">
+  <head>
+    <title>Submit project - late</title>
+  </head>
+  <body>
+    <h1>Submit project - late</h1>
+    <div id="ivle_padding">
+      <form action="" method="post">
+        <input type="hidden" name="project" value="${project.id}" />
+        <input type="hidden" name="late" value="yes" />
+        <p class="late_submission"><strong>This submission has not yet been
+        completed.</strong></p>
+        <p>You are about to submit ${project.name} for ${offering.subject.name}.</p>
+        <p>The project deadline has already passed. If you choose to continue,
+        <span class="late_submission"><strong>your submission will be
+        considered late</strong></span>. This may incur a late penalty, at the
+        discretion of the subject coordinator, even if you have already
+        submitted on time.</p>
+        <p>You may resubmit this project again at any time, but a new submission
+        will overwrite any made earlier, and further submissions may incur an
+        increased penalty.</p>
+        <input type="submit" value="Submit Late" />
+      </form>
+    </div>
+  </body>
+</html>
