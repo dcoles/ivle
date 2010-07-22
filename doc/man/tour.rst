@@ -219,7 +219,7 @@ security reasons).
 This will download the student's work into the current directory, to inspect.
 
 .. note::
-   This page shows late submissions in italics, with a "*", and the number of
+   This page shows late submissions in red, with a "*", and the number of
    days late, rounded upwards. Therefore, a submission which is 1 second late
    is shown with a "(1)", while a submission that is 24 hours and 1 second
    late is shown with a "(2)".
