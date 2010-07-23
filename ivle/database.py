@@ -865,7 +865,7 @@ class ProjectExtension(Storm):
     id = Int(name="extensionid", primary=True)
     assessed_id = Int(name="assessedid")
     assessed = Reference(assessed_id, Assessed.id)
-    deadline = DateTime()
+    days = Int()
     approver_id = Int(name="approver")
     approver = Reference(approver_id, User.id)
     notes = Unicode()

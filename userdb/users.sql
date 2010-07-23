@@ -190,7 +190,7 @@ CREATE UNIQUE INDEX assessed_groupid_key ON assessed(groupid, projectid) WHERE g
 CREATE TABLE project_extension (
     extensionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
-    deadline    TIMESTAMP NOT NULL,
+    days        INT NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
     notes       VARCHAR
 );
