@@ -56,15 +56,20 @@ class AttemptsRESTView(JSONRESTView):
     @require_permission('edit')
     def PUT(self, req, data):
         """ Tests the given submission """
+        # Trim off any trailing whitespace (can cause syntax errors in python)
+        # While technically this is a user error, it causes a lot of confusion 
+        # for student since it's "invisible".
+        code = data['code'].rstrip()
+
         test_results = ivle.worksheet.utils.test_exercise_submission(
             req.config, req.user, self.context.worksheet_exercise.exercise,
-            data['code'])
+            code)
 
         attempt = ivle.database.ExerciseAttempt(user=req.user,
             worksheet_exercise = self.context.worksheet_exercise,
             date = datetime.datetime.now(),
             complete = test_results['passed'],
-            text = unicode(data['code'])
+            text = unicode(code)
         )
 
         req.store.add(attempt)
