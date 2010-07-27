@@ -97,7 +97,6 @@ class BrowserView(XHTMLView):
         ctx['filename'] = cgi.escape(self.path)
 
         # Media URL for CodeMirror
-        ctx['mediapath'] = media_url(req, Plugin, '')
         ctx['codemirrorpath'] = media_url(req, '+external/codemirror', '')
 
     @property
