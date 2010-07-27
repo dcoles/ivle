@@ -30,8 +30,8 @@ def die(error):
     sys.exit(1)
 
 if len(sys.argv) != 7:
-    print >> sys.stderr, "usage: %s <oldsubjectcode> <oldyear> <oldsemester> "\
-                         "<newsubjectcode> <newyear> <newsemester>" \
+    print >> sys.stderr, "usage: %s <oldsubjectcode> <oldyear> <oldsemestercode> "\
+                         "<newsubjectcode> <newyear> <newsemestercode>" \
                          % os.path.basename(sys.argv[0])
     sys.exit()
 
@@ -40,14 +40,14 @@ store = get_store(ivle.config.Config())
 src = store.find(Offering,
                  Subject.code == unicode(sys.argv[1]),
                  Semester.year == unicode(sys.argv[2]),
-                 Semester.semester == unicode(sys.argv[3]),
+                 Semester.code == unicode(sys.argv[3]),
                  Offering.subject_id == Subject.id,
                  Offering.semester_id == Semester.id).one()
 
 dst = store.find(Offering,
                  Subject.code == unicode(sys.argv[4]),
                  Semester.year == unicode(sys.argv[5]),
-                 Semester.semester == unicode(sys.argv[6]),
+                 Semester.code == unicode(sys.argv[6]),
                  Offering.subject_id == Subject.id,
                  Offering.semester_id == Semester.id).one()
 

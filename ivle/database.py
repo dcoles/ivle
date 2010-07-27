@@ -150,7 +150,7 @@ class User(Storm):
             Offering.semester_id == Semester.id,
             Offering.subject_id == Subject.id).order_by(
                 Desc(Semester.year),
-                Desc(Semester.semester),
+                Desc(Semester.display_name),
                 Desc(Subject.code)
             )
 
@@ -298,7 +298,7 @@ class Subject(Storm):
         """
         return self.offerings.find(Offering.semester_id == Semester.id,
                                Semester.year == unicode(year),
-                               Semester.semester == unicode(semester)).one()
+                               Semester.url_name == unicode(semester)).one()
 
 class Semester(Storm):
     """A semester in which subjects can be run."""
@@ -307,7 +307,9 @@ class Semester(Storm):
 
     id = Int(primary=True, name="semesterid")
     year = Unicode()
-    semester = Unicode()
+    code = Unicode()
+    url_name = Unicode()
+    display_name = Unicode()
     state = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.semester_id')
@@ -319,7 +321,7 @@ class Semester(Storm):
     __init__ = _kwarg_init
 
     def __repr__(self):
-        return "<%s %s/%s>" % (type(self).__name__, self.year, self.semester)
+        return "<%s %s/%s>" % (type(self).__name__, self.year, self.code)
 
 class Offering(Storm):
     """An offering of a subject in a particular semester."""
@@ -744,7 +746,7 @@ class ProjectGroup(Storm):
         path = 'groups/%s_%s_%s_%s' % (
                 self.project_set.offering.subject.short_name,
                 self.project_set.offering.semester.year,
-                self.project_set.offering.semester.semester,
+                self.project_set.offering.semester.url_name,
                 self.name
                 )
         return urlparse.urljoin(url, path)

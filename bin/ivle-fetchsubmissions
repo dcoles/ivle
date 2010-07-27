@@ -118,7 +118,7 @@ def get_repo_url(submission, config):
         # The name of the repository directory within 'groups' is
         # SUBJECT_YEAR_SEMESTER_GROUP
         namespace = "_".join([offering.subject.short_name,
-            offering.semester.year, offering.semester.semester, groupname])
+            offering.semester.year, offering.semester.url_name, groupname])
         repo_path = os.path.join(config['paths']['svn']['repo_path'],
                                 'groups', namespace)
     else:
@@ -312,7 +312,7 @@ def main(argv=None):
 
     # Target directory is DEST/subject/year/semester/project
     target_dir = os.path.join(options.dest, subject_name,
-        offering.semester.year, offering.semester.semester, project_name)
+        offering.semester.year, offering.semester.url_name, project_name)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 

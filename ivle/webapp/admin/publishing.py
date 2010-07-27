@@ -36,7 +36,7 @@ def root_to_subject(root, name):
 
 @forward_route(ApplicationRoot, '+semesters', argc=2)
 def root_to_semester(root, year, semester):
-    return root.store.find(Semester, year=year, semester=semester).one()
+    return root.store.find(Semester, year=year, url_name=semester).one()
 
 @forward_route(Subject, argc=2)
 def subject_to_offering(subject, year, semester):
@@ -76,12 +76,12 @@ def subject_url(subject):
 
 @reverse_route(Semester)
 def semester_url(semester):
-    return (ROOT, ('+semesters', semester.year, semester.semester))
+    return (ROOT, ('+semesters', semester.year, semester.url_name))
 
 @reverse_route(Offering)
 def offering_url(offering):
     return (offering.subject, (offering.semester.year,
-                               offering.semester.semester))
+                               offering.semester.url_name))
 
 @reverse_route(ProjectSet)
 def projectset_url(project_set):

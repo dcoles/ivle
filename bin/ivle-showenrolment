@@ -46,7 +46,7 @@ if user.enrolments.count() > 0:
     for e in user.enrolments:
         print '%8s %10s %4s %8s %8s' % (
                 e.offering.subject.code, e.offering.subject.short_name,
-                e.offering.semester.year, e.offering.semester.semester,
+                e.offering.semester.year, e.offering.semester.url_name,
                 e.role
                 )
 else:

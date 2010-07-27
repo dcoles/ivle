@@ -83,7 +83,7 @@ class WorksheetView(XHTMLView):
 
         ctx['subject'] = self.context.offering.subject
         ctx['worksheet'] = self.context
-        ctx['semester'] = self.context.offering.semester.semester
+        ctx['semester'] = self.context.offering.semester.url_name
         ctx['year'] = self.context.offering.semester.year
 
         ctx['worksheetstream'] = genshi.Stream(list(genshi.XML(self.context.data_xhtml)))
@@ -461,7 +461,7 @@ class WorksheetsEditView(XHTMLView):
         
         ctx['subject'] = self.context.subject
         ctx['year'] = self.context.semester.year
-        ctx['semester'] = self.context.semester.semester
+        ctx['semester'] = self.context.semester.url_name
         
         ctx['worksheets'] = self.context.worksheets
         

@@ -260,7 +260,8 @@ def handle_get_enrolments(req, fields):
             'subj_name':       e.offering.subject.name,
             'subj_short_name': e.offering.subject.short_name,
             'year':            e.offering.semester.year,
-            'semester':        e.offering.semester.semester,
+            'semester_url':    e.offering.semester.url_name,
+            'semester_display':e.offering.semester.display_name,
             'state':           e.offering.semester.state,
             'groups':          [{'name': group.name,
                                  'nick': group.nick} for group in e.groups]
@@ -361,7 +362,7 @@ def handle_create_group(req, fields):
     args = {
         "subj_short_name": offering.subject.short_name,
         "year": offering.semester.year,
-        "semester": offering.semester.semester,
+        "semester": offering.semester.url_name,
         "groupnm": group.name,
     }
     msg = {'create_group_repository': args}

@@ -193,7 +193,7 @@ class GroupSubmitView(SubmitView):
             Subject.short_name == namebits[0],
             Offering.semester_id == Semester.id,
             Semester.year == namebits[1],
-            Semester.semester == namebits[2]).one()
+            Semester.url_name == namebits[2]).one()
 
     def get_offering(self):
         return self.context.project_set.offering

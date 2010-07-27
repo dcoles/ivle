@@ -23,7 +23,7 @@
           <div>
             <label for="semester">Semester:</label>
             <select id="semester" name="semester">
-              <option py:for="semester in semesters" value="${semester.year}/${semester.semester}">${semester.year} semester ${semester.semester}</option>
+              <option py:for="semester in semesters" value="${semester.year}/${semester.url_name}">${semester.year} ${semester.display_name}</option>
             </select>
             <span py:if="'semester' in errors" class="form_error">${errors.semester}.</span>
             <a class="addaction" href="/+semesters/+new">Create new semester</a>

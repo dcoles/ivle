@@ -68,7 +68,7 @@ def enrol_user(config, store, user):
                               Subject.code == subject,
                               Offering.subject_id == Subject.id,
                               Semester.year == year,
-                              Semester.semester == semester,
+                              Semester.code == semester,
                               Offering.semester_id == Semester.id).one()
 
         # We can't find a matching offering, so we don't care about it.
