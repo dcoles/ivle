@@ -247,7 +247,7 @@ class Console(object):
 
         # Unpickle the globals
         for g in globals['globals']:
-            globals['globals'][g] = cPickle.loads(globals['globals'][g])
+            globals['globals'][g] = cPickle.loads(str(globals['globals'][g]))
 
         return globals['globals']
         
@@ -266,7 +266,7 @@ class Console(object):
         # Unpickle any exceptions
         if 'exception' in call:
             call['exception']['except'] = \
-                cPickle.loads(call['exception']['except'])
+                cPickle.loads(str(call['exception']['except']))
 
         return call
 
@@ -278,7 +278,7 @@ class Console(object):
               
         # Unpickle any exceptions
         if 'exception' in execute:
-            execute['exception'] = cPickle.loads(execute['exception'])
+            execute['exception'] = cPickle.loads(str(execute['exception']))
         return execute
 
 
