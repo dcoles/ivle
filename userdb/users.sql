@@ -51,8 +51,8 @@ CREATE TABLE subject (
 
 CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
-    year        CHAR(4) NOT NULL CHECK (valid_url_name(year)),
-    semester    CHAR(1) NOT NULL CHECK (valid_url_name(semester)),
+    year        TEXT NOT NULL CHECK (valid_url_name(year)),
+    semester    TEXT NOT NULL CHECK (valid_url_name(semester)),
     state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
                                     'current', 'future')) DEFAULT 'current',
     UNIQUE (year, semester)
