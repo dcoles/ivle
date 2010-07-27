@@ -107,30 +107,36 @@ class SubjectsManage(XHTMLView):
             Semester.year, Semester.semester)
 
 
-class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
-    """A FormEncode validator that checks that a subject name is unused.
+class SubjectUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a subject attribute is unique.
 
     The subject referenced by state.existing_subject is permitted
     to hold that name. If any other object holds it, the input is rejected.
+
+    :param attribute: the name of the attribute to check.
+    :param display: a string to identify the field in case of error.
     """
-    def __init__(self, matching=None):
-        self.matching = matching
+
+    def __init__(self, attribute, display):
+        self.attribute = attribute
+        self.display = display
 
     def _to_python(self, value, state):
-        if (state.store.find(
-                Subject, short_name=value).one() not in
+        if (state.store.find(Subject, **{self.attribute: value}).one() not in
                 (None, state.existing_subject)):
             raise formencode.Invalid(
-                'Short name already taken', value, state)
+                '%s already taken' % self.display, value, state)
         return value
 
 
 class SubjectSchema(formencode.Schema):
     short_name = formencode.All(
-        SubjectShortNameUniquenessValidator(),
+        SubjectUniquenessValidator('short_name', 'URL name'),
         URLNameValidator(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
-    code = formencode.validators.UnicodeString(not_empty=True)
+    code = formencode.All(
+        SubjectUniquenessValidator('code', 'Subject code'),
+        formencode.validators.UnicodeString(not_empty=True))
 
 
 class SubjectFormView(BaseFormView):
