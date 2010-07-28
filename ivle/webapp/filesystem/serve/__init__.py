@@ -138,7 +138,7 @@ class ServeView(BaseView):
             req.headers_out["Content-Disposition"] = (
                          "attachment; filename=%s" %
                              response['name'].encode('utf-8'))
-        req.content_type = response['type']
+        req.content_type = response['type'].encode('utf-8')
         req.write(out)
 
 class DownloadView(ServeView):
