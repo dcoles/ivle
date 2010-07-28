@@ -928,11 +928,15 @@ class ProjectSubmission(Storm):
     def get_svn_export_command(self, req):
         """Returns a Unix shell command to export a submission"""
         svn_url = self.get_svn_url(req.config)
+        _, ext = os.path.splitext(svn_url)
         username = (req.user.login if req.user.login.isalnum() else
                 "'%s'"%req.user.login)
-        export_dir = self.assessed.principal.short_name
+        # Export to a file or directory relative to the current directory,
+        # with the student's login name, appended with the submitted file's
+        # extension, if any
+        export_path = self.assessed.principal.short_name + ext
         return "svn export --username %s -r%d '%s' %s"%(req.user.login,
-                self.revision, svn_url, export_dir)
+                self.revision, svn_url, export_path)
 
     @staticmethod
     def test_and_normalise_path(path):
