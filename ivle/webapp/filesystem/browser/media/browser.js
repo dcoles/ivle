@@ -45,7 +45,7 @@ type_handlers = {
     "application/javascript" : "text",
     "application/json" : "text",
     "application/xml" : "text",
-    "application/ogg" : "video"
+    "application/ogg" : "audio"
 };
 
 /* Mapping MIME types to icons, just the file's basename */
