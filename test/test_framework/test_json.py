@@ -1,5 +1,10 @@
-import cjson
 import sys
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 sys.path.append('../../www/apps/tutorial/test/')
 
 from parse_tute import *
@@ -14,4 +19,4 @@ for i in range(1, len(sys.argv)):
     jobj['name'], results = problem_suite.run_tests(pyfile)
     jobj['cases'] = results
 
-    print cjson.encode(jobj)
+    print json.dumps(jobj)

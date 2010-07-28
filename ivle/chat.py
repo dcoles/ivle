@@ -19,7 +19,11 @@
 # Author: Thomas Conway
 # Date:   5/2/2008
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import cStringIO
 import hashlib
 import sys
@@ -99,14 +103,14 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
 
             response = handler(content)
 
-            send_netstring(conn, cjson.encode(response))
+            send_netstring(conn, json.dumps(response))
 
             conn.close()
 
         except Terminate, t:
             # Try and send final response and then terminate
             if t.final_response:
-                send_netstring(conn, cjson.encode(t.final_response))
+                send_netstring(conn, json.dumps(t.final_response))
             conn.close()
             sys.exit(0)
         except Exception:
@@ -119,7 +123,7 @@ def start_server(port, magic, daemon_mode, handler, initializer = None):
                 "value": str(e_val),
                 "traceback": tb_dump.getvalue()
             }
-            send_netstring(conn, cjson.encode(json_exc))
+            send_netstring(conn, json.dumps(json_exc))
             conn.close()
 
 
@@ -128,15 +132,15 @@ def chat(host, port, msg, magic, decode = True):
     sok.connect((host, port))
     sok.settimeout(SOCKETTIMEOUT)
 
-    json = encode(msg, magic)
+    out = encode(msg, magic)
 
-    send_netstring(sok, json)
+    send_netstring(sok, out)
     inp = recv_netstring(sok)
 
     sok.close()
 
     if decode:
-        return cjson.decode(inp)
+        return json.loads(inp)
     else:
         return inp
 
@@ -145,25 +149,23 @@ def encode(message, magic):
     string to attach a HMAC digest.
     """
     # XXX: Any reason that we double encode?
-    content = cjson.encode(message)
+    content = json.dumps(message)
 
     digest = hashlib.md5(content + magic).hexdigest()
     env = {'digest':digest,'content':content}
-    json = cjson.encode(env)
-
-    return json
+    return json.dumps(env)
 
 
 def decode(message, magic):
     """Takes a message with an attached HMAC digest and validates the message.
     """
-    msg = cjson.decode(message)
+    msg = json.loads(message)
 
     # Check that the message is valid
     digest = hashlib.md5(msg['content'] + magic).hexdigest()
     if msg['digest'] != digest:
         raise ProtocolError("HMAC digest is invalid")
-    content = cjson.decode(msg['content'])
+    content = json.loads(msg['content'])
 
     return content
 

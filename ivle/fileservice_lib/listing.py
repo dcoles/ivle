@@ -105,7 +105,11 @@ import mimetypes
 import urlparse
 from cgi import parse_qs
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import pysvn
 
 import ivle.svn
@@ -148,7 +152,6 @@ def handle_return(req, return_contents):
 
     # FIXME: What to do about req.path == ""?
     # Currently goes to 403 Forbidden.
-    json = None
     if path is None:
         req.status = req.HTTP_FORBIDDEN
         req.headers_out['X-IVLE-Return-Error'] = 'Forbidden'
@@ -179,7 +182,7 @@ def handle_return(req, return_contents):
         newjson = get_dirlisting(req, svnclient, path, revision)
         if ("X-IVLE-Action-Error" in req.headers_out):
             newjson["Error"] = req.headers_out["X-IVLE-Action-Error"]
-        req.write(cjson.encode(newjson))
+        req.write(json.dumps(newjson))
     elif return_contents:
         # It's a file. Return the file contents.
         # First get the mime type of this file
@@ -194,8 +197,8 @@ def handle_return(req, return_contents):
         # It's a file. Return a "fake directory listing" with just this file.
         req.content_type = mime_dirlisting
         req.headers_out['X-IVLE-Return'] = 'File'
-        req.write(cjson.encode(get_dirlisting(req, svnclient, path,
-                                              revision)))
+        req.write(json.dumps(get_dirlisting(req, svnclient, path,
+                                            revision)))
 
 def _get_revision_or_die(req, svnclient, path):
     """Looks for a revision specification in req's URL.

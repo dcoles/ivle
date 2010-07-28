@@ -3,7 +3,6 @@
 # usage:
 #   python-console <port> <magic> [<working-dir>]
 
-import cjson
 import codeop
 import cPickle
 import cStringIO

@@ -23,7 +23,11 @@ import inspect
 import os
 import urlparse
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import genshi.template
 
 from ivle.webapp.base.views import BaseView
@@ -89,15 +93,15 @@ class JSONRESTView(RESTView):
               req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
             self.authorize_method(req, self.PATCH)
             try:
-                input = cjson.decode(req.read())
-            except cjson.DecodeError:
+                input = json.loads(req.read())
+            except ValueError:
                 raise BadRequest('Invalid JSON data')
             outjson = self.PATCH(req, input)
         elif req.method == 'PUT':
             self.authorize_method(req, self.PUT)
             try:
-                input = cjson.decode(req.read())
-            except cjson.DecodeError:
+                input = json.loads(req.read())
+            except ValueError:
                 raise BadRequest('Invalid JSON data')
             outjson = self.PUT(req, input)
         # POST implies named operation.
@@ -113,7 +117,7 @@ class JSONRESTView(RESTView):
     #This is a separate function to allow additional data to be passed through
     def write_json(self, req, outjson):
         if outjson is not None:
-            req.write(cjson.encode(outjson))
+            req.write(json.dumps(outjson))
             req.write("\n")
 
     def _named_operation(self, req, opargs, readonly=False):
@@ -185,7 +189,7 @@ class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
     # This renders the template and adds it to the json
     def write_json(self, req, outjson):
         outjson["html"] = self.render_fragment()
-        req.write(cjson.encode(outjson))
+        req.write(json.dumps(outjson))
         req.write("\n")
 
 class _named_operation(object):

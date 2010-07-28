@@ -28,7 +28,10 @@ import os
 import sys
 import locale
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 import pysvn
 
 import ivle.conf
@@ -66,7 +69,7 @@ try:
         revision1=revs[0],
         revision2=revs[1]
     )
-    print cjson.encode({'diff': diff_text.decode('utf-8')})
+    print json.dumps({'diff': diff_text.decode('utf-8')})
 except pysvn.ClientError, e:
     error = e[0]
 
@@ -84,4 +87,4 @@ except pysvn.ClientError, e:
     except IndexError:
         pass
 
-    print cjson.encode({'error': error})
+    print json.dumps({'error': error})

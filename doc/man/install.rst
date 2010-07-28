@@ -36,7 +36,6 @@ software.
    + mod_python (``libapache2-mod-python``)
    + mod_dav_svn and mod_authz_svn (``libapache2-svn``)
 * Python 2.5 (``python2.5``) or 2.6 (``python2.6``) with modules:
-   + cjson (``python-cjson``)
    + ConfigObj (``python-configobj``)
    + docutils (``python-docutils``)
    + epydoc (``python-epydoc``)
@@ -45,6 +44,7 @@ software.
    + psycopg2 (``python-psycopg2``)
    + pysvn (``python-svn``)
    + Storm (``python-storm``)
+   + simplejson (``python-simplejson``, for Python 2.5 only)
 * jQuery (``libjs-jquery``)
 * CodeMirror (``libjs-codemirror``)
 * PostgreSQL 8.3 or later (``postgresql``)
@@ -172,7 +172,7 @@ in after following the steps above.
 If you want to grab all of the required packages in one command, use::
 
     sudo apt-get install apache2 libapache2-mod-python libapache2-svn \
-    python2.6 python-cjson python-configobj python-docutils python-epydoc \
+    python2.6 python-configobj python-docutils python-epydoc \
     python-formencode python-genshi python-psycopg2 python-svn python-storm \
     libjs-jquery libjs-codemirror postgresql subversion debootstrap rsync \
     build-essential

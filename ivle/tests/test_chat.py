@@ -19,7 +19,11 @@ import socket
 import os
 import random
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 from nose.tools import assert_equal, raises
 
 import ivle.chat
@@ -93,13 +97,13 @@ class TestChat(object):
         """
         MESSAGE = {}
         MAGIC = "3EE"
-        content = cjson.encode(MESSAGE)
+        content = json.dumps(MESSAGE)
         # Digest can be formed with `echo -n "${content}${MAGIC}" | md5sum`
         DIGEST = '2b59b68e1ac0852b87fb7e64946f2658'
         expected = {'digest': DIGEST,
                 'content': content}
         encoded = ivle.chat.encode(MESSAGE, MAGIC)
-        assert_equal(cjson.decode(encoded), expected)
+        assert_equal(json.loads(encoded), expected)
 
     def test_encode_decode(self):
         """Check that a round trip encoding and decoding works

@@ -102,7 +102,10 @@ import os
 import sys
 import datetime
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 import ivle.database
 from ivle import (util, chat)
@@ -212,7 +215,7 @@ def handle_activate_me(req, fields):
                              msg,
                              req.config['usrmgt']['magic'],
                             )
-    except cjson.DecodeError:
+    except ValueError:
         # Gave back rubbish - set the response to failure
         response = {'response': 'usrmgt-failure'}
 
@@ -230,7 +233,7 @@ def handle_activate_me(req, fields):
 
     # Write the response
     req.content_type = "text/plain"
-    req.write(cjson.encode(response))
+    req.write(json.dumps(response))
 
 def handle_get_enrolments(req, fields):
     """
@@ -266,7 +269,7 @@ def handle_get_enrolments(req, fields):
             'groups':          [{'name': group.name,
                                  'nick': group.nick} for group in e.groups]
         })
-    response = cjson.encode(dict_enrolments)
+    response = json.dumps(dict_enrolments)
     req.content_type = "text/plain"
     req.write(response)
 
@@ -300,7 +303,7 @@ def handle_get_project_groups(req, fields):
                         'nick': g.nick} for g in p.project_groups]
         })
 
-    response = cjson.encode(dict_projectsets)
+    response = json.dumps(dict_projectsets)
     req.write(response)
 
 @require_method('POST')
@@ -374,7 +377,7 @@ def handle_create_group(req, fields):
                            msg,
                            req.config['usrmgt']['magic'],
                           )
-    except cjson.DecodeError, e:
+    except ValueError, e:
         raise Exception("Could not understand usrmgt server response:" +
                         e.message)
 
@@ -427,7 +430,7 @@ def handle_get_group_membership(req, fields):
         if member in offeringmembers:
             offeringmembers.remove(member)
 
-    response = cjson.encode(
+    response = json.dumps(
         {'groupmembers': groupmembers, 'available': offeringmembers})
 
     req.content_type = "text/plain"
@@ -468,14 +471,14 @@ def handle_assign_group(req, fields):
                            msg,
                            req.config['usrmgt']['magic'],
                           )
-    except cjson.DecodeError, e:
+    except ValueError, e:
         raise Exception("Could not understand usrmgt server response: %s" +
                         e.message)
 
         if 'response' not in usrmgt or usrmgt['response']=='failure':
             raise Exception("Failure creating repository: " + str(usrmgt))
 
-    return(cjson.encode({'response': 'okay'}))
+    return(json.dumps({'response': 'okay'}))
 
 @require_method('POST')
 def handle_unassign_group(req, fields):
@@ -515,14 +518,14 @@ def handle_unassign_group(req, fields):
                            msg,
                            req.config['usrmgt']['magic'],
                           )
-    except cjson.DecodeError, e:
+    except ValueError, e:
         raise Exception("Could not understand usrmgt server response: %s" +
                         e.message)
 
         if 'response' not in usrmgt or usrmgt['response']=='failure':
             raise Exception("Failure creating repository: " + str(usrmgt))
 
-    return(cjson.encode({'response': 'okay'}))
+    return(json.dumps({'response': 'okay'}))
 
 # Map action names (from the path)
 # to actual function objects
