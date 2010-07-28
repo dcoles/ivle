@@ -3,20 +3,30 @@
       py:strip="">
   <body py:strip="">
       <p class="form_error">
-        <strong>Warning:</strong> Changing the year or semester here <em>will
-        break</em> any existing Subversion repositories or checkouts
+        <strong>Warning:</strong> Changing the year or URL name here
+        <em>will break</em> any existing Subversion repositories or checkouts
         associated with this semester's offerings. Be very careful.
       </p>
-      <form class="verticalform thin" method="post" action="">
+      <form class="verticalform" method="post" action="">
         <div>
           <label for="field_year">Year:</label>
           <input type="text" id="field_year" name="year" />
           <span py:if="'year' in errors" class="form_error">${errors.year}</span>
         </div>
         <div>
-          <label for="field_semester">Semester:</label>
-          <input type="text" id="field_semester" name="semester" />
-          <span py:if="'semester' in errors" class="form_error">${errors.semester}</span>
+          <label for="field_code">Code:</label>
+          <input type="text" id="field_code" name="code" />
+          <span py:if="'code' in errors" class="form_error">${errors.code}</span>
+        </div>
+        <div>
+          <label for="field_url_name">URL name:</label>
+          <input type="text" id="field_url_name" name="url_name" />
+          <span py:if="'url_name' in errors" class="form_error">${errors.url_name}</span>
+        </div>
+        <div>
+          <label for="field_display_name">Display name:</label>
+          <input type="text" id="field_display_name" name="display_name" />
+          <span py:if="'display_name' in errors" class="form_error">${errors.display_name}</span>
         </div>
         <div>
           <label for="field_state">State:</label>

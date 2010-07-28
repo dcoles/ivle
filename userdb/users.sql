@@ -52,10 +52,13 @@ CREATE TABLE subject (
 CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
     year        TEXT NOT NULL CHECK (valid_url_name(year)),
-    semester    TEXT NOT NULL CHECK (valid_url_name(semester)),
+    url_name    TEXT NOT NULL CHECK (valid_url_name(url_name)),
+    code        TEXT NOT NULL,
+    display_name TEXT NOT NULL,
     state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
                                     'current', 'future')) DEFAULT 'current',
-    UNIQUE (year, semester)
+    UNIQUE (year, url_name),
+    UNIQUE (year, code)
 );
 
 CREATE TABLE offering (

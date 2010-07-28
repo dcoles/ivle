@@ -2,10 +2,10 @@
       xmlns:py="http://genshi.edgewall.org/"
       xmlns:xi="http://www.w3.org/2001/XInclude">
   <head>
-    <title>Edit ${context.year} semester ${context.semester}</title>
+    <title>Edit ${context.year} ${context.display_name}</title>
   </head>
   <body>
-    <h1>Edit ${context.year} semester ${context.semester}</h1>
+    <h1>Edit ${context.year} ${context.display_name}</h1>
     <div py:with="submit_button_label = 'Save'"
          id="ivle_padding">
       <xi:include href="semester-form.html" />

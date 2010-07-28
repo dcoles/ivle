@@ -88,8 +88,8 @@ class OfferingBreadcrumb(object):
 
     @property
     def text(self):
-        return '%s semester %s' % (self.context.semester.year,
-                                   self.context.semester.semester)
+        return '%s %s' % (self.context.semester.year,
+                          self.context.semester.display_name)
 
 
 class ProjectsBreadcrumb(object):

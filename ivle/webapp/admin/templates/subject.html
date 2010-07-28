@@ -21,8 +21,8 @@
         <li py:for="offering in offerings"
             py:attrs="{'class': 'subject_current' if offering.semester.state == u'current' else None}">
           <py:choose test="user.admin or offering.get_enrolment(user) is not None">
-            <a py:when="True" href="${req.publisher.generate(offering)}">${offering.semester.year}, semester ${offering.semester.semester}</a>
-            <span py:otherwise="">${offering.semester.year}, semester ${offering.semester.semester}</span>
+            <a py:when="True" href="${req.publisher.generate(offering)}">${offering.semester.year}, ${offering.semester.display_name}</a>
+            <span py:otherwise="">${offering.semester.year}, ${offering.semester.display_name}</span>
           </py:choose>
         </li>
       </ul>
