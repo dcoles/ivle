@@ -31,7 +31,7 @@ software.
 .. If this list changes, you also need to change the list below, and
    the list in bin/ivle-dev-setup.
 
-* Ubuntu 8.04 or later (other distros should work with some tweaking, but are untested)
+* Ubuntu 8.04 LTS or later (other distros should work with some tweaking, but are untested)
 * Apache 2.x (``apache2``) with modules:
    + mod_python (``libapache2-mod-python``)
    + mod_dav_svn and mod_authz_svn (``libapache2-svn``)
@@ -46,6 +46,7 @@ software.
    + pysvn (``python-svn``)
    + Storm (``python-storm``)
 * jQuery (``libjs-jquery``)
+* CodeMirror (``libjs-codemirror``)
 * PostgreSQL 8.3 or later (``postgresql``)
 * Subversion (``subversion``)
 * debootstrap (``debootstrap``)
@@ -75,7 +76,7 @@ Ubuntu package installation section describes a multi-node configuration.
 Installing from source
 ======================
 
-When setting up a development IVLE environment on Ubuntu 9.04 or later,
+When setting up a development IVLE environment on Ubuntu 10.04 LTS or later,
 there are scripts to automate most of the process. First get and extract
 `a release tarball <https://launchpad.net/ivle/+download>`_, or check out
 the latest code from the Bazaar branch: ::
@@ -85,6 +86,15 @@ the latest code from the Bazaar branch: ::
 This will create a new directory, ``ivle``, containing a pristine
 source tree. The remaining steps assume that you are in this new
 directory.
+
+One of IVLE's dependencies (``libjs-codemirror``) does not yet have an
+official Ubuntu package. To make this dependency package available, add
+the production PPA, and update your local package cache: ::
+
+   sudo add-apt-repository ppa:unimelb-ivle/production
+   sudo apt-get update
+
+Alternatively, manually obtain and install ``libjs-codemirror``.
 
 
 Automated setup
@@ -164,7 +174,8 @@ If you want to grab all of the required packages in one command, use::
     sudo apt-get install apache2 libapache2-mod-python libapache2-svn \
     python2.6 python-cjson python-configobj python-docutils python-epydoc \
     python-formencode python-genshi python-psycopg2 python-svn python-storm \
-    libjs-jquery postgresql subversion debootstrap rsync build-essential
+    libjs-jquery libjs-codemirror postgresql subversion debootstrap rsync \
+    build-essential
 
 As IVLE needs to compile some binaries, you must first build, then
 install it. From the source directory created earlier: ::
