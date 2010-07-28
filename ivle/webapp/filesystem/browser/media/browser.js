@@ -563,7 +563,7 @@ function handle_image(path)
     disable_save_if_safe();
 
     /* URL */
-    var url = app_url(download_app, path);
+    var url = app_url(service_app, path) + "?return=contents";
 
     /* Image Preview */
     var img = $("<img />");
@@ -586,12 +586,13 @@ function handle_video(path, type)
     disable_save_if_safe();
 
     /* URL */
-    var url = app_url(download_app, path);
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
 
     /* Fallback Download Link */
     var link = $('<p>Could not display video in browser.<p><p><a /></p>');
     var a = link.find('a');
-    a.attr("href", url);
+    a.attr("href", download_url);
     a.text("Download " + path);
 
     /* Fallback Object Tag */
@@ -625,12 +626,13 @@ function handle_audio(path, type)
     disable_save_if_safe();
 
     /* URL */
-    var url = app_url(download_app, path);
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
 
     /* Fallback Download Link */
     var link = $('<p>Could not display audio in browser.<p><p><a /></p>');
     var a = link.find('a');
-    a.attr("href", url);
+    a.attr("href", download_url);
     a.text("Download " + path);
 
     /* Fallback Object Tag */
