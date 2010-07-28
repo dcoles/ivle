@@ -65,25 +65,6 @@ function edit_text()
     window.onbeforeunload = confirm_beforeunload;
 }
 
-/** Presents the "editor heading" inserting it into a given element at
- *  the front. Note that the save widget is handled by the Python.
- */
-function present_editorhead(elem, path, handler_type)
-{
-    var div = document.getElementById("actions2");
-
-    /* Print a warning message if this is not actually a text file.
-     */
-    if (handler_type != "text")
-    {
-        var warn = dom_make_text_elem("p",
-            "Warning: You are editing a binary " +
-            "file, which explains any strange characters you may see. If " +
-            "you save this file, you could corrupt it.");
-        div.appendChild(warn);
-    }
-}
-
 function highlighting_changed(select)
 {
     editbox.edit(editbox.getCode(), select.value);
@@ -107,23 +88,40 @@ function initialise_codepress()
 
 /** Presents the text editor.
  */
-function handle_text(path, text, handler_type)
+function handle_text(path, content_type, url_args)
+{
+    /* Need to make a 2nd ajax call, this time get the actual file
+     * contents */
+    callback = function(response)
+        {
+            /* Read the response and set up the page accordingly */
+            handle_text_response(path, content_type, response.responseText);
+        }
+    /* Call the server and request the listing. */
+    if (url_args)
+        args = shallow_clone_object(url_args);
+    else
+        args = {};
+    /* This time, get the contents of the file, not its metadata */
+    args['return'] = "contents";
+    ajax_call(callback, service_app, path, args, "GET");
+}
+
+function handle_text_response(path, content_type, response_text)
 {
     /* Create a textarea with the text in it
      * (The makings of a primitive editor).
      */
     var files = document.getElementById("filesbody");
-    /* Put our UI at the top */
-    present_editorhead(files, path, handler_type);
 
     var div = document.createElement("div");
     div.style.height = '100%';
     files.appendChild(div);
     var txt_elem = document.createElement("textarea");
-    txt_elem.value = text.toString();
+    txt_elem.value = response_text.toString();
     div.appendChild(txt_elem);
     txt_elem.setAttribute("id", "editbox");
-    language = language_from_mime(current_file.type);
+    language = language_from_mime(content_type);
 
     // Assume plaintext if no type can be determined.
     language = language ? language : "text";

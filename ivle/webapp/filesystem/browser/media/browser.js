@@ -332,38 +332,25 @@ function handle_response(path, response, is_action, url_args)
     }
     else
     {
-        /* Need to make a 2nd ajax call, this time get the actual file
-         * contents */
-        callback = function(response)
-            {
-                /* Read the response and set up the page accordingly */
-                handle_contents_response(path, response);
-            }
-        /* Call the server and request the listing. */
-        if (url_args)
-            args = shallow_clone_object(url_args);
-        else
-            args = {};
-        /* This time, get the contents of the file, not its metadata */
-        args['return'] = "contents";
-        ajax_call(callback, service_app, path, args, "GET");
+        /* Read the response and set up the page accordingly */
+        var content_type = current_file.type;
+        handle_contents_response(path, content_type, url_args);
+
     }
     update_actions(isdir);
 }
 
-function handle_contents_response(path, response)
+function handle_contents_response(path, content_type)
 {
     /* Treat this as an ordinary file. Get the file type. */
-    var content_type = response.getResponseHeader("Content-Type");
+    //var content_type = response.getResponseHeader("Content-Type");
     var handler_type = get_handler_type(content_type);
-    would_be_handler_type = handler_type;
     /* handler_type should now be set to either
      * "text", "image", "video", "audio" or "binary". */
     switch (handler_type)
     {
     case "text":
-        handle_text(path, response.responseText,
-            would_be_handler_type);
+        handle_text(path, content_type);
         break;
     case "image":
         handle_image(path);
