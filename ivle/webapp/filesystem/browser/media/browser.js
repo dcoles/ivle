@@ -45,7 +45,8 @@ type_handlers = {
     "application/javascript" : "text",
     "application/json" : "text",
     "application/xml" : "text",
-    "application/ogg" : "audio"
+    "application/ogg" : "audio",
+    "image/svg+xml": "object"
 };
 
 /* Mapping MIME types to icons, just the file's basename */
@@ -195,8 +196,8 @@ function refresh()
 }
 
 /** Determines the "handler type" from a MIME type.
- * The handler type is a string, either "text", "image", "video", "audio" or 
- * "binary".
+ * The handler type is a string, either "text", "image", "video", "audio", 
+ * "object" or "binary".
  */
 function get_handler_type(content_type)
 {
@@ -360,6 +361,9 @@ function handle_contents_response(path, content_type)
         break;
     case "audio":
         handle_audio(path, content_type);
+        break;
+    case "object":
+        handle_object(path, content_type);
         break;
     case "binary":
         handle_binary(path);
@@ -648,6 +652,38 @@ function handle_audio(path, type)
     var div = $('<div class="padding" />');
     div.append('<h1>Audio Preview</h1>');
     div.append(audio);
+    $("#filesbody").append(div);
+}
+
+/** Display generic object content
+ */
+function handle_object(path, content_type)
+{
+    /* Disable save button and hide the save panel */
+    using_codepress = false;
+    disable_save_if_safe();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
+
+    /* Fallback Download Link */
+    var link = $('<p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", download_url);
+    a.text("Download " + path);
+
+    /* Object Tag */
+    var obj = $('<object width="100%" height="500px" />');
+    obj.attr("type", content_type);
+    obj.attr("data", url);
+    obj.append('Could not load object');
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Preview</h1>');
+    div.append(obj);
+    div.append(link);
     $("#filesbody").append(div);
 }
 
