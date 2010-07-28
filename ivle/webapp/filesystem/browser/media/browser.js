@@ -31,6 +31,7 @@ download_app = "download";
  * "text" : When navigating to a text file, the text editor is opened.
  * "image" : When navigating to an image, the image is displayed (rather than
  *              going to the text editor).
+ * "video" : When navigation to a video file, a "play" button is presented.
  * "audio" : When navigating to an audio file, a "play" button is presented.
  * "binary" : When navigating to a binary file, offer it as a download through
  *              "serve".
@@ -43,7 +44,9 @@ type_handlers = {
     "application/x-javascript" : "text",
     "application/javascript" : "text",
     "application/json" : "text",
-    "application/xml" : "text"
+    "application/xml" : "text",
+    "application/ogg" : "audio",
+    "image/svg+xml": "object"
 };
 
 /* Mapping MIME types to icons, just the file's basename */
@@ -193,7 +196,8 @@ function refresh()
 }
 
 /** Determines the "handler type" from a MIME type.
- * The handler type is a string, either "text", "image", "audio" or "binary".
+ * The handler type is a string, either "text", "image", "video", "audio", 
+ * "object" or "binary".
  */
 function get_handler_type(content_type)
 {
@@ -205,7 +209,7 @@ function get_handler_type(content_type)
     {   /* Based on the first part of the MIME type */
         var handler_type = content_type.split('/')[0];
         if (handler_type != "text" && handler_type != "image" &&
-            handler_type != "audio")
+            handler_type != "video" && handler_type != "audio")
             handler_type = "binary";
         return handler_type;
     }
@@ -329,46 +333,37 @@ function handle_response(path, response, is_action, url_args)
     }
     else
     {
-        /* Need to make a 2nd ajax call, this time get the actual file
-         * contents */
-        callback = function(response)
-            {
-                /* Read the response and set up the page accordingly */
-                handle_contents_response(path, response);
-            }
-        /* Call the server and request the listing. */
-        if (url_args)
-            args = shallow_clone_object(url_args);
-        else
-            args = {};
-        /* This time, get the contents of the file, not its metadata */
-        args['return'] = "contents";
-        ajax_call(callback, service_app, path, args, "GET");
+        /* Read the response and set up the page accordingly */
+        var content_type = current_file.type;
+        handle_contents_response(path, content_type, url_args);
+
     }
     update_actions(isdir);
 }
 
-function handle_contents_response(path, response)
+function handle_contents_response(path, content_type)
 {
     /* Treat this as an ordinary file. Get the file type. */
-    var content_type = response.getResponseHeader("Content-Type");
+    //var content_type = response.getResponseHeader("Content-Type");
     var handler_type = get_handler_type(content_type);
-    would_be_handler_type = handler_type;
     /* handler_type should now be set to either
-     * "text", "image", "audio" or "binary". */
+     * "text", "image", "video", "audio" or "binary". */
     switch (handler_type)
     {
     case "text":
-        handle_text(path, response.responseText,
-            would_be_handler_type);
+        handle_text(path, content_type);
         break;
     case "image":
-        /* TODO: Custom image handler */
-        handle_binary(path, response.responseText);
+        handle_image(path);
+        break;
+    case "video":
+        handle_video(path, content_type);
         break;
     case "audio":
-        /* TODO: Custom audio handler */
-        handle_binary(path, response.responseText);
+        handle_audio(path, content_type);
+        break;
+    case "object":
+        handle_object(path, content_type);
         break;
     case "binary":
         handle_binary(path);
@@ -540,6 +535,11 @@ function svnstatus_versioned(svnstatus)
  */
 function handle_binary(path)
 {
+    // Disable save button
+    using_codepress = false;
+    disable_save_if_safe();
+
+    // Show download link
     var files = document.getElementById("filesbody");
     var div = document.createElement("div");
     files.appendChild(div);
@@ -552,6 +552,141 @@ function handle_binary(path)
         "Download " + path, "Download " + path, download_link);
     div.appendChild(par1);
     div.appendChild(par2);
+}
+
+/** Displays an image file.
+ */
+function handle_image(path)
+{
+    /* Disable save button */
+    using_codepress = false;
+    disable_save_if_safe();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+
+    /* Image Preview */
+    var img = $("<img />");
+    img.attr("alt", path);
+    img.attr("src", url);
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Image Preview</h1>');
+    div.append(img);
+    $("#filesbody").append(div);
+}
+
+/** Displays a video.
+ */
+function handle_video(path, type)
+{
+    /* Disable save button and hide the save panel */
+    using_codepress = false;
+    disable_save_if_safe();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
+
+    /* Fallback Download Link */
+    var link = $('<p>Could not display video in browser.<p><p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", download_url);
+    a.text("Download " + path);
+
+    /* Fallback Object Tag */
+    var obj = $('<object />');
+    obj.attr("type", type);
+    obj.attr("data", url);
+    obj.append(link);
+
+    /* HTML 5 Video Tag */
+    var video = $('<video controls="true" autoplay="true" />');
+    video.attr("src", url);
+    var support = video[0].canPlayType && video[0].canPlayType(type);
+    if (support != "probably" && support != "maybe") {
+        // Use Fallback
+        video = obj;
+    }
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Video Preview</h1>');
+    div.append(video);
+    $("#filesbody").append(div);
+}
+
+/** Display audio content
+ */
+function handle_audio(path, type)
+{
+    /* Disable save button and hide the save panel */
+    using_codepress = false;
+    disable_save_if_safe();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
+
+    /* Fallback Download Link */
+    var link = $('<p>Could not display audio in browser.<p><p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", download_url);
+    a.text("Download " + path);
+
+    /* Fallback Object Tag */
+    var obj = $('<object />');
+    obj.attr("type", type);
+    obj.attr("data", url);
+    obj.append(link);
+
+    /* HTML 5 Audio Tag */
+    var audio = $('<audio controls="true" autoplay="true" />');
+    audio.attr("src", url);
+    var support = audio[0].canPlayType && audio[0].canPlayType(type);
+    if (support != "probably" && support != "maybe") {
+        // Use Fallback
+        audio = obj;
+    }
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Audio Preview</h1>');
+    div.append(audio);
+    $("#filesbody").append(div);
+}
+
+/** Display generic object content
+ */
+function handle_object(path, content_type)
+{
+    /* Disable save button and hide the save panel */
+    using_codepress = false;
+    disable_save_if_safe();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
+
+    /* Fallback Download Link */
+    var link = $('<p><a /></p>');
+    var a = link.find('a');
+    a.attr("href", download_url);
+    a.text("Download " + path);
+
+    /* Object Tag */
+    var obj = $('<object width="100%" height="500px" />');
+    obj.attr("type", content_type);
+    obj.attr("data", url);
+    obj.append('Could not load object');
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>Preview</h1>');
+    div.append(obj);
+    div.append(link);
+    $("#filesbody").append(div);
 }
 
 /* Enable or disable actions1 moreactions actions. Takes either a single
@@ -840,11 +975,6 @@ function update_actions()
         actions2_directory.setAttribute("style", "display: inline;");
         var moreactions = document.getElementById("moreactions_area");
         moreactions.setAttribute("style", "display: inline;");
-    }
-    else
-    {
-        var actions2_file = document.getElementById("actions2_file");
-        actions2_file.setAttribute("style", "display: inline;");
     }
 
     return;

@@ -139,6 +139,7 @@ class ServeView(BaseView):
                          "attachment; filename=%s" %
                              response['name'].encode('utf-8'))
         req.content_type = response['type'].encode('utf-8')
+        req.content_length = response.get('size')
         req.write(out)
 
 class DownloadView(ServeView):

@@ -47,6 +47,7 @@
 #actions {
     padding: 0.3em 0.5em;
     border-top: white 1px solid;        /* Top edge of 3D effect */
+    line-height: 1.6em;
 }
 /* class "choice" is for all choices, enabled and disabled. This is for both
  * the <a> actions and <option> actions.

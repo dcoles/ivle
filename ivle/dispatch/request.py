@@ -95,6 +95,8 @@ class Request:
             in class Request.
         content_type (write)
             String. The Content-Type (mime type) header value.
+        content_length (write)
+            Integer. The number of octets to be transfered.
         location (write)
             String. Response "Location" header value. Used with HTTP redirect
             responses.
@@ -148,6 +150,7 @@ class Request:
         # Default values for the output members
         self.status = Request.HTTP_OK
         self.content_type = None        # Use Apache's default
+        self.content_length = None        # Don't provide Content-Length
         self.location = None
         # In some cases we don't want the template JS (such as the username
         # and public FQDN) in the output HTML. In that case, set this to 0.
@@ -176,6 +179,8 @@ class Request:
         # Prepare the HTTP and HTML headers before the first write is made
         if self.content_type != None:
             self.apache_req.content_type = self.content_type
+        if self.content_length:
+            self.apache_req.set_content_length(self.content_length)
         self.apache_req.status = self.status
         if self.location != None:
             self.apache_req.headers_out['Location'] = self.location
