@@ -199,9 +199,18 @@ function action_add(files)
     return false;
 }
 
-function action_remove(files)
+function action_svnremove(files)
 {
     do_act("svnremove", {"path":files});
+    return false;
+}
+
+function action_svnrename(fromfilename)
+{
+    var tofilename = prompt("Rename file \"" + fromfilename + "\" to?",
+        fromfilename);
+    if (tofilename == null) return;
+    do_act("move", {"from":fromfilename, "to":tofilename, "svn": true});
     return false;
 }
 
@@ -634,7 +643,7 @@ function setup_dir_listing()
 <thead> \
   <tr class="rowhead"> \
     <th class="col-check"> \
-      <input title="Select All" onchange="action_selectall(this.checked)" type="checkbox"> \
+      <input title="Select All" onclick="action_selectall(this.checked)" type="checkbox"> \
     </th> \
     <th colspan="3" class="col-filename"> \
       <a onclick="return sort_listing(\'filename\', !sort_ascending)" title="Sort by filename" href="">Filename</a> \
@@ -711,7 +720,7 @@ function handle_dir_listing(path, listing)
         checkbox = document.createElement("input");
         checkbox.setAttribute("type", "checkbox");
         checkbox.setAttribute("title", "Select this file");
-        checkbox.setAttribute("onchange", "update_selection()");
+        checkbox.setAttribute("onclick", "update_selection()");
         /* Check the box if selected_files says it's selected */
         checkbox.checked = filename in sel_files_dict;
         td.appendChild(checkbox);

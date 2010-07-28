@@ -30,8 +30,6 @@ import socket
 import StringIO
 import uuid
 
-import cjson
-
 from ivle import chat, interpret
 
 class ConsoleError(Exception):
@@ -190,7 +188,7 @@ class Console(object):
             else:
                 # Some other error - probably serious
                 raise socket.error, (enumber, estring)
-        except cjson.DecodeError:
+        except ValueError:
             # Couldn't decode the JSON
             raise ConsoleError(
                 "Could not understand the python console response")
@@ -249,7 +247,7 @@ class Console(object):
 
         # Unpickle the globals
         for g in globals['globals']:
-            globals['globals'][g] = cPickle.loads(globals['globals'][g])
+            globals['globals'][g] = cPickle.loads(str(globals['globals'][g]))
 
         return globals['globals']
         
@@ -268,7 +266,7 @@ class Console(object):
         # Unpickle any exceptions
         if 'exception' in call:
             call['exception']['except'] = \
-                cPickle.loads(call['exception']['except'])
+                cPickle.loads(str(call['exception']['except']))
 
         return call
 
@@ -280,7 +278,7 @@ class Console(object):
               
         # Unpickle any exceptions
         if 'exception' in execute:
-            execute['exception'] = cPickle.loads(execute['exception'])
+            execute['exception'] = cPickle.loads(str(execute['exception']))
         return execute
 
 

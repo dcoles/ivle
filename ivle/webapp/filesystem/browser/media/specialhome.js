@@ -65,14 +65,13 @@ function special_home_listing(listing, subjects, path)
         var subject = subjects[i];
         var subjpath = subject.subj_short_name;
         // Header, with link to offering home page.
-        h3 = $('<h3><span class="subjname"></span><span style="font-weight: normal"><span class="semester"></span> &ndash; <a class="subjectaction">Subject home</a></span>');
+        h3 = $('<h3><span class="subjname"></span><span style="font-weight: normal"><span class="semester"></span> &ndash; <a class="subjectaction">Subject home</a></span></h3>');
         h3.find('.subjname').text(subject.subj_name);
         /* Non-current offerings need to show the semester, to avoid confusion
          * about which offering we are talking about */
         if (subject.state != "current")
         {
-            h3.find('.semester').text(" (" + subject.year + ", semester "
-                                      + subject.semester + ")");
+            h3.find('.semester').text(" (" + subject.year + " " + subject.semester_display + ")");
         }
         h3.find('a').attr('href', subject.url);
         $(specialhomediv).append(h3);
@@ -91,7 +90,7 @@ function special_home_listing(listing, subjects, path)
             var group = subject.groups[j];
             ul.appendChild(make_subject_item(subjpath,
                 path_join("groups", subject.subj_short_name + "_" +
-                          subject.year + "_" + subject.semester + "_" +
+                          subject.year + "_" + subject.semester_url + "_" +
                           group.name),
                 group.name,
                 "This group's files in this subject"));

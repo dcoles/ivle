@@ -107,7 +107,7 @@ class WorksheetsMarksCSVView(BaseView):
         req.headers_out.add('Content-Disposition',
             "attachment; filename=marks-%s-%ss%s.csv" %
             (offering.subject.short_name, offering.semester.year,
-             offering.semester.semester))
+             offering.semester.url_name))
 
         # "worksheets" is a list of (assessable, published) worksheet names
         worksheets = offering.worksheets.find(assessable=True, published=True)

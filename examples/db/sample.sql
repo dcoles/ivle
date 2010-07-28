@@ -162,7 +162,7 @@ ALTER TABLE enrolment ENABLE TRIGGER ALL;
 
 ALTER TABLE exercise DISABLE TRIGGER ALL;
 
-INSERT INTO exercise (identifier, name, description, partial, solution, include, num_rows) VALUES ('factorial', 'Factorial', 'Write a function, `fac`, to compute the **factorial** of a number. e.g.::
+INSERT INTO exercise (identifier, name, description, description_xhtml_cache, partial, solution, include, num_rows) VALUES ('factorial', 'Factorial', 'Write a function, `fac`, to compute the **factorial** of a number. e.g.::
 
     >>> fac(4)
     24
@@ -172,7 +172,7 @@ Then, write a function `main`, which reads a number from stdin, and writes its f
     >>> main()
     4
     24
-', 'def fac(n):
+', NULL, 'def fac(n):
     pass
 
 def main():
@@ -186,9 +186,9 @@ def main():
 def main():
     f = int(raw_input())
     print fac(f)', '', 12);
-INSERT INTO exercise (identifier, name, description, partial, solution, include, num_rows) VALUES ('hello', 'Hello world', 'Write a program which prints out "Hello, world!" when it is run.
+INSERT INTO exercise (identifier, name, description, description_xhtml_cache, partial, solution, include, num_rows) VALUES ('hello', 'Hello world', 'Write a program which prints out "Hello, world!" when it is run.
 
-Note that if you print anything with the words "Hello world", but with wrong punctuation and capitalization, you will get some positive feedback, but still fail overall. You need to print an exact match.', 'print "..."', 'print "Hello, world!"', 'import re', 4);
+Note that if you print anything with the words "Hello world", but with wrong punctuation and capitalization, you will get some positive feedback, but still fail overall. You need to print an exact match.', NULL, 'print "..."', 'print "Hello, world!"', 'import re', 4);
 
 
 ALTER TABLE exercise ENABLE TRIGGER ALL;
@@ -256,12 +256,12 @@ ALTER TABLE login ENABLE TRIGGER ALL;
 
 ALTER TABLE offering DISABLE TRIGGER ALL;
 
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (1, 1, 1, 'This subject will introduce you to the basics of IVLE.', 'http://www.ivle.org/example/101', 'none', false, NULL);
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (2, 2, 2, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge.', 'http://www.ivle.org/example/102', 'none', false, NULL);
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (3, 1, 3, 'This subject will introduce you to the basics of IVLE, again.', 'http://www.ivle.org/example/101', 'none', false, NULL);
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (4, 3, 3, 'This subject will provide you with a working knowledge of advanced IVLE concepts.', 'http://www.ivle.org/example/201', 'none', false, NULL);
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (5, 2, 4, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge, again.', 'http://www.ivle.org/example/102', 'none', false, NULL);
-INSERT INTO offering (offeringid, subject, semesterid, description, url, groups_student_permissions, show_worksheet_marks, worksheet_cutoff) VALUES (6, 4, 4, 'After undertaking this subject, you should be a master of all things IVLEy.', 'http://www.ivle.org/example/202', 'none', false, NULL);
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (1, 1, 1, 'This subject will introduce you to the basics of IVLE.', 'http://www.ivle.org/example/101', false, NULL, 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (2, 2, 2, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge.', 'http://www.ivle.org/example/102', false, NULL, 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (3, 1, 3, 'This subject will introduce you to the basics of IVLE, again.', 'http://www.ivle.org/example/101', false, NULL, 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (4, 3, 3, 'This subject will provide you with a working knowledge of advanced IVLE concepts.', 'http://www.ivle.org/example/201', false, NULL, 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (5, 2, 4, 'Enhancing your understanding of IVLE''s usage and operation, this subject will consolidate and expand your general IVLE knowledge, again.', 'http://www.ivle.org/example/102', false, NULL, 'none');
+INSERT INTO offering (offeringid, subject, semesterid, description, url, show_worksheet_marks, worksheet_cutoff, groups_student_permissions) VALUES (6, 4, 4, 'After undertaking this subject, you should be a master of all things IVLEy.', 'http://www.ivle.org/example/202', false, NULL, 'none');
 
 
 ALTER TABLE offering ENABLE TRIGGER ALL;
@@ -340,10 +340,10 @@ ALTER TABLE project_submission ENABLE TRIGGER ALL;
 
 ALTER TABLE semester DISABLE TRIGGER ALL;
 
-INSERT INTO semester (semesterid, year, semester, state) VALUES (1, '2009', '1', 'past');
-INSERT INTO semester (semesterid, year, semester, state) VALUES (2, '2009', '2', 'current');
-INSERT INTO semester (semesterid, year, semester, state) VALUES (3, '2010', '1', 'future');
-INSERT INTO semester (semesterid, year, semester, state) VALUES (4, '2010', '2', 'future');
+INSERT INTO semester (semesterid, year, url_name, state, display_name, code) VALUES (1, '2009', '1', 'past', 'semester 1', 'SM1');
+INSERT INTO semester (semesterid, year, url_name, state, display_name, code) VALUES (2, '2009', '2', 'current', 'semester 2', 'SM2');
+INSERT INTO semester (semesterid, year, url_name, state, display_name, code) VALUES (3, '2010', '1', 'future', 'semester 1', 'SM1');
+INSERT INTO semester (semesterid, year, url_name, state, display_name, code) VALUES (4, '2010', '2', 'future', 'semester 2', 'SM2');
 
 
 ALTER TABLE semester ENABLE TRIGGER ALL;
@@ -431,7 +431,7 @@ ALTER TABLE test_suite ENABLE TRIGGER ALL;
 
 ALTER TABLE worksheet DISABLE TRIGGER ALL;
 
-INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, assessable, seq_no, format, published) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
+INSERT INTO worksheet (worksheetid, offeringid, identifier, name, data, data_xhtml_cache, assessable, published, seq_no, format) VALUES (1, 2, 'worksheet1', 'Worksheet Basics', 'IVLE allows lecturers and tutors to create worksheets, which are presented to students, optionally, for assessment.
 
 Worksheets are reStructuredText (rich text) documents which can present students with information or tutorials, much like a textbook. For example, we might explain that "the ``print`` statement in Python lets you print text to the screen".
 
@@ -446,7 +446,7 @@ Now, the student may try out the above exercise, and submit it as many times as 
 Here is a second exercise. This one involves writing functions, and has multiple parts. The test suite will test each part individually.
 
 .. exercise:: factorial
-', true, 0, 'rst', true);
+', NULL, true, true, 0, 'rst');
 
 
 ALTER TABLE worksheet ENABLE TRIGGER ALL;

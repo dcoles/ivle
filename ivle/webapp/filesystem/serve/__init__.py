@@ -26,7 +26,10 @@
 
 import os
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from ivle import (studpath, interpret)
 from ivle.database import User
@@ -112,9 +115,9 @@ class ServeView(BaseView):
         assert not err
 
         # Remove the JSON from the front of the response, and decode it.
-        json = out.split('\n', 1)[0]
-        out = out[len(json) + 1:]
-        response = cjson.decode(json)
+        j = out.split('\n', 1)[0]
+        out = out[len(j) + 1:]
+        response = json.loads(j)
 
         if 'error' in response:
             if response['error'] == 'not-found':
@@ -135,7 +138,7 @@ class ServeView(BaseView):
             req.headers_out["Content-Disposition"] = (
                          "attachment; filename=%s" %
                              response['name'].encode('utf-8'))
-        req.content_type = response['type']
+        req.content_type = response['type'].encode('utf-8')
         req.content_length = response.get('size')
         req.write(out)
 

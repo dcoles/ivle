@@ -360,6 +360,26 @@ class TestResolution(BaseTest):
         assert_equal(self.rtr.resolve('/~jsmith/foo/bar'),
              (self.r.users['jsmith'], UserServeView, ('foo', 'bar')))
 
+    def testTrailingSlashResolvesToDefaultView(self):
+        assert_equal(
+             self.rtr.resolve('/info1/2009/1/'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingIndex, ())
+             )
+
+    def testTrailingSlashResolvesToDeepDefaultView(self):
+        assert_equal(
+             self.rtr.resolve('/info1/2009/1/+worksheets/+marks/'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingWorksheetMarks, ())
+             )
+
+    def testSubpathIndicatesTrailingSlash(self):
+        assert_equal(
+             self.rtr.resolve('/info1/2009/1/+index/'),
+             (self.r.subjects['info1'].offerings[(2009, 1)],
+              OfferingIndex, ('',))
+             )
 
 class TestGeneration(BaseTest):
     def setUp(self):

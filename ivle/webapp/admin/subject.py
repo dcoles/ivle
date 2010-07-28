@@ -27,6 +27,7 @@ import os.path
 import urllib
 import urlparse
 import cgi
+import datetime
 
 from storm.locals import Desc, Store
 import genshi
@@ -39,6 +40,7 @@ from ivle.webapp.base.forms import (BaseFormView, URLNameValidator,
                                     DateTimeValidator)
 from ivle.webapp.base.plugins import ViewPlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
+from ivle.webapp.base.text import TextView
 from ivle.webapp.errors import BadRequest
 from ivle.webapp import ApplicationRoot
 
@@ -73,8 +75,8 @@ class SubjectsView(XHTMLView):
         ctx['user'] = req.user
         ctx['semesters'] = []
 
-        for semester in req.store.find(Semester).order_by(Desc(Semester.year),
-                                                     Desc(Semester.semester)):
+        for semester in req.store.find(Semester).order_by(
+            Desc(Semester.year), Desc(Semester.display_name)):
             if req.user.admin:
                 # For admins, show all subjects in the system
                 offerings = list(semester.offerings.find())
@@ -102,33 +104,39 @@ class SubjectsManage(XHTMLView):
 
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
-            Semester.year, Semester.semester)
+            Semester.year, Semester.display_name)
 
 
-class SubjectShortNameUniquenessValidator(formencode.FancyValidator):
-    """A FormEncode validator that checks that a subject name is unused.
+class SubjectUniquenessValidator(formencode.FancyValidator):
+    """A FormEncode validator that checks that a subject attribute is unique.
 
     The subject referenced by state.existing_subject is permitted
     to hold that name. If any other object holds it, the input is rejected.
+
+    :param attribute: the name of the attribute to check.
+    :param display: a string to identify the field in case of error.
     """
-    def __init__(self, matching=None):
-        self.matching = matching
+
+    def __init__(self, attribute, display):
+        self.attribute = attribute
+        self.display = display
 
     def _to_python(self, value, state):
-        if (state.store.find(
-                Subject, short_name=value).one() not in
+        if (state.store.find(Subject, **{self.attribute: value}).one() not in
                 (None, state.existing_subject)):
             raise formencode.Invalid(
-                'Short name already taken', value, state)
+                '%s already taken' % self.display, value, state)
         return value
 
 
 class SubjectSchema(formencode.Schema):
     short_name = formencode.All(
-        SubjectShortNameUniquenessValidator(),
+        SubjectUniquenessValidator('short_name', 'URL name'),
         URLNameValidator(not_empty=True))
     name = formencode.validators.UnicodeString(not_empty=True)
-    code = formencode.validators.UnicodeString(not_empty=True)
+    code = formencode.All(
+        SubjectUniquenessValidator('code', 'Subject code'),
+        formencode.validators.UnicodeString(not_empty=True))
 
 
 class SubjectFormView(BaseFormView):
@@ -192,7 +200,7 @@ class SemesterUniquenessValidator(formencode.FancyValidator):
     """
     def _to_python(self, value, state):
         if (state.store.find(
-                Semester, year=value['year'], semester=value['semester']
+                Semester, year=value['year'], url_name=value['url_name']
                 ).one() not in (None, state.existing_semester)):
             raise formencode.Invalid(
                 'Semester already exists', value, state)
@@ -201,7 +209,9 @@ class SemesterUniquenessValidator(formencode.FancyValidator):
 
 class SemesterSchema(formencode.Schema):
     year = URLNameValidator()
-    semester = URLNameValidator()
+    code = formencode.validators.UnicodeString()
+    url_name = URLNameValidator()
+    display_name = formencode.validators.UnicodeString()
     state = formencode.All(
         formencode.validators.OneOf(["past", "current", "future"]),
         formencode.validators.UnicodeString())
@@ -236,7 +246,9 @@ class SemesterNew(SemesterFormView):
     def save_object(self, req, data):
         new_semester = Semester()
         new_semester.year = data['year']
-        new_semester.semester = data['semester']
+        new_semester.code = data['code']
+        new_semester.url_name = data['url_name']
+        new_semester.display_name = data['display_name']
         new_semester.state = data['state']
 
         req.store.add(new_semester)
@@ -253,13 +265,17 @@ class SemesterEdit(SemesterFormView):
     def get_default_data(self, req):
         return {
             'year': self.context.year,
-            'semester': self.context.semester,
+            'code': self.context.code,
+            'url_name': self.context.url_name,
+            'display_name': self.context.display_name,
             'state': self.context.state,
             }
 
     def save_object(self, req, data):
         self.context.year = data['year']
-        self.context.semester = data['semester']
+        self.context.code = data['code']
+        self.context.url_name = data['url_name']
+        self.context.display_name = data['display_name']
         self.context.state = data['state']
 
         return self.context
@@ -356,7 +372,7 @@ class SemesterValidator(formencode.FancyValidator):
             year = semester = None
 
         semester = state.store.find(
-            Semester, year=year, semester=semester).one()
+            Semester, year=year, url_name=semester).one()
         if semester:
             return semester
         else:
@@ -416,7 +432,7 @@ class OfferingEdit(BaseFormView):
         super(OfferingEdit, self).populate(req, ctx)
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
-            Semester.year, Semester.semester)
+            Semester.year, Semester.display_name)
         ctx['force_subject'] = None
 
     def populate_state(self, state):
@@ -426,7 +442,7 @@ class OfferingEdit(BaseFormView):
         return {
             'subject': self.context.subject.short_name,
             'semester': self.context.semester.year + '/' +
-                        self.context.semester.semester,
+                        self.context.semester.url_name,
             'url': self.context.url,
             'description': self.context.description,
             'worksheet_cutoff': self.context.worksheet_cutoff,
@@ -460,7 +476,7 @@ class OfferingNew(BaseFormView):
         super(OfferingNew, self).populate(req, ctx)
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
-            Semester.year, Semester.semester)
+            Semester.year, Semester.display_name)
         ctx['force_subject'] = None
 
     def populate_state(self, state):
@@ -512,7 +528,7 @@ class OfferingCloneWorksheets(BaseFormView):
         super(OfferingCloneWorksheets, self).populate(req, ctx)
         ctx['subjects'] = req.store.find(Subject).order_by(Subject.name)
         ctx['semesters'] = req.store.find(Semester).order_by(
-            Semester.year, Semester.semester)
+            Semester.year, Semester.display_name)
 
     def get_default_data(self, req):
         return {}
@@ -735,14 +751,6 @@ class ProjectView(XHTMLView):
     permission = "view_project_submissions"
     tab = 'subjects'
 
-    def build_subversion_url(self, req, submission):
-        princ = submission.assessed.principal
-
-        return os.path.join(princ.get_svn_url(req.config, req),
-                            submission.path[1:] if
-                                submission.path.startswith(os.sep) else
-                                submission.path)
-
     def populate(self, req, ctx):
         self.plugin_styles[Plugin] = ["project.css"]
 
@@ -752,11 +760,28 @@ class ProjectView(XHTMLView):
         ctx['EnrolView'] = EnrolView
         ctx['format_datetime'] = ivle.date.make_date_nice
         ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
-        ctx['build_subversion_url'] = self.build_subversion_url
         ctx['project'] = self.context
         ctx['user'] = req.user
         ctx['ProjectEdit'] = ProjectEdit
         ctx['ProjectDelete'] = ProjectDelete
+        ctx['ProjectExport'] = ProjectBashExportView
+
+class ProjectBashExportView(TextView):
+    """Produce a Bash script for exporting projects"""
+    template = "templates/project-export.sh"
+    content_type = "text/x-sh"
+    permission = "view_project_submissions"
+
+    def populate(self, req, ctx):
+        ctx['req'] = req
+        ctx['permissions'] = self.context.get_permissions(req.user,req.config)
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
+        ctx['project'] = self.context
+        ctx['user'] = req.user
+        ctx['now'] = datetime.datetime.now()
+        ctx['format_datetime'] = ivle.date.make_date_nice
+        ctx['format_datetime_short'] = ivle.date.format_datetime_for_paragraph
 
 class ProjectUniquenessValidator(formencode.FancyValidator):
     """A FormEncode validator that checks that a project short_name is unique
@@ -957,6 +982,8 @@ class Plugin(ViewPlugin, MediaPlugin):
              (Project, '+index', ProjectView),
              (Project, '+edit', ProjectEdit),
              (Project, '+delete', ProjectDelete),
+             (Project, ('+export', 'project-export.sh'),
+                ProjectBashExportView),
              ]
 
     breadcrumbs = {Subject: SubjectBreadcrumb,

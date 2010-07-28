@@ -87,7 +87,7 @@ def rebuild_svn_config(store, config):
             User.id == Assessed.user_id,
             Project.id == Assessed.project_id,
             ProjectSet.id == Project.project_set_id,
-            Offering.id == ProjectSet.id,
+            Offering.id == ProjectSet.offering_id,
             ProjectSubmission.date_submitted == Select(
                     Max(ProjectSubmission.date_submitted),
                     ProjectSubmission.assessed_id == Assessed.id,
@@ -143,7 +143,7 @@ def rebuild_svn_group_config(store, config):
         offering = group.project_set.offering
         reponame = "_".join([offering.subject.short_name,
                              offering.semester.year,
-                             offering.semester.semester,
+                             offering.semester.url_name,
                              group.name])
 
         f.write("[%s:/]\n" % reponame.encode('utf-8'))
@@ -161,7 +161,7 @@ def rebuild_svn_group_config(store, config):
     # a single query, and we cache the list of viewers for each offering.
     offering_viewers_cache = {}
     for (ssn, year, sem, name, psid, pspath, gid, offeringid) in store.find(
-        (Subject.short_name, Semester.year, Semester.semester,
+        (Subject.short_name, Semester.year, Semester.url_name,
          ProjectGroup.name, ProjectSubmission.id, ProjectSubmission.path,
          ProjectGroup.id, Offering.id),
             Assessed.id == ProjectSubmission.assessed_id,

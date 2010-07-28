@@ -30,6 +30,7 @@ from ivle.webapp.base.plugins import ViewPlugin, CookiePlugin, MediaPlugin
 from ivle.webapp.base.xhtml import XHTMLView
 from ivle.webapp.errors import NotFound
 from ivle.webapp.filesystem import make_path_breadcrumbs
+from ivle.webapp.media import media_url
 from ivle.webapp import ApplicationRoot
 
 import os.path
@@ -64,8 +65,8 @@ class BrowserView(XHTMLView):
         self.plugin_scripts[Plugin] = ['browser.js',
                                        'listing.js',
                                        'editor.js',
-                                       'specialhome.js',
-                                       'codepress/codepress.js']
+                                       'specialhome.js']
+        self.plugin_scripts['+external/codemirror'] = ['js/codemirror.js']
         self.scripts_init = ["browser_init"]
 
         # Start writing data
@@ -94,6 +95,9 @@ class BrowserView(XHTMLView):
         ctx['fileservice_action'] = req.make_path(os.path.join("fileservice",
                                                                self.path))
         ctx['filename'] = cgi.escape(self.path)
+
+        # Media URL for CodeMirror
+        ctx['codemirrorpath'] = media_url(req, '+external/codemirror', '')
 
     @property
     def path(self):
@@ -128,6 +132,7 @@ class BrowserView(XHTMLView):
           ('Subversion', True, [
             ('svncut',      ['Svn Cut',      'Prepare to move the selected files to another directory, maintaining history']),
             ('svncopy',     ['Svn Copy',     'Prepare to copy the selected files to another directory, maintaining history']),
+            ('svnrename',   ['Rename',         'Schedule the selected permanent files to be renamed']),
             ('svnadd',      ['Add',            'Schedule the selected temporary files to be added permanently']),
             ('svnremove',   ['Remove',         'Schedule the selected permanent files to be removed']),
             ('svndiff',     ['Diff',           'View any changes to the selected file since its last committed state']),

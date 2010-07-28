@@ -232,6 +232,11 @@ Configuration details for external media dependencies used by IVLE.
 
     Directory where jQuery library is installed.
 
+.. describe:: codemirror
+
+    :type: string(default="/usr/share/javascript/codemirror")
+
+    Directory where CodeMirror library is installed.
 
 [database]
 ----------

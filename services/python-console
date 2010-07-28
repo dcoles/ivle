@@ -3,7 +3,6 @@
 # usage:
 #   python-console <port> <magic> [<working-dir>]
 
-import cjson
 import codeop
 import cPickle
 import cStringIO
@@ -170,7 +169,7 @@ class PythonRunner(Thread):
 
     def run(self):
         # Set up global space and partial command buffer
-        self.globs = {}
+        self.globs = {'__name__': '__main__'}
         self.curr_cmd = ''
 
         # Set up I/O to use web interface
@@ -262,7 +261,7 @@ Type "help", "copyright", "credits" or "license" for more information.
     def handle_globals(self, params):
         # Unpickle the new space (if provided)
         if isinstance(params, dict):
-            self.globs = {}
+            self.globs = {'__name__': '__main__'}
             for g in params:
                 try:
                     self.globs[g] = cPickle.loads(params[g])

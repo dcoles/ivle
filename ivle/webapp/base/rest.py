@@ -17,12 +17,17 @@
 
 # Author: Matt Giuca, Will Grant, Nick Chadwick
 
-import os
 import cgi
-import urlparse
+import functools
 import inspect
+import os
+import urlparse
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import genshi.template
 
 from ivle.webapp.base.views import BaseView
@@ -73,8 +78,14 @@ class JSONRESTView(RESTView):
             raise MethodNotAllowed(allowed=self._allowed_methods)
 
         if req.method == 'GET':
-            self.authorize_method(req, self.GET)
-            outjson = self.GET(req)
+            qargs = dict(cgi.parse_qsl(
+                urlparse.urlparse(req.unparsed_uri).query,
+                keep_blank_values=1))
+            if 'ivle.op' in qargs:
+                outjson = self._named_operation(req, qargs, readonly=True)
+            else:
+                self.authorize_method(req, self.GET)
+                outjson = self.GET(req)
         # Since PATCH isn't yet an official HTTP method, we allow users to
         # turn a PUT into a PATCH by supplying a special header.
         elif req.method == 'PATCH' or (req.method == 'PUT' and
@@ -82,15 +93,15 @@ class JSONRESTView(RESTView):
               req.headers_in['X-IVLE-Patch-Semantics'].lower() == 'yes'):
             self.authorize_method(req, self.PATCH)
             try:
-                input = cjson.decode(req.read())
-            except cjson.DecodeError:
+                input = json.loads(req.read())
+            except ValueError:
                 raise BadRequest('Invalid JSON data')
             outjson = self.PATCH(req, input)
         elif req.method == 'PUT':
             self.authorize_method(req, self.PUT)
             try:
-                input = cjson.decode(req.read())
-            except cjson.DecodeError:
+                input = json.loads(req.read())
+            except ValueError:
                 raise BadRequest('Invalid JSON data')
             outjson = self.PUT(req, input)
         # POST implies named operation.
@@ -98,47 +109,7 @@ class JSONRESTView(RESTView):
             # TODO: Check Content-Type and implement multipart/form-data.
             data = req.read()
             opargs = dict(cgi.parse_qsl(data, keep_blank_values=1))
-            try:
-                opname = opargs['ivle.op']
-                del opargs['ivle.op']
-            except KeyError:
-                raise BadRequest('No named operation specified.')
-
-            try:
-                op = getattr(self, opname)
-            except AttributeError:
-                raise BadRequest('Invalid named operation.')
-
-            if not hasattr(op, '_rest_api_callable') or \
-               not op._rest_api_callable:
-                raise BadRequest('Invalid named operation.')
-
-            self.authorize_method(req, op)
-
-            # Find any missing arguments, except for the first two (self, req)
-            (args, vaargs, varkw, defaults) = inspect.getargspec(op)
-            args = args[2:]
-
-            # To find missing arguments, we eliminate the provided arguments
-            # from the set of remaining function signature arguments. If the
-            # remaining signature arguments are in the args[-len(defaults):],
-            # we are OK.
-            unspec = set(args) - set(opargs.keys())
-            if unspec and not defaults:
-                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
-
-            unspec = [k for k in unspec if k not in args[-len(defaults):]]
-
-            if unspec:
-                raise BadRequest('Missing arguments: ' + ', '.join(unspec))
-
-            # We have extra arguments if the are no match args in the function
-            # signature, AND there is no **.
-            extra = set(opargs.keys()) - set(args)
-            if extra and not varkw:
-                raise BadRequest('Extra arguments: ' + ', '.join(extra))
-
-            outjson = op(req, **opargs)
+            outjson = self._named_operation(req, opargs)
 
         req.content_type = self.content_type
         self.write_json(req, outjson)
@@ -146,8 +117,54 @@ class JSONRESTView(RESTView):
     #This is a separate function to allow additional data to be passed through
     def write_json(self, req, outjson):
         if outjson is not None:
-            req.write(cjson.encode(outjson))
+            req.write(json.dumps(outjson))
             req.write("\n")
+
+    def _named_operation(self, req, opargs, readonly=False):
+        try:
+            opname = opargs['ivle.op']
+            del opargs['ivle.op']
+        except KeyError:
+            raise BadRequest('No named operation specified.')
+
+        try:
+            op = getattr(self, opname)
+        except AttributeError:
+            raise BadRequest('Invalid named operation.')
+
+        if not hasattr(op, '_rest_api_callable') or \
+           not op._rest_api_callable:
+            raise BadRequest('Invalid named operation.')
+
+        if readonly and op._rest_api_write_operation:
+            raise BadRequest('POST required for write operation.')
+
+        self.authorize_method(req, op)
+
+        # Find any missing arguments, except for the first two (self, req)
+        (args, vaargs, varkw, defaults) = inspect.getargspec(op)
+        args = args[2:]
+
+        # To find missing arguments, we eliminate the provided arguments
+        # from the set of remaining function signature arguments. If the
+        # remaining signature arguments are in the args[-len(defaults):],
+        # we are OK.
+        unspec = set(args) - set(opargs.keys())
+        if unspec and not defaults:
+            raise BadRequest('Missing arguments: ' + ', '.join(unspec))
+
+        unspec = [k for k in unspec if k not in args[-len(defaults):]]
+
+        if unspec:
+            raise BadRequest('Missing arguments: ' + ', '.join(unspec))
+
+        # We have extra arguments if the are no match args in the function
+        # signature, AND there is no **.
+        extra = set(opargs.keys()) - set(args)
+        if extra and not varkw:
+            raise BadRequest('Extra arguments: ' + ', '.join(extra))
+
+        return op(req, **opargs)
 
 
 class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
@@ -172,19 +189,24 @@ class XHTMLRESTView(GenshiLoaderMixin, JSONRESTView):
     # This renders the template and adds it to the json
     def write_json(self, req, outjson):
         outjson["html"] = self.render_fragment()
-        req.write(cjson.encode(outjson))
+        req.write(json.dumps(outjson))
         req.write("\n")
 
-class named_operation(object):
+class _named_operation(object):
     '''Declare a function to be accessible to HTTP users via the REST API.
     '''
-    def __init__(self, permission):
+    def __init__(self, write_operation, permission):
+        self.write_operation = write_operation
         self.permission = permission
 
     def __call__(self, func):
         func._rest_api_callable = True
+        func._rest_api_write_operation = self.write_operation
         func._rest_api_permission = self.permission
         return func
+
+write_operation = functools.partial(_named_operation, True)
+read_operation = functools.partial(_named_operation, False)
 
 class require_permission(object):
     '''Declare the permission required for use of a method via the REST API.

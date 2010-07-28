@@ -366,8 +366,11 @@ form.verticalform.thin div.submit {
   margin-bottom: 0.3em;
 }
 
-.project.closed {
-    opacity: 0.6;
+/* For project view (late_submission entries in the submission list), must
+ * apply to the td (not the tr) and be !important to override the pretty_table
+ * styling of the td text colour. */
+.project.closed, .late_submission, tr.late_submission td {
+   color: darkred !important;
 }
 
 .form_error {

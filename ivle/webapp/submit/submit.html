@@ -8,13 +8,18 @@
     <div id="ivle_padding">
       <py:choose test="offering">
         <div py:when="None">
-          <p>You may not submit files from <span style="font-family: monospace">${path}</span> in
+          <p>Error: IVLE could not find a valid offering to submit to, from <span style="font-family: monospace">${path}</span> in
             <py:choose test="">
               <span py:when="principal is req.user">your repository.</span>
               <span py:otherwise="">the repository for ${principal.display_name}.</span>
             </py:choose>
-            You can only submit files from a subject directory.
+            This may have one of the following causes:
           </p>
+          <ul>
+            <li>You are not in a subject directory. You can only submit files from a subject directory. For example, you cannot submit a file from your "<code>stuff</code>" directory.</li>
+            <li>You are not enrolled in the subject of that name. You can only submit files to a subject you are enrolled in.</li>
+            <li>You are enrolled in a past (or even future) offering of the subject. You can only submit files to a current offering of a subject.</li>
+          </ul>
         </div>
         <div py:otherwise="">
           <p>You are submitting <span style="font-family: monospace">${path}</span> from
@@ -27,10 +32,9 @@
           <form action="" method="post">
             <table>
               <tr py:for="project in principal.get_projects(offering=offering)"
-                  py:with="attrs = {'disabled': 'disabled'} if project.has_deadline_passed(req.user) else {}"
                   py:attrs="{'class': 'project closed'} if project.has_deadline_passed(req.user) else {'class': 'project'}">
                 <td style="vertical-align: top">
-                  <input type="radio" name="project" id="project_${project.id}" value="${project.id}" py:attrs="attrs" />
+                  <input type="radio" name="project" id="project_${project.id}" value="${project.id}" />
                 </td>
                 <td>
                   <label for="project_${project.id}">
@@ -60,12 +64,15 @@
                     </py:if>
                     <br />
                     ${project.synopsis}
+                    <py:if test="project.has_deadline_passed(req.user)"><br />
+                      <em>Note: The deadline has passed. You may still submit late, but a penalty may be incurred.</em>
+                    </py:if>
                   </label>
                 </td>
               </tr>
             </table>
             <p>Ensure that you have committed all changes - only changes in the repository will be submitted.</p>
-            <p>You may resubmit a project again at any time until its deadline, but a new submission will overwrite any made earlier.</p>
+            <p>You may resubmit a project again at any time, but a new submission will overwrite any made earlier, and submissions after the deadline may incur a penalty.</p>
             <p><input type="submit" value="Submit Project" />
               <a class="helpaction" href="/+help/Submitting%20a%20project">Help submitting a project</a>
             </p>

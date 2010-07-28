@@ -81,7 +81,10 @@
 import urllib
 import locale
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 import ivle.fileservice_lib.action
 import ivle.fileservice_lib.listing
@@ -120,7 +123,7 @@ def handle(req):
 
     if out:
         req.content_type = 'application/json'
-        req.write(cjson.encode(out))
+        req.write(json.dumps(out))
     else:
         return_type = fields.getfirst('return')
         ivle.fileservice_lib.listing.handle_return(req,

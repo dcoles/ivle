@@ -98,7 +98,7 @@ def refresh_filesystem(config, store):
     active_group_identifiers = set("_".join(
         [group.project_set.offering.subject.short_name,
          group.project_set.offering.semester.year,
-         group.project_set.offering.semester.semester,
+         group.project_set.offering.semester.url_name,
          group.name]) for group in store.find(ProjectGroup))
 
     for repo in active_group_identifiers - present_group_repos:

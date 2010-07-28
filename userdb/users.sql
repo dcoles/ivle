@@ -51,11 +51,14 @@ CREATE TABLE subject (
 
 CREATE TABLE semester (
     semesterid  SERIAL PRIMARY KEY NOT NULL,
-    year        CHAR(4) NOT NULL CHECK (valid_url_name(year)),
-    semester    CHAR(1) NOT NULL CHECK (valid_url_name(semester)),
+    year        TEXT NOT NULL CHECK (valid_url_name(year)),
+    url_name    TEXT NOT NULL CHECK (valid_url_name(url_name)),
+    code        TEXT NOT NULL,
+    display_name TEXT NOT NULL,
     state       TEXT NOT NULL CHECK (state IN ('disabled', 'past',
                                     'current', 'future')) DEFAULT 'current',
-    UNIQUE (year, semester)
+    UNIQUE (year, url_name),
+    UNIQUE (year, code)
 );
 
 CREATE TABLE offering (
@@ -190,7 +193,7 @@ CREATE UNIQUE INDEX assessed_groupid_key ON assessed(groupid, projectid) WHERE g
 CREATE TABLE project_extension (
     extensionid SERIAL PRIMARY KEY,
     assessedid  INT4 REFERENCES assessed (assessedid) NOT NULL,
-    deadline    TIMESTAMP NOT NULL,
+    days        INT NOT NULL,
     approver    INT4 REFERENCES login (loginid) NOT NULL,
     notes       VARCHAR
 );

@@ -27,6 +27,7 @@ import hashlib
 import datetime
 import os
 import urlparse
+import urllib
 
 from storm.locals import create_database, Store, Int, Unicode, DateTime, \
                          Reference, ReferenceSet, Bool, Storm, Desc
@@ -149,7 +150,7 @@ class User(Storm):
             Offering.semester_id == Semester.id,
             Offering.subject_id == Subject.id).order_by(
                 Desc(Semester.year),
-                Desc(Semester.semester),
+                Desc(Semester.display_name),
                 Desc(Subject.code)
             )
 
@@ -230,11 +231,9 @@ class User(Storm):
         """Find a user in a store by login name."""
         return store.find(cls, cls.login == unicode(login)).one()
 
-    def get_svn_url(self, config, req):
+    def get_svn_url(self, config):
         """Get the subversion repository URL for this user or group."""
-        login = req.user.login
-        url = urlparse.urlsplit(config['urls']['svn_addr'])
-        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
+        url = config['urls']['svn_addr']
         path = 'users/%s' % self.login
         return urlparse.urljoin(url, path)
 
@@ -299,7 +298,7 @@ class Subject(Storm):
         """
         return self.offerings.find(Offering.semester_id == Semester.id,
                                Semester.year == unicode(year),
-                               Semester.semester == unicode(semester)).one()
+                               Semester.url_name == unicode(semester)).one()
 
 class Semester(Storm):
     """A semester in which subjects can be run."""
@@ -308,7 +307,9 @@ class Semester(Storm):
 
     id = Int(primary=True, name="semesterid")
     year = Unicode()
-    semester = Unicode()
+    code = Unicode()
+    url_name = Unicode()
+    display_name = Unicode()
     state = Unicode()
 
     offerings = ReferenceSet(id, 'Offering.semester_id')
@@ -320,7 +321,7 @@ class Semester(Storm):
     __init__ = _kwarg_init
 
     def __repr__(self):
-        return "<%s %s/%s>" % (type(self).__name__, self.year, self.semester)
+        return "<%s %s/%s>" % (type(self).__name__, self.year, self.code)
 
 class Offering(Storm):
     """An offering of a subject in a particular semester."""
@@ -611,11 +612,14 @@ class Project(Storm):
         return "<%s '%s' in %r>" % (type(self).__name__, self.short_name,
                                   self.project_set.offering)
 
-    def can_submit(self, principal, user):
+    def can_submit(self, principal, user, late=False):
+        """
+        @param late: If True, does not take the deadline into account.
+        """
         return (self in principal.get_projects() and
-                not self.has_deadline_passed(user))
+                (late or not self.has_deadline_passed(user)))
 
-    def submit(self, principal, path, revision, who):
+    def submit(self, principal, path, revision, who, late=False):
         """Submit a Subversion path and revision to a project.
 
         @param principal: The owner of the Subversion repository, and the
@@ -623,9 +627,11 @@ class Project(Storm):
         @param path: A path within that repository to submit.
         @param revision: The revision of that path to submit.
         @param who: The user who is actually making the submission.
+        @param late: If True, will not raise a DeadlinePassed exception even
+            after the deadline. (Default False.)
         """
 
-        if not self.can_submit(principal, who):
+        if not self.can_submit(principal, who, late=late):
             raise DeadlinePassed()
 
         a = Assessed.get(Store.of(self), principal, self)
@@ -734,15 +740,13 @@ class ProjectGroup(Storm):
             Semester.id == Offering.semester_id,
             (not active_only) or (Semester.state == u'current'))
 
-    def get_svn_url(self, config, req):
+    def get_svn_url(self, config):
         """Get the subversion repository URL for this user or group."""
-        login = req.user.login
-        url = urlparse.urlsplit(config['urls']['svn_addr'])
-        url = urlparse.urlunsplit(url[:1] + (login+'@'+url[1],) + url[2:])
+        url = config['urls']['svn_addr']
         path = 'groups/%s_%s_%s_%s' % (
                 self.project_set.offering.subject.short_name,
                 self.project_set.offering.semester.year,
-                self.project_set.offering.semester.semester,
+                self.project_set.offering.semester.url_name,
                 self.name
                 )
         return urlparse.urljoin(url, path)
@@ -863,7 +867,7 @@ class ProjectExtension(Storm):
     id = Int(name="extensionid", primary=True)
     assessed_id = Int(name="assessedid")
     assessed = Reference(assessed_id, Assessed.id)
-    deadline = DateTime()
+    days = Int()
     approver_id = Int(name="approver")
     approver = Reference(approver_id, User.id)
     notes = Unicode()
@@ -911,6 +915,29 @@ class ProjectSubmission(Storm):
         return "/files/%s/%s/%s?r=%d" % (user.login,
             self.assessed.checkout_location, submitpath, self.revision)
 
+    def get_svn_url(self, config):
+        """Get subversion URL for this submission"""
+        princ = self.assessed.principal
+        base = princ.get_svn_url(config)
+        if self.path.startswith(os.sep):
+            return os.path.join(base,
+                    urllib.quote(self.path[1:].encode('utf-8')))
+        else:
+            return os.path.join(base, urllib.quote(self.path.encode('utf-8')))
+
+    def get_svn_export_command(self, req):
+        """Returns a Unix shell command to export a submission"""
+        svn_url = self.get_svn_url(req.config)
+        _, ext = os.path.splitext(svn_url)
+        username = (req.user.login if req.user.login.isalnum() else
+                "'%s'"%req.user.login)
+        # Export to a file or directory relative to the current directory,
+        # with the student's login name, appended with the submitted file's
+        # extension, if any
+        export_path = self.assessed.principal.short_name + ext
+        return "svn export --username %s -r%d '%s' %s"%(req.user.login,
+                self.revision, svn_url, export_path)
+
     @staticmethod
     def test_and_normalise_path(path):
         """Test that path is valid, and normalise it. This prevents possible
@@ -929,6 +956,19 @@ class ProjectSubmission(Storm):
         if any(c in path for c in "\n[]"):
             raise SubmissionError("Path must not contain '\\n', '[' or ']'")
         return os.path.normpath(path)
+
+    @property
+    def late(self):
+        """True if the project was submitted late."""
+        return self.days_late > 0
+
+    @property
+    def days_late(self):
+        """The number of days the project was submitted late (rounded up), or
+        0 if on-time."""
+        # XXX: Need to respect extensions.
+        return max(0,
+            (self.date_submitted - self.assessed.project.deadline).days + 1)
 
 # WORKSHEETS AND EXERCISES #
 

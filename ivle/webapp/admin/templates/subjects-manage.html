@@ -32,7 +32,7 @@
           <tbody>
             <tr py:for="semester in semesters">
               <td>${semester.year}</td>
-              <td>${semester.semester}</td>
+              <td>${semester.display_name}</td>
               <td>${semester.state}</td>
               <td>
                 <a href="${req.publisher.generate(semester, SemesterEdit)}" title="Edit"><img src="${mediapath + 'interface/pencil.png'}" alt="Edit" /></a>

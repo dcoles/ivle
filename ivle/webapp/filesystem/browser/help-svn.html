@@ -213,14 +213,19 @@ making.</p>
 TortoiseSVN or Subclipse), you can access your user and group Subversion
 repositories from outside of IVLE.</p>
 <p>Subversion clients perform <strong>checkout</strong> operations, given a
-repository URL (which should include your IVLE username), as well as a
-password. To check out an IVLE repository, use the following details:</p>
+repository URL, a username and a password. To check out an IVLE repository,
+use the following details:</p>
 <ul>
   <li><strong>URL:</strong> For your own repository, the "Subversion URL"
     displayed on your settings page. There is currently no way to view the URL
     for group repositories.</li>
+  <li><strong>Username:</strong> Your IVLE username.</li>
   <li><strong>Password:</strong> This is different from your IVLE password. It
     is displayed on your settings page under "Subversion password".</li>
 </ul>
+<p>For the command-line <code>svn</code> client, the checkout command should
+be of the form:</p>
+<pre>svn checkout --username <i>username</i> <i>URL</i> <i>checkout-dir</i>
+</pre>
 <p>See the documentation for your Subversion client for more assistance.</p>
 </div>

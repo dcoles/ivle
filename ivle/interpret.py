@@ -31,6 +31,7 @@ import os
 import pwd
 import subprocess
 import cgi
+import StringIO
 
 # TODO: Make progressive output work
 # Question: Will having a large buffer size stop progressive output from
@@ -39,7 +40,8 @@ import cgi
 CGI_BLOCK_SIZE = 65535
 PATH = "/usr/local/bin:/usr/bin:/bin"
 
-def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
+def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True,
+    overrides=None):
     """Serves a file by interpreting it using one of IVLE's builtin
     interpreters. All interpreters are intended to run in the user's jail. The
     jail location is provided as an argument to the interpreter but it is up
@@ -50,6 +52,9 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     jail_dir: Absolute path to the user's jail.
     filename: Absolute filename within the user's jail.
     interpreter: A function object to call.
+    gentle: ?
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
     """
     # We can't test here whether or not the target file actually exists,
     # because the apache user may not have permission. Instead we have to
@@ -75,7 +80,7 @@ def interpret_file(req, owner, jail_dir, filename, interpreter, gentle=True):
     # they are absolute in the jailspace)
 
     return interpreter(owner, jail_dir, working_dir, filename_abs, req,
-                       gentle)
+                       gentle, overrides=overrides)
 
 class CGIFlags:
     """Stores flags regarding the state of reading CGI output.
@@ -90,7 +95,7 @@ class CGIFlags:
         self.headers = {}       # Header names : values
 
 def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
-                req, gentle):
+                req, gentle, overrides=None):
     """
     trampoline: Full path on the local system to the CGI wrapper program
         being executed.
@@ -100,6 +105,9 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
         jail.
     script_path: CGI script relative to the owner's jail.
     req: IVLE request object.
+    gentle: ?
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
 
     The called CGI wrapper application shall be called using popen and receive
     the HTTP body on stdin. It shall receive the CGI environment variables to
@@ -130,7 +138,7 @@ def execute_cgi(interpreter, owner, jail_dir, working_dir, script_path,
         f.seek(0)       # Rewind, for reading
 
     # Set up the environment
-    environ = cgi_environ(req, script_path, owner)
+    environ = cgi_environ(req, script_path, owner, overrides=overrides)
 
     # usage: tramp uid jail_dir working_dir script_path
     cmd_line = [trampoline, str(owner.unixid),
@@ -286,6 +294,26 @@ a blank line after the headers, before writing the page contents."""
         process_cgi_output(req, line + '\n', cgiflags)
         return
 
+    # Check if CGI field-name is valid
+    CGI_SEPERATORS = set(['(', ')', '<', '>', '@', ',', ';', ':', '\\', '"',
+            '/', '[', ']', '?', '=', '{', '}', ' ', '\t'])
+    if any((char in CGI_SEPERATORS for char in name)):
+        warning = "Warning"
+        if not cgiflags.gentle:
+            message = """An unexpected server error has occured."""
+            warning = "Error"
+        else:
+            # Header contained illegal characters
+            message = """You printed an invalid CGI header. CGI header
+            field-names can not contain any of the following characters: 
+            <code>( ) &lt; &gt; @ , ; : \\ " / [ ] ? = { } <em>SPACE 
+            TAB</em></code>."""
+        write_html_warning(req, message, warning=warning)
+        cgiflags.wrote_html_warning = True
+        # Handle the rest of this line as normal data
+        process_cgi_output(req, line + '\n', cgiflags)
+        return
+
     # Read CGI headers
     value = value.strip()
     if name == "Content-Type":
@@ -348,11 +376,14 @@ interpreter_objects = {
     # python-server-page
 }
 
-def cgi_environ(req, script_path, user):
+def cgi_environ(req, script_path, user, overrides=None):
     """Gets CGI variables from apache and makes a few changes for security and 
     correctness.
 
     Does not modify req, only reads it.
+
+    overrides: A dict mapping env var names to strings, to override arbitrary
+        environment variables in the resulting CGI environent.
     """
     env = {}
     # Comments here are on the heavy side, explained carefully for security
@@ -413,6 +444,8 @@ def cgi_environ(req, script_path, user):
     username = user.login
     env['HOME'] = os.path.join('/home', username)
 
+    if overrides is not None:
+        env.update(overrides)
     return env
 
 class ExecutionError(Exception):
@@ -451,3 +484,56 @@ def execute_raw(config, user, jail_dir, working_dir, binary, args):
         raise ExecutionError('subprocess ended with code %d, stderr: "%s"' %
                              (exitcode, stderr))
     return (stdout, stderr)
+
+def jail_call(req, cgi_script, script_name, query_string=None,
+    request_method="GET", extra_overrides=None):
+    """
+    Makes a call to a CGI script inside the jail from outside the jail.
+    This can be used to allow Python scripts to access jail-only functions and
+    data without having to perform a full API request.
+
+    req: A Request object (will not be written to or attributes modified).
+    cgi_script: Path to cgi script outside of jail.
+        eg: os.path.join(req.config['paths']['share'],
+                         'services/fileservice')
+    script_name: Name to set as SCRIPT_NAME for the CGI environment.
+        eg: "/fileservice/"
+    query_string: Query string to set as QUERY_STRING for the CGI environment.
+        eg: "action=svnrepostat&path=/users/studenta/"
+    request_method: Method to set as REQUEST_METHOD for the CGI environment.
+        eg: "POST". Defaults to "GET".
+    extra_overrides: A dict mapping env var names to strings, to override
+        arbitrary environment variables in the resulting CGI environent.
+
+    Returns a triple (status_code, content_type, contents).
+    """
+    interp_object = interpreter_objects["cgi-python"]
+    user_jail_dir = os.path.join(req.config['paths']['jails']['mounts'],
+                                 req.user.login)
+    overrides = {
+        "SCRIPT_NAME": script_name,
+        "QUERY_STRING": query_string,
+        "REQUEST_URI": "%s%s%s" % (script_name, "?" if query_string else "",
+                                   query_string),
+        "REQUEST_METHOD": request_method,
+    }
+    if extra_overrides is not None:
+        overrides.update(extra_overrides)
+    result = DummyReq(req)
+    interpret_file(result, req.user, user_jail_dir, cgi_script, interp_object,
+                   gentle=False, overrides=overrides)
+    return result.status, result.content_type, result.getvalue()
+
+class DummyReq(StringIO.StringIO):
+    """A dummy request object, built from a real request object, which can be
+    used like a req but doesn't mutate the existing request.
+    (Used for reading CGI responses as strings rather than forwarding their
+    output to the current request.)
+    """
+    def __init__(self, req):
+        StringIO.StringIO.__init__(self)
+        self._real_req = req
+    def get_cgi_environ(self):
+        return self._real_req.get_cgi_environ()
+    def __getattr__(self, name):
+        return getattr(self._real_req, name)

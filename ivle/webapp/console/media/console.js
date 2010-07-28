@@ -533,16 +533,16 @@ function console_reset()
 }
 
 /** Prints an error line in the console **/
-function print_error(error, class)
-{ 
-    if (!class)
-        class = "errorMsg";
+function print_error(error, cls)
+{
+    if (!cls)
+        cls = "errorMsg";
 
     var output = document.getElementById("console_output");
   
     // Create text block
     var span = document.createElement("span");
-    span.setAttribute("class", class);
+    span.setAttribute("class", cls);
     span.appendChild(document.createTextNode(error + "\n"));
     output.appendChild(span);
 

@@ -26,12 +26,16 @@ Provides an HTTP RPC interface to a Python console process.
 import os
 import socket
 
-import cjson
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 import errno
 
 import ivle.console
 import ivle.chat
-from ivle.webapp.base.rest import JSONRESTView, named_operation
+from ivle.webapp.base.rest import JSONRESTView, write_operation
 from ivle.webapp.errors import BadRequest
 
 # XXX: Should be RPC view, with actions in URL?
@@ -43,7 +47,7 @@ class ConsoleServiceRESTView(JSONRESTView):
         else:
             return set()
 
-    @named_operation('use')
+    @write_operation('use')
     def start(self, req, cwd=''):
         working_dir = os.path.join("/home", req.user.login, cwd)
 
@@ -54,11 +58,11 @@ class ConsoleServiceRESTView(JSONRESTView):
                 working_dir)
 
         # Assemble the key and return it. Yes, it is double-encoded.
-        return {'key': cjson.encode({"host": cons.host,
-                                     "port": cons.port,
-                                     "magic": cons.magic}).encode('hex')}
+        return {'key': json.dumps({"host": cons.host,
+                                   "port": cons.port,
+                                   "magic": cons.magic}).encode('hex')}
 
-    @named_operation('use')
+    @write_operation('use')
     def chat(self, req, key, text='', cwd='', kind="chat"):
         # The request *should* have the following four fields:
         # key: Hex JSON dict of host and port where the console server lives,
@@ -68,7 +72,7 @@ class ConsoleServiceRESTView(JSONRESTView):
         # It simply acts as a proxy to the console server
 
         try:
-            keydict = cjson.decode(key.decode('hex'))
+            keydict = json.loads(key.decode('hex'))
             host = keydict['host']
             port = keydict['port']
             magic = keydict['magic']
@@ -88,8 +92,8 @@ class ConsoleServiceRESTView(JSONRESTView):
             try:
                 json_response = ivle.chat.chat(host, port, msg, magic,decode=False)
                 # Snoop the response from python-console to check that it's valid
-                response = cjson.decode(json_response)
-            except (cjson.DecodeError, ivle.chat.ProtocolError):
+                response = json.loads(json_response)
+            except (ValueError, ivle.chat.ProtocolError):
                 # Could not decode the reply from the python-console server
                 response = {"terminate":
                     "Communication lost"}
@@ -122,7 +126,7 @@ def restart_console(config, user, jail_path, working_dir, reason):
     cons = ivle.console.Console(config, user, jail_path, working_dir)
 
     # Make a JSON object to tell the browser to restart its console client
-    new_key = cjson.encode(
+    new_key = json.dumps(
         {"host": cons.host, "port": cons.port, "magic": cons.magic})
 
     return {"restart": reason, "key": new_key.encode("hex")}

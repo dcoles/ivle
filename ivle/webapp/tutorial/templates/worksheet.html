@@ -11,7 +11,7 @@
     </script>
   </head>
   <body>
-    <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.semester}</py:def>
+    <py:def function="offering_url(offering)">/subjects/${offering.subject.short_name}/${offering.semester.year}/${offering.semester.url_name}</py:def>
     <h1>${worksheet.name} in ${subject.name}</h1>
     <div id="ivle_padding">
       <div class="contextactions" py:if="'edit' in worksheet.get_permissions(user, config)">

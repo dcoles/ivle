@@ -34,7 +34,9 @@ from ivle.webapp import ApplicationRoot
 # This maps a media namespace to an external dependency directory (in this
 # case specified by the configuration option media/externals/jquery) and a
 # list of permitted subpaths.
-EXTERNAL_MEDIA_MAP = {'jquery': ('jquery', ['jquery.js'])}
+EXTERNAL_MEDIA_MAP = {'jquery': ('jquery', ['jquery.js']),
+                      'codemirror': ('codemirror', None),
+                      }
 
 def media_url(req, plugin, path):
     '''Generates a URL to a media file.
@@ -70,7 +72,8 @@ class MediaFile(object):
                 return None
 
             # Unless it's a whitelisted path, we don't want to hear about it.
-            if self.path not in extern[1]:
+            # If the whitelist is None (not []), we allow all.
+            if extern[1] is not None and self.path not in extern[1]:
                 return None
 
             # Grab the admin-configured path for this particular external dep.

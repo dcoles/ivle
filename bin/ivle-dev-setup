@@ -41,11 +41,11 @@ rerun this script with your username as an argument.
 logging.info("Installing dependencies.")
 subprocess.check_call([
     "sudo", "apt-get", "install", "apache2", "libapache2-mod-python",
-    "libapache2-svn", "python2.6", "python-cjson", "python-configobj",
+    "libapache2-svn", "python2.6", "python-configobj",
     "python-docutils", "python-epydoc", "python-formencode",
     "python-genshi", "python-psycopg2", "python-svn", "python-storm",
-    "libjs-jquery", "postgresql", "subversion", "debootstrap", "rsync",
-    "build-essential"])
+    "libjs-jquery", "libjs-codemirror", "postgresql", "subversion",
+    "debootstrap", "rsync", "build-essential"])
 
 logging.info("Building.")
 subprocess.check_call(["./setup.py", "build"])

@@ -93,10 +93,15 @@ submitted version). You should verify after each submission -- you can verify
 any submitted project from the subject page.
 
 If you go into the *Intermediate IVLE ‣ group1* directory, you will be able
-to make a group submission to Phase 2 (which is a group project). Note that
-the Phase 3 submission has already closed.
-Also note that the file here (``phase2.html``) was edited by studenta and
+to make a group submission to Phase 2 (which is a group project). Also note
+that the file here (``phase2.html``) was edited by studenta and
 studentb collaboratively, as you can see in the project's revision log.
+
+Note that the Phase 3 submission has already closed. You can still make a
+"late submission" to a project that has closed, but there is an extra
+confirmation step. Lecturers are given details on late submissions and may
+deduct marks accordingly.
+
 
 Worksheets
 ----------
@@ -200,9 +205,9 @@ From the offering page, click *View submissions* under the project of interest.
 This takes you to a page which lists the latest submissions from every student
 (presumably you will just see the submission made by ``studenta`` earlier in
 this tour). Next to each submission is a command line, beginning with
-``svn co``. For instance, you might see the line::
+``svn export``. For instance, you might see the line::
 
- svn co --username lecturer -r7 http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html
+ svn export --username lecturer -r7 'http://svn.ivle.localhost/users/studenta/ivle-102/phase1.html' studenta.html
 
 Paste this line into a command-line (or, if you use a GUI Subversion client,
 use the username, revision and URL given). Subversion will likely prompt for a
@@ -211,14 +216,15 @@ will **not** be your normal IVLE password. You can learn your Subversion
 password by going to your user settings page (it is hidden by default, for
 security reasons).
 
-This will check out the student's work into the current directory, to inspect.
+This will download the student's work into the current directory, to inspect.
+
+.. note::
+   This page shows late submissions in red, with a "*", and the number of
+   days late, rounded upwards. Therefore, a submission which is 1 second late
+   is shown with a "(1)", while a submission that is 24 hours and 1 second
+   late is shown with a "(2)".
 
 You can also try to check out the group submission from Phase 2.
-
-.. warning::
-   It is currently not possible to check out a single file (not a directory)
-   submission using the instructions given. Instead, run ``svn cat``, and
-   redirect the output into a file.
 
 Managing worksheets and exercises
 ---------------------------------

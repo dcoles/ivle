@@ -29,6 +29,9 @@ function runexercise(exerciseid, filename)
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
 
+    /* Convert newlines to a single LF (mainly for IE's CRLFs) */
+    code = code.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
     /* Dump the entire file to the console */
     var callback = function()
     {
@@ -62,6 +65,9 @@ function submitexercise(exerciseid, filename)
     var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
+
+    /* Convert newlines to a single LF (mainly for IE's CRLFs) */
+    code = code.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     /* Send the form as multipart/form-data, since we are sending a whole lump
      * of Python code, it should be treated like a file upload. */
@@ -118,6 +124,9 @@ function saveexercise(exerciseid, filename)
     var exercisediv = document.getElementById(exerciseid);
     var exercisebox = exercisediv.getElementsByTagName("textarea")[0];
     var code = exercisebox.value;
+
+    /* Convert newlines to a single LF (mainly for IE's CRLFs) */
+    code = code.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
     var args = {"text": code, "ivle.op": "save"};
 
