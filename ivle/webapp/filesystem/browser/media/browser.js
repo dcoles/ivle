@@ -537,7 +537,7 @@ function handle_binary(path)
 {
     // Disable save button
     using_codepress = false;
-    disable_save_if_safe();
+    disable_save();
 
     // Show download link
     var files = document.getElementById("filesbody");
@@ -560,7 +560,7 @@ function handle_image(path)
 {
     /* Disable save button */
     using_codepress = false;
-    disable_save_if_safe();
+    disable_save();
 
     /* URL */
     var url = app_url(service_app, path) + "?return=contents";
@@ -583,7 +583,7 @@ function handle_video(path, type)
 {
     /* Disable save button and hide the save panel */
     using_codepress = false;
-    disable_save_if_safe();
+    disable_save();
 
     /* URL */
     var url = app_url(service_app, path) + "?return=contents";
@@ -623,7 +623,7 @@ function handle_audio(path, type)
 {
     /* Disable save button and hide the save panel */
     using_codepress = false;
-    disable_save_if_safe();
+    disable_save();
 
     /* URL */
     var url = app_url(service_app, path) + "?return=contents";
@@ -663,7 +663,7 @@ function handle_object(path, content_type)
 {
     /* Disable save button and hide the save panel */
     using_codepress = false;
-    disable_save_if_safe();
+    disable_save();
 
     /* URL */
     var url = app_url(service_app, path) + "?return=contents";
