@@ -114,6 +114,7 @@ function handle_text_response(path, content_type, response_text)
 
     txt_elem.style.width = "100%";
     txt_elem.style.height = "100%";
+    txt_elem.style.padding = "0";
     window.onbeforeunload = confirm_beforeunload;
 
     /* Always use CodeMirror (unless we find a good reason not to!) */
@@ -148,6 +149,7 @@ function handle_text_response(path, content_type, response_text)
                     ],
             onChange: edit_text,
             indentUnit: 4,
+            width: "auto", // Fixes issue with > 100% width
             tabMode: "spaces",
             lineNumbers: true,
             initCallback: function() {codemirror_language(language);},
