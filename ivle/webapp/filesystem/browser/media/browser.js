@@ -357,10 +357,10 @@ function handle_contents_response(path, content_type)
         handle_image(path);
         break;
     case "video":
-        handle_video(path, content_type);
+        handle_html5_media(path, content_type, "video");
         break;
     case "audio":
-        handle_audio(path, content_type);
+        handle_html5_media(path, content_type, "audio");
         break;
     case "object":
         handle_object(path, content_type);
@@ -577,9 +577,10 @@ function handle_image(path)
     $("#filesbody").append(div);
 }
 
-/** Displays a video.
+/* Displays a media file using an HTML5 <audio> or <video> tag.
+ * Falls back to <object> if the format is unsupported.
  */
-function handle_video(path, type)
+function handle_html5_media(path, type, tag_name)
 {
     /* Disable save button and hide the save panel */
     using_codepress = false;
@@ -589,71 +590,35 @@ function handle_video(path, type)
     var url = app_url(service_app, path) + "?return=contents";
     var download_url = app_url(download_app, path);
 
-    /* Fallback Download Link */
-    var link = $('<p>Could not display video in browser.<p><p><a /></p>');
-    var a = link.find('a');
-    a.attr("href", download_url);
-    a.text("Download " + path);
+    /* Fallback download link */
+    var link = $(
+        '<p>Could not play ' + tag_name + ' file. ' +
+        'Try <a>downloading it</a> instead.</p>');
+    link.find('a').attr("href", download_url);
 
-    /* Fallback Object Tag */
-    var obj = $('<object />');
-    obj.attr("type", type);
-    obj.attr("data", url);
-    obj.append(link);
+    /* HTML 5 media element */
+    var html5_element = $(
+        '<' + tag_name + ' controls="true" autoplay="true" />');
+    html5_element.attr("src", url);
+    var support = (html5_element[0].canPlayType &&
+                   html5_element[0].canPlayType(type));
 
-    /* HTML 5 Video Tag */
-    var video = $('<video controls="true" autoplay="true" />');
-    video.attr("src", url);
-    var support = video[0].canPlayType && video[0].canPlayType(type);
-    if (support != "probably" && support != "maybe") {
-        // Use Fallback
-        video = obj;
+    /* If the browser thinks it might be able to play it, use the HTML5
+     * element. Otherwise, fall back to an <object>, which might work.
+     */
+    if (support == "probably" || support == "maybe") {
+        var element = html5_element;
+    } else {
+        var element = $('<object />');
+        element.attr("type", type);
+        element.attr("data", url);
     }
+    element.append(link);
 
     /* Show Preview */
     var div = $('<div class="padding" />');
-    div.append('<h1>Video Preview</h1>');
-    div.append(video);
-    $("#filesbody").append(div);
-}
-
-/** Display audio content
- */
-function handle_audio(path, type)
-{
-    /* Disable save button and hide the save panel */
-    using_codepress = false;
-    disable_save();
-
-    /* URL */
-    var url = app_url(service_app, path) + "?return=contents";
-    var download_url = app_url(download_app, path);
-
-    /* Fallback Download Link */
-    var link = $('<p>Could not display audio in browser.<p><p><a /></p>');
-    var a = link.find('a');
-    a.attr("href", download_url);
-    a.text("Download " + path);
-
-    /* Fallback Object Tag */
-    var obj = $('<object />');
-    obj.attr("type", type);
-    obj.attr("data", url);
-    obj.append(link);
-
-    /* HTML 5 Audio Tag */
-    var audio = $('<audio controls="true" autoplay="true" />');
-    audio.attr("src", url);
-    var support = audio[0].canPlayType && audio[0].canPlayType(type);
-    if (support != "probably" && support != "maybe") {
-        // Use Fallback
-        audio = obj;
-    }
-
-    /* Show Preview */
-    var div = $('<div class="padding" />');
-    div.append('<h1>Audio Preview</h1>');
-    div.append(audio);
+    div.append('<h1>File preview</h1>');
+    div.append(element);
     $("#filesbody").append(div);
 }
 
