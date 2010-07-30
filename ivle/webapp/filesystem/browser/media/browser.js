@@ -654,6 +654,51 @@ function handle_object(path, content_type)
     $("#filesbody").append(div);
 }
 
+/* Present an element for the given path.
+ * Gives it a title and download link.
+ */
+function present_custom_handler(path, type, element)
+{
+    /* Disable save button and hide the save panel */
+    using_codepress = false;
+    disable_save();
+
+    /* URL */
+    var url = app_url(service_app, path) + "?return=contents";
+    var download_url = app_url(download_app, path);
+
+    /* Fallback download link */
+    var link = $(
+        '<p>Could not play ' + tag_name + ' file. ' +
+        'Try <a>downloading it</a> instead.</p>');
+    link.find('a').attr("href", download_url);
+
+    /* HTML 5 media element */
+    var html5_element = $(
+        '<' + tag_name + ' controls="true" autoplay="true" />');
+    html5_element.attr("src", url);
+    var support = (html5_element[0].canPlayType &&
+                   html5_element[0].canPlayType(type));
+
+    /* If the browser thinks it might be able to play it, use the HTML5
+     * element. Otherwise, fall back to an <object>, which might work.
+     */
+    if (support == "probably" || support == "maybe") {
+        var element = html5_element;
+    } else {
+        var element = $('<object />');
+        element.attr("type", type);
+        element.attr("data", url);
+    }
+    element.append(link);
+
+    /* Show Preview */
+    var div = $('<div class="padding" />');
+    div.append('<h1>File preview</h1>');
+    div.append(element);
+    $("#filesbody").append(div);
+}
+
 /* Enable or disable actions1 moreactions actions. Takes either a single
  * name, or an array of them.*/
 function set_action_state(names, which, allow_on_revision)
