@@ -264,8 +264,8 @@ Type "help", "copyright", "credits" or "license" for more information.
             self.globs = {'__name__': '__main__'}
             for g in params:
                 try:
-                    self.globs[g] = cPickle.loads(params[g])
-                except:
+                    self.globs[g] = cPickle.loads(str(params[g]))
+                except cPickle.UnpicklingError:
                     pass
 
         # Return the current globals
