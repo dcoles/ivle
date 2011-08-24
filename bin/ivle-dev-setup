@@ -40,7 +40,8 @@ rerun this script with your username as an argument.
 
 logging.info("Installing dependencies.")
 subprocess.check_call([
-    "sudo", "apt-get", "install", "apache2", "libapache2-mod-python",
+    "sudo", "apt-get", "install", "--no-install-recommends",
+    "apache2", "libapache2-mod-python",
     "libapache2-svn", "python2.6", "python-configobj",
     "python-docutils", "python-epydoc", "python-formencode",
     "python-genshi", "python-psycopg2", "python-svn", "python-storm",
