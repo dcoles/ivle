@@ -29,7 +29,7 @@ def debootstrap_create_jail(release, path, components=['main', 'universe'],
         mirror = 'http://archive.ubuntu.com/ubuntu'
     ec = os.spawnvp(os.P_WAIT, 'debootstrap',
               ['debootstrap', '--components=' + ','.join(components),
-               '--include=ubuntu-keyring', '--variant=minbase',
+               '--include=ubuntu-keyring,gnupg', '--variant=minbase',
                release, path, mirror])
     if ec != 0:
         raise JailBuildError('debootstrap failed with code %d' % ec)
